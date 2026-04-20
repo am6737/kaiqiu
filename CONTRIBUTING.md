@@ -1,5 +1,7 @@
 # Contributing to 开球 · GameOn
 
+**中文** · [English](CONTRIBUTING.en.md)
+
 欢迎贡献。本文档是给**内部团队成员**和**社区贡献者**的协作指南。
 
 项目概况、技术栈、目录结构、运行方式见 [README.md](README.md)。本文档只讲"怎么协作"。

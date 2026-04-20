@@ -203,7 +203,7 @@ Two jobs run in parallel:
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide (currently Chinese only; English version welcome via PR).
+See [CONTRIBUTING.en.md](CONTRIBUTING.en.md) for the full guide ([中文](CONTRIBUTING.md)).
 
 Quick reference:
 - Branch naming: `feat/` `fix/` `refactor/` `docs/` `chore/` `test/`
