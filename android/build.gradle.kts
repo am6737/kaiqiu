@@ -14,42 +14,37 @@ rootProject.layout.buildDirectory.value(newBuildDir)
 subprojects {
     val newSubprojectBuildDir: Directory = newBuildDir.dir(project.name)
     project.layout.buildDirectory.value(newSubprojectBuildDir)
-}
-subprojects {
-    project.evaluationDependsOn(":app")
-}
 
-// AGP 8+ requires every Android library to declare a namespace. Older
-// plugins (amap_flutter_map / amap_flutter_location / amap_flutter_base@3.0.0)
-// still rely on the `package` attribute in their AndroidManifest, which was
-// removed from AGP as a namespace source. Patch them here after evaluation.
-subprojects {
-    afterEvaluate {
-        if (project.name in setOf(
-                "amap_flutter_map",
-                "amap_flutter_location",
-            )
-        ) {
+    // AGP 8+ requires every Android library to declare a namespace. Older
+    // plugins (amap_flutter_map / amap_flutter_location @3.0.0) still rely
+    // on the `package` attribute in AndroidManifest, which AGP no longer
+    // accepts as a namespace source. React to the android-library plugin
+    // being applied and patch the namespace inline.
+    //
+    // This must happen BEFORE the evaluationDependsOn(":app") block below:
+    // that forces subprojects to evaluate immediately, after which
+    // afterEvaluate hooks would throw "project is already evaluated".
+    plugins.withId("com.android.library") {
+        if (project.name in setOf("amap_flutter_map", "amap_flutter_location")) {
             project.extensions.findByName("android")?.let { ext ->
                 try {
-                    // Reflection keeps this file independent of AGP types.
                     val clazz = ext::class.java
                     val current =
                         clazz.getMethod("getNamespace").invoke(ext) as String?
                     if (current.isNullOrBlank()) {
                         clazz
                             .getMethod("setNamespace", String::class.java)
-                            .invoke(
-                                ext,
-                                "com.amap.flutter.${project.name}",
-                            )
+                            .invoke(ext, "com.amap.flutter.${project.name}")
                     }
                 } catch (_: Throwable) {
-                    // AGP < 7 doesn't need this; ignore.
+                    // AGP < 7 doesn't expose get/setNamespace; ignore.
                 }
             }
         }
     }
+}
+subprojects {
+    project.evaluationDependsOn(":app")
 }
 
 tasks.register<Delete>("clean") {
