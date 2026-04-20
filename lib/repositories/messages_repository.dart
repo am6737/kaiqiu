@@ -22,13 +22,16 @@ class ConversationRow {
     this.unread = 0,
   });
 
-  factory ConversationRow.fromJoined(Map<String, dynamic> m) {
-    final conv = m['conversations'] as Map<String, dynamic>;
+  static ConversationRow? fromJoined(Map<String, dynamic> m) {
+    final conv = (m['conversations'] as Map?)?.cast<String, dynamic>();
+    if (conv == null) return null;
+    final updatedAtStr = conv['updated_at'] as String?;
+    if (updatedAtStr == null) return null;
     return ConversationRow(
       id: conv['id'] as String,
       title: conv['title'] as String?,
       kind: (conv['kind'] as String?) ?? 'dm',
-      updatedAt: DateTime.parse(conv['updated_at'] as String),
+      updatedAt: DateTime.parse(updatedAtStr),
       unread: (m['unread'] as int?) ?? 0,
     );
   }
@@ -39,13 +42,14 @@ class MessagesRepository {
   Future<List<ConversationRow>> listConversations() async {
     final rows = await supabase
         .from('conversation_members')
-        .select('unread, conversations(id, title, kind, updated_at)')
+        .select('unread, conversations!inner(id, title, kind, updated_at)')
         .eq('user_id', currentUserId!)
         .order('updated_at',
             referencedTable: 'conversations', ascending: false);
     return (rows as List)
         .cast<Map<String, dynamic>>()
         .map(ConversationRow.fromJoined)
+        .whereType<ConversationRow>()
         .toList();
   }
 
