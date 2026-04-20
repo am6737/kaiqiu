@@ -487,36 +487,50 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
               child: Column(
                 children: [
                   GestureDetector(
+                    behavior: HitTestBehavior.opaque,
                     onTap: () => setState(() => _sheetOpen = !_sheetOpen),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      width: double.infinity,
-                      child: Center(
-                        child: Container(
-                          width: 36,
-                          height: 4,
-                          decoration: BoxDecoration(
-                            color: T.inkMute,
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
-                    child: Row(
+                    onVerticalDragEnd: (details) {
+                      final v = details.primaryVelocity ?? 0;
+                      if (v > 150 && _sheetOpen) {
+                        setState(() => _sheetOpen = false);
+                      } else if (v < -150 && !_sheetOpen) {
+                        setState(() => _sheetOpen = true);
+                      }
+                    },
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
-                          context.l10n.pickup_city_pickup_count(pickups.length),
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: T.ink,
+                        Container(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          width: double.infinity,
+                          child: Center(
+                            child: Container(
+                              width: 36,
+                              height: 4,
+                              decoration: BoxDecoration(
+                                color: T.inkMute,
+                                borderRadius: BorderRadius.circular(2),
+                              ),
+                            ),
                           ),
                         ),
-                        const Spacer(),
-                        Label(context.l10n.pickup_map_sort_distance),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+                          child: Row(
+                            children: [
+                              Text(
+                                context.l10n.pickup_city_pickup_count(pickups.length),
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: T.ink,
+                                ),
+                              ),
+                              const Spacer(),
+                              Label(context.l10n.pickup_map_sort_distance),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
                   ),
