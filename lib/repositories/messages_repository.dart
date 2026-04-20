@@ -53,12 +53,6 @@ class MessagesRepository {
         .toList();
   }
 
-  /// Bootstrap: creates a demo conversation if the caller has none, returns its id.
-  Future<String> ensureDemoConversation() async {
-    final id = await supabase.rpc('ensure_demo_conversation') as String;
-    return id;
-  }
-
   /// Initial fetch of a conversation's messages (oldest first).
   Future<List<Message>> listMessages(String convId) async {
     final rows = await supabase

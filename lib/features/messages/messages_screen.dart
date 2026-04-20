@@ -11,35 +11,11 @@ import '../../widgets/avatar.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/typography.dart';
 
-class MessagesScreen extends ConsumerStatefulWidget {
+class MessagesScreen extends ConsumerWidget {
   const MessagesScreen({super.key});
 
   @override
-  ConsumerState<MessagesScreen> createState() => _MessagesScreenState();
-}
-
-class _MessagesScreenState extends ConsumerState<MessagesScreen> {
-  bool _bootstrapping = false;
-
-  Future<void> _bootstrapIfNeeded(List<ConversationRow> list) async {
-    if (list.isNotEmpty || _bootstrapping) return;
-    setState(() => _bootstrapping = true);
-    try {
-      await ref.read(messagesRepoProvider).ensureDemoConversation();
-      ref.invalidate(conversationsProvider);
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('创建对话失败：$e')),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _bootstrapping = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(conversationsProvider);
     return Scaffold(
       backgroundColor: T.bg,
@@ -61,11 +37,19 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
               child: async.when(
                 data: (list) {
                   if (list.isEmpty) {
-                    // Auto-bootstrap a demo conversation on first open.
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      _bootstrapIfNeeded(list);
-                    });
-                    return const _EmptyState();
+                    return RefreshIndicator(
+                      color: T.live,
+                      backgroundColor: T.elev1,
+                      onRefresh: () async =>
+                          ref.invalidate(conversationsProvider),
+                      child: ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: const [
+                          SizedBox(height: 120),
+                          _EmptyState(),
+                        ],
+                      ),
+                    );
                   }
                   return RefreshIndicator(
                     color: T.live,
@@ -216,20 +200,16 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: const [
-            Icon(Icons.chat_bubble_outline, size: 40, color: T.inkMute),
-            SizedBox(height: 10),
-            Text('正在创建新手大厅…',
-                style: TextStyle(color: T.inkSub, fontSize: 14)),
-            SizedBox(height: 4),
-            Label('稍等'),
-          ],
-        ),
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: const [
+          Icon(Icons.chat_bubble_outline, size: 40, color: T.inkMute),
+          SizedBox(height: 10),
+          Text('暂无消息',
+              style: TextStyle(color: T.inkSub, fontSize: 14)),
+        ],
       ),
     );
   }
