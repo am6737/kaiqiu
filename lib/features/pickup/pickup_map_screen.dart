@@ -13,6 +13,7 @@ import '../../widgets/live_pill.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/sport_icon.dart';
 import '../../widgets/typography.dart';
+import 'map/real_map.dart';
 
 class PickupMapScreen extends ConsumerStatefulWidget {
   const PickupMapScreen({super.key});
@@ -248,99 +249,15 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
       backgroundColor: T.bg,
       body: Stack(
         children: [
-          // Stylized map background
+          // Real map (AMap on mobile, SVG canvas on web via conditional import).
           Positioned.fill(
-            child: Container(
-              color: const Color(0xFF0E1310),
-              child: CustomPaint(painter: _MapPainter()),
-            ),
-          ),
-          // Pins
-          for (final p in pickups)
-            Builder(
-              builder: (ctx) {
-                final size = MediaQuery.of(ctx).size;
-                final lng = p.lng ?? 0.5;
-                final lat = p.lat ?? 0.5;
-                final x = lng * size.width;
-                final y = lat * size.height * 0.7 + 120;
-                final isActive = _activePin == p.id;
-                final stateKey = switch (p.status) {
-                  PickupStatus.full => 'full',
-                  PickupStatus.almost => 'almost',
-                  _ => 'open',
-                };
-                final Color statusColor = switch (stateKey) {
-                  'almost' => T.warn,
-                  'full' => T.inkMute,
-                  _ => T.live,
-                };
-                return Positioned(
-                  left: x - 16,
-                  top: y - 40,
-                  child: GestureDetector(
-                    onTap: () => setState(() {
-                      _activePin = p.id;
-                      _sheetOpen = true;
-                    }),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: isActive ? 40 : 32,
-                          height: isActive ? 40 : 32,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: T.elev1,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: statusColor, width: 2),
-                            boxShadow: [
-                              BoxShadow(
-                                color: statusColor.withValues(alpha: 0.25),
-                                blurRadius: 12,
-                              ),
-                            ],
-                          ),
-                          child: SportIcon(
-                            Sport.football,
-                            size: isActive ? 18 : 14,
-                            color: statusColor,
-                          ),
-                        ),
-                        Container(
-                          width: 6,
-                          height: 6,
-                          margin: const EdgeInsets.only(top: -3),
-                          decoration: BoxDecoration(
-                            color: statusColor,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-          // "You are here" dot
-          Positioned(
-            left: MediaQuery.of(context).size.width / 2 - 7,
-            top: MediaQuery.of(context).size.height * 0.45,
-            child: Container(
-              width: 14,
-              height: 14,
-              decoration: BoxDecoration(
-                color: const Color(0xFF3B82F6),
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 2),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF3B82F6).withValues(alpha: 0.25),
-                    blurRadius: 6,
-                    spreadRadius: 4,
-                  ),
-                ],
-              ),
+            child: RealPickupMap(
+              pickups: pickups,
+              activePinId: _activePin,
+              onPinTap: (id) => setState(() {
+                _activePin = id;
+                _sheetOpen = true;
+              }),
             ),
           ),
           // Top bar (gradient fade)
@@ -442,10 +359,14 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
               ),
             ),
           ),
-          // FAB — host a new pickup
-          Positioned(
+          // FAB — host a new pickup (sits just above the bottom sheet)
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
             right: 16,
-            bottom: MediaQuery.of(context).size.height * 0.57,
+            bottom:
+                (_sheetOpen ? MediaQuery.of(context).size.height * 0.55 : 80) +
+                12,
             child: GestureDetector(
               onTap: () => context.push('/pickup/create'),
               child: Container(
@@ -519,7 +440,9 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                           child: Row(
                             children: [
                               Text(
-                                context.l10n.pickup_city_pickup_count(pickups.length),
+                                context.l10n.pickup_city_pickup_count(
+                                  pickups.length,
+                                ),
                                 style: const TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w600,
@@ -593,86 +516,6 @@ class _LegendRow extends StatelessWidget {
       ],
     );
   }
-}
-
-class _MapPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    // background grid
-    final grid = Paint()..color = const Color(0x08FFFFFF);
-    for (double x = 0; x < size.width; x += 40) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), grid);
-    }
-    for (double y = 0; y < size.height; y += 40) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), grid);
-    }
-    // major roads
-    final road = Paint()
-      ..color = const Color(0x14FFFFFF)
-      ..strokeWidth = 10
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-    canvas.drawPath(
-      Path()
-        ..moveTo(-20, 180)
-        ..quadraticBezierTo(120, 200, 260, 140)
-        ..quadraticBezierTo(400, 80, size.width + 40, 90),
-      road,
-    );
-    final road2 = Paint()
-      ..color = const Color(0x0FFFFFFF)
-      ..strokeWidth = 8
-      ..style = PaintingStyle.stroke;
-    canvas.drawPath(
-      Path()
-        ..moveTo(60, -20)
-        ..lineTo(80, 400)
-        ..lineTo(140, size.height + 20),
-      road2,
-    );
-    canvas.drawPath(
-      Path()
-        ..moveTo(size.width * 0.8, -20)
-        ..lineTo(size.width * 0.65, 400)
-        ..lineTo(size.width * 0.72, size.height + 20),
-      road2,
-    );
-    // parks
-    final park = Paint()..color = const Color(0x0A00FF85);
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        const Rect.fromLTWH(30, 230, 110, 80),
-        const Radius.circular(4),
-      ),
-      park,
-    );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(size.width - 160, 380, 120, 90),
-        const Radius.circular(4),
-      ),
-      park,
-    );
-    // water band at bottom
-    final water = Paint()..color = const Color(0x146496C8);
-    canvas.drawPath(
-      Path()
-        ..moveTo(-20, size.height - 100)
-        ..quadraticBezierTo(
-          size.width / 2,
-          size.height - 120,
-          size.width + 20,
-          size.height - 90,
-        )
-        ..lineTo(size.width + 20, size.height)
-        ..lineTo(-20, size.height)
-        ..close(),
-      water,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _MapPainter old) => false;
 }
 
 class _MapListRow extends StatelessWidget {
