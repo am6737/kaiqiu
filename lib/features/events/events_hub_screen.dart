@@ -341,9 +341,7 @@ class _LiveEventRow extends StatelessWidget {
     final teams = (event.id.hashCode.abs() % (teamsMax + 1));
     final progress = teamsMax > 0 ? teams / teamsMax : 0.0;
     final prizeLabel = event.prizeCents != null
-        ? l.event_prize_wan(
-            (event.prizeCents! / 1000000).toStringAsFixed(1),
-          )
+        ? l.event_prize_wan((event.prizeCents! / 1000000).toStringAsFixed(1))
         : l.event_prize_pending;
     final deadlineLabel = event.deadline != null
         ? l.event_deadline_md_suffix(

@@ -436,8 +436,8 @@ class _BottomNav extends StatelessWidget {
               label: submitting
                   ? context.l10n.rate_submitting
                   : (idx == total - 1
-                      ? context.l10n.rate_submit_score
-                      : context.l10n.rate_next),
+                        ? context.l10n.rate_submit_score
+                        : context.l10n.rate_next),
               variant: BtnVariant.primary,
               size: BtnSize.lg,
               disabled: !canSubmit || submitting,
@@ -660,7 +660,9 @@ class _DonePage extends StatelessWidget {
                         height: 1.5,
                       ),
                       children: [
-                        TextSpan(text: context.l10n.rate_done_thanks_body(count)),
+                        TextSpan(
+                          text: context.l10n.rate_done_thanks_body(count),
+                        ),
                         TextSpan(
                           text: context.l10n.rate_done_credit_suffix,
                           style: const TextStyle(

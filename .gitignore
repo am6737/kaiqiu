@@ -12,6 +12,9 @@
 .swiftpm/
 migrate_working_dir/
 
+# Superpowers / Claude Code skill scratch
+.superpowers/
+
 # IntelliJ related
 *.iml
 *.ipr

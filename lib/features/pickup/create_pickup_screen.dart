@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../l10n/l10n_extension.dart';
 import '../../providers.dart';
+import '../../services/storage.dart';
 import '../../services/supabase.dart';
 import '../../theme/tokens.dart';
 import '../../utils/toast.dart';
@@ -30,6 +31,31 @@ class _CreatePickupScreenState extends ConsumerState<CreatePickupScreen> {
   String _formation = '4-3-3';
   String _fieldType = '11人制';
   bool _submitting = false;
+  String? _venuePhotoUrl;
+  bool _uploadingPhoto = false;
+
+  Future<void> _pickVenuePhoto() async {
+    final uid = currentUserId;
+    if (uid == null) {
+      showToast(context, context.l10n.error_please_login, error: true);
+      return;
+    }
+    setState(() => _uploadingPhoto = true);
+    try {
+      final url = await StorageService().pickCropCompressAndUpload(
+        bucket: 'pickup-photos',
+        pathPrefix: uid,
+        square: false,
+      );
+      if (url == null) return;
+      setState(() => _venuePhotoUrl = url);
+    } catch (e) {
+      if (!mounted) return;
+      showToast(context, '$e', error: true);
+    } finally {
+      if (mounted) setState(() => _uploadingPhoto = false);
+    }
+  }
 
   static String _defaultStart() {
     final d = DateTime.now().add(const Duration(days: 1));
@@ -100,6 +126,7 @@ class _CreatePickupScreenState extends ConsumerState<CreatePickupScreen> {
               'formation': _formation,
               'field_type': _fieldType,
               'status': 'open',
+              if (_venuePhotoUrl != null) 'venue_photo_url': _venuePhotoUrl,
             },
             totalSlots: total,
             formation: _formation,
@@ -238,6 +265,55 @@ class _CreatePickupScreenState extends ConsumerState<CreatePickupScreen> {
                           ],
                         ),
                       ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+                    child: GestureDetector(
+                      onTap: _uploadingPhoto ? null : _pickVenuePhoto,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          color: T.elev2,
+                          border: Border.all(color: T.line),
+                          borderRadius: BorderRadius.circular(T.r2),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              _venuePhotoUrl == null
+                                  ? Icons.add_photo_alternate_outlined
+                                  : Icons.check_circle,
+                              size: 18,
+                              color: _venuePhotoUrl == null ? T.inkSub : T.live,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                _venuePhotoUrl == null
+                                    ? '场地照片（可选）· 点击上传'
+                                    : '已上传场地照片',
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: T.inkSub,
+                                ),
+                              ),
+                            ),
+                            if (_uploadingPhoto)
+                              const SizedBox(
+                                width: 14,
+                                height: 14,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: T.live,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 ],

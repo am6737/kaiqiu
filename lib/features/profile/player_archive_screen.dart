@@ -291,8 +291,9 @@ class _PlayerArchiveScreenState extends ConsumerState<PlayerArchiveScreen>
                       children: [
                         Label(context.l10n.archive_teammates_title),
                         const Spacer(),
-                        Label(context.l10n
-                            .archive_teammates_sub(teammates.length)),
+                        Label(
+                          context.l10n.archive_teammates_sub(teammates.length),
+                        ),
                       ],
                     ),
                   ),
@@ -318,7 +319,9 @@ class _PlayerArchiveScreenState extends ConsumerState<PlayerArchiveScreen>
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
-                            Label(context.l10n.archive_teammates_matches(t.matches)),
+                            Label(
+                              context.l10n.archive_teammates_matches(t.matches),
+                            ),
                           ],
                         );
                       },

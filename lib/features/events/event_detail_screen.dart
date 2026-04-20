@@ -15,6 +15,8 @@ import '../../l10n/l10n_extension.dart';
 import '../../models/event.dart';
 import '../../models/message.dart';
 import '../../providers.dart';
+import '../../repositories/favorites_repository.dart';
+import '../../repositories/goals_repository.dart';
 import '../../services/local_storage.dart';
 import '../../services/supabase.dart';
 import '../../theme/tokens.dart';
@@ -122,7 +124,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                 'overview' => _OverviewPanel(event: event),
                 'bracket' => _BracketPanel(eventId: event.id),
                 'standings' => _StandingsPanel(eventId: event.id),
-                'scorers' => const _ScorersPanel(),
+                'scorers' => _ScorersPanel(eventId: event.id),
                 'ratings' => RatingsPanel(event: event),
                 _ => _ChatPanel(eventId: event.id),
               },
@@ -842,10 +844,7 @@ class _StandingsTable extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
             child: Row(
               children: [
-                SizedBox(
-                  width: 24,
-                  child: Label(l.event_standings_rank),
-                ),
+                SizedBox(width: 24, child: Label(l.event_standings_rank)),
                 const SizedBox(width: 10),
                 Expanded(child: Label(l.event_standings_team)),
                 SizedBox(
@@ -955,10 +954,11 @@ class _StandingsTable extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Scorers — mock (需要 goals 表，Session D 再接)
+// Scorers — `event_scorers` view (goals 表, S3.1 0011 迁移)
 // ─────────────────────────────────────────────────────────────
 class _ScorersPanel extends ConsumerWidget {
-  const _ScorersPanel();
+  final String eventId;
+  const _ScorersPanel({required this.eventId});
   static const _medal = [
     Color(0xFFFFD700),
     Color(0xFFC0C0C0),
@@ -967,90 +967,131 @@ class _ScorersPanel extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Derived from mock scorers until goals table lands.
-    final rows = ref.watch(scorersProvider);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-      child: Column(
-        children: [
-          for (int i = 0; i < rows.length; i++)
-            Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              decoration: BoxDecoration(
-                color: T.elev2,
-                border: Border.all(color: T.line),
-                borderRadius: BorderRadius.circular(T.r2),
-              ),
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: 28,
-                    child: Center(
-                      child: i < 3
-                          ? Container(
-                              width: 22,
-                              height: 22,
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color: _medal[i],
-                                shape: BoxShape.circle,
-                              ),
-                              child: Text(
-                                '${i + 1}',
-                                style: const TextStyle(
-                                  fontFamily: T.fontMono,
-                                  fontFamilyFallback: T.monoFallbacks,
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 11,
-                                  color: Colors.black,
-                                ),
-                              ),
-                            )
-                          : N(
-                              '${rows[i].rank}',
-                              size: 14,
-                              weight: FontWeight.w600,
-                              color: T.inkSub,
-                            ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Avatar(rows[i].name, size: 36),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          rows[i].name,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: T.ink,
-                          ),
-                        ),
-                        Label(
-                          '${rows[i].team} · ${context.l10n.archive_teammates_matches(rows[i].matches)}',
-                        ),
-                      ],
-                    ),
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      N(
-                        '${rows[i].goals}',
-                        size: 22,
-                        weight: FontWeight.w700,
-                        color: T.live,
-                      ),
-                      Label(context.l10n.event_scorers_goals),
-                    ],
-                  ),
-                ],
+    final async = ref.watch(eventScorersProvider(eventId));
+    return async.when(
+      loading: () => const Padding(
+        padding: EdgeInsets.symmetric(vertical: 40),
+        child: Center(child: CircularProgressIndicator(color: T.live)),
+      ),
+      error: (_, _) => Padding(
+        padding: const EdgeInsets.all(24),
+        child: Center(
+          child: Text(
+            context.l10n.error_load_failed,
+            style: const TextStyle(color: T.inkSub, fontSize: 12),
+          ),
+        ),
+      ),
+      data: (rows) {
+        if (rows.isEmpty) {
+          return Padding(
+            padding: const EdgeInsets.all(32),
+            child: Center(
+              child: Text(
+                context.l10n.event_scorers_goals,
+                style: const TextStyle(color: T.inkSub, fontSize: 12),
               ),
             ),
+          );
+        }
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+          child: Column(
+            children: [
+              for (int i = 0; i < rows.length; i++)
+                _ScorerCard(rank: i + 1, row: rows[i], medal: _medal),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _ScorerCard extends StatelessWidget {
+  final int rank;
+  final ScorerRow row;
+  final List<Color> medal;
+  const _ScorerCard({
+    required this.rank,
+    required this.row,
+    required this.medal,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: T.elev2,
+        border: Border.all(color: T.line),
+        borderRadius: BorderRadius.circular(T.r2),
+      ),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 28,
+            child: Center(
+              child: rank <= 3
+                  ? Container(
+                      width: 22,
+                      height: 22,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: medal[rank - 1],
+                        shape: BoxShape.circle,
+                      ),
+                      child: Text(
+                        '$rank',
+                        style: const TextStyle(
+                          fontFamily: T.fontMono,
+                          fontFamilyFallback: T.monoFallbacks,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 11,
+                          color: Colors.black,
+                        ),
+                      ),
+                    )
+                  : N(
+                      '$rank',
+                      size: 14,
+                      weight: FontWeight.w600,
+                      color: T.inkSub,
+                    ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Avatar(row.name, size: 36),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  row.name,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: T.ink,
+                  ),
+                ),
+                Label(context.l10n.archive_teammates_matches(row.matches)),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              N(
+                '${row.goals}',
+                size: 22,
+                weight: FontWeight.w700,
+                color: T.live,
+              ),
+              Label(context.l10n.event_scorers_goals),
+            ],
+          ),
         ],
       ),
     );
@@ -1089,8 +1130,9 @@ class _ChatPanelState extends ConsumerState<_ChatPanel> {
       await ref.read(messagesRepoProvider).send(convId, text);
       _inputC.clear();
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         showToast(context, context.l10n.chat_send_failed, error: true);
+      }
     } finally {
       if (mounted) setState(() => _sending = false);
     }
@@ -1203,8 +1245,9 @@ class _Msg extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppL10n.of(context);
-    final sender =
-        msg.senderId == currentUserId ? l.event_chat_sender_you : l.event_chat_sender_stranger;
+    final sender = msg.senderId == currentUserId
+        ? l.event_chat_sender_you
+        : l.event_chat_sender_stranger;
     final hh = msg.createdAt.hour.toString().padLeft(2, '0');
     final mm = msg.createdAt.minute.toString().padLeft(2, '0');
     return Padding(
@@ -1378,7 +1421,9 @@ class _BottomCta extends ConsumerWidget {
                   } catch (_) {
                     /* ignore: registration in offline / mock mode still persists locally. */
                   }
-                  await LocalStore.toggleFavoriteEvent(event.id);
+                  await ref
+                      .read(favoritesRepoProvider)
+                      .toggle(FavoriteEntity.event, event.id);
                   if (ctx.mounted) Navigator.of(ctx).pop();
                   if (context.mounted) {
                     showToast(context, l.event_register_success, success: true);
@@ -1518,10 +1563,13 @@ class _RatingsPanelState extends ConsumerState<RatingsPanel> {
                     const SizedBox(height: 6),
                     Row(
                       children: [
-                        Label(context.l10n.event_rating_players_count(rows.length)),
+                        Label(
+                          context.l10n.event_rating_players_count(rows.length),
+                        ),
                         const Spacer(),
-                        Label(context.l10n
-                            .event_rating_votes_count(totalVotes)),
+                        Label(
+                          context.l10n.event_rating_votes_count(totalVotes),
+                        ),
                       ],
                     ),
                   ],
@@ -1545,9 +1593,7 @@ class _RatingsPanelState extends ConsumerState<RatingsPanel> {
             ),
         Padding(
           padding: const EdgeInsets.all(16),
-          child: Center(
-            child: Label(context.l10n.event_rating_tap_for_detail),
-          ),
+          child: Center(child: Label(context.l10n.event_rating_tap_for_detail)),
         ),
       ],
     );

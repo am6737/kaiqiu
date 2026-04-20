@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../l10n/l10n_extension.dart';
 import '../../providers.dart';
+import '../../repositories/favorites_repository.dart';
 import '../../services/local_storage.dart';
 import '../../theme/tokens.dart';
 import '../../widgets/avatar.dart';
@@ -163,7 +164,9 @@ class _PickupTab extends ConsumerWidget {
                       ),
                       GestureDetector(
                         onTap: () async {
-                          await LocalStore.toggleFavoritePickup(p.id);
+                          await ref
+                              .read(favoritesRepoProvider)
+                              .toggle(FavoriteEntity.pickup, p.id);
                         },
                         child: const Icon(
                           Icons.favorite,
@@ -219,7 +222,9 @@ class _EventTab extends ConsumerWidget {
                 trailing: IconButton(
                   icon: const Icon(Icons.favorite, size: 18, color: T.live),
                   onPressed: () async {
-                    await LocalStore.toggleFavoriteEvent(e.id);
+                    await ref
+                        .read(favoritesRepoProvider)
+                        .toggle(FavoriteEntity.event, e.id);
                   },
                 ),
                 onTap: () => context.push('/event/${e.id}'),
@@ -262,7 +267,9 @@ class _PlayerTab extends ConsumerWidget {
             ),
             trailing: TextButton(
               onPressed: () async {
-                await LocalStore.toggleFollowUser(name);
+                await ref
+                    .read(favoritesRepoProvider)
+                    .toggle(FavoriteEntity.user, name);
               },
               child: Text(
                 l.common_unfollow,

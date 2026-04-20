@@ -1,0 +1,86 @@
+# release-ios.yml — DISABLED until Apple Developer account is ready.
+#
+# To enable:
+#   1. Apple Developer Program membership ($99/year).
+#   2. Create App in App Store Connect (bundle: com.kaiqiu.gameon).
+#   3. Generate Distribution cert → export to .p12.
+#   4. Create App Store Connect API Key (issuer id, key id, .p8 private key).
+#   5. Add secrets listed below.
+#   6. `mv .github/workflows-disabled/release-ios.yml .github/workflows/`
+#
+# Expected secrets:
+#   APPLE_CERT_P12           — base64 of .p12 certificate
+#   APPLE_CERT_PASSWORD
+#   APPLE_ISSUER_ID          — App Store Connect API issuer UUID
+#   APPLE_KEY_ID             — API key id
+#   APPLE_PRIVATE_KEY        — full .p8 contents (including BEGIN/END lines)
+#   APPLE_TEAM_ID
+
+name: Release iOS
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  ios:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+
+      - name: CocoaPods install
+        run: |
+          cd ios
+          pod install --repo-update
+
+      - name: Install signing cert
+        uses: Apple-Actions/import-codesign-certs@v3
+        with:
+          p12-file-base64: ${{ secrets.APPLE_CERT_P12 }}
+          p12-password: ${{ secrets.APPLE_CERT_PASSWORD }}
+
+      - name: Install provisioning profile
+        uses: Apple-Actions/download-provisioning-profiles@v3
+        with:
+          bundle-id: com.kaiqiu.gameon
+          issuer-id: ${{ secrets.APPLE_ISSUER_ID }}
+          api-key-id: ${{ secrets.APPLE_KEY_ID }}
+          api-private-key: ${{ secrets.APPLE_PRIVATE_KEY }}
+
+      - name: Build IPA
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+          FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+          FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          AMAP_IOS_KEY: ${{ secrets.AMAP_IOS_KEY }}
+        run: |
+          ARGS=""
+          for var in SUPABASE_URL SUPABASE_ANON_KEY \
+                     FIREBASE_API_KEY FIREBASE_APP_ID \
+                     FIREBASE_MESSAGING_SENDER_ID FIREBASE_PROJECT_ID \
+                     AMAP_IOS_KEY; do
+            val="${!var}"
+            if [ -n "$val" ]; then
+              ARGS="$ARGS --dart-define=$var=$val"
+            fi
+          done
+          flutter build ipa --release \
+            --export-options-plist=ios/export-options.plist $ARGS
+
+      - uses: Apple-Actions/upload-testflight-build@v3
+        with:
+          app-path: build/ios/ipa/*.ipa
+          issuer-id: ${{ secrets.APPLE_ISSUER_ID }}
+          api-key-id: ${{ secrets.APPLE_KEY_ID }}
+          api-private-key: ${{ secrets.APPLE_PRIVATE_KEY }}

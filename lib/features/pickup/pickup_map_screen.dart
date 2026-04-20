@@ -103,7 +103,7 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                     max: 300,
                     divisions: 30,
                     activeColor: T.live,
-                    label: '¥${localFee}',
+                    label: '¥$localFee',
                     onChanged: (v) => setModal(() => localFee = v.toInt()),
                   ),
                   const SizedBox(height: 14),

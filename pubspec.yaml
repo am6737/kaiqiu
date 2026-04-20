@@ -28,6 +28,25 @@ dependencies:
   share_plus: ^10.1.2
   url_launcher: ^6.3.1
 
+  # Images (S1)
+  image_picker: ^1.1.2
+  image_cropper: ^8.0.2
+  flutter_image_compress: ^2.3.0
+  cached_network_image: ^3.4.1
+
+  # Push notifications (S4). Only initialises when Env.isFirebaseConfigured.
+  firebase_core: ^3.8.1
+  firebase_messaging: ^15.1.6
+  flutter_local_notifications: ^18.0.1
+
+  # Maps (S2). iOS + Android plugins; web falls back to the existing
+  # SVG canvas via conditional imports in lib/features/pickup/map/.
+  amap_flutter_map: ^3.0.0
+  amap_flutter_base: ^3.0.0
+  amap_flutter_location: ^3.0.0
+  geolocator: ^13.0.2
+  permission_handler: ^11.3.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

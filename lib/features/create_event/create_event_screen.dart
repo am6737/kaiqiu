@@ -3,9 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:cached_network_image/cached_network_image.dart';
+
 import '../../l10n/l10n_extension.dart';
 import '../../models/event.dart';
 import '../../providers.dart';
+import '../../services/storage.dart';
 import '../../services/supabase.dart';
 import '../../theme/tokens.dart';
 import '../../utils/toast.dart';
@@ -34,15 +37,13 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   final _teamSize = TextEditingController(text: '11');
   final _maxTeams = TextEditingController(text: '16');
   String _review = 'auto';
+  String? _coverUrl;
+  bool _uploadingCover = false;
 
   List<(String, String, String)> _tpls(BuildContext context) {
     final l = context.l10n;
     return [
-      (
-        'group8',
-        l.create_event_tpl_group8,
-        l.create_event_tpl_group8_desc,
-      ),
+      ('group8', l.create_event_tpl_group8, l.create_event_tpl_group8_desc),
       (
         'knockout16',
         l.create_event_tpl_knockout16,
@@ -195,8 +196,8 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                 label: _step < 4
                     ? l.create_event_cta_next
                     : (_submitting
-                        ? l.create_event_cta_publishing
-                        : l.create_event_cta_publish),
+                          ? l.create_event_cta_publishing
+                          : l.create_event_cta_publish),
                 variant: BtnVariant.primary,
                 size: BtnSize.lg,
                 full: true,
@@ -234,6 +235,40 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       return;
     }
     setState(() => _submitting = true);
+    await _submitImpl();
+  }
+
+  Future<void> _pickCover() async {
+    final uid = supabase.auth.currentUser?.id;
+    if (uid == null) {
+      showToast(
+        context,
+        context.l10n.create_event_hint_not_logged,
+        error: true,
+      );
+      return;
+    }
+    setState(() => _uploadingCover = true);
+    try {
+      final url = await StorageService().pickCropCompressAndUpload(
+        bucket: 'event-covers',
+        pathPrefix: uid,
+        square: false,
+      );
+      if (url == null) return;
+      setState(() => _coverUrl = url);
+    } catch (e) {
+      if (!mounted) return;
+      showToast(context, '$e', error: true);
+    } finally {
+      if (mounted) setState(() => _uploadingCover = false);
+    }
+  }
+
+  Future<void> _submitImpl() async {
+    final l = context.l10n;
+    final uid = supabase.auth.currentUser?.id;
+    if (uid == null) return;
     try {
       await ref.read(eventsRepoProvider).create({
         'creator_id': uid,
@@ -247,6 +282,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         'deadline': _parseDate(_deadline.text)?.toIso8601String(),
         'starts_at': _parseDate(_start.text)?.toIso8601String(),
         'ends_at': _parseDate(_end.text)?.toIso8601String(),
+        if (_coverUrl != null) 'cover_url': _coverUrl,
       });
       ref.invalidate(liveEventsProvider(EventStatus.registering));
       if (!mounted) return;
@@ -547,10 +583,9 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   Widget _step4() {
     final l = context.l10n;
     final tpls = _tpls(context);
-    final tplName = tpls.firstWhere(
-      (t) => t.$1 == _tpl,
-      orElse: () => tpls[1],
-    ).$2;
+    final tplName = tpls
+        .firstWhere((t) => t.$1 == _tpl, orElse: () => tpls[1])
+        .$2;
     final prizeWan = (int.tryParse(_prize.text) ?? 0) / 10000;
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -571,7 +606,46 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
             l.create_event_preview_subtitle,
             style: const TextStyle(fontSize: 13, color: T.inkSub),
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 12),
+          GestureDetector(
+            onTap: _uploadingCover ? null : _pickCover,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: T.elev2,
+                border: Border.all(color: T.line),
+                borderRadius: BorderRadius.circular(T.r2),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    _coverUrl == null
+                        ? Icons.add_photo_alternate_outlined
+                        : Icons.check_circle,
+                    size: 18,
+                    color: _coverUrl == null ? T.inkSub : T.live,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      _coverUrl == null ? '封面（可选）· 点击上传' : '封面已上传',
+                      style: const TextStyle(fontSize: 12, color: T.inkSub),
+                    ),
+                  ),
+                  if (_uploadingCover)
+                    const SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: T.live,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
           Container(
             decoration: BoxDecoration(
               color: T.elev2,
@@ -586,12 +660,31 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                     topLeft: Radius.circular(T.r3),
                     topRight: Radius.circular(T.r3),
                   ),
-                  child: PhotoHalftone(
-                    label: _name.text,
-                    height: 110,
-                    hue: 140,
-                    variant: HalftoneVariant.lines,
-                  ),
+                  child: _coverUrl != null
+                      ? CachedNetworkImage(
+                          imageUrl: _coverUrl!,
+                          height: 110,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          placeholder: (_, _) => PhotoHalftone(
+                            label: _name.text,
+                            height: 110,
+                            hue: 140,
+                            variant: HalftoneVariant.lines,
+                          ),
+                          errorWidget: (_, _, _) => PhotoHalftone(
+                            label: _name.text,
+                            height: 110,
+                            hue: 140,
+                            variant: HalftoneVariant.lines,
+                          ),
+                        )
+                      : PhotoHalftone(
+                          label: _name.text,
+                          height: 110,
+                          hue: 140,
+                          variant: HalftoneVariant.lines,
+                        ),
                 ),
                 Padding(
                   padding: const EdgeInsets.all(14),

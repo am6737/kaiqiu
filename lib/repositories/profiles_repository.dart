@@ -37,7 +37,7 @@ class ProfilesRepository {
     await supabase.from('profiles').upsert({
       'id': uid,
       'name': name,
-      if (handle != null) 'handle': handle,
+      'handle': ?handle,
     });
   }
 }

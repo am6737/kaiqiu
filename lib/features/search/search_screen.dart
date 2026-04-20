@@ -229,7 +229,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               ),
               onTap: () async {
                 await LocalStore.pushSearch(q);
-                if (context.mounted) context.push('/pickup/${p.id}');
+                if (!mounted) return;
+                if (!context.mounted) return;
+                context.push('/pickup/${p.id}');
               },
             ),
         ],
@@ -253,7 +255,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               ),
               onTap: () async {
                 await LocalStore.pushSearch(q);
-                if (context.mounted) context.push('/event/${e.id}');
+                if (!mounted) return;
+                if (!context.mounted) return;
+                context.push('/event/${e.id}');
               },
             ),
         ],

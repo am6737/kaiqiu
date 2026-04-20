@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main, master]
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  flutter:
+    name: Analyze + test + web build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Flutter info
+        run: flutter --version
+
+      - run: flutter pub get
+
+      - name: Format check
+        run: dart format --output=none --set-exit-if-changed .
+
+      - run: flutter analyze --fatal-infos --no-fatal-warnings
+
+      - name: Run tests
+        run: flutter test --coverage
+        continue-on-error: true
+
+      - name: Upload coverage (if present)
+        if: ${{ hashFiles('coverage/lcov.info') != '' }}
+        uses: codecov/codecov-action@v4
+        with:
+          file: coverage/lcov.info
+          fail_ci_if_error: false
+
+      - name: Build web
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          ARGS=""
+          [ -n "$SUPABASE_URL" ] && ARGS="$ARGS --dart-define=SUPABASE_URL=$SUPABASE_URL"
+          [ -n "$SUPABASE_ANON_KEY" ] && ARGS="$ARGS --dart-define=SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY"
+          flutter build web --no-wasm-dry-run $ARGS
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kaiqiu-web
+          path: build/web
+          if-no-files-found: error

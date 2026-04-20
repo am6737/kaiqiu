@@ -1,0 +1,42 @@
+-- 0019_reminders_cron.sql — 每分钟扫 match_reminders，发送待处理提醒。
+--
+-- 前置要求：
+--   1. Supabase 项目已启用 pg_cron + pg_net 扩展（Dashboard → Database → Extensions）。
+--   2. send_push Edge Function 已部署 (`supabase functions deploy send_push`).
+--   3. 把下面的 <PROJECT_REF> 替换成真实 project ref（例：ejtkfaezztkwhmjqnvnb）。
+--
+-- 本迁移默认 COMMENT OUT，确认 prerequisites 后手动在 Supabase SQL Editor 跑。
+-- 这样 CI 跑 `supabase db push` 时不会因为缺扩展而失败。
+
+-- create extension if not exists pg_cron;
+-- create extension if not exists pg_net;
+--
+-- select cron.schedule(
+--   'send-match-reminders',
+--   '* * * * *',
+--   $$
+--     with due as (
+--       select user_id
+--         from public.match_reminders
+--        where sent_at is null and remind_at <= now()
+--     )
+--     select
+--       net.http_post(
+--         url := 'https://<PROJECT_REF>.functions.supabase.co/send_push',
+--         headers := jsonb_build_object(
+--           'content-type', 'application/json',
+--           'authorization', 'Bearer ' ||
+--             current_setting('app.settings.service_role_key', true)
+--         ),
+--         body := jsonb_build_object(
+--           'user_ids', (select coalesce(array_agg(user_id), array[]::uuid[]) from due),
+--           'title', '比赛即将开始',
+--           'body', '你订阅的比赛 10 分钟后开赛',
+--           'data', jsonb_build_object('route', '/worldcup')
+--         )
+--       ),
+--       (update public.match_reminders
+--          set sent_at = now()
+--        where sent_at is null and remind_at <= now());
+--   $$
+-- );

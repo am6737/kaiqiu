@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "cn.kaiqiu.app"
+    namespace = "com.kaiqiu.gameon"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -20,14 +20,16 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "cn.kaiqiu.app"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
+        applicationId = "com.kaiqiu.gameon"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        // Populated by CI via -PAMAP_ANDROID_KEY=... or locally via
+        // ~/.gradle/gradle.properties. Empty default keeps debug builds happy.
+        val amapKey = (project.findProperty("AMAP_ANDROID_KEY") as String?) ?: ""
+        manifestPlaceholders["AMAP_ANDROID_KEY"] = amapKey
     }
 
     buildTypes {

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'app.dart';
 import 'config/env.dart';
 import 'services/local_storage.dart';
+import 'services/push.dart';
 import 'services/supabase.dart';
 
 Future<void> main() async {
@@ -23,6 +24,9 @@ Future<void> main() async {
       'Pass --dart-define=SUPABASE_URL=... --dart-define=SUPABASE_ANON_KEY=...',
     );
   }
+
+  // Push wiring (no-op unless FIREBASE_* dart-defines are set).
+  await PushService.instance.init();
 
   runApp(const ProviderScope(child: KaiqiuApp()));
 }

@@ -8,10 +8,16 @@ import 'models/event.dart';
 import 'models/message.dart';
 import 'models/pickup.dart';
 import 'repositories/events_repository.dart';
+import 'repositories/favorites_repository.dart';
+import 'repositories/feedback_repository.dart';
+import 'repositories/goals_repository.dart';
 import 'repositories/messages_repository.dart';
 import 'repositories/pickups_repository.dart';
+import 'repositories/predictions_repository.dart';
 import 'repositories/profiles_repository.dart';
 import 'repositories/ratings_repository.dart';
+import 'repositories/reminders_repository.dart';
+import 'repositories/user_teams_repository.dart';
 import 'services/local_storage.dart';
 import 'services/supabase.dart';
 
@@ -28,6 +34,12 @@ final eventsRepoProvider = Provider((_) => EventsRepository());
 final ratingsRepoProvider = Provider((_) => RatingsRepository());
 final messagesRepoProvider = Provider((_) => MessagesRepository());
 final profilesRepoProvider = Provider((_) => ProfilesRepository());
+final userTeamsRepoProvider = Provider((_) => UserTeamsRepository());
+final goalsRepoProvider = Provider((_) => GoalsRepository());
+final predictionsRepoProvider = Provider((_) => PredictionsRepository());
+final remindersRepoProvider = Provider((_) => RemindersRepository());
+final favoritesRepoProvider = Provider((_) => FavoritesRepository());
+final feedbackRepoProvider = Provider((_) => FeedbackRepository());
 
 // ─────────────────────────────────────────────────────────────
 // Local storage tick — bump whenever LocalStore changes so widgets
@@ -187,6 +199,47 @@ final myFavoritePickupsProvider = FutureProvider<List<Pickup>>((ref) async {
   // Filter from the full list to avoid needing a dedicated RPC.
   final all = await ref.read(pickupsRepoProvider).listAll();
   return all.where((p) => ids.contains(p.id)).toList();
+});
+
+// ─────────────────────────────────────────────────────────────
+// S3 providers (user_teams / goals / predictions / reminders / favorites)
+// ─────────────────────────────────────────────────────────────
+
+final myTeamsProvider = FutureProvider<List<UserTeam>>((ref) async {
+  ref.watch(localStoreProvider);
+  return ref.read(userTeamsRepoProvider).listMine();
+});
+
+final eventScorersProvider = FutureProvider.family<List<ScorerRow>, String>((
+  ref,
+  eventId,
+) async {
+  return ref.read(goalsRepoProvider).scorersForEvent(eventId);
+});
+
+final matchGoalsProvider = FutureProvider.family<List<GoalEvent>, String>((
+  ref,
+  matchId,
+) async {
+  return ref.read(goalsRepoProvider).listForMatch(matchId);
+});
+
+final myPredictionProvider = FutureProvider.family<Prediction?, String>((
+  ref,
+  matchId,
+) async {
+  ref.watch(localStoreProvider);
+  return ref.read(predictionsRepoProvider).getMine(matchId);
+});
+
+final predictionDistProvider =
+    FutureProvider.family<PredictionDistribution, String>((ref, matchId) async {
+      return ref.read(predictionsRepoProvider).distribution(matchId);
+    });
+
+final myRemindersProvider = FutureProvider<List<MatchReminder>>((ref) async {
+  ref.watch(localStoreProvider);
+  return ref.read(remindersRepoProvider).listMine();
 });
 
 /// Current user's profile — real fields from Supabase (name, handle, city,

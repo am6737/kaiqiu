@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../l10n/l10n_extension.dart';
+import '../../providers.dart';
 import '../../services/local_storage.dart';
 import '../../theme/tokens.dart';
 import '../../utils/toast.dart';
@@ -175,7 +176,17 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
                     children: [
                       GestureDetector(
                         onTap: () async {
-                          await LocalStore.toggleReminder(widget.matchId);
+                          final repo = ref.read(remindersRepoProvider);
+                          if (LocalStore.hasReminder(widget.matchId)) {
+                            await repo.cancel(widget.matchId);
+                          } else {
+                            await repo.schedule(
+                              matchId: widget.matchId,
+                              remindAt: DateTime.now().add(
+                                const Duration(hours: 1),
+                              ),
+                            );
+                          }
                           if (context.mounted) {
                             showToast(
                               context,

@@ -1,4 +1,4 @@
-// wc_predict_screen.dart — 世界杯竞猜
+// wc_predict_screen.dart — 世界杯竞猜（PredictionsRepository 主，LocalStore cache 同步）
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -230,12 +230,16 @@ class _WcPredictScreenState extends ConsumerState<WcPredictScreen> {
           onPressed: _choice == null
               ? null
               : () async {
-                  await LocalStore.setPrediction(
-                    widget.matchId,
-                    _choice!,
-                    stake: _stake,
-                  );
-                  if (!mounted) return;
+                  await ref
+                      .read(predictionsRepoProvider)
+                      .submit(
+                        matchId: widget.matchId,
+                        choice: _choice!,
+                        stake: _stake,
+                      );
+                  ref.invalidate(myPredictionProvider(widget.matchId));
+                  ref.invalidate(predictionDistProvider(widget.matchId));
+                  if (!context.mounted) return;
                   showToast(context, l.wc_predict_submitted, success: true);
                   setState(() {});
                 },

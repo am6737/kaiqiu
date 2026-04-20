@@ -23,4 +23,23 @@ class Env {
 
   static bool get isConfigured =>
       supabaseUrl.isNotEmpty && supabaseAnonKey.isNotEmpty;
+
+  // Firebase / push (S4). Injected via --dart-define or firebase_options.dart.
+  // If empty at runtime, PushService.init() becomes a no-op.
+  static const firebaseApiKey = String.fromEnvironment('FIREBASE_API_KEY');
+  static const firebaseAppId = String.fromEnvironment('FIREBASE_APP_ID');
+  static const firebaseMessagingSenderId = String.fromEnvironment(
+    'FIREBASE_MESSAGING_SENDER_ID',
+  );
+  static const firebaseProjectId = String.fromEnvironment(
+    'FIREBASE_PROJECT_ID',
+  );
+
+  static bool get isFirebaseConfigured =>
+      firebaseApiKey.isNotEmpty && firebaseAppId.isNotEmpty;
+
+  // Maps (S2). Unused until map SDK is chosen.
+  static const amapIosKey = String.fromEnvironment('AMAP_IOS_KEY');
+  static const amapAndroidKey = String.fromEnvironment('AMAP_ANDROID_KEY');
+  static const amapWebKey = String.fromEnvironment('AMAP_WEB_KEY');
 }

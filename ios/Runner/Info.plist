@@ -66,5 +66,20 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>需要相册权限以更换头像或上传赛事/场地照片</string>
+	<key>NSCameraUsageDescription</key>
+	<string>需要相机权限以拍摄头像或场地照片</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>需要保存图片到相册</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>用于显示附近的约球与赛事</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>用于显示附近的约球与赛事（前台）</string>
+	<!-- S2 · Amap: the SDK reads this via +[AMapServices sharedServices] at
+	     launch. Value is substituted at build time from the AMAP_IOS_KEY
+	     dart-define / env var. -->
+	<key>AMapServices_AppKey</key>
+	<string>$(AMAP_IOS_KEY)</string>
 </dict>
 </plist>

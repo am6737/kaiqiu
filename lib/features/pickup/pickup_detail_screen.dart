@@ -7,9 +7,11 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../l10n/l10n_extension.dart';
 import '../../models/pickup.dart';
 import '../../providers.dart';
+import '../../repositories/favorites_repository.dart';
 import '../../services/local_storage.dart';
 import '../../services/supabase.dart' as svc;
 import '../../theme/tokens.dart';
+import 'map/mini_map.dart';
 import '../../utils/share_helper.dart';
 import '../../utils/toast.dart';
 import '../../widgets/avatar.dart';
@@ -71,7 +73,10 @@ class PickupDetailScreen extends ConsumerWidget {
                   ),
                 ),
                 _Details(),
-                _MiniMap(),
+                _MiniMap(
+                  lat: pickupAsync.valueOrNull?.lat,
+                  lng: pickupAsync.valueOrNull?.lng,
+                ),
               ],
             ),
           ),
@@ -117,7 +122,9 @@ class _Header extends ConsumerWidget {
               _CircleBtn(
                 icon: faved ? Icons.favorite : Icons.favorite_border,
                 onTap: () async {
-                  await LocalStore.toggleFavoritePickup(pickupId);
+                  await ref
+                      .read(favoritesRepoProvider)
+                      .toggle(FavoriteEntity.pickup, pickupId);
                 },
                 color: faved ? T.live : T.ink,
               ),
@@ -263,7 +270,9 @@ class _HostStrip extends ConsumerWidget {
             variant: followed ? BtnVariant.secondary : BtnVariant.ghost,
             size: BtnSize.sm,
             onPressed: () async {
-              await LocalStore.toggleFollowUser(hostName);
+              await ref
+                  .read(favoritesRepoProvider)
+                  .toggle(FavoriteEntity.user, hostName);
               if (context.mounted) {
                 showToast(
                   context,
@@ -371,7 +380,8 @@ class _Formation extends ConsumerWidget {
                   ),
                   N(
                     context.l10n.pickup_detail_slots_filled_of(
-                        _formation.length),
+                      _formation.length,
+                    ),
                     size: 12,
                     color: T.inkSub,
                   ),
@@ -693,6 +703,10 @@ class _Details extends StatelessWidget {
 }
 
 class _MiniMap extends StatelessWidget {
+  final double? lat;
+  final double? lng;
+  const _MiniMap({this.lat, this.lng});
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -704,46 +718,12 @@ class _MiniMap extends StatelessWidget {
           const SizedBox(height: 10),
           ClipRRect(
             borderRadius: BorderRadius.circular(T.r2),
-            child: Container(
-              height: 120,
-              color: const Color(0xFF0E1310),
-              child: CustomPaint(painter: _MiniMapPainter()),
-            ),
+            child: PickupMiniMap(lat: lat, lng: lng),
           ),
         ],
       ),
     );
   }
-}
-
-class _MiniMapPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final g = Paint()..color = const Color(0x0AFFFFFF);
-    for (double x = 0; x < size.width; x += 30) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), g);
-    }
-    for (double y = 0; y < size.height; y += 30) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), g);
-    }
-    final road = Paint()
-      ..color = const Color(0x1AFFFFFF)
-      ..strokeWidth = 6
-      ..style = PaintingStyle.stroke;
-    canvas.drawLine(Offset(0, 60), Offset(size.width, 70), road);
-    canvas.drawCircle(
-      Offset(size.width / 2, 60),
-      12,
-      Paint()
-        ..color = const Color(0x4D00FF85)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1,
-    );
-    canvas.drawCircle(Offset(size.width / 2, 60), 5, Paint()..color = T.live);
-  }
-
-  @override
-  bool shouldRepaint(covariant _MiniMapPainter old) => false;
 }
 
 class _BottomCta extends ConsumerWidget {

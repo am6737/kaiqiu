@@ -1,12 +1,11 @@
-// my_teams_screen.dart — 我的队伍（本地演示）
-import 'dart:math';
-
+// my_teams_screen.dart — 我的队伍（UserTeamsRepository + LocalStore fallback）
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../l10n/l10n_extension.dart';
 import '../../providers.dart';
+import '../../repositories/user_teams_repository.dart';
 import '../../services/local_storage.dart';
 import '../../theme/tokens.dart';
 import '../../utils/toast.dart';
@@ -23,8 +22,7 @@ class MyTeamsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
-    ref.watch(localStoreProvider);
-    final teams = LocalStore.myTeams;
+    final teamsAsync = ref.watch(myTeamsProvider);
     final teammates = ref.watch(teammatesProvider);
 
     return Scaffold(
@@ -38,7 +36,7 @@ class MyTeamsScreen extends ConsumerWidget {
               onBack: () => context.pop(),
               actions: [
                 GestureDetector(
-                  onTap: () => _showCreateSheet(context),
+                  onTap: () => _showCreateSheet(context, ref),
                   child: const Padding(
                     padding: EdgeInsets.all(6),
                     child: Icon(Icons.add, color: T.live),
@@ -46,31 +44,61 @@ class MyTeamsScreen extends ConsumerWidget {
                 ),
               ],
             ),
-            if (teams.isEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 20),
-                child: EmptyState(
-                  icon: Icons.shield_outlined,
-                  title: l.empty_no_teams,
-                  subtitle: l.empty_no_teams_sub,
-                  action: PrimaryButton(
-                    label: l.me_teams_create,
-                    variant: BtnVariant.primary,
-                    size: BtnSize.md,
-                    onPressed: () => _showCreateSheet(context),
+            ...teamsAsync.when(
+              loading: () => [
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 40),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+              ],
+              error: (_, _) => [
+                Padding(
+                  padding: const EdgeInsets.only(top: 20),
+                  child: EmptyState(
+                    icon: Icons.shield_outlined,
+                    title: l.empty_no_teams,
+                    subtitle: l.empty_no_teams_sub,
+                    action: PrimaryButton(
+                      label: l.me_teams_create,
+                      variant: BtnVariant.primary,
+                      size: BtnSize.md,
+                      onPressed: () => _showCreateSheet(context, ref),
+                    ),
                   ),
                 ),
-              ),
-            for (final t in teams)
-              _TeamCard(
-                team: t,
-                onRemove: () async {
-                  final ok = await _confirm(context, l.me_teams_remove_confirm);
-                  if (ok) {
-                    await LocalStore.removeTeam(t['id'] as String);
-                  }
-                },
-              ),
+              ],
+              data: (teams) => [
+                if (teams.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 20),
+                    child: EmptyState(
+                      icon: Icons.shield_outlined,
+                      title: l.empty_no_teams,
+                      subtitle: l.empty_no_teams_sub,
+                      action: PrimaryButton(
+                        label: l.me_teams_create,
+                        variant: BtnVariant.primary,
+                        size: BtnSize.md,
+                        onPressed: () => _showCreateSheet(context, ref),
+                      ),
+                    ),
+                  ),
+                for (final t in teams)
+                  _TeamCard(
+                    team: t,
+                    onRemove: () async {
+                      final ok = await _confirm(
+                        context,
+                        l.me_teams_remove_confirm,
+                      );
+                      if (ok) {
+                        await ref.read(userTeamsRepoProvider).delete(t.id);
+                        ref.invalidate(myTeamsProvider);
+                      }
+                    },
+                  ),
+              ],
+            ),
             const SizedBox(height: 20),
             SectionHeader(title: context.l10n.archive_teammates_title),
             Padding(
@@ -125,7 +153,7 @@ class MyTeamsScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _showCreateSheet(BuildContext context) async {
+  Future<void> _showCreateSheet(BuildContext context, WidgetRef ref) async {
     final l = context.l10n;
     final nameC = TextEditingController();
     final cityC = TextEditingController(text: LocalStore.city);
@@ -189,14 +217,14 @@ class MyTeamsScreen extends ConsumerWidget {
                       showToast(ctx, l.error_required_field, error: true);
                       return;
                     }
-                    final id = 'team-${Random().nextInt(999999)}';
-                    await LocalStore.addTeam({
-                      'id': id,
-                      'name': nameC.text.trim(),
-                      'city': cityC.text.trim(),
-                      'sub': subC.text.trim(),
-                      'created_at': DateTime.now().toIso8601String(),
-                    });
+                    await ref
+                        .read(userTeamsRepoProvider)
+                        .create(
+                          name: nameC.text.trim(),
+                          city: cityC.text.trim(),
+                          sub: subC.text.trim(),
+                        );
+                    ref.invalidate(myTeamsProvider);
                     if (ctx.mounted) Navigator.of(ctx).pop();
                   },
                 ),
@@ -238,13 +266,14 @@ class MyTeamsScreen extends ConsumerWidget {
 }
 
 class _TeamCard extends StatelessWidget {
-  final Map<String, dynamic> team;
+  final UserTeam team;
   final VoidCallback onRemove;
   const _TeamCard({required this.team, required this.onRemove});
 
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
+    final sub = team.sub ?? '';
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
       padding: const EdgeInsets.all(14),
@@ -279,7 +308,7 @@ class _TeamCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      team['name'] as String? ?? '',
+                      team.name,
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
@@ -287,7 +316,7 @@ class _TeamCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 2),
-                    Label(team['city'] as String? ?? ''),
+                    Label(team.city ?? ''),
                   ],
                 ),
               ),
@@ -303,10 +332,10 @@ class _TeamCard extends StatelessWidget {
               ),
             ],
           ),
-          if (((team['sub'] as String?) ?? '').isNotEmpty) ...[
+          if (sub.isNotEmpty) ...[
             const SizedBox(height: 8),
             Text(
-              team['sub'] as String,
+              sub,
               style: const TextStyle(
                 fontSize: 12,
                 color: T.inkSub,

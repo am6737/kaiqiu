@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../l10n/generated/app_localizations.dart';
 import '../../l10n/l10n_extension.dart';
-import '../../services/local_storage.dart';
+import '../../providers.dart';
 import '../../theme/tokens.dart';
 import '../../utils/toast.dart';
 import '../../widgets/primary_button.dart';
@@ -130,9 +130,9 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                       onPressed: () async {
                         final t = _fbC.text.trim();
                         if (t.isEmpty) return;
-                        await LocalStore.pushFeedback(t);
+                        await ref.read(feedbackRepoProvider).submit(body: t);
                         _fbC.clear();
-                        if (!mounted) return;
+                        if (!context.mounted) return;
                         showToast(
                           context,
                           l.settings_help_feedback_thanks,

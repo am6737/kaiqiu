@@ -116,10 +116,7 @@ class WorldCupScreen extends ConsumerWidget {
                     const SizedBox(height: 6),
                     Text(
                       l.wc_hero_sub,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: T.inkSub,
-                      ),
+                      style: const TextStyle(fontSize: 13, color: T.inkSub),
                     ),
                   ],
                 ),
@@ -391,7 +388,17 @@ class WorldCupScreen extends ConsumerWidget {
                         ),
                         GestureDetector(
                           onTap: () async {
-                            await LocalStore.toggleReminder(mid);
+                            final repo = ref.read(remindersRepoProvider);
+                            if (LocalStore.hasReminder(mid)) {
+                              await repo.cancel(mid);
+                            } else {
+                              await repo.schedule(
+                                matchId: mid,
+                                remindAt: DateTime.now().add(
+                                  const Duration(hours: 1),
+                                ),
+                              );
+                            }
                             if (context.mounted) {
                               showToast(
                                 context,

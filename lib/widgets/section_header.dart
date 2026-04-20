@@ -23,7 +23,7 @@ class SectionHeader extends StatelessWidget {
         children: [
           Label(title),
           const Spacer(),
-          if (trailing != null) trailing!,
+          ?trailing,
         ],
       ),
     );

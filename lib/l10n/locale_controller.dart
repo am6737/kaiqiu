@@ -1,5 +1,4 @@
 // locale_controller.dart — 应用级语言切换
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 import '../services/local_storage.dart';

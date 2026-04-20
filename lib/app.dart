@@ -13,7 +13,7 @@ class KaiqiuApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: LocaleController.instance,
-      builder: (_, __) {
+      builder: (_, _) {
         return MaterialApp.router(
           onGenerateTitle: (ctx) => AppL10n.of(ctx).app_name,
           debugShowCheckedModeBanner: false,

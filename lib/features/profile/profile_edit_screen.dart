@@ -5,10 +5,11 @@ import 'package:go_router/go_router.dart';
 
 import '../../l10n/l10n_extension.dart';
 import '../../providers.dart';
+import '../../services/storage.dart';
 import '../../services/supabase.dart';
 import '../../theme/tokens.dart';
 import '../../utils/toast.dart';
-import '../../widgets/avatar.dart';
+import '../../widgets/network_avatar.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/section_header.dart';
 import '../../widgets/typography.dart';
@@ -28,8 +29,10 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
   final _height = TextEditingController();
   String? _position;
   String? _foot;
+  String? _avatarUrl;
   bool _loading = true;
   bool _saving = false;
+  bool _uploadingAvatar = false;
 
   @override
   void initState() {
@@ -53,8 +56,39 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
       _height.text = (p?.height ?? '').toString();
       _position = p?.position;
       _foot = p?.foot;
+      _avatarUrl = p?.avatarUrl;
       _loading = false;
     });
+  }
+
+  Future<void> _pickAvatar() async {
+    final uid = currentUserId;
+    if (uid == null) {
+      showToast(context, context.l10n.error_please_login, error: true);
+      return;
+    }
+    setState(() => _uploadingAvatar = true);
+    try {
+      final url = await StorageService().pickCropCompressAndUpload(
+        bucket: 'avatars',
+        pathPrefix: uid,
+        square: true,
+      );
+      if (url == null) return;
+      await ref.read(profilesRepoProvider).update(uid, {'avatar_url': url});
+      if (!mounted) return;
+      setState(() => _avatarUrl = url);
+      ref.invalidate(myProfileProvider);
+    } catch (e) {
+      if (!mounted) return;
+      showToast(
+        context,
+        '${context.l10n.profile_edit_save_fail}: $e',
+        error: true,
+      );
+    } finally {
+      if (mounted) setState(() => _uploadingAvatar = false);
+    }
   }
 
   @override
@@ -236,30 +270,54 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
       child: Row(
         children: [
-          Avatar(n, size: 56),
+          GestureDetector(
+            onTap: _uploadingAvatar ? null : _pickAvatar,
+            child: Stack(
+              children: [
+                NetworkAvatar(n, url: _avatarUrl, size: 56),
+                if (_uploadingAvatar)
+                  const Positioned.fill(
+                    child: Center(
+                      child: SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: T.live,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
           const SizedBox(width: 12),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  l.profile_edit_avatar,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: T.inkSub,
-                    fontWeight: FontWeight.w500,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: _uploadingAvatar ? null : _pickAvatar,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l.profile_edit_avatar,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: T.inkSub,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  l.profile_edit_avatar_hint,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: T.inkDim,
-                    height: 1.5,
+                  const SizedBox(height: 3),
+                  Text(
+                    l.profile_edit_avatar_hint,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: T.inkDim,
+                      height: 1.5,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],
