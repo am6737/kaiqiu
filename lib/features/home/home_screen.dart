@@ -85,34 +85,6 @@ class HomeScreen extends ConsumerWidget {
               ),
             ),
           ),
-          // Floating + button
-          Positioned(
-            bottom: 100,
-            right: 18,
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () {},
-                customBorder: const CircleBorder(),
-                child: Container(
-                  width: 52,
-                  height: 52,
-                  decoration: BoxDecoration(
-                    color: T.live,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: T.live.withValues(alpha: 0.35),
-                        blurRadius: 24,
-                        offset: const Offset(0, 8),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(Icons.add, color: Colors.black, size: 24),
-                ),
-              ),
-            ),
-          ),
         ],
       ),
     );
