@@ -26,6 +26,7 @@ subprojects {
     // afterEvaluate hooks would throw "project is already evaluated".
     plugins.withId("com.android.library") {
         if (project.name in setOf("amap_flutter_map", "amap_flutter_location")) {
+            // 1. Inject the missing namespace AGP 8+ requires.
             project.extensions.findByName("android")?.let { ext ->
                 try {
                     val clazz = ext::class.java
@@ -38,6 +39,24 @@ subprojects {
                     }
                 } catch (_: Throwable) {
                     // AGP < 7 doesn't expose get/setNamespace; ignore.
+                }
+            }
+
+            // 2. AGP 8+ also refuses to process a manifest that still carries
+            //    the legacy `package="..."` attribute, even when a namespace
+            //    has been set programmatically. Strip it from the pub-cache
+            //    file in place; the regex is idempotent so subsequent builds
+            //    are no-ops and the modification is safe to share across
+            //    projects that consume the same cached plugin.
+            val manifest = project.file("src/main/AndroidManifest.xml")
+            if (manifest.exists()) {
+                val original = manifest.readText()
+                val patched = original.replace(
+                    Regex("""\s+package="[^"]*""""),
+                    "",
+                )
+                if (patched != original) {
+                    manifest.writeText(patched)
                 }
             }
         }
