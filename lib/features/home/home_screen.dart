@@ -1,0 +1,1062 @@
+// home_screen.dart — 首页 Feed, 1:1 with React prototype (screens-home.jsx).
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../data/mock.dart';
+import '../../models/pickup.dart' as live;
+import '../../providers.dart';
+import '../../theme/tokens.dart';
+import '../../widgets/avatar.dart';
+import '../../widgets/chip_pill.dart';
+import '../../widgets/live_pill.dart';
+import '../../widgets/sport_icon.dart';
+import '../../widgets/typography.dart';
+
+class HomeScreen extends ConsumerWidget {
+  const HomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final feeds = ref.watch(feedsProvider);
+    final liveNow = ref.watch(liveNowProvider);
+    final livePickups = ref.watch(livePickupsProvider);
+    // Keep only the non-pickup mock feed items — pickups come from Supabase.
+    final nonPickupFeeds = feeds.where((f) => f is! FeedPickup).toList();
+
+    return Scaffold(
+      backgroundColor: T.bg,
+      body: Stack(
+        children: [
+          SafeArea(
+            bottom: false,
+            child: RefreshIndicator(
+              color: T.live,
+              backgroundColor: T.elev1,
+              onRefresh: () async => ref.invalidate(livePickupsProvider),
+              child: ListView(
+                padding: const EdgeInsets.only(bottom: 90),
+                children: [
+                  const _TopBar(),
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(16, 4, 16, 6),
+                    child: Row(
+                      children: [
+                        Label('正在直播'),
+                        Spacer(),
+                        Label('查看全部'),
+                      ],
+                    ),
+                  ),
+                  _LiveStrip(items: liveNow),
+                  const _RateCtaBanner(),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+                    child: Row(
+                      children: [
+                        const Label('同城动态'),
+                        const Spacer(),
+                        const ChipPill(label: '全部', active: true),
+                        const SizedBox(width: 6),
+                        const ChipPill(label: '约球'),
+                        const SizedBox(width: 6),
+                        const ChipPill(label: '战报'),
+                      ],
+                    ),
+                  ),
+                  // Live pickup cards (from Supabase)
+                  ...livePickups.when(
+                    data: (list) => list
+                        .map((p) => _LivePickupCard(
+                              p: p,
+                              onTap: () => context.push('/pickup/${p.id}'),
+                            ))
+                        .toList(),
+                    loading: () => [const _PickupLoading()],
+                    error: (e, _) => [_PickupError(error: e, onRetry: () => ref.invalidate(livePickupsProvider))],
+                  ),
+                  // Rest of mock feed (results / posts / event teasers)
+                  for (final item in nonPickupFeeds) _feedCard(context, item),
+                  const Padding(
+                    padding: EdgeInsets.all(20),
+                    child: Center(child: Label('— 到底了 · 今天也是踢球的一天 —')),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Floating + button
+          Positioned(
+            bottom: 100,
+            right: 18,
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () {},
+                customBorder: const CircleBorder(),
+                child: Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: T.live,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: T.live.withValues(alpha: 0.35),
+                        blurRadius: 24,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(Icons.add, color: Colors.black, size: 24),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _feedCard(BuildContext ctx, FeedItem item) {
+    return switch (item) {
+      FeedPickup p => _PickupCard(
+          item: p,
+          onTap: () => ctx.push('/pickup/${p.id}'),
+        ),
+      FeedResult r => _ResultCard(item: r),
+      FeedPost p => _PostCard(item: p),
+      FeedEvent e => _EventTeaserCard(
+          item: e,
+          onTap: () => ctx.push('/event/${e.id}'),
+        ),
+    };
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Top bar: city + sport + search + bell
+// ─────────────────────────────────────────────────────────────
+class _TopBar extends ConsumerWidget {
+  const _TopBar();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final city = ref.watch(cityProvider);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+      child: Row(
+        children: [
+          Text(city,
+              style: const TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  color: T.ink,
+                  letterSpacing: -0.3)),
+          const SizedBox(width: 3),
+          const Icon(Icons.keyboard_arrow_down, size: 14, color: T.inkSub),
+          const SizedBox(width: 10),
+          const _SportPicker(),
+          const Spacer(),
+          const Icon(Icons.search, color: T.ink, size: 20),
+          const SizedBox(width: 12),
+          Stack(
+            clipBehavior: Clip.none,
+            children: const [
+              Icon(Icons.notifications_none, color: T.ink, size: 20),
+              Positioned(
+                right: 2,
+                top: 2,
+                child: _WarnDot(),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WarnDot extends StatelessWidget {
+  const _WarnDot();
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 6,
+      height: 6,
+      decoration: const BoxDecoration(color: T.warn, shape: BoxShape.circle),
+    );
+  }
+}
+
+class _SportPicker extends ConsumerWidget {
+  const _SportPicker();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final sport = ref.watch(sportProvider);
+    const labels = {
+      'football': '足球',
+      'basketball': '篮球',
+      'badminton': '羽毛球',
+      'pingpong': '乒乓球',
+      'cycling': '骑行',
+    };
+    return PopupMenuButton<String>(
+      offset: const Offset(0, 36),
+      color: T.elev2,
+      initialValue: sport,
+      onSelected: (v) => ref.read(sportProvider.notifier).state = v,
+      itemBuilder: (_) => [
+        for (final e in labels.entries)
+          PopupMenuItem(
+            value: e.key,
+            height: 36,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SportIcon(_parseSport(e.key), size: 14,
+                    color: e.key == sport ? T.live : T.inkSub),
+                const SizedBox(width: 8),
+                Text(e.value,
+                    style: TextStyle(
+                        fontSize: 13,
+                        color: e.key == sport ? T.live : T.ink)),
+              ],
+            ),
+          ),
+      ],
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: T.elev2,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: T.line),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SportIcon(_parseSport(sport), size: 13, color: T.live),
+            const SizedBox(width: 5),
+            Text(labels[sport] ?? '足球',
+                style: const TextStyle(fontSize: 12, color: T.ink)),
+            const SizedBox(width: 4),
+            const Icon(Icons.keyboard_arrow_down, size: 11, color: T.inkDim),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Sport _parseSport(String s) => switch (s) {
+        'basketball' => Sport.basketball,
+        'badminton' => Sport.badminton,
+        'pingpong' => Sport.pingpong,
+        'cycling' => Sport.cycling,
+        _ => Sport.football,
+      };
+}
+
+// ─────────────────────────────────────────────────────────────
+// Live strip (horizontal scroll)
+// ─────────────────────────────────────────────────────────────
+class _LiveStrip extends StatelessWidget {
+  final List<LiveMatch> items;
+  const _LiveStrip({required this.items});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 96,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+        itemCount: items.length,
+        separatorBuilder: (_, i) => const SizedBox(width: 10),
+        itemBuilder: (_, i) {
+          final m = items[i];
+          final aWins = m.scoreA > m.scoreB;
+          final bWins = m.scoreB > m.scoreA;
+          return Container(
+            width: 180,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: T.elev2,
+              border: Border.all(color: T.line),
+              borderRadius: BorderRadius.circular(T.r2),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const LivePill(),
+                    const Spacer(),
+                    Text(
+                      '${m.viewers} · ${m.minute}',
+                      style: const TextStyle(
+                          fontFamily: T.fontMono,
+                          fontFamilyFallback: T.monoFallbacks,
+                          fontSize: 10,
+                          color: T.inkDim,
+                          letterSpacing: 0.5),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(m.teamA,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                  fontSize: 12,
+                                  color: T.ink,
+                                  fontWeight: FontWeight.w500)),
+                          const SizedBox(height: 2),
+                          Text(m.teamB,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                  fontSize: 12,
+                                  color: T.ink,
+                                  fontWeight: FontWeight.w500)),
+                        ],
+                      ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        N('${m.scoreA}',
+                            size: 18,
+                            weight: FontWeight.w600,
+                            color: aWins ? T.live : T.ink),
+                        const SizedBox(height: 1),
+                        N('${m.scoreB}',
+                            size: 18,
+                            weight: FontWeight.w600,
+                            color: bWins ? T.live : T.ink),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Rating CTA banner
+// ─────────────────────────────────────────────────────────────
+class _RateCtaBanner extends StatelessWidget {
+  const _RateCtaBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),
+      child: GestureDetector(
+        onTap: () => GoRouter.of(context).push('/rate/$demoMatchId'),
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0x1A00FF85), Color(0x0FFF6B35)],
+            ),
+            border: Border.all(color: const Color(0x6600FF85)),
+            borderRadius: BorderRadius.circular(T.r3),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: T.elev3,
+                  border: Border.all(color: const Color(0x9900FF85)),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const N('9.0', size: 16, weight: FontWeight.w800, color: T.live),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        Text('给昨天的比赛打个分',
+                            style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: T.ink)),
+                        SizedBox(width: 6),
+                        _CreditPill(),
+                      ],
+                    ),
+                    SizedBox(height: 3),
+                    Label('龙岗村超 · 1/4决赛 · 9 位球员待评'),
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_right, size: 16, color: T.live),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CreditPill extends StatelessWidget {
+  const _CreditPill();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+      decoration: BoxDecoration(
+        color: T.warnDim,
+        borderRadius: BorderRadius.circular(2),
+      ),
+      child: const Text(
+        '+5 信用',
+        style: TextStyle(
+            fontFamily: T.fontMono,
+            fontFamilyFallback: T.monoFallbacks,
+            fontSize: 9,
+            fontWeight: FontWeight.w700,
+            color: T.warn),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Feed cards: Pickup / Result / Post / EventTeaser
+// ─────────────────────────────────────────────────────────────
+class _PickupCard extends StatelessWidget {
+  final FeedPickup item;
+  final VoidCallback onTap;
+  const _PickupCard({required this.item, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final filled = item.total - item.need;
+    final state = item.need <= 0
+        ? 'full'
+        : item.need <= 2 ? 'almost' : 'open';
+    const labels = {'open': '招人中', 'almost': '即将满员', 'full': '已满员'};
+    final stateColor = state == 'open' ? T.live : state == 'almost' ? T.warn : T.inkDim;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: T.elev2,
+          border: Border.all(color: T.line),
+          borderRadius: BorderRadius.circular(T.r3),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Avatar(item.host, size: 24),
+                const SizedBox(width: 8),
+                Text(item.host,
+                    style: const TextStyle(
+                        fontSize: 13,
+                        color: T.ink,
+                        fontWeight: FontWeight.w500)),
+                const SizedBox(width: 6),
+                Label('发起约球 · ${item.time}'),
+                const Spacer(),
+                StatusDot(state: state),
+                const SizedBox(width: 4),
+                Label(labels[state]!, color: stateColor),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(item.venue,
+                style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: T.ink,
+                    letterSpacing: -0.2)),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                const Icon(Icons.schedule, size: 12, color: T.inkSub),
+                const SizedBox(width: 4),
+                N(item.when, size: 12, color: T.inkSub),
+                const SizedBox(width: 10),
+                const Icon(Icons.currency_yen, size: 12, color: T.inkSub),
+                N('${item.fee}', size: 12, color: T.inkSub),
+                const SizedBox(width: 10),
+                Label(item.level),
+              ],
+            ),
+            const SizedBox(height: 10),
+            const Divider(height: 1, color: T.line),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                // Stacked mini avatars
+                SizedBox(
+                  width: (filled.clamp(0, 4) > 0)
+                      ? (22 + (filled.clamp(0, 4) - 1) * 16).toDouble()
+                      : 0,
+                  height: 22,
+                  child: Stack(
+                    children: [
+                      for (int i = 0; i < filled.clamp(0, 4); i++)
+                        Positioned(
+                          left: i * 16.0,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(color: T.elev2, width: 2),
+                            ),
+                            child: Avatar(['A','B','C','D'][i], size: 22),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                N('$filled', size: 12, weight: FontWeight.w600, color: T.ink),
+                N('/${item.total}', size: 12, color: T.inkDim),
+                const SizedBox(width: 6),
+                if (item.need > 0)
+                  N('缺 ${item.need}人', size: 12, color: T.live)
+                else
+                  const N('已满', size: 12, color: T.inkDim),
+                const Spacer(),
+                Text(
+                  item.need > 0 ? '一键报名 →' : '已满员',
+                  style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: item.need > 0 ? T.live : T.inkDim),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ResultCard extends StatelessWidget {
+  final FeedResult item;
+  const _ResultCard({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    final aWins = item.scoreA > item.scoreB;
+    final bWins = item.scoreB > item.scoreA;
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+      decoration: BoxDecoration(
+        color: T.elev2,
+        border: Border.all(color: T.line),
+        borderRadius: BorderRadius.circular(T.r3),
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: const BoxDecoration(
+              border: Border(bottom: BorderSide(color: T.line, width: 1)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.emoji_events_outlined,
+                    size: 12, color: T.inkSub),
+                const SizedBox(width: 6),
+                Label(item.event),
+                const Spacer(),
+                Label(item.time),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 18),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(item.teamA,
+                          style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: T.ink)),
+                      const SizedBox(height: 4),
+                      Container(
+                        width: 28,
+                        height: 28,
+                        decoration: BoxDecoration(
+                          color: HSLColor.fromAHSL(1, 25, 0.4, 0.28).toColor(),
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(color: T.line),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 14),
+                N('${item.scoreA}',
+                    size: 34,
+                    weight: FontWeight.w700,
+                    color: aWins ? T.live : T.ink),
+                const SizedBox(width: 8),
+                const Text('-',
+                    style: TextStyle(
+                        color: T.inkDim,
+                        fontFamily: T.fontMono,
+                        fontSize: 16)),
+                const SizedBox(width: 8),
+                N('${item.scoreB}',
+                    size: 34,
+                    weight: FontWeight.w700,
+                    color: bWins ? T.live : T.ink),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(item.teamB,
+                          style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: T.ink)),
+                      const SizedBox(height: 4),
+                      Container(
+                        width: 28,
+                        height: 28,
+                        decoration: BoxDecoration(
+                          color: HSLColor.fromAHSL(1, 200, 0.4, 0.28).toColor(),
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(color: T.line),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: const BoxDecoration(
+              color: T.elev1,
+              border: Border(top: BorderSide(color: T.line, width: 1)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.my_location, size: 12, color: T.inkDim),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    item.scorers.join(' · '),
+                    style: const TextStyle(fontSize: 12, color: T.inkSub),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PostCard extends StatelessWidget {
+  final FeedPost item;
+  const _PostCard({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: T.elev2,
+        border: Border.all(color: T.line),
+        borderRadius: BorderRadius.circular(T.r3),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Avatar(item.author, size: 28),
+              const SizedBox(width: 8),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(item.author,
+                      style: const TextStyle(
+                          fontSize: 13,
+                          color: T.ink,
+                          fontWeight: FontWeight.w500)),
+                  Label(item.time),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(item.text,
+              style: const TextStyle(
+                  fontSize: 14, color: T.ink, height: 1.55)),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 6,
+            children: [
+              for (final t in item.tags)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: T.elev3,
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                  child: Text('#$t',
+                      style: const TextStyle(
+                          fontFamily: T.fontMono,
+                          fontFamilyFallback: T.monoFallbacks,
+                          fontSize: 10,
+                          color: T.inkSub)),
+                ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          const Row(
+            children: [
+              _InteractStat(icon: Icons.favorite_border, count: 128),
+              SizedBox(width: 16),
+              _InteractStat(icon: Icons.chat_bubble_outline, count: 24),
+              SizedBox(width: 16),
+              _InteractStat(icon: Icons.share_outlined, count: 6),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _InteractStat extends StatelessWidget {
+  final IconData icon;
+  final int count;
+  const _InteractStat({required this.icon, required this.count});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 14, color: T.inkSub),
+        const SizedBox(width: 5),
+        N('$count', size: 12, color: T.inkSub),
+      ],
+    );
+  }
+}
+
+class _EventTeaserCard extends StatelessWidget {
+  final FeedEvent item;
+  final VoidCallback onTap;
+  const _EventTeaserCard({required this.item, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final progress = item.teamsRegistered / item.teamsMax;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: T.elev2,
+          border: Border.all(color: T.line),
+          borderRadius: BorderRadius.circular(T.r3),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.emoji_events, size: 14, color: T.live),
+                const SizedBox(width: 6),
+                const Label('赛事预告', color: T.live),
+                const Spacer(),
+                Label(item.time),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(item.event,
+                style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: T.ink,
+                    letterSpacing: -0.3)),
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Label('已报名队伍'),
+                    const SizedBox(height: 2),
+                    N('${item.teamsRegistered}/${item.teamsMax}',
+                        size: 14, weight: FontWeight.w600),
+                  ],
+                ),
+                Container(
+                    width: 1,
+                    height: 28,
+                    color: T.line,
+                    margin: const EdgeInsets.symmetric(horizontal: 12)),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Label('开赛'),
+                    const SizedBox(height: 2),
+                    N(item.startIn,
+                        size: 14, weight: FontWeight.w600, color: T.warn),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(2),
+              child: LinearProgressIndicator(
+                value: progress,
+                minHeight: 3,
+                backgroundColor: T.elev3,
+                valueColor: const AlwaysStoppedAnimation(T.live),
+              ),
+            ),
+            const SizedBox(height: 10),
+            const Text('立即报名 →',
+                style: TextStyle(
+                    fontSize: 13, color: T.live, fontWeight: FontWeight.w600)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Live pickup card — same visual as _PickupCard but reads from Supabase.
+// ─────────────────────────────────────────────────────────────
+class _LivePickupCard extends StatelessWidget {
+  final live.Pickup p;
+  final VoidCallback onTap;
+  const _LivePickupCard({required this.p, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final needed = p.displayNeed;
+    final filled = p.total - needed;
+    final stateKey = switch (p.status) {
+      live.PickupStatus.full => 'full',
+      live.PickupStatus.almost => 'almost',
+      _ => 'open',
+    };
+    const labels = {'open': '招人中', 'almost': '即将满员', 'full': '已满员'};
+    final stateColor = stateKey == 'open'
+        ? T.live
+        : stateKey == 'almost' ? T.warn : T.inkDim;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: T.elev2,
+          border: Border.all(color: T.line),
+          borderRadius: BorderRadius.circular(T.r3),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Avatar(p.displayHost, size: 24),
+                const SizedBox(width: 8),
+                Text(p.displayHost,
+                    style: const TextStyle(
+                        fontSize: 13,
+                        color: T.ink,
+                        fontWeight: FontWeight.w500)),
+                const SizedBox(width: 6),
+                Label('发起约球'),
+                const Spacer(),
+                StatusDot(state: stateKey),
+                const SizedBox(width: 4),
+                Label(labels[stateKey]!, color: stateColor),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(p.venue,
+                style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: T.ink,
+                    letterSpacing: -0.2)),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                const Icon(Icons.schedule, size: 12, color: T.inkSub),
+                const SizedBox(width: 4),
+                N(p.displayTime, size: 12, color: T.inkSub),
+                const SizedBox(width: 10),
+                const Icon(Icons.currency_yen, size: 12, color: T.inkSub),
+                N(p.feeYuan.toStringAsFixed(0), size: 12, color: T.inkSub),
+                const SizedBox(width: 10),
+                if (p.level != null) Label(p.level!),
+              ],
+            ),
+            const SizedBox(height: 10),
+            const Divider(height: 1, color: T.line),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                SizedBox(
+                  width: (filled.clamp(0, 4) > 0)
+                      ? (22 + (filled.clamp(0, 4) - 1) * 16).toDouble()
+                      : 0,
+                  height: 22,
+                  child: Stack(
+                    children: [
+                      for (int i = 0; i < filled.clamp(0, 4); i++)
+                        Positioned(
+                          left: i * 16.0,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(color: T.elev2, width: 2),
+                            ),
+                            child: Avatar(['A','B','C','D'][i], size: 22),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                N('$filled', size: 12, weight: FontWeight.w600, color: T.ink),
+                N('/${p.total}', size: 12, color: T.inkDim),
+                const SizedBox(width: 6),
+                if (needed > 0)
+                  N('缺 $needed人', size: 12, color: T.live)
+                else
+                  const N('已满', size: 12, color: T.inkDim),
+                const Spacer(),
+                Text(
+                  needed > 0 ? '一键报名 →' : '已满员',
+                  style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: needed > 0 ? T.live : T.inkDim),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PickupLoading extends StatelessWidget {
+  const _PickupLoading();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: T.elev2,
+        border: Border.all(color: T.line),
+        borderRadius: BorderRadius.circular(T.r3),
+      ),
+      child: const Center(
+        child: SizedBox(
+          width: 20, height: 20,
+          child: CircularProgressIndicator(color: T.live, strokeWidth: 2),
+        ),
+      ),
+    );
+  }
+}
+
+class _PickupError extends StatelessWidget {
+  final Object error;
+  final VoidCallback onRetry;
+  const _PickupError({required this.error, required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: T.elev2,
+        border: Border.all(color: T.line),
+        borderRadius: BorderRadius.circular(T.r3),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.error_outline, size: 14, color: T.warn),
+              SizedBox(width: 6),
+              Label('加载约球数据失败', color: T.warn),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            '$error',
+            style: const TextStyle(fontSize: 11, color: T.inkDim),
+          ),
+          const SizedBox(height: 10),
+          GestureDetector(
+            onTap: onRetry,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: T.elev3,
+                border: Border.all(color: T.line),
+                borderRadius: BorderRadius.circular(T.r2),
+              ),
+              child: const Text('重试',
+                  style: TextStyle(fontSize: 12, color: T.ink)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

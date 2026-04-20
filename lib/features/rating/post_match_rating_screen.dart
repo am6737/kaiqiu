@@ -1,0 +1,651 @@
+// post_match_rating_screen.dart — 虎扑式赛后评分
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../data/mock.dart' as mock;
+import '../../services/supabase.dart' as svc;
+import '../../theme/tokens.dart';
+import '../../widgets/avatar.dart';
+import '../../widgets/primary_button.dart';
+import '../../widgets/typography.dart';
+
+class PostMatchRatingScreen extends ConsumerStatefulWidget {
+  final String matchId;
+  const PostMatchRatingScreen({super.key, required this.matchId});
+
+  @override
+  ConsumerState<PostMatchRatingScreen> createState() =>
+      _PostMatchRatingScreenState();
+}
+
+class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
+  int _idx = 0;
+  final Map<String, double> _ratings = {};
+  final Map<String, String> _comments = {};
+  bool _done = false;
+  bool _submitting = false;
+
+  late final List<mock.RatingPlayer> _players = [
+    ...mock.yourTeam,
+    ...mock.oppTeam,
+  ];
+
+  /// Submit all non-null ratings to Supabase. Returns count written.
+  Future<int> _submitAll() async {
+    final uid = svc.currentUserId;
+    if (uid == null) throw StateError('Not signed in');
+    int written = 0;
+    for (final p in _players) {
+      final score = _ratings[p.name];
+      if (score == null) continue;
+      await svc.supabase.from('ratings').upsert(
+        {
+          'match_id': widget.matchId,
+          'rater_id': uid,
+          'ratee_id': null,
+          'ratee_name': p.name,
+          'score': score,
+          'comment': _comments[p.name],
+          'highlight': p.highlight,
+        },
+        onConflict: 'match_id,rater_id,ratee_name',
+      );
+      written++;
+    }
+    return written;
+  }
+
+  Future<void> _commit(int nextIdx) async {
+    if (nextIdx < _players.length) {
+      setState(() => _idx = nextIdx);
+      return;
+    }
+    // End of list — submit everything then show done page.
+    setState(() => _submitting = true);
+    try {
+      await _submitAll();
+      if (!mounted) return;
+      setState(() {
+        _done = true;
+        _submitting = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _submitting = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('提交失败：$e')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_done) return _DonePage(count: _ratings.length);
+
+    final p = _players[_idx];
+    final cur = _ratings[p.name] ?? (p.you ? 0.0 : p.avgScore);
+    final info = mock.ratingMatchInfo;
+
+    return Scaffold(
+      backgroundColor: T.bg,
+      body: Column(
+        children: [
+          // Header
+          SafeArea(
+            bottom: false,
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
+              decoration: const BoxDecoration(
+                border: Border(bottom: BorderSide(color: T.line, width: 1)),
+              ),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => context.pop(),
+                    child: const Icon(Icons.close, size: 20, color: T.ink),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Label('赛后评分'),
+                        const SizedBox(height: 2),
+                        Text(info.event,
+                            style: const TextStyle(
+                                fontSize: 14,
+                                color: T.ink,
+                                fontWeight: FontWeight.w600)),
+                      ],
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      N('${_idx + 1}',
+                          size: 13, weight: FontWeight.w700),
+                      N('/${_players.length}',
+                          size: 13, color: T.inkDim),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Progress segments
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+            child: Row(
+              children: [
+                for (int i = 0; i < _players.length; i++) ...[
+                  if (i > 0) const SizedBox(width: 3),
+                  Expanded(
+                    child: Container(
+                      height: 2,
+                      decoration: BoxDecoration(
+                        color: i < _idx
+                            ? T.live
+                            : i == _idx ? T.ink : T.elev3,
+                        borderRadius: BorderRadius.circular(1),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.only(bottom: 140),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Match summary
+                  Container(
+                    margin: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: T.elev2,
+                      border: Border.all(color: T.line),
+                      borderRadius: BorderRadius.circular(T.r3),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            info.teamA,
+                            textAlign: TextAlign.right,
+                            style: const TextStyle(
+                                fontSize: 13,
+                                color: T.ink,
+                                fontWeight: FontWeight.w500),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        N('${info.scoreA}',
+                            size: 20, weight: FontWeight.w700, color: T.live),
+                        const Text(' - ',
+                            style: TextStyle(color: T.inkDim)),
+                        N('${info.scoreB}',
+                            size: 20, weight: FontWeight.w700, color: T.ink),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            info.teamB,
+                            style: const TextStyle(
+                                fontSize: 13,
+                                color: T.ink,
+                                fontWeight: FontWeight.w500),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Player card + slider
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: T.elev2,
+                      border: Border.all(color: T.line),
+                      borderRadius: BorderRadius.circular(T.r3),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Avatar(p.name, size: 50),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Text(p.name,
+                                          style: const TextStyle(
+                                              fontSize: 17,
+                                              fontWeight: FontWeight.w700,
+                                              color: T.ink)),
+                                      if (p.you) ...[
+                                        const SizedBox(width: 6),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 5, vertical: 1),
+                                          decoration: BoxDecoration(
+                                            color: T.liveDim,
+                                            border: Border.all(
+                                                color:
+                                                    const Color(0x6600FF85)),
+                                            borderRadius:
+                                                BorderRadius.circular(2),
+                                          ),
+                                          child: const Text('你',
+                                              style: TextStyle(
+                                                  fontFamily: T.fontMono,
+                                                  fontFamilyFallback:
+                                                      T.monoFallbacks,
+                                                  fontSize: 9,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: T.live)),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Label(
+                                      '${p.team ?? info.teamA} · ${p.pos}'),
+                                ],
+                              ),
+                            ),
+                            if (p.highlight != null)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 5),
+                                decoration: BoxDecoration(
+                                  color: T.warnDim,
+                                  border: Border.all(
+                                      color: const Color(0x66FF6B35)),
+                                  borderRadius: BorderRadius.circular(3),
+                                ),
+                                child: Label(p.highlight!, color: T.warn),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        _RatingSlider(
+                          value: cur,
+                          onChanged: (v) {
+                            setState(() => _ratings[p.name] = v);
+                          },
+                        ),
+                        const SizedBox(height: 18),
+                        const Label('说两句 · 选填'),
+                        const SizedBox(height: 6),
+                        TextField(
+                          key: ValueKey('comment-${p.name}'),
+                          minLines: 3,
+                          maxLines: 4,
+                          onChanged: (v) => _comments[p.name] = v,
+                          style: const TextStyle(
+                              fontSize: 13, color: T.ink, height: 1.5),
+                          decoration: InputDecoration(
+                            hintText:
+                                p.you ? '自评一下？' : '说说他今天的表现…',
+                            hintStyle: const TextStyle(color: T.inkDim),
+                            filled: true,
+                            fillColor: T.elev3,
+                            contentPadding: const EdgeInsets.all(12),
+                            border: OutlineInputBorder(
+                              borderSide: const BorderSide(color: T.line),
+                              borderRadius: BorderRadius.circular(T.r2),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: const BorderSide(color: T.line),
+                              borderRadius: BorderRadius.circular(T.r2),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Crowd avg (non-self only)
+                  if (!p.you) ...[
+                    const SizedBox(height: 10),
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 16),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: T.elev1,
+                        border: Border.all(color: T.line),
+                        borderRadius: BorderRadius.circular(T.r2),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.military_tech_outlined,
+                              size: 14, color: T.inkSub),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Label('${p.votes} 人已评 · 均分'),
+                          ),
+                          N(p.avgScore.toStringAsFixed(1),
+                              size: 15,
+                              weight: FontWeight.w700,
+                              color:
+                                  p.avgScore >= 8 ? T.live : T.ink),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+      bottomSheet: _BottomNav(
+        idx: _idx,
+        total: _players.length,
+        canSubmit: _ratings[p.name] != null,
+        submitting: _submitting,
+        onBack: _idx > 0 && !_submitting ? () => _commit(_idx - 1) : null,
+        onSkip: _submitting ? null : () => _commit(_idx + 1),
+        onNext: _submitting ? null : () => _commit(_idx + 1),
+      ),
+    );
+  }
+}
+
+class _BottomNav extends StatelessWidget {
+  final int idx, total;
+  final bool canSubmit;
+  final bool submitting;
+  final VoidCallback? onBack;
+  final VoidCallback? onSkip;
+  final VoidCallback? onNext;
+
+  const _BottomNav({
+    required this.idx,
+    required this.total,
+    required this.canSubmit,
+    required this.submitting,
+    required this.onBack,
+    required this.onSkip,
+    required this.onNext,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+      decoration: const BoxDecoration(
+        color: T.elev1,
+        border: Border(top: BorderSide(color: T.line, width: 1)),
+      ),
+      child: Row(
+        children: [
+          if (onBack != null) ...[
+            PrimaryButton(
+              label: '上一位',
+              variant: BtnVariant.secondary,
+              size: BtnSize.lg,
+              onPressed: onBack,
+            ),
+            const SizedBox(width: 10),
+          ],
+          PrimaryButton(
+            label: '跳过',
+            variant: BtnVariant.ghost,
+            size: BtnSize.lg,
+            disabled: submitting,
+            onPressed: onSkip,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: PrimaryButton(
+              label: submitting
+                  ? '提交中…'
+                  : (idx == total - 1 ? '提交评分' : '下一位 →'),
+              variant: BtnVariant.primary,
+              size: BtnSize.lg,
+              disabled: !canSubmit || submitting,
+              onPressed: onNext,
+              full: true,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Custom rating slider (0-10, step 0.5)
+// ─────────────────────────────────────────────────────────────
+class _RatingSlider extends StatelessWidget {
+  final double value;
+  final ValueChanged<double> onChanged;
+  const _RatingSlider({required this.value, required this.onChanged});
+
+  Color _colorFor(double v) {
+    if (v >= 8) return T.live;
+    if (v >= 6) return T.ink;
+    if (v >= 4) return T.warn;
+    return T.danger;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final color = _colorFor(value);
+
+    return Column(
+      children: [
+        // Big number
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
+          children: [
+            N(value.toStringAsFixed(1),
+                size: 60, weight: FontWeight.w800, color: color),
+            const SizedBox(width: 4),
+            const N('/10', size: 18, color: T.inkDim),
+          ],
+        ),
+        const SizedBox(height: 14),
+        // Track
+        LayoutBuilder(builder: (_, c) {
+          return GestureDetector(
+            onPanDown: (d) => _update(d.localPosition.dx, c.maxWidth),
+            onPanUpdate: (d) => _update(d.localPosition.dx, c.maxWidth),
+            child: SizedBox(
+              height: 46,
+              child: Stack(
+                children: [
+                  // Background track
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: T.elev2,
+                        border: Border.all(color: T.line),
+                        borderRadius: BorderRadius.circular(23),
+                      ),
+                    ),
+                  ),
+                  // Fill
+                  Positioned(
+                    left: 0,
+                    top: 0,
+                    bottom: 0,
+                    width: (value / 10) * c.maxWidth,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [
+                            Color(0x4DFF3B6B),
+                            Color(0x4DFF6B35),
+                            Color(0x1F00FF85),
+                            Color(0x1F00FF85),
+                          ],
+                          stops: [0, 0.4, 0.75, 1],
+                        ),
+                        borderRadius: BorderRadius.circular(23),
+                      ),
+                    ),
+                  ),
+                  // Ticks
+                  Positioned.fill(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 18),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          for (int n = 0; n <= 10; n++)
+                            Text(
+                              '$n',
+                              style: TextStyle(
+                                fontFamily: T.fontMono,
+                                fontFamilyFallback: T.monoFallbacks,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                color: n <= value ? T.ink : T.inkDim,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  // Thumb
+                  Positioned(
+                    left: (value / 10) * c.maxWidth - 14,
+                    top: 9,
+                    child: Container(
+                      width: 28,
+                      height: 28,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: color,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.black, width: 3),
+                        boxShadow: [
+                          BoxShadow(
+                            color: color.withValues(alpha: 0.25),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Text(
+                        value.toStringAsFixed(1),
+                        style: const TextStyle(
+                          fontFamily: T.fontMono,
+                          fontFamilyFallback: T.monoFallbacks,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }),
+        const SizedBox(height: 10),
+        const Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Label('拉跨', color: T.danger),
+            Label('一般'),
+            Label('不错', color: T.warn),
+            Label('封神', color: T.live),
+          ],
+        ),
+      ],
+    );
+  }
+
+  void _update(double x, double width) {
+    final frac = (x / width).clamp(0.0, 1.0);
+    final v = (frac * 20).round() / 2;
+    onChanged(v);
+  }
+}
+
+class _DonePage extends StatelessWidget {
+  final int count;
+  const _DonePage({required this.count});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: T.bg,
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 72,
+                  height: 72,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: T.liveDim,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: T.live, width: 2),
+                  ),
+                  child: const Icon(Icons.check, size: 32, color: T.live),
+                ),
+                const SizedBox(height: 18),
+                const Text(
+                  '评分已提交',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    color: T.ink,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 40),
+                  child: Text.rich(
+                    TextSpan(
+                      style: const TextStyle(
+                          fontSize: 14, color: T.inkSub, height: 1.5),
+                      children: [
+                        TextSpan(text: '感谢你给 $count 位球员打了分。\n贡献有效评分可获得 '),
+                        const TextSpan(
+                          text: '+5 信用分',
+                          style: TextStyle(
+                              color: T.live, fontWeight: FontWeight.w600),
+                        ),
+                      ],
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: 200,
+                  child: PrimaryButton(
+                    label: '查看评分榜',
+                    variant: BtnVariant.primary,
+                    size: BtnSize.lg,
+                    full: true,
+                    onPressed: () => context.pop(),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
