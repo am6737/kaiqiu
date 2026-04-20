@@ -3,8 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../l10n/l10n_extension.dart';
 import '../../providers.dart';
+import '../../services/local_storage.dart';
 import '../../theme/tokens.dart';
+import '../../utils/share_helper.dart';
+import '../../utils/toast.dart';
 import '../../widgets/live_pill.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/typography.dart';
@@ -15,6 +19,9 @@ class WorldCupScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final wcs = ref.watch(wcMatchesProvider);
+    ref.watch(localStoreProvider);
+    final l = context.l10n;
+    final focusMatchId = 'wc-focus';
 
     return Scaffold(
       backgroundColor: T.bg,
@@ -39,50 +46,90 @@ class WorldCupScreen extends ConsumerWidget {
                 child: CustomPaint(painter: _HeroPainter()),
               ),
               Positioned(
-                top: 12, left: 12,
+                top: 12,
+                left: 12,
                 child: SafeArea(
                   child: GestureDetector(
                     onTap: () => context.pop(),
                     child: Container(
-                      width: 36, height: 36,
+                      width: 36,
+                      height: 36,
                       alignment: Alignment.center,
                       decoration: const BoxDecoration(
                         color: Color(0x80000000),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.arrow_back_ios_new,
-                          size: 16, color: T.ink),
+                      child: const Icon(
+                        Icons.arrow_back_ios_new,
+                        size: 16,
+                        color: T.ink,
+                      ),
                     ),
                   ),
                 ),
               ),
-              const Positioned(
-                left: 16, right: 16, bottom: 16,
+              Positioned(
+                top: 12,
+                right: 12,
+                child: SafeArea(
+                  child: GestureDetector(
+                    onTap: () => shareText(
+                      '${l.events_wc_banner_title} · ${l.events_wc_banner_sub}',
+                      subject: l.wc_title,
+                    ),
+                    child: Container(
+                      width: 36,
+                      height: 36,
+                      alignment: Alignment.center,
+                      decoration: const BoxDecoration(
+                        color: Color(0x80000000),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.ios_share,
+                        size: 16,
+                        color: T.ink,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                left: 16,
+                right: 16,
+                bottom: 16,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Label('FIFA 2026', color: T.live),
-                    SizedBox(height: 6),
-                    Text('世界杯专区',
-                        style: TextStyle(
-                          fontSize: 30,
-                          fontWeight: FontWeight.w800,
-                          color: T.ink,
-                          letterSpacing: -0.6,
-                          height: 1.1,
-                        )),
-                    SizedBox(height: 6),
-                    Text('小组赛 · 第 2 轮 · 今晚 5 场直播',
-                        style: TextStyle(fontSize: 13, color: T.inkSub)),
+                    const Label('FIFA 2026', color: T.live),
+                    const SizedBox(height: 6),
+                    Text(
+                      l.wc_hero_title,
+                      style: const TextStyle(
+                        fontSize: 30,
+                        fontWeight: FontWeight.w800,
+                        color: T.ink,
+                        letterSpacing: -0.6,
+                        height: 1.1,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      l.wc_hero_sub,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: T.inkSub,
+                      ),
+                    ),
                   ],
                 ),
               ),
             ],
           ),
           // Featured match
-          const Padding(
-            padding: EdgeInsets.fromLTRB(16, 16, 16, 10),
-            child: Label('焦点之战 · 直播中'),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
+            child: Label(l.wc_focus_battle),
           ),
           Container(
             margin: const EdgeInsets.fromLTRB(16, 0, 16, 14),
@@ -98,9 +145,9 @@ class WorldCupScreen extends ConsumerWidget {
                   children: [
                     const LivePill(),
                     const SizedBox(width: 6),
-                    Label('${wcs[0].minute} · 下半场'),
+                    Label(l.wc_focus_halftime(wcs[0].minute ?? '')),
                     const Spacer(),
-                    const Label('128K 观看'),
+                    Label(l.wc_focus_watch_count('128K')),
                   ],
                 ),
                 const SizedBox(height: 14),
@@ -111,11 +158,14 @@ class WorldCupScreen extends ConsumerWidget {
                         children: [
                           _flag('AR', 200),
                           const SizedBox(height: 8),
-                          const Text('阿根廷',
-                              style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: T.ink)),
+                          Text(
+                            l.wc_team_argentina,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: T.ink,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -123,14 +173,24 @@ class WorldCupScreen extends ConsumerWidget {
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        N('${wcs[0].scoreA ?? 0}',
-                            size: 40, weight: FontWeight.w800, color: T.live),
+                        N(
+                          '${wcs[0].scoreA ?? 0}',
+                          size: 40,
+                          weight: FontWeight.w800,
+                          color: T.live,
+                        ),
                         const SizedBox(width: 8),
-                        const Text('-',
-                            style: TextStyle(color: T.inkDim, fontSize: 18)),
+                        const Text(
+                          '-',
+                          style: TextStyle(color: T.inkDim, fontSize: 18),
+                        ),
                         const SizedBox(width: 8),
-                        N('${wcs[0].scoreB ?? 0}',
-                            size: 40, weight: FontWeight.w800, color: T.ink),
+                        N(
+                          '${wcs[0].scoreB ?? 0}',
+                          size: 40,
+                          weight: FontWeight.w800,
+                          color: T.ink,
+                        ),
                       ],
                     ),
                     Expanded(
@@ -138,11 +198,14 @@ class WorldCupScreen extends ConsumerWidget {
                         children: [
                           _flag('BR', 140),
                           const SizedBox(height: 8),
-                          const Text('巴西',
-                              style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: T.ink)),
+                          Text(
+                            l.wc_team_brazil,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: T.ink,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -150,41 +213,55 @@ class WorldCupScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 14),
                 Row(
-                  children: const [
+                  children: [
                     Expanded(
                       child: PrimaryButton(
                         variant: BtnVariant.primary,
                         size: BtnSize.md,
                         full: true,
+                        onPressed: () =>
+                            context.push('/worldcup/live/$focusMatchId'),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.play_arrow, size: 14, color: Colors.black),
-                            SizedBox(width: 6),
-                            Text('观看直播',
-                                style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.black)),
+                            const Icon(
+                              Icons.play_arrow,
+                              size: 14,
+                              color: Colors.black,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              l.wc_btn_watch_live,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black,
+                              ),
+                            ),
                           ],
                         ),
                       ),
                     ),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     PrimaryButton(
                       variant: BtnVariant.ghost,
                       size: BtnSize.md,
+                      onPressed: () =>
+                          context.push('/worldcup/predict/$focusMatchId'),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.gps_fixed, size: 14, color: T.ink),
-                          SizedBox(width: 6),
-                          Text('竞猜',
-                              style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w600,
-                                  color: T.ink)),
+                          const Icon(Icons.gps_fixed, size: 14, color: T.ink),
+                          const SizedBox(width: 6),
+                          Text(
+                            l.wc_btn_predict,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: T.ink,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -194,9 +271,9 @@ class WorldCupScreen extends ConsumerWidget {
             ),
           ),
           // Prediction bar
-          const Padding(
-            padding: EdgeInsets.fromLTRB(16, 0, 16, 10),
-            child: Label('你的球友竞猜 · 胜平负'),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+            child: Label(l.wc_predict_bar_title),
           ),
           Container(
             margin: const EdgeInsets.fromLTRB(16, 0, 16, 14),
@@ -210,94 +287,148 @@ class WorldCupScreen extends ConsumerWidget {
               children: [
                 Row(
                   children: [
-                    _predBar(62, '阿根廷胜', T.live, Colors.black),
+                    _predBar(62, l.wc_team_argentina_win, T.live, Colors.black),
                     const SizedBox(width: 8),
-                    _predBar(14, '平', T.inkMute, T.ink),
+                    _predBar(14, l.wc_team_draw, T.inkMute, T.ink),
                     const SizedBox(width: 8),
-                    _predBar(24, '巴西胜', T.elev3, T.ink),
+                    _predBar(24, l.wc_team_brazil_win, T.elev3, T.ink),
                   ],
                 ),
                 const SizedBox(height: 10),
-                const Row(
+                Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Label('阿根廷胜'),
-                    Label('平'),
-                    Label('巴西胜'),
+                    Label(l.wc_team_argentina_win),
+                    Label(l.wc_team_draw),
+                    Label(l.wc_team_brazil_win),
                   ],
                 ),
               ],
             ),
           ),
           // Today's schedule
-          const Padding(
-            padding: EdgeInsets.fromLTRB(16, 0, 16, 10),
-            child: Label('今日赛程'),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+            child: Label(l.wc_today_schedule),
           ),
           for (final m in wcs.skip(1))
-            Container(
-              margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: T.elev2,
-                border: Border.all(color: T.line),
-                borderRadius: BorderRadius.circular(T.r2),
-              ),
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: 60,
-                    child: Column(
-                      children: [
-                        N(m.time.contains(' ') ? m.time.split(' ')[1] : m.time,
-                            size: 15, weight: FontWeight.w700),
-                        Label(m.status ??
-                            (m.time.contains(' ') ? m.time.split(' ')[0] : '')),
-                      ],
-                    ),
-                  ),
-                  Container(
-                      width: 1, height: 36, color: T.line,
-                      margin: const EdgeInsets.symmetric(horizontal: 12)),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            _miniFlag(m.flagA, 220),
-                            const SizedBox(width: 8),
-                            Text(m.teamA,
-                                style: const TextStyle(
-                                    fontSize: 13, color: T.ink)),
-                          ],
-                        ),
-                        const SizedBox(height: 6),
-                        Row(
-                          children: [
-                            _miniFlag(m.flagB, 25),
-                            const SizedBox(width: 8),
-                            Text(m.teamB,
-                                style: const TextStyle(
-                                    fontSize: 13, color: T.ink)),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 5),
+            Builder(
+              builder: (ctx) {
+                final mid = 'wc-${m.teamA}-${m.teamB}';
+                final reminded = LocalStore.hasReminder(mid);
+                return GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => context.push('/worldcup/live/$mid'),
+                  child: Container(
+                    margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                    padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: T.elev3,
+                      color: T.elev2,
                       border: Border.all(color: T.line),
-                      borderRadius: BorderRadius.circular(6),
+                      borderRadius: BorderRadius.circular(T.r2),
                     ),
-                    child: const Text('提醒',
-                        style: TextStyle(fontSize: 11, color: T.inkSub)),
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: 60,
+                          child: Column(
+                            children: [
+                              N(
+                                m.time.contains(' ')
+                                    ? m.time.split(' ')[1]
+                                    : m.time,
+                                size: 15,
+                                weight: FontWeight.w700,
+                              ),
+                              Label(
+                                m.status ??
+                                    (m.time.contains(' ')
+                                        ? m.time.split(' ')[0]
+                                        : ''),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          width: 1,
+                          height: 36,
+                          color: T.line,
+                          margin: const EdgeInsets.symmetric(horizontal: 12),
+                        ),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  _miniFlag(m.flagA, 220),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    m.teamA,
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      color: T.ink,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                              Row(
+                                children: [
+                                  _miniFlag(m.flagB, 25),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    m.teamB,
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      color: T.ink,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () async {
+                            await LocalStore.toggleReminder(mid);
+                            if (context.mounted) {
+                              showToast(
+                                context,
+                                LocalStore.hasReminder(mid)
+                                    ? l.wc_remind_set
+                                    : l.wc_remind_unset,
+                                success: true,
+                              );
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: reminded ? T.liveDim : T.elev3,
+                              border: Border.all(
+                                color: reminded ? T.live : T.line,
+                              ),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              l.wc_btn_remind,
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: reminded ? T.live : T.inkSub,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ],
-              ),
+                );
+              },
             ),
         ],
       ),
@@ -305,36 +436,44 @@ class WorldCupScreen extends ConsumerWidget {
   }
 
   Widget _flag(String code, double hue) => Container(
-        width: 44, height: 30,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: HSLColor.fromAHSL(1, hue, 0.4, 0.3).toColor(),
-          borderRadius: BorderRadius.circular(4),
-        ),
-        child: Text(code,
-            style: const TextStyle(
-                fontFamily: T.fontMono,
-                fontFamilyFallback: T.monoFallbacks,
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: T.ink)),
-      );
+    width: 44,
+    height: 30,
+    alignment: Alignment.center,
+    decoration: BoxDecoration(
+      color: HSLColor.fromAHSL(1, hue, 0.4, 0.3).toColor(),
+      borderRadius: BorderRadius.circular(4),
+    ),
+    child: Text(
+      code,
+      style: const TextStyle(
+        fontFamily: T.fontMono,
+        fontFamilyFallback: T.monoFallbacks,
+        fontSize: 13,
+        fontWeight: FontWeight.w700,
+        color: T.ink,
+      ),
+    ),
+  );
 
   Widget _miniFlag(String code, double hue) => Container(
-        width: 22, height: 16,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: HSLColor.fromAHSL(1, hue, 0.4, 0.3).toColor(),
-          borderRadius: BorderRadius.circular(2),
-        ),
-        child: Text(code,
-            style: const TextStyle(
-                fontFamily: T.fontMono,
-                fontFamilyFallback: T.monoFallbacks,
-                fontSize: 8,
-                fontWeight: FontWeight.w700,
-                color: T.ink)),
-      );
+    width: 22,
+    height: 16,
+    alignment: Alignment.center,
+    decoration: BoxDecoration(
+      color: HSLColor.fromAHSL(1, hue, 0.4, 0.3).toColor(),
+      borderRadius: BorderRadius.circular(2),
+    ),
+    child: Text(
+      code,
+      style: const TextStyle(
+        fontFamily: T.fontMono,
+        fontFamilyFallback: T.monoFallbacks,
+        fontSize: 8,
+        fontWeight: FontWeight.w700,
+        color: T.ink,
+      ),
+    ),
+  );
 
   Widget _predBar(int pct, String label, Color bg, Color fg) {
     return Expanded(
@@ -346,13 +485,16 @@ class WorldCupScreen extends ConsumerWidget {
           color: bg,
           borderRadius: BorderRadius.circular(4),
         ),
-        child: Text('$pct%',
-            style: TextStyle(
-                fontFamily: T.fontMono,
-                fontFamilyFallback: T.monoFallbacks,
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                color: fg)),
+        child: Text(
+          '$pct%',
+          style: TextStyle(
+            fontFamily: T.fontMono,
+            fontFamilyFallback: T.monoFallbacks,
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            color: fg,
+          ),
+        ),
       ),
     );
   }

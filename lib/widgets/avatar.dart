@@ -10,8 +10,7 @@ class Avatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final initial =
-        name.isEmpty ? '•' : name.characters.first.toUpperCase();
+    final initial = name.isEmpty ? '•' : name.characters.first.toUpperCase();
     final hue = name.isEmpty ? 140 : (name.codeUnitAt(0) * 37) % 360;
     return Container(
       width: size,

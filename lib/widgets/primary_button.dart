@@ -53,7 +53,8 @@ class PrimaryButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(T.r2),
             border: Border.all(color: border),
           ),
-          child: child ??
+          child:
+              child ??
               Text(
                 label!,
                 style: TextStyle(

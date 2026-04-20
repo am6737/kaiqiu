@@ -14,17 +14,14 @@ class RatingsRepository {
   }) async {
     final row = await supabase
         .from('ratings')
-        .upsert(
-          {
-            'match_id': matchId,
-            'rater_id': raterId,
-            'ratee_id': rateeId,
-            'score': score,
-            'comment': comment,
-            'highlight': highlight,
-          },
-          onConflict: 'match_id,rater_id,ratee_id',
-        )
+        .upsert({
+          'match_id': matchId,
+          'rater_id': raterId,
+          'ratee_id': rateeId,
+          'score': score,
+          'comment': comment,
+          'highlight': highlight,
+        }, onConflict: 'match_id,rater_id,ratee_id')
         .select()
         .single();
     return Rating.fromMap(row);

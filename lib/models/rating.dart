@@ -21,24 +21,24 @@ class Rating {
   });
 
   factory Rating.fromMap(Map<String, dynamic> m) => Rating(
-        id: m['id'] as String,
-        matchId: m['match_id'] as String,
-        raterId: m['rater_id'] as String,
-        rateeId: m['ratee_id'] as String,
-        score: (m['score'] as num).toDouble(),
-        comment: m['comment'] as String?,
-        highlight: m['highlight'] as String?,
-        createdAt: DateTime.parse(m['created_at'] as String),
-      );
+    id: m['id'] as String,
+    matchId: m['match_id'] as String,
+    raterId: m['rater_id'] as String,
+    rateeId: m['ratee_id'] as String,
+    score: (m['score'] as num).toDouble(),
+    comment: m['comment'] as String?,
+    highlight: m['highlight'] as String?,
+    createdAt: DateTime.parse(m['created_at'] as String),
+  );
 
   Map<String, dynamic> toMap() => {
-        'match_id': matchId,
-        'rater_id': raterId,
-        'ratee_id': rateeId,
-        'score': score,
-        'comment': comment,
-        'highlight': highlight,
-      };
+    'match_id': matchId,
+    'rater_id': raterId,
+    'ratee_id': rateeId,
+    'score': score,
+    'comment': comment,
+    'highlight': highlight,
+  };
 }
 
 /// Aggregate view for leaderboards.

@@ -15,12 +15,12 @@ class Conversation {
   });
 
   factory Conversation.fromMap(Map<String, dynamic> m) => Conversation(
-        id: m['id'] as String,
-        kind: (m['kind'] as String?) ?? 'dm',
-        title: m['title'] as String?,
-        updatedAt: DateTime.parse(m['updated_at'] as String),
-        unread: (m['unread'] as int?) ?? 0,
-      );
+    id: m['id'] as String,
+    kind: (m['kind'] as String?) ?? 'dm',
+    title: m['title'] as String?,
+    updatedAt: DateTime.parse(m['updated_at'] as String),
+    unread: (m['unread'] as int?) ?? 0,
+  );
 }
 
 class Message {
@@ -41,11 +41,11 @@ class Message {
   });
 
   factory Message.fromMap(Map<String, dynamic> m) => Message(
-        id: m['id'] as String,
-        convId: m['conv_id'] as String,
-        senderId: m['sender_id'] as String?,
-        body: m['body'] as String?,
-        kind: (m['kind'] as String?) ?? 'text',
-        createdAt: DateTime.parse(m['created_at'] as String),
-      );
+    id: m['id'] as String,
+    convId: m['conv_id'] as String,
+    senderId: m['sender_id'] as String?,
+    body: m['body'] as String?,
+    kind: (m['kind'] as String?) ?? 'text',
+    createdAt: DateTime.parse(m['created_at'] as String),
+  );
 }

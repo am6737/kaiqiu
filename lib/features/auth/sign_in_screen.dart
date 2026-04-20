@@ -3,8 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../l10n/l10n_extension.dart';
+import '../../services/local_storage.dart';
 import '../../services/supabase.dart';
 import '../../theme/tokens.dart';
+import '../../utils/toast.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/typography.dart';
 
@@ -21,6 +24,15 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   bool _busy = false;
   String? _error;
   bool _isNewUser = false;
+  bool _remember = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _remember = LocalStore.rememberMe;
+    final email = LocalStore.rememberedEmail;
+    if (email != null) _email.text = email;
+  }
 
   @override
   void dispose() {
@@ -30,19 +42,24 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   }
 
   Future<void> _submit() async {
+    final l = context.l10n;
     final email = _email.text.trim();
     final pwd = _password.text;
     if (email.isEmpty || pwd.length < 6) {
-      setState(() => _error = '邮箱不能为空，密码至少 6 位');
+      setState(() => _error = l.error_password_too_short);
       return;
     }
-    setState(() { _busy = true; _error = null; });
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
     try {
       if (_isNewUser) {
         await supabase.auth.signUp(email: email, password: pwd);
       } else {
         await supabase.auth.signInWithPassword(email: email, password: pwd);
       }
+      await LocalStore.setRemember(_remember, _remember ? email : null);
       // Router redirect will fire automatically.
     } on AuthException catch (e) {
       setState(() => _error = e.message);
@@ -53,24 +70,23 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     }
   }
 
-  /// Generate a readable guest name like "游客-K7MX2".
-  /// The handle_new_user trigger reads name from raw_user_meta_data, so
-  /// passing it here means the profiles row is created with this name.
   String _randomGuestName() {
-    const charset = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no ambiguous 0/O/1/I
+    const charset = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     final ms = DateTime.now().millisecondsSinceEpoch;
     final suffix = List.generate(5, (i) {
       return charset[(ms >> (i * 5)) % charset.length];
     }).join();
-    return '游客-$suffix';
+    final prefix = mounted ? context.l10n.auth_guest_prefix : '游客-';
+    return '$prefix$suffix';
   }
 
   Future<void> _anonymous() async {
-    setState(() { _busy = true; _error = null; });
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
     try {
-      await supabase.auth.signInAnonymously(
-        data: {'name': _randomGuestName()},
-      );
+      await supabase.auth.signInAnonymously(data: {'name': _randomGuestName()});
     } on AuthException catch (e) {
       setState(() => _error = e.message);
     } catch (e) {
@@ -80,8 +96,91 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     }
   }
 
+  Future<void> _forgotPassword() async {
+    final l = context.l10n;
+    final c = TextEditingController(text: _email.text);
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: T.elev1,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l.auth_reset_title,
+                style: const TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  color: T.ink,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                l.auth_reset_sub,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: T.inkSub,
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 14),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                decoration: BoxDecoration(
+                  color: T.elev2,
+                  border: Border.all(color: T.line),
+                  borderRadius: BorderRadius.circular(T.r2),
+                ),
+                child: TextField(
+                  controller: c,
+                  keyboardType: TextInputType.emailAddress,
+                  style: const TextStyle(color: T.ink, fontSize: 14),
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    hintText: l.auth_email,
+                    hintStyle: const TextStyle(color: T.inkDim),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+              PrimaryButton(
+                label: l.auth_reset_submit,
+                full: true,
+                variant: BtnVariant.primary,
+                size: BtnSize.lg,
+                onPressed: () async {
+                  try {
+                    await supabase.auth.resetPasswordForEmail(c.text.trim());
+                    if (ctx.mounted) Navigator.of(ctx).pop();
+                    if (mounted) {
+                      showToast(context, l.auth_reset_sent, success: true);
+                    }
+                  } catch (e) {
+                    if (ctx.mounted) {
+                      showToast(ctx, '${l.auth_reset_failed}: $e', error: true);
+                    }
+                  }
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     return Scaffold(
       backgroundColor: T.bg,
       body: SafeArea(
@@ -92,25 +191,63 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
               const Spacer(flex: 3),
               _Logo(),
               const SizedBox(height: 16),
-              const Text('业余体育社交',
-                  style: TextStyle(
-                      fontSize: 14, color: T.inkSub, letterSpacing: 0.5)),
+              Text(
+                l.auth_login_sub,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: T.inkSub,
+                  letterSpacing: 0.5,
+                ),
+              ),
               const Spacer(flex: 2),
               _Field(
                 controller: _email,
-                label: '邮箱',
+                label: l.auth_email,
                 keyboardType: TextInputType.emailAddress,
                 mono: true,
               ),
               const SizedBox(height: 12),
               _Field(
                 controller: _password,
-                label: '密码 (至少 6 位)',
+                label: l.auth_password,
                 obscure: true,
                 mono: true,
               ),
-              const SizedBox(height: 10),
-              if (_error != null)
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  Checkbox(
+                    value: _remember,
+                    activeColor: T.live,
+                    onChanged: (v) => setState(() => _remember = v ?? false),
+                    visualDensity: VisualDensity.compact,
+                  ),
+                  GestureDetector(
+                    onTap: () => setState(() => _remember = !_remember),
+                    child: Text(
+                      l.auth_remember_me,
+                      style: const TextStyle(fontSize: 12, color: T.inkSub),
+                    ),
+                  ),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: _forgotPassword,
+                    child: Padding(
+                      padding: const EdgeInsets.all(4),
+                      child: Text(
+                        l.auth_forgot_password,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: T.live,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              if (_error != null) ...[
+                const SizedBox(height: 10),
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
@@ -118,12 +255,17 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                     borderRadius: BorderRadius.circular(T.r2),
                     border: Border.all(color: const Color(0x55FF6B35)),
                   ),
-                  child: Text(_error!,
-                      style: const TextStyle(fontSize: 12, color: T.warn)),
+                  child: Text(
+                    _error!,
+                    style: const TextStyle(fontSize: 12, color: T.warn),
+                  ),
                 ),
+              ],
               const SizedBox(height: 14),
               PrimaryButton(
-                label: _busy ? '处理中…' : (_isNewUser ? '注册账号' : '登录'),
+                label: _busy
+                    ? l.rate_submitting
+                    : (_isNewUser ? l.auth_signup_btn : l.auth_login_btn),
                 full: true,
                 variant: BtnVariant.primary,
                 size: BtnSize.lg,
@@ -135,32 +277,31 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                 onTap: () => setState(() => _isNewUser = !_isNewUser),
                 child: Padding(
                   padding: const EdgeInsets.all(8),
-                  child: Text.rich(
-                    TextSpan(
-                      style: const TextStyle(fontSize: 12, color: T.inkSub),
-                      children: [
-                        TextSpan(text: _isNewUser ? '已有账号？' : '还没账号？'),
-                        TextSpan(
-                          text: _isNewUser ? '去登录' : '去注册',
-                          style: const TextStyle(
-                              color: T.live, fontWeight: FontWeight.w600),
-                        ),
-                      ],
+                  child: Text(
+                    _isNewUser
+                        ? l.auth_signup_toggle_old
+                        : l.auth_signup_toggle_new,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: T.live,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
               ),
               const SizedBox(height: 20),
-              Row(children: const [
-                Expanded(child: Divider(color: T.line)),
-                SizedBox(width: 10),
-                Label('或'),
-                SizedBox(width: 10),
-                Expanded(child: Divider(color: T.line)),
-              ]),
+              Row(
+                children: [
+                  const Expanded(child: Divider(color: T.line)),
+                  const SizedBox(width: 10),
+                  Label(l.auth_or),
+                  const SizedBox(width: 10),
+                  const Expanded(child: Divider(color: T.line)),
+                ],
+              ),
               const SizedBox(height: 20),
               PrimaryButton(
-                label: '游客登录（快速开始）',
+                label: l.auth_anon_btn,
                 full: true,
                 variant: BtnVariant.ghost,
                 size: BtnSize.lg,
@@ -168,8 +309,10 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                 onPressed: _anonymous,
               ),
               const Spacer(flex: 2),
-              const Text('继续即表示同意服务条款 · 隐私政策',
-                  style: TextStyle(fontSize: 10, color: T.inkDim)),
+              Text(
+                l.auth_terms_notice,
+                style: const TextStyle(fontSize: 10, color: T.inkDim),
+              ),
               const SizedBox(height: 12),
             ],
           ),
@@ -193,19 +336,19 @@ class _Logo extends StatelessWidget {
             color: T.live,
             borderRadius: BorderRadius.circular(2),
             boxShadow: [
-              BoxShadow(
-                color: T.live.withValues(alpha: 0.6),
-                blurRadius: 12,
-              ),
+              BoxShadow(color: T.live.withValues(alpha: 0.6), blurRadius: 12),
             ],
           ),
         ),
-        const Text('开球',
-            style: TextStyle(
-                fontSize: 48,
-                fontWeight: FontWeight.w800,
-                color: T.ink,
-                letterSpacing: -2)),
+        Text(
+          context.l10n.app_name,
+          style: const TextStyle(
+            fontSize: 48,
+            fontWeight: FontWeight.w800,
+            color: T.ink,
+            letterSpacing: -2,
+          ),
+        ),
       ],
     );
   }

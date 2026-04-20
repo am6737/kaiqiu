@@ -50,4 +50,27 @@ class EventsRepository {
         .map(PlayerRatingRow.fromMap)
         .toList();
   }
+
+  /// List events created by [userId].
+  Future<List<Event>> listByCreator(String userId) async {
+    final rows = await supabase
+        .from('events')
+        .select()
+        .eq('creator_id', userId)
+        .order('created_at', ascending: false);
+    return (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map(Event.fromMap)
+        .toList();
+  }
+
+  /// List events by a list of ids (used for favorites).
+  Future<List<Event>> listByIds(List<String> ids) async {
+    if (ids.isEmpty) return [];
+    final rows = await supabase.from('events').select().inFilter('id', ids);
+    return (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map(Event.fromMap)
+        .toList();
+  }
 }

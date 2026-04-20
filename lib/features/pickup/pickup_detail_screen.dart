@@ -2,11 +2,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../../l10n/l10n_extension.dart';
 import '../../models/pickup.dart';
 import '../../providers.dart';
+import '../../services/local_storage.dart';
 import '../../services/supabase.dart' as svc;
 import '../../theme/tokens.dart';
+import '../../utils/share_helper.dart';
+import '../../utils/toast.dart';
 import '../../widgets/avatar.dart';
 import '../../widgets/live_pill.dart';
 import '../../widgets/photo_halftone.dart';
@@ -36,6 +41,7 @@ class PickupDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final slotsAsync = ref.watch(pickupSlotsProvider(id));
+    final pickupAsync = ref.watch(pickupDetailProvider(id));
 
     return Scaffold(
       backgroundColor: T.bg,
@@ -46,7 +52,14 @@ class PickupDetailScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _Header(onBack: () => context.pop()),
+                _Header(
+                  onBack: () => context.pop(),
+                  onShare: () {
+                    final p = pickupAsync.valueOrNull;
+                    if (p != null) sharePickup(p);
+                  },
+                  pickupId: id,
+                ),
                 _VenueInfo(),
                 _HostStrip(),
                 slotsAsync.when(
@@ -54,8 +67,7 @@ class PickupDetailScreen extends ConsumerWidget {
                   loading: () => const _FormationLoading(),
                   error: (e, _) => _FormationError(
                     error: e,
-                    onRetry: () =>
-                        ref.invalidate(pickupSlotsProvider(id)),
+                    onRetry: () => ref.invalidate(pickupSlotsProvider(id)),
                   ),
                 ),
                 _Details(),
@@ -75,19 +87,23 @@ class PickupDetailScreen extends ConsumerWidget {
   }
 }
 
-class _Header extends StatelessWidget {
+class _Header extends ConsumerWidget {
   final VoidCallback onBack;
-  const _Header({required this.onBack});
+  final VoidCallback onShare;
+  final String pickupId;
+  const _Header({
+    required this.onBack,
+    required this.onShare,
+    required this.pickupId,
+  });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(localStoreProvider);
+    final faved = LocalStore.isPickupFavorited(pickupId);
     return Stack(
       children: [
-        const PhotoHalftone(
-          label: '场地外景 · 龙岗体育中心 3号场',
-          height: 200,
-          hue: 140,
-        ),
+        const PhotoHalftone(label: '场地外景 · 龙岗体育中心 3号场', height: 200, hue: 140),
         Positioned(
           top: 12,
           left: 12,
@@ -96,7 +112,19 @@ class _Header extends StatelessWidget {
         Positioned(
           top: 12,
           right: 12,
-          child: _CircleBtn(icon: Icons.ios_share, onTap: () {}),
+          child: Row(
+            children: [
+              _CircleBtn(
+                icon: faved ? Icons.favorite : Icons.favorite_border,
+                onTap: () async {
+                  await LocalStore.toggleFavoritePickup(pickupId);
+                },
+                color: faved ? T.live : T.ink,
+              ),
+              const SizedBox(width: 8),
+              _CircleBtn(icon: Icons.ios_share, onTap: onShare),
+            ],
+          ),
         ),
       ],
     );
@@ -106,7 +134,12 @@ class _Header extends StatelessWidget {
 class _CircleBtn extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
-  const _CircleBtn({required this.icon, required this.onTap});
+  final Color color;
+  const _CircleBtn({
+    required this.icon,
+    required this.onTap,
+    this.color = T.ink,
+  });
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -119,7 +152,7 @@ class _CircleBtn extends StatelessWidget {
           color: Color(0x80000000),
           shape: BoxShape.circle,
         ),
-        child: Icon(icon, size: 16, color: T.ink),
+        child: Icon(icon, size: 16, color: color),
       ),
     );
   }
@@ -133,11 +166,11 @@ class _VenueInfo extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              StatusDot(state: 'open'),
-              SizedBox(width: 6),
-              Label('招人中 · 缺 3 人', color: T.live),
+              const StatusDot(state: 'open'),
+              const SizedBox(width: 6),
+              Label(context.l10n.pickup_detail_open_need_n(3), color: T.live),
             ],
           ),
           const SizedBox(height: 8),
@@ -168,9 +201,13 @@ class _VenueInfo extends StatelessWidget {
   }
 }
 
-class _HostStrip extends StatelessWidget {
+class _HostStrip extends ConsumerWidget {
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = context.l10n;
+    ref.watch(localStoreProvider);
+    const hostName = '老王';
+    final followed = LocalStore.isFollowing(hostName);
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 4, 16, 14),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -181,32 +218,61 @@ class _HostStrip extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Avatar('老王', size: 40),
+          const Avatar(hostName, size: 40),
           const SizedBox(width: 10),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  children: [
-                    Text('老王',
-                        style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: T.ink)),
+                  children: const [
+                    Text(
+                      hostName,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: T.ink,
+                      ),
+                    ),
                     SizedBox(width: 6),
                     _CreditBadge(),
                   ],
                 ),
-                SizedBox(height: 2),
-                Label('发起过 28 场 · 准时率 100%'),
+                const SizedBox(height: 2),
+                Label(l.pickup_detail_host_stats(28, 100)),
               ],
             ),
           ),
-          const PrimaryButton(
-            label: '关注',
-            variant: BtnVariant.ghost,
+          GestureDetector(
+            onTap: () => launchUrl(Uri(scheme: 'tel', path: '10010')),
+            child: Container(
+              width: 34,
+              height: 34,
+              alignment: Alignment.center,
+              margin: const EdgeInsets.only(right: 8),
+              decoration: BoxDecoration(
+                color: T.elev3,
+                border: Border.all(color: T.line),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.phone, size: 14, color: T.ink),
+            ),
+          ),
+          PrimaryButton(
+            label: followed ? l.common_unfollow : l.common_follow,
+            variant: followed ? BtnVariant.secondary : BtnVariant.ghost,
             size: BtnSize.sm,
+            onPressed: () async {
+              await LocalStore.toggleFollowUser(hostName);
+              if (context.mounted) {
+                showToast(
+                  context,
+                  LocalStore.isFollowing(hostName)
+                      ? l.common_unfollow
+                      : l.common_follow,
+                );
+              }
+            },
           ),
         ],
       ),
@@ -224,15 +290,16 @@ class _CreditBadge extends StatelessWidget {
         color: T.liveDim,
         borderRadius: BorderRadius.circular(3),
       ),
-      child: const Text(
-        '信用 98',
-        style: TextStyle(
-            fontFamily: T.fontMono,
-            fontFamilyFallback: T.monoFallbacks,
-            fontSize: 9,
-            fontWeight: FontWeight.w600,
-            color: T.live,
-            letterSpacing: 0.5),
+      child: Text(
+        context.l10n.pickup_detail_credit_n(98),
+        style: const TextStyle(
+          fontFamily: T.fontMono,
+          fontFamilyFallback: T.monoFallbacks,
+          fontSize: 9,
+          fontWeight: FontWeight.w600,
+          color: T.live,
+          letterSpacing: 0.5,
+        ),
       ),
     );
   }
@@ -250,17 +317,22 @@ class _Formation extends ConsumerWidget {
     return null;
   }
 
-  Future<void> _join(BuildContext ctx, WidgetRef ref,
-      {required String position, required int x, required int y}) async {
+  Future<void> _join(
+    BuildContext ctx,
+    WidgetRef ref, {
+    required String position,
+    required int x,
+    required int y,
+  }) async {
     final uid = svc.currentUserId;
     if (uid == null) {
-      ScaffoldMessenger.of(ctx).showSnackBar(
-        const SnackBar(content: Text('未登录')),
-      );
+      showToast(ctx, ctx.l10n.pickup_detail_not_signed_in, error: true);
       return;
     }
     try {
-      await ref.read(pickupsRepoProvider).join(
+      await ref
+          .read(pickupsRepoProvider)
+          .join(
             pickupId: pickupId,
             userId: uid,
             position: position,
@@ -270,15 +342,15 @@ class _Formation extends ConsumerWidget {
       ref.invalidate(pickupSlotsProvider(pickupId));
     } catch (e) {
       if (!ctx.mounted) return;
-      ScaffoldMessenger.of(ctx).showSnackBar(
-        SnackBar(content: Text('报名失败：$e')),
-      );
+      showToast(ctx, ctx.l10n.pickup_detail_join_failed('$e'), error: true);
     }
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final filledCount = _formation.where((p) => _slotAt(p.$2, p.$3) != null).length;
+    final filledCount = _formation
+        .where((p) => _slotAt(p.$2, p.$3) != null)
+        .length;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
@@ -287,55 +359,72 @@ class _Formation extends ConsumerWidget {
         children: [
           Row(
             children: [
-              const Label('阵型 · 4-3-3'),
+              Label(context.l10n.pickup_detail_formation_title('4-3-3')),
               const Spacer(),
               Row(
                 children: [
-                  N('$filledCount',
-                      size: 12, weight: FontWeight.w600, color: T.live),
-                  N('/${_formation.length} 已到位',
-                      size: 12, color: T.inkSub),
+                  N(
+                    '$filledCount',
+                    size: 12,
+                    weight: FontWeight.w600,
+                    color: T.live,
+                  ),
+                  N(
+                    context.l10n.pickup_detail_slots_filled_of(
+                        _formation.length),
+                    size: 12,
+                    color: T.inkSub,
+                  ),
                 ],
               ),
             ],
           ),
           const SizedBox(height: 10),
-          LayoutBuilder(builder: (_, c) {
-            final w = c.maxWidth;
-            const h = 340.0;
-            return Container(
-              width: w,
-              height: h,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    HSLColor.fromAHSL(1, 150, 0.25, 0.20).toColor(),
-                    HSLColor.fromAHSL(1, 150, 0.25, 0.16).toColor(),
+          LayoutBuilder(
+            builder: (_, c) {
+              final w = c.maxWidth;
+              const h = 340.0;
+              return Container(
+                width: w,
+                height: h,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      HSLColor.fromAHSL(1, 150, 0.25, 0.20).toColor(),
+                      HSLColor.fromAHSL(1, 150, 0.25, 0.16).toColor(),
+                    ],
+                  ),
+                  border: Border.all(color: T.line),
+                  borderRadius: BorderRadius.circular(T.r3),
+                ),
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: CustomPaint(painter: _FieldPainter()),
+                    ),
+                    for (final p in _formation)
+                      Positioned(
+                        left: (p.$2 / 100) * w - 18,
+                        top: (p.$3 / 100) * h - 22,
+                        child: _PlayerDot(
+                          pos: p.$1,
+                          slot: _slotAt(p.$2, p.$3),
+                          onJoin: () => _join(
+                            context,
+                            ref,
+                            position: p.$1,
+                            x: p.$2,
+                            y: p.$3,
+                          ),
+                        ),
+                      ),
                   ],
                 ),
-                border: Border.all(color: T.line),
-                borderRadius: BorderRadius.circular(T.r3),
-              ),
-              child: Stack(
-                children: [
-                  Positioned.fill(child: CustomPaint(painter: _FieldPainter())),
-                  for (final p in _formation)
-                    Positioned(
-                      left: (p.$2 / 100) * w - 18,
-                      top: (p.$3 / 100) * h - 22,
-                      child: _PlayerDot(
-                        pos: p.$1,
-                        slot: _slotAt(p.$2, p.$3),
-                        onJoin: () => _join(context, ref,
-                            position: p.$1, x: p.$2, y: p.$3),
-                      ),
-                    ),
-                ],
-              ),
-            );
-          }),
+              );
+            },
+          ),
         ],
       ),
     );
@@ -350,30 +439,44 @@ class _FieldPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1;
     canvas.drawRect(
-        Rect.fromLTWH(1, 1, size.width - 2, size.height - 2), stroke);
-    canvas.drawLine(Offset(1, size.height / 2),
-        Offset(size.width - 1, size.height / 2), stroke);
+      Rect.fromLTWH(1, 1, size.width - 2, size.height - 2),
+      stroke,
+    );
+    canvas.drawLine(
+      Offset(1, size.height / 2),
+      Offset(size.width - 1, size.height / 2),
+      stroke,
+    );
     canvas.drawCircle(Offset(size.width / 2, size.height / 2), 30, stroke);
-    canvas.drawCircle(Offset(size.width / 2, size.height / 2), 2,
-        Paint()..color = const Color(0x4DFFFFFF));
-    canvas.drawRect(
-      Rect.fromLTWH(
-          size.width * 0.3, 1, size.width * 0.4, size.height * 0.14),
-      stroke,
+    canvas.drawCircle(
+      Offset(size.width / 2, size.height / 2),
+      2,
+      Paint()..color = const Color(0x4DFFFFFF),
     );
     canvas.drawRect(
-      Rect.fromLTWH(size.width * 0.3, size.height * 0.85, size.width * 0.4,
-          size.height * 0.14),
+      Rect.fromLTWH(size.width * 0.3, 1, size.width * 0.4, size.height * 0.14),
       stroke,
     );
     canvas.drawRect(
       Rect.fromLTWH(
-          size.width * 0.4, 1, size.width * 0.2, size.height * 0.06),
+        size.width * 0.3,
+        size.height * 0.85,
+        size.width * 0.4,
+        size.height * 0.14,
+      ),
       stroke,
     );
     canvas.drawRect(
-      Rect.fromLTWH(size.width * 0.4, size.height * 0.93, size.width * 0.2,
-          size.height * 0.06),
+      Rect.fromLTWH(size.width * 0.4, 1, size.width * 0.2, size.height * 0.06),
+      stroke,
+    );
+    canvas.drawRect(
+      Rect.fromLTWH(
+        size.width * 0.4,
+        size.height * 0.93,
+        size.width * 0.2,
+        size.height * 0.06,
+      ),
       stroke,
     );
   }
@@ -386,7 +489,11 @@ class _PlayerDot extends StatelessWidget {
   final String pos;
   final PickupSlot? slot;
   final VoidCallback onJoin;
-  const _PlayerDot({required this.pos, required this.slot, required this.onJoin});
+  const _PlayerDot({
+    required this.pos,
+    required this.slot,
+    required this.onJoin,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -406,10 +513,7 @@ class _PlayerDot extends StatelessWidget {
             decoration: BoxDecoration(
               color: filled ? T.elev1 : Colors.transparent,
               shape: BoxShape.circle,
-              border: Border.all(
-                color: filled ? T.line : T.live,
-                width: 1.5,
-              ),
+              border: Border.all(color: filled ? T.line : T.live, width: 1.5),
             ),
             child: Text(
               label,
@@ -494,8 +598,10 @@ class _FormationError extends StatelessWidget {
           children: [
             const Icon(Icons.error_outline, size: 32, color: T.warn),
             const SizedBox(height: 10),
-            const Text('阵型加载失败',
-                style: TextStyle(color: T.inkSub, fontSize: 14)),
+            Text(
+              context.l10n.pickup_detail_formation_load_failed,
+              style: const TextStyle(color: T.inkSub, fontSize: 14),
+            ),
             const SizedBox(height: 6),
             Text(
               '$error',
@@ -507,14 +613,18 @@ class _FormationError extends StatelessWidget {
               onTap: onRetry,
               child: Container(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 14, vertical: 8),
+                  horizontal: 14,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: T.elev3,
                   border: Border.all(color: T.line),
                   borderRadius: BorderRadius.circular(T.r2),
                 ),
-                child: const Text('重试',
-                    style: TextStyle(color: T.ink, fontSize: 13)),
+                child: Text(
+                  context.l10n.common_retry,
+                  style: const TextStyle(color: T.ink, fontSize: 13),
+                ),
               ),
             ),
           ],
@@ -527,18 +637,19 @@ class _FormationError extends StatelessWidget {
 class _Details extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    const items = [
-      ('水平要求', '中级 · 有基础'),
-      ('人数', '10 v 10'),
-      ('场地', '天然草 · 露天'),
-      ('停车', '场地内可停'),
+    final l = context.l10n;
+    final items = [
+      (l.pickup_detail_detail_level, '${l.level_mid} · 有基础'),
+      (l.pickup_detail_detail_headcount, '10 v 10'),
+      (l.pickup_detail_detail_field, '天然草 · 露天'),
+      (l.pickup_detail_detail_parking, '场地内可停'),
     ];
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Label('详情'),
+          Label(l.pickup_detail_details),
           const SizedBox(height: 10),
           GridView.count(
             crossAxisCount: 2,
@@ -562,11 +673,14 @@ class _Details extends StatelessWidget {
                     children: [
                       Label(k),
                       const SizedBox(height: 4),
-                      Text(v,
-                          style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                              color: T.ink)),
+                      Text(
+                        v,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: T.ink,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -586,7 +700,7 @@ class _MiniMap extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Label('位置 · 距你 2.4km'),
+          Label(context.l10n.pickup_detail_location_km('2.4')),
           const SizedBox(height: 10),
           ClipRRect(
             borderRadius: BorderRadius.circular(T.r2),
@@ -656,12 +770,17 @@ class _BottomCta extends ConsumerWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
-            children: const [
-              Text('AA 费用',
-                  style: TextStyle(
-                      fontSize: 11, color: T.inkDim, letterSpacing: 0.5)),
-              SizedBox(height: 2),
-              N('¥50', size: 18, weight: FontWeight.w700),
+            children: [
+              Text(
+                context.l10n.pickup_detail_aa_fee,
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: T.inkDim,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              const SizedBox(height: 2),
+              const N('¥50', size: 18, weight: FontWeight.w700),
             ],
           ),
           const Spacer(),
@@ -671,33 +790,39 @@ class _BottomCta extends ConsumerWidget {
               onPressed: joined
                   ? null
                   : () {
-                      // Scroll to formation — user needs to pick a slot.
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('点击阵型图上任一空位选择位置')),
+                      showToast(
+                        context,
+                        context.l10n.pickup_detail_tap_empty_slot,
                       );
                     },
               disabled: joined,
               variant: joined ? BtnVariant.secondary : BtnVariant.primary,
               size: BtnSize.lg,
               child: joined
-                  ? const Row(
+                  ? Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.check, size: 16, color: T.ink),
-                        SizedBox(width: 6),
-                        Text('已报名',
-                            style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: T.ink)),
+                        const Icon(Icons.check, size: 16, color: T.ink),
+                        const SizedBox(width: 6),
+                        Text(
+                          context.l10n.pickup_detail_already_joined,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: T.ink,
+                          ),
+                        ),
                       ],
                     )
-                  : const Text('选位置报名',
-                      style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black)),
+                  : Text(
+                      context.l10n.pickup_detail_select_position,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black,
+                      ),
+                    ),
             ),
           ),
         ],

@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../l10n/l10n_extension.dart';
 import '../../models/event.dart';
 import '../../providers.dart';
 import '../../services/supabase.dart';
 import '../../theme/tokens.dart';
+import '../../utils/toast.dart';
 import '../../widgets/photo_halftone.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/typography.dart';
@@ -33,19 +35,47 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   final _maxTeams = TextEditingController(text: '16');
   String _review = 'auto';
 
-  static const _tpls = [
-    ('group8', '8队小组赛', '2组4队 单循环 + 交叉淘汰'),
-    ('knockout16', '16队淘汰赛', '单败淘汰 4 轮决出冠军'),
-    ('wc', '世界杯赛制', '32队 8小组 + 淘汰赛'),
-    ('league', '联赛赛制', '主客场双循环积分制'),
-  ];
+  List<(String, String, String)> _tpls(BuildContext context) {
+    final l = context.l10n;
+    return [
+      (
+        'group8',
+        l.create_event_tpl_group8,
+        l.create_event_tpl_group8_desc,
+      ),
+      (
+        'knockout16',
+        l.create_event_tpl_knockout16,
+        l.create_event_tpl_knockout16_desc,
+      ),
+      ('wc', l.create_event_tpl_wc, l.create_event_tpl_wc_desc),
+      ('league', l.create_event_tpl_league, l.create_event_tpl_league_desc),
+    ];
+  }
 
-  static const _steps = ['赛事模板', '基本信息', '报名设置', '发布预览'];
+  List<String> _stepsList(BuildContext context) {
+    final l = context.l10n;
+    return [
+      l.create_event_step_template,
+      l.create_event_step_basic,
+      l.create_event_step_registration,
+      l.create_event_step_preview,
+    ];
+  }
 
   @override
   void dispose() {
-    for (final c in [_name, _start, _end, _venue, _fee, _prize,
-                     _deadline, _teamSize, _maxTeams]) {
+    for (final c in [
+      _name,
+      _start,
+      _end,
+      _venue,
+      _fee,
+      _prize,
+      _deadline,
+      _teamSize,
+      _maxTeams,
+    ]) {
       c.dispose();
     }
     super.dispose();
@@ -53,6 +83,8 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
+    final steps = _stepsList(context);
     return Scaffold(
       backgroundColor: T.bg,
       body: Column(
@@ -76,12 +108,15 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Text('创建赛事',
-                            style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                                color: T.ink)),
-                        Label('第 $_step 步 · 共 4 步'),
+                        Text(
+                          l.create_event_title,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: T.ink,
+                          ),
+                        ),
+                        Label(l.create_event_step_n_of(_step, 4)),
                       ],
                     ),
                   ),
@@ -94,7 +129,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
             child: Row(
               children: [
-                for (int i = 0; i < _steps.length; i++) ...[
+                for (int i = 0; i < steps.length; i++) ...[
                   if (i > 0) const SizedBox(width: 6),
                   Expanded(
                     child: Column(
@@ -109,7 +144,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          '${(i + 1).toString().padLeft(2, '0')} ${_steps[i]}',
+                          '${(i + 1).toString().padLeft(2, '0')} ${steps[i]}',
                           style: TextStyle(
                             fontFamily: T.fontMono,
                             fontFamilyFallback: T.monoFallbacks,
@@ -117,7 +152,9 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                             fontWeight: FontWeight.w600,
                             color: i + 1 == _step
                                 ? T.live
-                                : i + 1 < _step ? T.ink : T.inkDim,
+                                : i + 1 < _step
+                                ? T.ink
+                                : T.inkDim,
                             letterSpacing: 0.5,
                           ),
                         ),
@@ -146,7 +183,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
           children: [
             if (_step > 1) ...[
               PrimaryButton(
-                label: '上一步',
+                label: l.create_event_cta_prev,
                 variant: BtnVariant.secondary,
                 size: BtnSize.lg,
                 onPressed: () => setState(() => _step--),
@@ -156,8 +193,10 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
             Expanded(
               child: PrimaryButton(
                 label: _step < 4
-                    ? '下一步'
-                    : (_submitting ? '发布中…' : '发布赛事'),
+                    ? l.create_event_cta_next
+                    : (_submitting
+                        ? l.create_event_cta_publishing
+                        : l.create_event_cta_publish),
                 variant: BtnVariant.primary,
                 size: BtnSize.lg,
                 full: true,
@@ -188,11 +227,10 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   }
 
   Future<void> _submit() async {
+    final l = context.l10n;
     final uid = supabase.auth.currentUser?.id;
     if (uid == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('请先登录')),
-      );
+      showToast(context, l.create_event_hint_not_logged, error: true);
       return;
     }
     setState(() => _submitting = true);
@@ -212,18 +250,11 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       });
       ref.invalidate(liveEventsProvider(EventStatus.registering));
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('赛事已发布'),
-          backgroundColor: T.live,
-        ),
-      );
+      showToast(context, l.create_event_published, success: true);
       context.go('/events');
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('发布失败: $e')),
-      );
+      showToast(context, l.create_event_publish_failed('$e'), error: true);
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
@@ -238,30 +269,36 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   }
 
   Widget _step1() {
+    final l = context.l10n;
+    final tpls = _tpls(context);
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('选择赛事模板',
-              style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: T.ink,
-                  letterSpacing: -0.3)),
+          Text(
+            l.create_event_tpl_title,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: T.ink,
+              letterSpacing: -0.3,
+            ),
+          ),
           const SizedBox(height: 4),
-          const Text('模板决定赛程结构，稍后可调整',
-              style: TextStyle(fontSize: 13, color: T.inkSub)),
+          Text(
+            l.create_event_tpl_subtitle,
+            style: const TextStyle(fontSize: 13, color: T.inkSub),
+          ),
           const SizedBox(height: 18),
-          for (final t in _tpls) ...[
+          for (final t in tpls) ...[
             GestureDetector(
               onTap: () => setState(() => _tpl = t.$1),
               child: Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   color: _tpl == t.$1 ? T.elev3 : T.elev2,
-                  border: Border.all(
-                      color: _tpl == t.$1 ? T.live : T.line),
+                  border: Border.all(color: _tpl == t.$1 ? T.live : T.line),
                   borderRadius: BorderRadius.circular(T.r3),
                 ),
                 child: Row(
@@ -278,30 +315,43 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(t.$2,
-                              style: const TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700,
-                                  color: T.ink)),
+                          Text(
+                            t.$2,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: T.ink,
+                            ),
+                          ),
                           const SizedBox(height: 3),
-                          Text(t.$3,
-                              style: const TextStyle(
-                                  fontSize: 12, color: T.inkSub)),
+                          Text(
+                            t.$3,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: T.inkSub,
+                            ),
+                          ),
                         ],
                       ),
                     ),
                     Container(
-                      width: 20, height: 20,
+                      width: 20,
+                      height: 20,
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
                         color: _tpl == t.$1 ? T.live : Colors.transparent,
                         shape: BoxShape.circle,
                         border: Border.all(
-                            color: _tpl == t.$1 ? T.live : T.line, width: 1.5),
+                          color: _tpl == t.$1 ? T.live : T.line,
+                          width: 1.5,
+                        ),
                       ),
                       child: _tpl == t.$1
-                          ? const Icon(Icons.check,
-                              size: 12, color: Colors.black)
+                          ? const Icon(
+                              Icons.check,
+                              size: 12,
+                              color: Colors.black,
+                            )
                           : null,
                     ),
                   ],
@@ -316,46 +366,62 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   }
 
   Widget _step2() {
+    final l = context.l10n;
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('基本信息',
-              style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: T.ink,
-                  letterSpacing: -0.3)),
+          Text(
+            l.create_event_step_basic,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: T.ink,
+              letterSpacing: -0.3,
+            ),
+          ),
           const SizedBox(height: 18),
-          _Field(label: '赛事名称', controller: _name),
+          _Field(label: l.create_event_f_name, controller: _name),
           Row(
             children: [
               Expanded(
-                  child: _Field(
-                      label: '开赛日期', controller: _start, mono: true)),
+                child: _Field(
+                  label: l.create_event_f_start,
+                  controller: _start,
+                  mono: true,
+                ),
+              ),
               const SizedBox(width: 10),
               Expanded(
-                  child:
-                      _Field(label: '结束日期', controller: _end, mono: true)),
+                child: _Field(
+                  label: l.create_event_f_end,
+                  controller: _end,
+                  mono: true,
+                ),
+              ),
             ],
           ),
-          _Field(label: '场地', controller: _venue),
+          _Field(label: l.create_event_f_venue, controller: _venue),
           Row(
             children: [
               Expanded(
-                  child: _Field(
-                      label: '报名费(每队)',
-                      controller: _fee,
-                      prefix: '¥',
-                      mono: true)),
+                child: _Field(
+                  label: l.create_event_f_fee,
+                  controller: _fee,
+                  prefix: '¥',
+                  mono: true,
+                ),
+              ),
               const SizedBox(width: 10),
               Expanded(
-                  child: _Field(
-                      label: '总奖金',
-                      controller: _prize,
-                      prefix: '¥',
-                      mono: true)),
+                child: _Field(
+                  label: l.create_event_f_prize,
+                  controller: _prize,
+                  prefix: '¥',
+                  mono: true,
+                ),
+              ),
             ],
           ),
         ],
@@ -364,28 +430,36 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   }
 
   Widget _step3() {
+    final l = context.l10n;
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('报名设置',
-              style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: T.ink,
-                  letterSpacing: -0.3)),
+          Text(
+            l.create_event_step_registration,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: T.ink,
+              letterSpacing: -0.3,
+            ),
+          ),
           const SizedBox(height: 18),
-          _Field(label: '报名截止', controller: _deadline, mono: true),
-          const Padding(
-            padding: EdgeInsets.fromLTRB(0, 16, 0, 8),
-            child: Label('审核方式'),
+          _Field(
+            label: l.create_event_f_deadline,
+            controller: _deadline,
+            mono: true,
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(0, 16, 0, 8),
+            child: Label(l.create_event_review_title),
           ),
           Row(
             children: [
-              for (final opt in const [
-                ('auto', '自动通过'),
-                ('manual', '组委会审核'),
+              for (final opt in [
+                ('auto', l.create_event_review_auto),
+                ('manual', l.create_event_review_manual),
               ]) ...[
                 Expanded(
                   child: GestureDetector(
@@ -396,7 +470,8 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                       decoration: BoxDecoration(
                         color: _review == opt.$1 ? T.elev3 : T.elev2,
                         border: Border.all(
-                            color: _review == opt.$1 ? T.live : T.line),
+                          color: _review == opt.$1 ? T.live : T.line,
+                        ),
                         borderRadius: BorderRadius.circular(T.r2),
                       ),
                       child: Text(
@@ -418,12 +493,20 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
           Row(
             children: [
               Expanded(
-                  child:
-                      _Field(label: '每队人数', controller: _teamSize, mono: true)),
+                child: _Field(
+                  label: l.create_event_f_teamsize,
+                  controller: _teamSize,
+                  mono: true,
+                ),
+              ),
               const SizedBox(width: 10),
               Expanded(
-                  child:
-                      _Field(label: '队伍上限', controller: _maxTeams, mono: true)),
+                child: _Field(
+                  label: l.create_event_f_maxteams,
+                  controller: _maxTeams,
+                  mono: true,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 20),
@@ -438,17 +521,20 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  children: const [
-                    Icon(Icons.emoji_events, size: 14, color: T.warn),
-                    SizedBox(width: 8),
-                    Label('组织者提示', color: T.warn),
+                  children: [
+                    const Icon(Icons.emoji_events, size: 14, color: T.warn),
+                    const SizedBox(width: 8),
+                    Label(l.create_event_organizer_tip_title, color: T.warn),
                   ],
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  '建议保留至少 3 天审核期以便处理队伍资料。开赛后无法修改赛事配置。',
-                  style:
-                      TextStyle(fontSize: 12, color: T.inkSub, height: 1.5),
+                Text(
+                  l.create_event_organizer_tip_body,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: T.inkSub,
+                    height: 1.5,
+                  ),
                 ),
               ],
             ),
@@ -459,24 +545,32 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   }
 
   Widget _step4() {
-    final tplName =
-        _tpls.firstWhere((t) => t.$1 == _tpl, orElse: () => _tpls[1]).$2;
-    final prizeWan =
-        (int.tryParse(_prize.text) ?? 0) / 10000;
+    final l = context.l10n;
+    final tpls = _tpls(context);
+    final tplName = tpls.firstWhere(
+      (t) => t.$1 == _tpl,
+      orElse: () => tpls[1],
+    ).$2;
+    final prizeWan = (int.tryParse(_prize.text) ?? 0) / 10000;
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('发布预览',
-              style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: T.ink,
-                  letterSpacing: -0.3)),
+          Text(
+            l.create_event_step_preview,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: T.ink,
+              letterSpacing: -0.3,
+            ),
+          ),
           const SizedBox(height: 4),
-          const Text('确认无误后即可发布，队伍可以开始报名',
-              style: TextStyle(fontSize: 13, color: T.inkSub)),
+          Text(
+            l.create_event_preview_subtitle,
+            style: const TextStyle(fontSize: 13, color: T.inkSub),
+          ),
           const SizedBox(height: 18),
           Container(
             decoration: BoxDecoration(
@@ -493,34 +587,51 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                     topRight: Radius.circular(T.r3),
                   ),
                   child: PhotoHalftone(
-                      label: _name.text,
-                      height: 110,
-                      hue: 140,
-                      variant: HalftoneVariant.lines),
+                    label: _name.text,
+                    height: 110,
+                    hue: 140,
+                    variant: HalftoneVariant.lines,
+                  ),
                 ),
                 Padding(
                   padding: const EdgeInsets.all(14),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(_name.text,
-                          style: const TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w700,
-                              color: T.ink)),
+                      Text(
+                        _name.text,
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                          color: T.ink,
+                        ),
+                      ),
                       const SizedBox(height: 4),
-                      Text('$tplName · ${_venue.text}',
-                          style: const TextStyle(
-                              fontSize: 12, color: T.inkSub)),
+                      Text(
+                        '$tplName · ${_venue.text}',
+                        style: const TextStyle(fontSize: 12, color: T.inkSub),
+                      ),
                       const SizedBox(height: 12),
                       Row(
                         children: [
-                          _previewStat('开赛',
-                              _start.text.length > 5 ? _start.text.substring(5) : _start.text),
-                          _previewStat('队伍', _maxTeams.text, border: true),
-                          _previewStat('奖金',
-                              '¥${prizeWan.toStringAsFixed(1)}万',
-                              border: true),
+                          _previewStat(
+                            l.home_event_kickoff,
+                            _start.text.length > 5
+                                ? _start.text.substring(5)
+                                : _start.text,
+                          ),
+                          _previewStat(
+                            l.event_kpi_teams,
+                            _maxTeams.text,
+                            border: true,
+                          ),
+                          _previewStat(
+                            l.event_kpi_prize,
+                            l.create_event_preview_prize_wan(
+                              prizeWan.toStringAsFixed(1),
+                            ),
+                            border: true,
+                          ),
                         ],
                       ),
                       const SizedBox(height: 12),
@@ -533,7 +644,13 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                       ),
                       const SizedBox(height: 6),
                       Label(
-                          '0/${_maxTeams.text} 已报名 · 截止 ${_deadline.text.length > 5 ? _deadline.text.substring(5) : _deadline.text}'),
+                        l.create_event_preview_registered_of_max(
+                          _maxTeams.text,
+                          _deadline.text.length > 5
+                              ? _deadline.text.substring(5)
+                              : _deadline.text,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -549,14 +666,17 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
               borderRadius: BorderRadius.circular(T.r2),
             ),
             child: Row(
-              children: const [
-                Icon(Icons.check, size: 14, color: T.live),
-                SizedBox(width: 8),
-                Text('配置完整，可以发布',
-                    style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: T.live)),
+              children: [
+                const Icon(Icons.check, size: 14, color: T.live),
+                const SizedBox(width: 8),
+                Text(
+                  l.create_event_preview_config_ok,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: T.live,
+                  ),
+                ),
               ],
             ),
           ),
@@ -571,7 +691,8 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         padding: border ? const EdgeInsets.only(left: 10) : null,
         decoration: border
             ? const BoxDecoration(
-                border: Border(left: BorderSide(color: T.line, width: 1)))
+                border: Border(left: BorderSide(color: T.line, width: 1)),
+              )
             : null,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -630,8 +751,7 @@ class _Field extends StatelessWidget {
                       fontSize: 15,
                       fontWeight: FontWeight.w500,
                       fontFamily: mono ? T.fontMono : null,
-                      fontFamilyFallback:
-                          mono ? T.monoFallbacks : null,
+                      fontFamilyFallback: mono ? T.monoFallbacks : null,
                     ),
                     decoration: const InputDecoration(
                       border: InputBorder.none,
@@ -702,7 +822,9 @@ class _BracketMiniPainter extends CustomPainter {
       // league
       canvas.drawRRect(
         RRect.fromRectAndRadius(
-            const Rect.fromLTWH(4, 6, 40, 36), const Radius.circular(2)),
+          const Rect.fromLTWH(4, 6, 40, 36),
+          const Radius.circular(2),
+        ),
         stroke,
       );
       for (final y in [12.0, 18.0, 24.0, 30.0, 36.0]) {

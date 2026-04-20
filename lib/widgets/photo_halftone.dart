@@ -70,7 +70,8 @@ class _HalftonePainter extends CustomPainter {
       }
     } else {
       final line = Paint()
-        ..color = const Color(0x0AFFFFFF) // ~0.04
+        ..color =
+            const Color(0x0AFFFFFF) // ~0.04
         ..strokeWidth = 1;
       for (double y = 0; y < size.height; y += 3) {
         canvas.drawLine(Offset(0, y), Offset(size.width, y), line);

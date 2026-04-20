@@ -27,29 +27,29 @@ class Profile {
   });
 
   factory Profile.fromMap(Map<String, dynamic> m) => Profile(
-        id: m['id'] as String,
-        name: m['name'] as String,
-        handle: m['handle'] as String?,
-        city: m['city'] as String?,
-        district: m['district'] as String?,
-        position: m['position'] as String?,
-        height: m['height'] as int?,
-        foot: m['foot'] as String?,
-        credit: (m['credit'] as int?) ?? 60,
-        avatarUrl: m['avatar_url'] as String?,
-        createdAt: DateTime.parse(m['created_at'] as String),
-      );
+    id: m['id'] as String,
+    name: m['name'] as String,
+    handle: m['handle'] as String?,
+    city: m['city'] as String?,
+    district: m['district'] as String?,
+    position: m['position'] as String?,
+    height: m['height'] as int?,
+    foot: m['foot'] as String?,
+    credit: (m['credit'] as int?) ?? 60,
+    avatarUrl: m['avatar_url'] as String?,
+    createdAt: DateTime.parse(m['created_at'] as String),
+  );
 
   Map<String, dynamic> toMap() => {
-        'id': id,
-        'name': name,
-        'handle': handle,
-        'city': city,
-        'district': district,
-        'position': position,
-        'height': height,
-        'foot': foot,
-        'credit': credit,
-        'avatar_url': avatarUrl,
-      };
+    'id': id,
+    'name': name,
+    'handle': handle,
+    'city': city,
+    'district': district,
+    'position': position,
+    'height': height,
+    'foot': foot,
+    'credit': credit,
+    'avatar_url': avatarUrl,
+  };
 }

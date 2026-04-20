@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../data/mock.dart' show WcMatch;
+import '../../l10n/l10n_extension.dart';
 import '../../models/event.dart';
 import '../../providers.dart';
 import '../../theme/tokens.dart';
@@ -20,14 +21,15 @@ class EventsHubScreen extends ConsumerStatefulWidget {
 
 class _EventsHubScreenState extends ConsumerState<EventsHubScreen> {
   String _tab = 'registering';
-  static const _tabs = [
-    ('ongoing', '进行中'),
-    ('registering', '报名中'),
-    ('watch', '观看'),
-  ];
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
+    final tabs = [
+      ('ongoing', l.events_tab_ongoing),
+      ('registering', l.events_tab_registering),
+      ('watch', l.events_tab_watch),
+    ];
     final wcMatches = ref.watch(wcMatchesProvider);
     final statusForTab = switch (_tab) {
       'ongoing' => EventStatus.ongoing,
@@ -47,18 +49,23 @@ class _EventsHubScreenState extends ConsumerState<EventsHubScreen> {
               padding: const EdgeInsets.fromLTRB(16, 6, 16, 10),
               child: Row(
                 children: [
-                  const Text('赛事',
-                      style: TextStyle(
-                          fontSize: 26,
-                          fontWeight: FontWeight.w800,
-                          color: T.ink,
-                          letterSpacing: -0.5)),
+                  Text(
+                    l.events_title,
+                    style: const TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w800,
+                      color: T.ink,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
                   const Spacer(),
                   GestureDetector(
                     onTap: () => context.push('/create-event'),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 6),
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: T.liveDim,
                         border: Border.all(color: const Color(0x6600FF85)),
@@ -66,14 +73,17 @@ class _EventsHubScreenState extends ConsumerState<EventsHubScreen> {
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
-                        children: const [
-                          Icon(Icons.add, size: 13, color: T.live),
-                          SizedBox(width: 5),
-                          Text('创建赛事',
-                              style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: T.live)),
+                        children: [
+                          const Icon(Icons.add, size: 13, color: T.live),
+                          const SizedBox(width: 5),
+                          Text(
+                            l.events_create,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: T.live,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -95,7 +105,7 @@ class _EventsHubScreenState extends ConsumerState<EventsHubScreen> {
                 ),
                 child: Row(
                   children: [
-                    for (final t in _tabs)
+                    for (final t in tabs)
                       Expanded(
                         child: GestureDetector(
                           onTap: () => setState(() => _tab = t.$1),
@@ -103,7 +113,9 @@ class _EventsHubScreenState extends ConsumerState<EventsHubScreen> {
                             padding: const EdgeInsets.symmetric(vertical: 9),
                             alignment: Alignment.center,
                             decoration: BoxDecoration(
-                              color: _tab == t.$1 ? T.elev3 : Colors.transparent,
+                              color: _tab == t.$1
+                                  ? T.elev3
+                                  : Colors.transparent,
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
@@ -161,54 +173,61 @@ class _EventsHubScreenState extends ConsumerState<EventsHubScreen> {
 
   List<Widget> _buildWatchTab(List<WcMatch> matches) {
     return [
-      const Padding(
-        padding: EdgeInsets.fromLTRB(16, 0, 16, 10),
-        child: Label('今日赛程 · 你关注的'),
+      Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+        child: Label(context.l10n.events_watch_today),
       ),
       for (final m in matches)
-        Container(
-          margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: T.elev2,
-            border: Border.all(color: T.line),
-            borderRadius: BorderRadius.circular(T.r3),
-          ),
-          child: Row(
-            children: [
-              Expanded(child: _TeamRow(name: m.teamA, flag: m.flagA, hue: 25)),
-              if (m.live)
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        N('${m.scoreA}', size: 18, weight: FontWeight.w700),
-                        const Text(' - ',
-                            style: TextStyle(color: T.inkDim)),
-                        N('${m.scoreB}', size: 18, weight: FontWeight.w700),
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-                    const LivePill(),
-                  ],
-                )
-              else
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    N(m.time,
-                        size: 13, weight: FontWeight.w600),
-                    if (m.status != null) Label(m.status!),
-                  ],
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => context.push('/worldcup/live/wc-${m.teamA}-${m.teamB}'),
+          child: Container(
+            margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: T.elev2,
+              border: Border.all(color: T.line),
+              borderRadius: BorderRadius.circular(T.r3),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _TeamRow(name: m.teamA, flag: m.flagA, hue: 25),
                 ),
-              Expanded(
-                child: _TeamRow(
-                  name: m.teamB, flag: m.flagB, hue: 200, rightAlign: true,
+                if (m.live)
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          N('${m.scoreA}', size: 18, weight: FontWeight.w700),
+                          const Text(' - ', style: TextStyle(color: T.inkDim)),
+                          N('${m.scoreB}', size: 18, weight: FontWeight.w700),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      const LivePill(),
+                    ],
+                  )
+                else
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      N(m.time, size: 13, weight: FontWeight.w600),
+                      if (m.status != null) Label(m.status!),
+                    ],
+                  ),
+                Expanded(
+                  child: _TeamRow(
+                    name: m.teamB,
+                    flag: m.flagB,
+                    hue: 200,
+                    rightAlign: true,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
     ];
@@ -221,6 +240,7 @@ class _WcBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 14),
       child: GestureDetector(
@@ -243,44 +263,55 @@ class _WcBanner extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                children: const [
-                  LivePill(),
-                  SizedBox(width: 6),
-                  Label('职业赛事', color: T.ink),
+                children: [
+                  const LivePill(),
+                  const SizedBox(width: 6),
+                  Label(l.events_pro, color: T.ink),
                 ],
               ),
               const SizedBox(height: 10),
-              const Text(
-                '2026 FIFA 世界杯专区',
-                style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
-                    color: T.ink,
-                    letterSpacing: -0.5),
+              Text(
+                l.events_wc_banner_title,
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: T.ink,
+                  letterSpacing: -0.5,
+                ),
               ),
               const SizedBox(height: 4),
-              const Text('小组赛第 2 轮 · 今晚 5 场同步直播',
-                  style: TextStyle(fontSize: 13, color: T.inkSub)),
+              Text(
+                l.events_wc_banner_sub,
+                style: const TextStyle(fontSize: 13, color: T.inkSub),
+              ),
               const SizedBox(height: 14),
               Row(
                 children: [
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Label('正在直播'),
-                      SizedBox(height: 2),
-                      N('3', size: 20, weight: FontWeight.w700, color: T.live),
+                    children: [
+                      Label(l.events_wc_live_now),
+                      const SizedBox(height: 2),
+                      const N(
+                        '3',
+                        size: 20,
+                        weight: FontWeight.w700,
+                        color: T.live,
+                      ),
                     ],
                   ),
                   Container(
-                      width: 1, height: 28, color: T.line,
-                      margin: const EdgeInsets.symmetric(horizontal: 14)),
+                    width: 1,
+                    height: 28,
+                    color: T.line,
+                    margin: const EdgeInsets.symmetric(horizontal: 14),
+                  ),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Label('同城竞猜'),
-                      SizedBox(height: 2),
-                      N('2.4K', size: 20, weight: FontWeight.w700),
+                    children: [
+                      Label(l.events_wc_predicts),
+                      const SizedBox(height: 2),
+                      const N('2.4K', size: 20, weight: FontWeight.w700),
                     ],
                   ),
                   const Spacer(),
@@ -302,16 +333,22 @@ class _LiveEventRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     final isReg = event.status == EventStatus.registering;
     final teamsMax = event.teamsMax ?? 16;
-    // Placeholder progress until teams table is wired (Session D).
+    // Deterministic placeholder progress (hash-derived) until a teams table
+    // lands — displayed as "registered teams".
     final teams = (event.id.hashCode.abs() % (teamsMax + 1));
     final progress = teamsMax > 0 ? teams / teamsMax : 0.0;
     final prizeLabel = event.prizeCents != null
-        ? '奖金 ¥${(event.prizeCents! / 1000000).toStringAsFixed(1)}万'
-        : '奖金待定';
+        ? l.event_prize_wan(
+            (event.prizeCents! / 1000000).toStringAsFixed(1),
+          )
+        : l.event_prize_pending;
     final deadlineLabel = event.deadline != null
-        ? '${event.deadline!.month.toString().padLeft(2, '0')}-${event.deadline!.day.toString().padLeft(2, '0')} 截止'
+        ? l.event_deadline_md_suffix(
+            '${event.deadline!.month.toString().padLeft(2, '0')}-${event.deadline!.day.toString().padLeft(2, '0')}',
+          )
         : '—';
     final subtitle = [
       if (event.sub?.isNotEmpty ?? false) event.sub!,
@@ -348,16 +385,20 @@ class _LiveEventRow extends StatelessWidget {
                     left: 10,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 3),
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
                       decoration: BoxDecoration(
-                        color: isReg
-                            ? T.liveDim
-                            : const Color(0x80000000),
+                        color: isReg ? T.liveDim : const Color(0x80000000),
                         border: Border.all(color: isReg ? T.live : T.line),
                         borderRadius: BorderRadius.circular(3),
                       ),
-                      child: Label(isReg ? '报名中' : '进行中',
-                          color: isReg ? T.live : T.ink),
+                      child: Label(
+                        isReg
+                            ? context.l10n.events_tab_registering
+                            : context.l10n.events_tab_ongoing,
+                        color: isReg ? T.live : T.ink,
+                      ),
                     ),
                   ),
                   Positioned(
@@ -365,7 +406,9 @@ class _LiveEventRow extends StatelessWidget {
                     right: 10,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 3),
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0x80000000),
                         borderRadius: BorderRadius.circular(3),
@@ -373,13 +416,18 @@ class _LiveEventRow extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.emoji_events,
-                              size: 11, color: T.warn),
+                          const Icon(
+                            Icons.emoji_events,
+                            size: 11,
+                            color: T.warn,
+                          ),
                           const SizedBox(width: 4),
-                          N(prizeLabel,
-                              size: 11,
-                              weight: FontWeight.w600,
-                              color: T.ink),
+                          N(
+                            prizeLabel,
+                            size: 11,
+                            weight: FontWeight.w600,
+                            color: T.ink,
+                          ),
                         ],
                       ),
                     ),
@@ -392,31 +440,34 @@ class _LiveEventRow extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(event.name,
-                      style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: T.ink,
-                          letterSpacing: -0.3)),
+                  Text(
+                    event.name,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: T.ink,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
                   const SizedBox(height: 3),
-                  Text(subtitle.isEmpty ? '—' : subtitle,
-                      style: const TextStyle(fontSize: 12, color: T.inkSub)),
+                  Text(
+                    subtitle.isEmpty ? '—' : subtitle,
+                    style: const TextStyle(fontSize: 12, color: T.inkSub),
+                  ),
                   const SizedBox(height: 10),
                   Row(
                     children: [
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Label('报名队伍'),
+                          Label(context.l10n.event_row_teams_label),
                           const SizedBox(height: 2),
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.baseline,
                             textBaseline: TextBaseline.alphabetic,
                             children: [
-                              N('$teams',
-                                  size: 16, weight: FontWeight.w700),
-                              N('/$teamsMax',
-                                  size: 12, color: T.inkDim),
+                              N('$teams', size: 16, weight: FontWeight.w700),
+                              N('/$teamsMax', size: 12, color: T.inkDim),
                             ],
                           ),
                         ],
@@ -431,7 +482,8 @@ class _LiveEventRow extends StatelessWidget {
                               minHeight: 3,
                               backgroundColor: T.elev3,
                               valueColor: AlwaysStoppedAnimation(
-                                  isReg ? T.live : T.inkSub),
+                                isReg ? T.live : T.inkSub,
+                              ),
                             ),
                           ),
                         ),
@@ -439,12 +491,14 @@ class _LiveEventRow extends StatelessWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          const Label('状态'),
+                          Label(context.l10n.event_row_status_label),
                           const SizedBox(height: 2),
-                          N(deadlineLabel,
-                              size: 11,
-                              weight: FontWeight.w600,
-                              color: isReg ? T.warn : T.inkSub),
+                          N(
+                            deadlineLabel,
+                            size: 11,
+                            weight: FontWeight.w600,
+                            color: isReg ? T.warn : T.inkSub,
+                          ),
                         ],
                       ),
                     ],
@@ -473,14 +527,20 @@ class _TeamRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final row = Row(
-      mainAxisAlignment:
-          rightAlign ? MainAxisAlignment.end : MainAxisAlignment.start,
+      mainAxisAlignment: rightAlign
+          ? MainAxisAlignment.end
+          : MainAxisAlignment.start,
       children: [
         if (!rightAlign) _flag(),
         if (!rightAlign) const SizedBox(width: 8),
-        Text(name,
-            style: const TextStyle(
-                fontSize: 13, fontWeight: FontWeight.w500, color: T.ink)),
+        Text(
+          name,
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: T.ink,
+          ),
+        ),
         if (rightAlign) const SizedBox(width: 8),
         if (rightAlign) _flag(),
       ],
@@ -489,21 +549,24 @@ class _TeamRow extends StatelessWidget {
   }
 
   Widget _flag() => Container(
-        width: 28,
-        height: 20,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: HSLColor.fromAHSL(1, hue, 0.4, 0.28).toColor(),
-          borderRadius: BorderRadius.circular(2),
-        ),
-        child: Text(flag,
-            style: const TextStyle(
-                fontFamily: T.fontMono,
-                fontFamilyFallback: T.monoFallbacks,
-                fontSize: 9,
-                fontWeight: FontWeight.w700,
-                color: T.ink)),
-      );
+    width: 28,
+    height: 20,
+    alignment: Alignment.center,
+    decoration: BoxDecoration(
+      color: HSLColor.fromAHSL(1, hue, 0.4, 0.28).toColor(),
+      borderRadius: BorderRadius.circular(2),
+    ),
+    child: Text(
+      flag,
+      style: const TextStyle(
+        fontFamily: T.fontMono,
+        fontFamilyFallback: T.monoFallbacks,
+        fontSize: 9,
+        fontWeight: FontWeight.w700,
+        color: T.ink,
+      ),
+    ),
+  );
 }
 
 class _EmptyEvents extends StatelessWidget {
@@ -511,6 +574,7 @@ class _EmptyEvents extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 30, 16, 30),
       child: Container(
@@ -521,16 +585,19 @@ class _EmptyEvents extends StatelessWidget {
           borderRadius: BorderRadius.circular(T.r3),
         ),
         child: Column(
-          children: const [
-            Icon(Icons.inbox_outlined, size: 32, color: T.inkDim),
-            SizedBox(height: 10),
-            Text('暂无赛事',
-                style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: T.ink)),
-            SizedBox(height: 4),
-            Label('点右上角 创建赛事 发起一个'),
+          children: [
+            const Icon(Icons.inbox_outlined, size: 32, color: T.inkDim),
+            const SizedBox(height: 10),
+            Text(
+              l.empty_no_events,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: T.ink,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Label(l.empty_no_events_sub),
           ],
         ),
       ),
@@ -557,26 +624,33 @@ class _EventsError extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Label('加载失败', color: T.danger),
+            Label(context.l10n.error_load_failed, color: T.danger),
             const SizedBox(height: 6),
-            Text('$error',
-                style: const TextStyle(fontSize: 12, color: T.inkSub)),
+            Text(
+              '$error',
+              style: const TextStyle(fontSize: 12, color: T.inkSub),
+            ),
             const SizedBox(height: 10),
             GestureDetector(
               onTap: onRetry,
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: T.elev3,
                   border: Border.all(color: T.line),
                   borderRadius: BorderRadius.circular(6),
                 ),
-                child: const Text('重试',
-                    style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: T.ink)),
+                child: Text(
+                  context.l10n.common_retry,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: T.ink,
+                  ),
+                ),
               ),
             ),
           ],

@@ -10,7 +10,9 @@ import 'models/pickup.dart';
 import 'repositories/events_repository.dart';
 import 'repositories/messages_repository.dart';
 import 'repositories/pickups_repository.dart';
+import 'repositories/profiles_repository.dart';
 import 'repositories/ratings_repository.dart';
+import 'services/local_storage.dart';
 import 'services/supabase.dart';
 
 // ─────────────────────────────────────────────────────────────
@@ -25,6 +27,15 @@ final pickupsRepoProvider = Provider((_) => PickupsRepository());
 final eventsRepoProvider = Provider((_) => EventsRepository());
 final ratingsRepoProvider = Provider((_) => RatingsRepository());
 final messagesRepoProvider = Provider((_) => MessagesRepository());
+final profilesRepoProvider = Provider((_) => ProfilesRepository());
+
+// ─────────────────────────────────────────────────────────────
+// Local storage tick — bump whenever LocalStore changes so widgets
+// watching this provider rebuild.
+// ─────────────────────────────────────────────────────────────
+final localStoreProvider = ChangeNotifierProvider<LocalStoreNotifier>(
+  (_) => localStoreNotifier,
+);
 
 // ─────────────────────────────────────────────────────────────
 // Mock data providers (prototype mode)
@@ -46,7 +57,11 @@ final hotRatedProvider = Provider((_) => mock.hotRated);
 
 // Sport selection (for top bar)
 final sportProvider = StateProvider<String>((_) => 'football');
-final cityProvider = StateProvider<String>((_) => '深圳');
+// City now backed by LocalStore so it persists across launches.
+final cityProvider = StateProvider<String>((ref) {
+  ref.watch(localStoreProvider);
+  return LocalStore.city;
+});
 
 // ─────────────────────────────────────────────────────────────
 // Live data providers (Supabase)
@@ -58,57 +73,127 @@ final livePickupsProvider = FutureProvider<List<Pickup>>((ref) async {
 });
 
 /// Single pickup by id.
-final pickupDetailProvider =
-    FutureProvider.family<Pickup, String>((ref, id) async {
+final pickupDetailProvider = FutureProvider.family<Pickup, String>((
+  ref,
+  id,
+) async {
   return ref.read(pickupsRepoProvider).fetch(id);
 });
 
 /// Slots belonging to a pickup. Invalidate after a join/leave to refresh.
-final pickupSlotsProvider =
-    FutureProvider.family<List<PickupSlot>, String>((ref, id) async {
+final pickupSlotsProvider = FutureProvider.family<List<PickupSlot>, String>((
+  ref,
+  id,
+) async {
   return ref.read(pickupsRepoProvider).slotsFor(id);
 });
 
 /// Conversations the current user belongs to (Messages tab root).
-final conversationsProvider =
-    FutureProvider<List<ConversationRow>>((ref) async {
+final conversationsProvider = FutureProvider<List<ConversationRow>>((
+  ref,
+) async {
   return ref.read(messagesRepoProvider).listConversations();
 });
 
 /// Live stream of messages in a conversation (Realtime).
-final chatMessagesProvider =
-    StreamProvider.family<List<Message>, String>((ref, convId) {
+final chatMessagesProvider = StreamProvider.family<List<Message>, String>((
+  ref,
+  convId,
+) {
   return ref.read(messagesRepoProvider).streamMessages(convId);
 });
 
 /// Events filtered by status (Events Hub tab). Sorted newest first.
-final liveEventsProvider =
-    FutureProvider.family<List<Event>, EventStatus>((ref, status) async {
+final liveEventsProvider = FutureProvider.family<List<Event>, EventStatus>((
+  ref,
+  status,
+) async {
   return ref.read(eventsRepoProvider).listByStatus(status);
 });
 
 /// Single event detail by id.
-final eventDetailProvider =
-    FutureProvider.family<Event, String>((ref, id) async {
+final eventDetailProvider = FutureProvider.family<Event, String>((
+  ref,
+  id,
+) async {
   return ref.read(eventsRepoProvider).fetch(id);
 });
 
 /// All matches of an event (bracket / standings source).
-final eventMatchesProvider =
-    FutureProvider.family<List<Match>, String>((ref, eventId) async {
+final eventMatchesProvider = FutureProvider.family<List<Match>, String>((
+  ref,
+  eventId,
+) async {
   return ref.read(eventsRepoProvider).matchesFor(eventId);
 });
 
 /// Player rating leaderboard for an event (avg_score desc).
 final eventPlayerRatingsProvider =
     FutureProvider.family<List<PlayerRatingRow>, String>((ref, id) async {
-  return ref.read(eventsRepoProvider).playerRatingsForEvent(id);
+      return ref.read(eventsRepoProvider).playerRatingsForEvent(id);
+    });
+
+/// Event-scoped discussion conversation id (creates one if missing).
+final eventChatConvProvider = FutureProvider.family<String, String>((
+  ref,
+  eventId,
+) async {
+  return ref.read(messagesRepoProvider).ensureEventConversation(eventId);
+});
+
+/// Live messages for an event's discussion — layered on top of
+/// [eventChatConvProvider] so the convId is ensured first.
+final eventChatMessagesProvider = StreamProvider.family<List<Message>, String>((
+  ref,
+  eventId,
+) async* {
+  final convId = await ref.watch(eventChatConvProvider(eventId).future);
+  yield* ref.read(messagesRepoProvider).streamMessages(convId);
+});
+
+// ─────────────────────────────────────────────────────────────
+// My content providers (for /me/*)
+// ─────────────────────────────────────────────────────────────
+
+final myHostedPickupsProvider = FutureProvider<List<Pickup>>((ref) async {
+  final uid = currentUserId;
+  if (uid == null) return [];
+  return ref.read(pickupsRepoProvider).listByHost(uid);
+});
+
+final myJoinedPickupsProvider = FutureProvider<List<Pickup>>((ref) async {
+  final uid = currentUserId;
+  if (uid == null) return [];
+  return ref.read(pickupsRepoProvider).listJoinedBy(uid);
+});
+
+final myHostedEventsProvider = FutureProvider<List<Event>>((ref) async {
+  final uid = currentUserId;
+  if (uid == null) return [];
+  return ref.read(eventsRepoProvider).listByCreator(uid);
+});
+
+final myFavoriteEventsProvider = FutureProvider<List<Event>>((ref) async {
+  ref.watch(localStoreProvider);
+  final ids = LocalStore.favoriteEvents.toList();
+  if (ids.isEmpty) return [];
+  return ref.read(eventsRepoProvider).listByIds(ids);
+});
+
+final myFavoritePickupsProvider = FutureProvider<List<Pickup>>((ref) async {
+  ref.watch(localStoreProvider);
+  final ids = LocalStore.favoritePickups;
+  if (ids.isEmpty) return [];
+  // Filter from the full list to avoid needing a dedicated RPC.
+  final all = await ref.read(pickupsRepoProvider).listAll();
+  return all.where((p) => ids.contains(p.id)).toList();
 });
 
 /// Current user's profile — real fields from Supabase (name, handle, city,
 /// position, height, foot), plus mock fallbacks for fields the DB doesn't
 /// carry yet (rating / stats / attrs / honors — those need real match data).
 final myProfileProvider = FutureProvider<mock.MockUser>((ref) async {
+  ref.watch(localStoreProvider);
   final uid = currentUserId;
   if (uid == null) return mock.user;
 

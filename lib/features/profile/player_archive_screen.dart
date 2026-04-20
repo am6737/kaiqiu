@@ -5,8 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../data/mock.dart';
+import '../../l10n/l10n_extension.dart';
 import '../../providers.dart';
 import '../../theme/tokens.dart';
+import '../../utils/share_helper.dart';
 import '../../widgets/avatar.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/typography.dart';
@@ -43,8 +45,8 @@ class _PlayerArchiveScreenState extends ConsumerState<PlayerArchiveScreen>
 
   @override
   Widget build(BuildContext context) {
-    final MockUser u = ref.watch(myProfileProvider).valueOrNull ??
-        ref.watch(userProvider);
+    final MockUser u =
+        ref.watch(myProfileProvider).valueOrNull ?? ref.watch(userProvider);
     final teammates = ref.watch(teammatesProvider);
     final history = ref.watch(historyProvider);
 
@@ -64,21 +66,30 @@ class _PlayerArchiveScreenState extends ConsumerState<PlayerArchiveScreen>
                     onTap: () => context.pop(),
                     child: const Padding(
                       padding: EdgeInsets.all(4),
-                      child: Icon(Icons.arrow_back_ios_new,
-                          size: 22, color: T.ink),
+                      child: Icon(
+                        Icons.arrow_back_ios_new,
+                        size: 22,
+                        color: T.ink,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 6),
-                  const Text('我的球员档案',
-                      style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                          color: T.ink,
-                          letterSpacing: -0.5)),
+                  Text(
+                    context.l10n.profile_archive_title,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      color: T.ink,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
                   const Spacer(),
-                  const Padding(
-                    padding: EdgeInsets.all(4),
-                    child: Icon(Icons.ios_share, size: 18, color: T.inkSub),
+                  GestureDetector(
+                    onTap: () => shareProfile(u),
+                    child: const Padding(
+                      padding: EdgeInsets.all(6),
+                      child: Icon(Icons.ios_share, size: 18, color: T.inkSub),
+                    ),
                   ),
                 ],
               ),
@@ -94,42 +105,54 @@ class _PlayerArchiveScreenState extends ConsumerState<PlayerArchiveScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(u.name,
-                            style: const TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w700,
-                                color: T.ink)),
+                        Text(
+                          u.name,
+                          style: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w700,
+                            color: T.ink,
+                          ),
+                        ),
                         const SizedBox(height: 3),
                         Row(
                           children: [
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 6, vertical: 2),
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
                               decoration: BoxDecoration(
                                 color: T.liveDim,
                                 borderRadius: BorderRadius.circular(3),
                                 border: Border.all(
-                                    color: const Color(0x6600FF85)),
+                                  color: const Color(0x6600FF85),
+                                ),
                               ),
-                              child: Text(u.position,
-                                  style: const TextStyle(
-                                      fontFamily: T.fontMono,
-                                      fontFamilyFallback: T.monoFallbacks,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w700,
-                                      color: T.live)),
+                              child: Text(
+                                u.position,
+                                style: const TextStyle(
+                                  fontFamily: T.fontMono,
+                                  fontFamilyFallback: T.monoFallbacks,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  color: T.live,
+                                ),
+                              ),
                             ),
                             const SizedBox(width: 6),
-                            Label('${u.positionFull} · ${u.city} ${u.district}'),
+                            Label(
+                              '${u.positionFull} · ${u.city} ${u.district}',
+                            ),
                           ],
                         ),
                       ],
                     ),
                   ),
-                  const PrimaryButton(
-                    label: '编辑',
+                  PrimaryButton(
+                    label: context.l10n.common_edit,
                     variant: BtnVariant.ghost,
                     size: BtnSize.sm,
+                    onPressed: () => context.push('/profile/edit'),
                   ),
                 ],
               ),
@@ -169,7 +192,9 @@ class _PlayerArchiveScreenState extends ConsumerState<PlayerArchiveScreen>
               child: AnimatedBuilder(
                 animation: _flip,
                 builder: (_, c) => Label(
-                  _flipped ? '点击卡片查看正面' : '点击卡片查看属性雷达',
+                  _flipped
+                      ? context.l10n.archive_flip_front
+                      : context.l10n.archive_flip_back,
                 ),
               ),
             ),
@@ -180,17 +205,26 @@ class _PlayerArchiveScreenState extends ConsumerState<PlayerArchiveScreen>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Label('数据墙 · 赛季'),
+                  Label(context.l10n.archive_season_data),
                   const SizedBox(height: 10),
                   Row(
                     children: [
-                      _StatTile(label: '总场次', value: '${u.stats.matches}'),
+                      _StatTile(
+                        label: context.l10n.profile_mini_matches,
+                        value: '${u.stats.matches}',
+                      ),
                       const SizedBox(width: 8),
-                      _StatTile(label: '进球', value: '${u.stats.goals}'),
+                      _StatTile(
+                        label: context.l10n.profile_mini_goals,
+                        value: '${u.stats.goals}',
+                      ),
                       const SizedBox(width: 8),
                       _StatTile(label: '助攻', value: '${u.stats.assists}'),
                       const SizedBox(width: 8),
-                      _StatTile(label: 'MVP', value: '${u.stats.mvp}'),
+                      _StatTile(
+                        label: context.l10n.profile_mini_mvp,
+                        value: '${u.stats.mvp}',
+                      ),
                     ],
                   ),
                   const SizedBox(height: 10),
@@ -204,14 +238,16 @@ class _PlayerArchiveScreenState extends ConsumerState<PlayerArchiveScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Row(
+                        Row(
                           children: [
-                            Label('本赛季进球趋势'),
-                            Spacer(),
-                            N('+28%',
-                                size: 11,
-                                color: T.live,
-                                weight: FontWeight.w600),
+                            Label(context.l10n.archive_goal_trend),
+                            const Spacer(),
+                            const N(
+                              '+28%',
+                              size: 11,
+                              color: T.live,
+                              weight: FontWeight.w600,
+                            ),
                           ],
                         ),
                         const SizedBox(height: 8),
@@ -233,9 +269,9 @@ class _PlayerArchiveScreenState extends ConsumerState<PlayerArchiveScreen>
                 children: [
                   Row(
                     children: [
-                      const Label('荣誉墙'),
+                      Label(context.l10n.archive_honors_title),
                       const Spacer(),
-                      Label('${u.honors.length} 项'),
+                      Label(context.l10n.archive_honors_count(u.honors.length)),
                     ],
                   ),
                   const SizedBox(height: 10),
@@ -253,9 +289,10 @@ class _PlayerArchiveScreenState extends ConsumerState<PlayerArchiveScreen>
                     padding: const EdgeInsets.only(right: 16),
                     child: Row(
                       children: [
-                        const Label('队友网络'),
+                        Label(context.l10n.archive_teammates_title),
                         const Spacer(),
-                        Label('常一起踢球的 ${teammates.length} 人'),
+                        Label(context.l10n
+                            .archive_teammates_sub(teammates.length)),
                       ],
                     ),
                   ),
@@ -273,12 +310,15 @@ class _PlayerArchiveScreenState extends ConsumerState<PlayerArchiveScreen>
                           children: [
                             Avatar(t.name, size: 46),
                             const SizedBox(height: 5),
-                            Text(t.name,
-                                style: const TextStyle(
-                                    fontSize: 11,
-                                    color: T.ink,
-                                    fontWeight: FontWeight.w500)),
-                            Label('${t.matches}场'),
+                            Text(
+                              t.name,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: T.ink,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            Label(context.l10n.archive_teammates_matches(t.matches)),
                           ],
                         );
                       },
@@ -292,7 +332,7 @@ class _PlayerArchiveScreenState extends ConsumerState<PlayerArchiveScreen>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Label('比赛历史'),
+                  Label(context.l10n.archive_history_title),
                   const SizedBox(height: 10),
                   Container(
                     decoration: BoxDecoration(
@@ -343,9 +383,7 @@ class _CardFront extends StatelessWidget {
       ),
       child: Stack(
         children: [
-          Positioned.fill(
-            child: CustomPaint(painter: _CardDotsPainter()),
-          ),
+          Positioned.fill(child: CustomPaint(painter: _CardDotsPainter())),
           Positioned(
             top: 14,
             left: 14,
@@ -355,7 +393,7 @@ class _CardFront extends StatelessWidget {
                 border: Border.all(color: T.live),
                 borderRadius: BorderRadius.circular(2),
               ),
-              child: const Label('球员档案 · 2026', color: T.live),
+              child: Label(context.l10n.archive_card_profile, color: T.live),
             ),
           ),
           Positioned(
@@ -364,11 +402,15 @@ class _CardFront extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                N('${u.rating}',
-                    size: 64, weight: FontWeight.w800, color: T.live),
+                N(
+                  '${u.rating}',
+                  size: 64,
+                  weight: FontWeight.w800,
+                  color: T.live,
+                ),
                 Row(
                   children: [
-                    const Label('综合评分', color: T.live),
+                    Label(context.l10n.archive_card_overall, color: T.live),
                     const SizedBox(width: 6),
                     Container(width: 10, height: 1, color: T.live),
                     const SizedBox(width: 6),
@@ -406,11 +448,12 @@ class _CardFront extends StatelessWidget {
                       'PLAYER\nPORTRAIT',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                          fontFamily: T.fontMono,
-                          fontFamilyFallback: T.monoFallbacks,
-                          fontSize: 11,
-                          color: T.inkDim,
-                          letterSpacing: 1),
+                        fontFamily: T.fontMono,
+                        fontFamilyFallback: T.monoFallbacks,
+                        fontSize: 11,
+                        color: T.inkDim,
+                        letterSpacing: 1,
+                      ),
                     ),
                   ),
                 ],
@@ -424,10 +467,11 @@ class _CardFront extends StatelessWidget {
             child: Text(
               u.name.toUpperCase(),
               style: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w800,
-                  color: T.ink,
-                  letterSpacing: -0.5),
+                fontSize: 28,
+                fontWeight: FontWeight.w800,
+                color: T.ink,
+                letterSpacing: -0.5,
+              ),
             ),
           ),
           Positioned(
@@ -443,8 +487,16 @@ class _CardFront extends StatelessWidget {
                 children: [
                   _CardStat(k: '身高', v: '${u.height}'),
                   _CardStat(k: '脚', v: u.foot, border: true),
-                  _CardStat(k: '场次', v: '${u.stats.matches}', border: true),
-                  _CardStat(k: '进球', v: '${u.stats.goals}', border: true),
+                  _CardStat(
+                    k: context.l10n.profile_mini_matches,
+                    v: '${u.stats.matches}',
+                    border: true,
+                  ),
+                  _CardStat(
+                    k: context.l10n.profile_mini_goals,
+                    v: '${u.stats.goals}',
+                    border: true,
+                  ),
                 ],
               ),
             ),
@@ -467,7 +519,8 @@ class _CardStat extends StatelessWidget {
         padding: border ? const EdgeInsets.only(left: 10) : null,
         decoration: border
             ? const BoxDecoration(
-                border: Border(left: BorderSide(color: T.line, width: 1)))
+                border: Border(left: BorderSide(color: T.line, width: 1)),
+              )
             : null,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -507,12 +560,14 @@ class _CardBack extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
-            children: [
-              Label('属性雷达', color: T.live),
-              Spacer(),
-              Label('点击翻回'),
-            ],
+          Builder(
+            builder: (context) => Row(
+              children: [
+                Label(context.l10n.archive_radar_title, color: T.live),
+                const Spacer(),
+                Label(context.l10n.archive_radar_flip_back),
+              ],
+            ),
           ),
           const SizedBox(height: 6),
           SizedBox(
@@ -534,7 +589,9 @@ class _CardBack extends StatelessWidget {
               for (final e in entries)
                 Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 6),
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: T.elev2,
                     border: Border.all(color: T.line),
@@ -557,17 +614,21 @@ class _CardBack extends StatelessWidget {
                             decoration: BoxDecoration(
                               color: e.value >= 80
                                   ? T.live
-                                  : e.value >= 60 ? T.ink : T.inkSub,
+                                  : e.value >= 60
+                                  ? T.ink
+                                  : T.inkSub,
                               borderRadius: BorderRadius.circular(2),
                             ),
                           ),
                         ),
                       ),
                       const SizedBox(width: 6),
-                      N('${e.value}',
-                          size: 12,
-                          weight: FontWeight.w700,
-                          color: e.value >= 80 ? T.live : T.ink),
+                      N(
+                        '${e.value}',
+                        size: 12,
+                        weight: FontWeight.w700,
+                        color: e.value >= 80 ? T.live : T.ink,
+                      ),
                     ],
                   ),
                 ),
@@ -623,9 +684,9 @@ class _RadarPainter extends CustomPainter {
 
     double angle(int i) => 2 * math.pi * i / n - math.pi / 2;
     Offset pt(int i, double v) => Offset(
-          cx + math.cos(angle(i)) * r * (v / 100),
-          cy + math.sin(angle(i)) * r * (v / 100),
-        );
+      cx + math.cos(angle(i)) * r * (v / 100),
+      cy + math.sin(angle(i)) * r * (v / 100),
+    );
 
     final ring = Paint()
       ..color = const Color(0x14FFFFFF)
@@ -666,10 +727,7 @@ class _RadarPainter extends CustomPainter {
       }
     }
     dataPath.close();
-    canvas.drawPath(
-      dataPath,
-      Paint()..color = T.live.withValues(alpha: 0.15),
-    );
+    canvas.drawPath(dataPath, Paint()..color = T.live.withValues(alpha: 0.15));
     canvas.drawPath(
       dataPath,
       Paint()
@@ -692,12 +750,14 @@ class _RadarPainter extends CustomPainter {
         text: TextSpan(
           text: keys[i],
           style: const TextStyle(
-              color: T.inkSub, fontSize: 10, fontWeight: FontWeight.w500),
+            color: T.inkSub,
+            fontSize: 10,
+            fontWeight: FontWeight.w500,
+          ),
         ),
         textDirection: TextDirection.ltr,
       )..layout();
-      tp.paint(
-          canvas, Offset(pos.dx - tp.width / 2, pos.dy - tp.height / 2));
+      tp.paint(canvas, Offset(pos.dx - tp.width / 2, pos.dy - tp.height / 2));
     }
   }
 
@@ -725,8 +785,7 @@ class _TrendPainter extends CustomPainter {
     areaPath.lineTo(points.last.dx, size.height);
     areaPath.lineTo(points.first.dx, size.height);
     areaPath.close();
-    canvas.drawPath(
-        areaPath, Paint()..color = T.live.withValues(alpha: 0.10));
+    canvas.drawPath(areaPath, Paint()..color = T.live.withValues(alpha: 0.10));
 
     final linePath = Path()..moveTo(points[0].dx, points[0].dy);
     for (final p in points.skip(1)) {
@@ -742,8 +801,7 @@ class _TrendPainter extends CustomPainter {
 
     final dotPaint = Paint()..color = T.live;
     for (int i = 0; i < points.length; i++) {
-      canvas.drawCircle(
-          points[i], i == points.length - 1 ? 3 : 1.5, dotPaint);
+      canvas.drawCircle(points[i], i == points.length - 1 ? 3 : 1.5, dotPaint);
     }
   }
 
@@ -778,18 +836,30 @@ class _RatingPanel extends StatelessWidget {
         children: [
           const _RatingBadge(score: 8.74),
           const SizedBox(width: 14),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Label('我的评分 · 过去 30 天', color: T.live),
-                SizedBox(height: 3),
+                Label(context.l10n.archive_rating_panel_title, color: T.live),
+                const SizedBox(height: 3),
                 Wrap(
                   spacing: 10,
                   children: [
-                    _StatMini(label: '被评', value: '486', color: T.ink),
-                    _StatMini(label: '赛事排名', value: '#1', color: T.live),
-                    _StatMini(label: '趋势', value: '+0.12', color: T.live),
+                    _StatMini(
+                      label: context.l10n.archive_rating_rated,
+                      value: '486',
+                      color: T.ink,
+                    ),
+                    _StatMini(
+                      label: context.l10n.archive_rating_rank,
+                      value: '#1',
+                      color: T.live,
+                    ),
+                    _StatMini(
+                      label: context.l10n.archive_rating_trend,
+                      value: '+0.12',
+                      color: T.live,
+                    ),
                   ],
                 ),
               ],
@@ -797,11 +867,10 @@ class _RatingPanel extends StatelessWidget {
           ),
           const SizedBox(width: 10),
           PrimaryButton(
-            label: '去评分',
+            label: context.l10n.archive_rating_go_rate,
             variant: BtnVariant.primary,
             size: BtnSize.sm,
-            onPressed: () =>
-                GoRouter.of(context).push('/rate/$demoMatchId'),
+            onPressed: () => GoRouter.of(context).push('/rate/$demoMatchId'),
           ),
         ],
       ),
@@ -815,7 +884,11 @@ class _RatingBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = score >= 8 ? T.live : score >= 6 ? T.ink : T.danger;
+    final c = score >= 8
+        ? T.live
+        : score >= 6
+        ? T.ink
+        : T.danger;
     return Container(
       width: 64,
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
@@ -827,17 +900,22 @@ class _RatingBadge extends StatelessWidget {
       ),
       child: Column(
         children: [
-          N(score.toStringAsFixed(1),
-              size: 22, weight: FontWeight.w800, color: c),
+          N(
+            score.toStringAsFixed(1),
+            size: 22,
+            weight: FontWeight.w800,
+            color: c,
+          ),
           const SizedBox(height: 2),
-          const Text(
-            '评分',
-            style: TextStyle(
-                fontFamily: T.fontMono,
-                fontFamilyFallback: T.monoFallbacks,
-                fontSize: 10,
-                color: T.inkDim,
-                letterSpacing: 1),
+          Text(
+            context.l10n.event_tab_ratings,
+            style: const TextStyle(
+              fontFamily: T.fontMono,
+              fontFamilyFallback: T.monoFallbacks,
+              fontSize: 10,
+              color: T.inkDim,
+              letterSpacing: 1,
+            ),
           ),
         ],
       ),
@@ -848,16 +926,18 @@ class _RatingBadge extends StatelessWidget {
 class _StatMini extends StatelessWidget {
   final String label, value;
   final Color color;
-  const _StatMini(
-      {required this.label, required this.value, required this.color});
+  const _StatMini({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text('$label ',
-            style: const TextStyle(fontSize: 12, color: T.inkSub)),
+        Text('$label ', style: const TextStyle(fontSize: 12, color: T.inkSub)),
         N(value, size: 12, weight: FontWeight.w700, color: color),
       ],
     );
@@ -922,19 +1002,25 @@ class _HonorTile extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: T.line),
             ),
-            child: Icon(Icons.emoji_events,
-                size: 18, color: isGold ? Colors.black : T.inkSub),
+            child: Icon(
+              Icons.emoji_events,
+              size: 18,
+              color: isGold ? Colors.black : T.inkSub,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(honor.title,
-                    style: const TextStyle(
-                        fontSize: 13,
-                        color: T.ink,
-                        fontWeight: FontWeight.w600)),
+                Text(
+                  honor.title,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: T.ink,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 Label('${honor.year} · ${honor.meta}'),
               ],
             ),
@@ -971,10 +1057,7 @@ class _HistoryRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          SizedBox(
-            width: 36,
-            child: N(match.date, size: 11, color: T.inkSub),
-          ),
+          SizedBox(width: 36, child: N(match.date, size: 11, color: T.inkSub)),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
@@ -982,16 +1065,21 @@ class _HistoryRow extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Text(match.opp,
-                        style: const TextStyle(
-                            fontSize: 13,
-                            color: T.ink,
-                            fontWeight: FontWeight.w500)),
+                    Text(
+                      match.opp,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: T.ink,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                     if (match.mvp) ...[
                       const SizedBox(width: 6),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 5, vertical: 1),
+                          horizontal: 5,
+                          vertical: 1,
+                        ),
                         decoration: BoxDecoration(
                           color: T.warnDim,
                           borderRadius: BorderRadius.circular(2),
@@ -999,11 +1087,12 @@ class _HistoryRow extends StatelessWidget {
                         child: const Text(
                           'MVP',
                           style: TextStyle(
-                              fontFamily: T.fontMono,
-                              fontFamilyFallback: T.monoFallbacks,
-                              fontSize: 9,
-                              fontWeight: FontWeight.w700,
-                              color: T.warn),
+                            fontFamily: T.fontMono,
+                            fontFamilyFallback: T.monoFallbacks,
+                            fontSize: 9,
+                            fontWeight: FontWeight.w700,
+                            color: T.warn,
+                          ),
                         ),
                       ),
                     ],
@@ -1016,21 +1105,28 @@ class _HistoryRow extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              N(match.score,
-                  size: 13, weight: FontWeight.w700, color: scoreColor),
+              N(
+                match.score,
+                size: 13,
+                weight: FontWeight.w700,
+                color: scoreColor,
+              ),
               if (match.goals + match.assists > 0)
                 Padding(
                   padding: const EdgeInsets.only(top: 2),
                   child: Text(
                     [
-                      if (match.goals > 0) '${match.goals}球',
-                      if (match.assists > 0) '${match.assists}助',
+                      if (match.goals > 0)
+                        context.l10n.archive_history_goals_n(match.goals),
+                      if (match.assists > 0)
+                        context.l10n.archive_history_assists_n(match.assists),
                     ].join(' · '),
                     style: const TextStyle(
-                        fontFamily: T.fontMono,
-                        fontFamilyFallback: T.monoFallbacks,
-                        fontSize: 10,
-                        color: T.inkSub),
+                      fontFamily: T.fontMono,
+                      fontFamilyFallback: T.monoFallbacks,
+                      fontSize: 10,
+                      color: T.inkSub,
+                    ),
                   ),
                 ),
             ],

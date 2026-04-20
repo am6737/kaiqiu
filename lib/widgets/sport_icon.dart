@@ -9,12 +9,7 @@ class SportIcon extends StatelessWidget {
   final double size;
   final Color? color;
 
-  const SportIcon(
-    this.sport, {
-    super.key,
-    this.size = 16,
-    this.color,
-  });
+  const SportIcon(this.sport, {super.key, this.size = 16, this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -88,8 +83,11 @@ class _SportPainter extends CustomPainter {
           paint,
         );
         canvas.restore();
-        canvas.drawLine(const Offset(10, 10), const Offset(13, 13),
-            paint..strokeWidth = 1.4 * scale);
+        canvas.drawLine(
+          const Offset(10, 10),
+          const Offset(13, 13),
+          paint..strokeWidth = 1.4 * scale,
+        );
         break;
       case Sport.cycling:
         canvas.drawCircle(const Offset(4, 11), 3, paint);

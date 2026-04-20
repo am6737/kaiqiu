@@ -4,10 +4,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../l10n/l10n_extension.dart';
 import '../../models/message.dart';
 import '../../providers.dart';
+import '../../services/local_storage.dart';
 import '../../services/supabase.dart' as svc;
 import '../../theme/tokens.dart';
+import '../../utils/toast.dart';
 import '../../widgets/avatar.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
@@ -39,11 +42,202 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       _input.clear();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('发送失败：$e')),
-      );
+      showToast(context, '${context.l10n.chat_send_failed}：$e', error: true);
     } finally {
       if (mounted) setState(() => _sending = false);
+    }
+  }
+
+  Future<void> _showMoreMenu() async {
+    final l = context.l10n;
+    await showModalBottomSheet(
+      context: context,
+      backgroundColor: T.elev1,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 12),
+            Center(
+              child: Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: T.inkMute,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.people_outline, color: T.inkSub),
+              title: Text(
+                l.chat_more_members,
+                style: const TextStyle(color: T.ink),
+              ),
+              onTap: () {
+                Navigator.of(ctx).pop();
+                showToast(context, l.chat_more_members);
+              },
+            ),
+            ListTile(
+              leading: Icon(
+                LocalStore.isMuted(widget.convId)
+                    ? Icons.notifications_off
+                    : Icons.notifications_off_outlined,
+                color: T.inkSub,
+              ),
+              title: Text(
+                LocalStore.isMuted(widget.convId)
+                    ? l.chat_more_unmute
+                    : l.chat_more_mute,
+                style: const TextStyle(color: T.ink),
+              ),
+              onTap: () async {
+                await LocalStore.toggleMuted(widget.convId);
+                if (ctx.mounted) Navigator.of(ctx).pop();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete_sweep_outlined, color: T.warn),
+              title: Text(
+                l.chat_more_clear_history,
+                style: const TextStyle(color: T.warn),
+              ),
+              onTap: () async {
+                Navigator.of(ctx).pop();
+                if (!mounted) return;
+                final ok = await showDialog<bool>(
+                  context: context,
+                  builder: (d) => AlertDialog(
+                    backgroundColor: T.elev2,
+                    content: Text(
+                      l.chat_clear_confirm,
+                      style: const TextStyle(color: T.ink),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(d).pop(false),
+                        child: Text(l.common_cancel),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.of(d).pop(true),
+                        child: Text(
+                          l.common_delete,
+                          style: const TextStyle(color: T.danger),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+                if (ok == true) {
+                  try {
+                    await ref
+                        .read(messagesRepoProvider)
+                        .clearMessages(widget.convId);
+                    ref.invalidate(chatMessagesProvider(widget.convId));
+                    if (mounted) {
+                      showToast(context, l.chat_cleared, success: true);
+                    }
+                  } catch (e) {
+                    if (mounted) showToast(context, '$e', error: true);
+                  }
+                }
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.flag_outlined, color: T.inkSub),
+              title: Text(
+                l.chat_more_report,
+                style: const TextStyle(color: T.ink),
+              ),
+              onTap: () {
+                Navigator.of(ctx).pop();
+                showToast(context, l.chat_more_report);
+              },
+            ),
+            const SizedBox(height: 10),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showAttachmentSheet() async {
+    final l = context.l10n;
+    await showModalBottomSheet(
+      context: context,
+      backgroundColor: T.elev1,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 12),
+            Center(
+              child: Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: T.inkMute,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _AttBtn(
+                  icon: Icons.image_outlined,
+                  label: l.chat_attachment_image,
+                  onTap: () {
+                    Navigator.of(ctx).pop();
+                    _sendSystem(
+                      '${l.chat_attachment_system_placeholder} · ${l.chat_attachment_image}',
+                    );
+                  },
+                ),
+                _AttBtn(
+                  icon: Icons.location_on_outlined,
+                  label: l.chat_attachment_location,
+                  onTap: () {
+                    Navigator.of(ctx).pop();
+                    _sendSystem(
+                      '${l.chat_attachment_system_placeholder} · ${l.chat_attachment_location}',
+                    );
+                  },
+                ),
+                _AttBtn(
+                  icon: Icons.sports_soccer,
+                  label: l.chat_attachment_invite,
+                  onTap: () {
+                    Navigator.of(ctx).pop();
+                    _sendSystem(
+                      '${l.chat_attachment_system_placeholder} · ${l.chat_attachment_invite}',
+                    );
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _sendSystem(String body) async {
+    try {
+      await ref.read(messagesRepoProvider).send(widget.convId, body);
+    } catch (e) {
+      if (mounted) {
+        showToast(context, '${context.l10n.chat_send_failed}: $e', error: true);
+      }
     }
   }
 
@@ -75,18 +269,30 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 children: [
                   GestureDetector(
                     onTap: () => context.pop(),
-                    child: const Icon(Icons.arrow_back_ios_new,
-                        size: 20, color: T.ink),
+                    child: const Icon(
+                      Icons.arrow_back_ios_new,
+                      size: 20,
+                      color: T.ink,
+                    ),
                   ),
                   const SizedBox(width: 12),
-                  const Expanded(
-                    child: Text('开球 · 新手大厅',
-                        style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: T.ink)),
+                  Expanded(
+                    child: Text(
+                      context.l10n.chat_default_group_title,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: T.ink,
+                      ),
+                    ),
                   ),
-                  const Icon(Icons.more_horiz, size: 20, color: T.inkSub),
+                  GestureDetector(
+                    onTap: _showMoreMenu,
+                    child: const Padding(
+                      padding: EdgeInsets.all(6),
+                      child: Icon(Icons.more_horiz, size: 20, color: T.inkSub),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -95,20 +301,24 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 data: (list) => ListView.builder(
                   controller: _scroll,
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 12),
-                  itemCount: list.length,
-                  itemBuilder: (_, i) => _Bubble(
-                    msg: list[i],
-                    isMe: list[i].senderId == me,
+                    horizontal: 12,
+                    vertical: 12,
                   ),
+                  itemCount: list.length,
+                  itemBuilder: (_, i) =>
+                      _Bubble(msg: list[i], isMe: list[i].senderId == me),
                 ),
                 loading: () => const Center(
                   child: CircularProgressIndicator(
-                      color: T.live, strokeWidth: 2),
+                    color: T.live,
+                    strokeWidth: 2,
+                  ),
                 ),
                 error: (e, _) => Center(
-                  child: Text('加载失败: $e',
-                      style: const TextStyle(color: T.inkSub)),
+                  child: Text(
+                    '${context.l10n.error_load_failed}: $e',
+                    style: const TextStyle(color: T.inkSub),
+                  ),
                 ),
               ),
             ),
@@ -121,6 +331,21 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               ),
               child: Row(
                 children: [
+                  GestureDetector(
+                    onTap: _showAttachmentSheet,
+                    child: Container(
+                      width: 34,
+                      height: 34,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: T.elev2,
+                        border: Border.all(color: T.line),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.add, size: 18, color: T.inkSub),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -131,13 +356,16 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       child: TextField(
                         controller: _input,
                         style: const TextStyle(
-                            fontSize: 14, color: T.ink, height: 1.4),
+                          fontSize: 14,
+                          color: T.ink,
+                          height: 1.4,
+                        ),
                         minLines: 1,
                         maxLines: 4,
                         onSubmitted: (_) => _send(),
-                        decoration: const InputDecoration(
-                          hintText: '输入消息…',
-                          hintStyle: TextStyle(color: T.inkDim),
+                        decoration: InputDecoration(
+                          hintText: context.l10n.chat_hint,
+                          hintStyle: const TextStyle(color: T.inkDim),
                           border: InputBorder.none,
                           isDense: true,
                         ),
@@ -164,8 +392,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                 strokeWidth: 2,
                               ),
                             )
-                          : const Icon(Icons.send,
-                              size: 16, color: Colors.black),
+                          : const Icon(
+                              Icons.send,
+                              size: 16,
+                              color: Colors.black,
+                            ),
                     ),
                   ),
                 ],
@@ -173,6 +404,38 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _AttBtn extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  const _AttBtn({required this.icon, required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 54,
+            height: 54,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: T.elev2,
+              border: Border.all(color: T.line),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(icon, size: 22, color: T.ink),
+          ),
+          const SizedBox(height: 6),
+          Text(label, style: const TextStyle(fontSize: 11, color: T.inkSub)),
+        ],
       ),
     );
   }
@@ -207,7 +470,7 @@ class _Bubble extends StatelessWidget {
     final time = DateFormat('HH:mm').format(msg.createdAt.toLocal());
     final who = msg.senderId != null
         ? msg.senderId!.substring(0, 4)
-        : '系统';
+        : context.l10n.chat_sender_system;
 
     final bubble = Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -229,26 +492,28 @@ class _Bubble extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
-        mainAxisAlignment:
-            isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: isMe
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          if (!isMe) ...[
-            Avatar(who, size: 28),
-            const SizedBox(width: 8),
-          ],
+          if (!isMe) ...[Avatar(who, size: 28), const SizedBox(width: 8)],
           Column(
-            crossAxisAlignment:
-                isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+            crossAxisAlignment: isMe
+                ? CrossAxisAlignment.end
+                : CrossAxisAlignment.start,
             children: [
               bubble,
               const SizedBox(height: 2),
-              Text(time,
-                  style: const TextStyle(
-                      fontFamily: T.fontMono,
-                      fontFamilyFallback: T.monoFallbacks,
-                      fontSize: 9,
-                      color: T.inkDim)),
+              Text(
+                time,
+                style: const TextStyle(
+                  fontFamily: T.fontMono,
+                  fontFamilyFallback: T.monoFallbacks,
+                  fontSize: 9,
+                  color: T.inkDim,
+                ),
+              ),
             ],
           ),
           if (isMe) const SizedBox(width: 8),

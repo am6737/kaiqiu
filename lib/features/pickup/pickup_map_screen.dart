@@ -3,11 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../l10n/l10n_extension.dart';
 import '../../models/pickup.dart';
 import '../../providers.dart';
+import '../../services/local_storage.dart';
 import '../../theme/tokens.dart';
 import '../../widgets/chip_pill.dart';
 import '../../widgets/live_pill.dart';
+import '../../widgets/primary_button.dart';
 import '../../widgets/sport_icon.dart';
 import '../../widgets/typography.dart';
 
@@ -23,14 +26,170 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
   bool _sheetOpen = true;
   String? _activePin;
 
-  static const _filters = [
-    ('today', '今天'),
-    ('tomorrow', '明天'),
-    ('week', '本周'),
-    ('lv', '中级'),
-    ('fee', '¥ ≤50'),
-    ('near', '3km内'),
-  ];
+  // Extended filter state (opened from the filter icon sheet).
+  double _distKm = 5;
+  int _maxFee = 100;
+  String _level = 'any'; // any/新手/初级/中级/高级
+
+  List<(String, String)> _filterOptions(BuildContext context) {
+    final l = context.l10n;
+    return [
+      ('today', l.pickup_filter_today),
+      ('tomorrow', l.pickup_filter_tomorrow),
+      ('week', l.pickup_filter_week),
+      ('lv', l.pickup_filter_mid),
+      ('fee', l.pickup_filter_cheap),
+      ('near', l.pickup_filter_near),
+    ];
+  }
+
+  Future<void> _showFilterSheet(BuildContext context) async {
+    final l = context.l10n;
+    double localDist = _distKm;
+    int localFee = _maxFee;
+    String localLevel = _level;
+    await showModalBottomSheet(
+      context: context,
+      backgroundColor: T.elev1,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setModal) => SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 36,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: T.inkMute,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    l.pickup_filter_title,
+                    style: const TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: T.ink,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Label(l.pickup_filter_distance),
+                  Slider(
+                    value: localDist,
+                    min: 1,
+                    max: 20,
+                    divisions: 19,
+                    activeColor: T.live,
+                    label: '${localDist.toInt()} km',
+                    onChanged: (v) => setModal(() => localDist = v),
+                  ),
+                  const SizedBox(height: 8),
+                  Label(l.pickup_filter_fee),
+                  Slider(
+                    value: localFee.toDouble(),
+                    min: 0,
+                    max: 300,
+                    divisions: 30,
+                    activeColor: T.live,
+                    label: '¥${localFee}',
+                    onChanged: (v) => setModal(() => localFee = v.toInt()),
+                  ),
+                  const SizedBox(height: 14),
+                  Label(l.pickup_filter_level),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      for (final lv in [
+                        ('any', l.level_any),
+                        ('新手', l.level_beginner),
+                        ('初级', l.level_novice),
+                        ('中级', l.level_mid),
+                        ('高级', l.level_pro),
+                      ])
+                        GestureDetector(
+                          onTap: () => setModal(() => localLevel = lv.$1),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 7,
+                            ),
+                            decoration: BoxDecoration(
+                              color: localLevel == lv.$1 ? T.liveDim : T.elev2,
+                              border: Border.all(
+                                color: localLevel == lv.$1 ? T.live : T.line,
+                              ),
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Text(
+                              lv.$2,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: localLevel == lv.$1 ? T.live : T.ink,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 18),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: PrimaryButton(
+                          label: l.pickup_filter_reset,
+                          variant: BtnVariant.secondary,
+                          size: BtnSize.md,
+                          full: true,
+                          onPressed: () {
+                            setModal(() {
+                              localDist = 5;
+                              localFee = 100;
+                              localLevel = 'any';
+                            });
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: PrimaryButton(
+                          label: l.pickup_filter_apply,
+                          variant: BtnVariant.primary,
+                          size: BtnSize.md,
+                          full: true,
+                          onPressed: () {
+                            setState(() {
+                              _distKm = localDist;
+                              _maxFee = localFee;
+                              _level = localLevel;
+                            });
+                            Navigator.of(ctx).pop();
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,25 +209,29 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.error_outline,
-                      size: 32, color: T.danger),
+                  const Icon(Icons.error_outline, size: 32, color: T.danger),
                   const SizedBox(height: 8),
-                  Text('加载失败: $e',
-                      style: const TextStyle(fontSize: 13, color: T.inkSub)),
+                  Text(
+                    '${context.l10n.error_load_failed}: $e',
+                    style: const TextStyle(fontSize: 13, color: T.inkSub),
+                  ),
                   const SizedBox(height: 12),
                   GestureDetector(
                     onTap: () => ref.invalidate(livePickupsProvider),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 8),
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
                       decoration: BoxDecoration(
                         color: T.elev3,
                         border: Border.all(color: T.line),
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: const Text('重试',
-                          style:
-                              TextStyle(color: T.ink, fontSize: 12)),
+                      child: Text(
+                        context.l10n.common_retry,
+                        style: const TextStyle(color: T.ink, fontSize: 12),
+                      ),
                     ),
                   ),
                 ],
@@ -94,69 +257,71 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
           ),
           // Pins
           for (final p in pickups)
-            Builder(builder: (ctx) {
-              final size = MediaQuery.of(ctx).size;
-              final lng = p.lng ?? 0.5;
-              final lat = p.lat ?? 0.5;
-              final x = lng * size.width;
-              final y = lat * size.height * 0.7 + 120;
-              final isActive = _activePin == p.id;
-              final stateKey = switch (p.status) {
-                PickupStatus.full => 'full',
-                PickupStatus.almost => 'almost',
-                _ => 'open',
-              };
-              final Color statusColor = switch (stateKey) {
-                'almost' => T.warn,
-                'full' => T.inkMute,
-                _ => T.live,
-              };
-              return Positioned(
-                left: x - 16,
-                top: y - 40,
-                child: GestureDetector(
-                  onTap: () => setState(() {
-                    _activePin = p.id;
-                    _sheetOpen = true;
-                  }),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: isActive ? 40 : 32,
-                        height: isActive ? 40 : 32,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: T.elev1,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: statusColor, width: 2),
-                          boxShadow: [
-                            BoxShadow(
-                              color: statusColor.withValues(alpha: 0.25),
-                              blurRadius: 12,
-                            ),
-                          ],
+            Builder(
+              builder: (ctx) {
+                final size = MediaQuery.of(ctx).size;
+                final lng = p.lng ?? 0.5;
+                final lat = p.lat ?? 0.5;
+                final x = lng * size.width;
+                final y = lat * size.height * 0.7 + 120;
+                final isActive = _activePin == p.id;
+                final stateKey = switch (p.status) {
+                  PickupStatus.full => 'full',
+                  PickupStatus.almost => 'almost',
+                  _ => 'open',
+                };
+                final Color statusColor = switch (stateKey) {
+                  'almost' => T.warn,
+                  'full' => T.inkMute,
+                  _ => T.live,
+                };
+                return Positioned(
+                  left: x - 16,
+                  top: y - 40,
+                  child: GestureDetector(
+                    onTap: () => setState(() {
+                      _activePin = p.id;
+                      _sheetOpen = true;
+                    }),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: isActive ? 40 : 32,
+                          height: isActive ? 40 : 32,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: T.elev1,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: statusColor, width: 2),
+                            boxShadow: [
+                              BoxShadow(
+                                color: statusColor.withValues(alpha: 0.25),
+                                blurRadius: 12,
+                              ),
+                            ],
+                          ),
+                          child: SportIcon(
+                            Sport.football,
+                            size: isActive ? 18 : 14,
+                            color: statusColor,
+                          ),
                         ),
-                        child: SportIcon(
-                          Sport.football,
-                          size: isActive ? 18 : 14,
-                          color: statusColor,
+                        Container(
+                          width: 6,
+                          height: 6,
+                          margin: const EdgeInsets.only(top: -3),
+                          decoration: BoxDecoration(
+                            color: statusColor,
+                            shape: BoxShape.circle,
+                          ),
                         ),
-                      ),
-                      Container(
-                        width: 6,
-                        height: 6,
-                        margin: const EdgeInsets.only(top: -3),
-                        decoration: BoxDecoration(
-                          color: statusColor,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              );
-            }),
+                );
+              },
+            ),
           // "You are here" dot
           Positioned(
             left: MediaQuery.of(context).size.width / 2 - 7,
@@ -204,32 +369,42 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                         onTap: () => context.pop(),
                       ),
                       const SizedBox(width: 10),
-                      const Text('约球 · 深圳',
-                          style: TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w700,
-                              color: T.ink)),
+                      Text(
+                        context.l10n.pickup_map_title_city(LocalStore.city),
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                          color: T.ink,
+                        ),
+                      ),
                       const Spacer(),
                       _CircleBtn(
-                          icon: Icons.filter_list, onTap: () {}),
+                        icon: Icons.filter_list,
+                        onTap: () => _showFilterSheet(context),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 10),
-                  SizedBox(
-                    height: 28,
-                    child: ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: _filters.length,
-                      separatorBuilder: (_, i) => const SizedBox(width: 6),
-                      itemBuilder: (_, i) {
-                        final f = _filters[i];
-                        return ChipPill(
-                          label: f.$2,
-                          active: f.$1 == _filter,
-                          onTap: () => setState(() => _filter = f.$1),
-                        );
-                      },
-                    ),
+                  Builder(
+                    builder: (ctx) {
+                      final filters = _filterOptions(ctx);
+                      return SizedBox(
+                        height: 28,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: filters.length,
+                          separatorBuilder: (_, i) => const SizedBox(width: 6),
+                          itemBuilder: (_, i) {
+                            final f = filters[i];
+                            return ChipPill(
+                              label: f.$2,
+                              active: f.$1 == _filter,
+                              onTap: () => setState(() => _filter = f.$1),
+                            );
+                          },
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -248,13 +423,47 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  _LegendRow(state: 'open', label: '招人中'),
-                  SizedBox(height: 6),
-                  _LegendRow(state: 'almost', label: '即将满员'),
-                  SizedBox(height: 6),
-                  _LegendRow(state: 'full', label: '已满'),
+                children: [
+                  _LegendRow(
+                    state: 'open',
+                    label: context.l10n.pickup_map_legend_open,
+                  ),
+                  const SizedBox(height: 6),
+                  _LegendRow(
+                    state: 'almost',
+                    label: context.l10n.pickup_map_legend_almost,
+                  ),
+                  const SizedBox(height: 6),
+                  _LegendRow(
+                    state: 'full',
+                    label: context.l10n.pickup_map_legend_full,
+                  ),
                 ],
+              ),
+            ),
+          ),
+          // FAB — host a new pickup
+          Positioned(
+            right: 16,
+            bottom: MediaQuery.of(context).size.height * 0.57,
+            child: GestureDetector(
+              onTap: () => context.push('/pickup/create'),
+              child: Container(
+                width: 52,
+                height: 52,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: T.live,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: T.live.withValues(alpha: 0.3),
+                      blurRadius: 12,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+                child: const Icon(Icons.add, size: 24, color: Colors.black),
               ),
             ),
           ),
@@ -298,13 +507,16 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                     padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
                     child: Row(
                       children: [
-                        Text('同城 ${pickups.length} 个球局',
-                            style: const TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                                color: T.ink)),
+                        Text(
+                          context.l10n.pickup_city_pickup_count(pickups.length),
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: T.ink,
+                          ),
+                        ),
                         const Spacer(),
-                        const Label('按距离排序'),
+                        Label(context.l10n.pickup_map_sort_distance),
                       ],
                     ),
                   ),
@@ -313,8 +525,7 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                       itemCount: pickups.length,
                       itemBuilder: (_, i) => _MapListRow(
                         item: pickups[i],
-                        onTap: () =>
-                            context.push('/pickup/${pickups[i].id}'),
+                        onTap: () => context.push('/pickup/${pickups[i].id}'),
                       ),
                     ),
                   ),
@@ -416,13 +627,16 @@ class _MapPainter extends CustomPainter {
     final park = Paint()..color = const Color(0x0A00FF85);
     canvas.drawRRect(
       RRect.fromRectAndRadius(
-          const Rect.fromLTWH(30, 230, 110, 80), const Radius.circular(4)),
+        const Rect.fromLTWH(30, 230, 110, 80),
+        const Radius.circular(4),
+      ),
       park,
     );
     canvas.drawRRect(
       RRect.fromRectAndRadius(
-          Rect.fromLTWH(size.width - 160, 380, 120, 90),
-          const Radius.circular(4)),
+        Rect.fromLTWH(size.width - 160, 380, 120, 90),
+        const Radius.circular(4),
+      ),
       park,
     );
     // water band at bottom
@@ -430,8 +644,12 @@ class _MapPainter extends CustomPainter {
     canvas.drawPath(
       Path()
         ..moveTo(-20, size.height - 100)
-        ..quadraticBezierTo(size.width / 2, size.height - 120,
-            size.width + 20, size.height - 90)
+        ..quadraticBezierTo(
+          size.width / 2,
+          size.height - 120,
+          size.width + 20,
+          size.height - 90,
+        )
         ..lineTo(size.width + 20, size.height)
         ..lineTo(-20, size.height)
         ..close(),
@@ -481,13 +699,16 @@ class _MapListRow extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(item.venue,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: T.ink)),
+                  Text(
+                    item.venue,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: T.ink,
+                    ),
+                  ),
                   const SizedBox(height: 2),
                   Row(
                     children: [
@@ -495,8 +716,11 @@ class _MapListRow extends StatelessWidget {
                       const SizedBox(width: 10),
                       if (item.level != null) Label(item.level!),
                       const SizedBox(width: 10),
-                      N('¥${item.feeYuan.toStringAsFixed(0)}',
-                          size: 11, color: T.inkSub),
+                      N(
+                        '¥${item.feeYuan.toStringAsFixed(0)}',
+                        size: 11,
+                        color: T.inkSub,
+                      ),
                     ],
                   ),
                 ],
@@ -508,7 +732,9 @@ class _MapListRow extends StatelessWidget {
                 StatusDot(state: stateKey, size: 7),
                 const SizedBox(height: 4),
                 N(
-                  need > 0 ? '缺$need' : '满',
+                  need > 0
+                      ? context.l10n.pickup_map_need_short(need)
+                      : context.l10n.pickup_map_full_short,
                   size: 12,
                   weight: FontWeight.w600,
                   color: need > 0 ? T.live : T.inkDim,

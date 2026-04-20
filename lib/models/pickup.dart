@@ -2,24 +2,24 @@
 enum PickupStatus { open, almost, full, done }
 
 PickupStatus _parseStatus(String? s) => switch (s) {
-      'almost' => PickupStatus.almost,
-      'full' => PickupStatus.full,
-      'done' => PickupStatus.done,
-      _ => PickupStatus.open,
-    };
+  'almost' => PickupStatus.almost,
+  'full' => PickupStatus.full,
+  'done' => PickupStatus.done,
+  _ => PickupStatus.open,
+};
 
 class Pickup {
   final String id;
-  final String? hostId;          // nullable: seed data has no host yet
-  final String? hostName;        // display-only fallback when hostId is null
+  final String? hostId; // nullable: seed data has no host yet
+  final String? hostName; // display-only fallback when hostId is null
   final String venue;
   final double? lat;
   final double? lng;
   final DateTime startAt;
-  final String? timeLabel;       // display string like "今晚 19:30"
+  final String? timeLabel; // display string like "今晚 19:30"
   final int durationMin;
   final int total;
-  final int? need;               // display-only mock "缺 N 人"
+  final int? need; // display-only mock "缺 N 人"
   final String? level;
   final int feeCents;
   final String formation;
@@ -48,24 +48,24 @@ class Pickup {
   });
 
   factory Pickup.fromMap(Map<String, dynamic> m) => Pickup(
-        id: m['id'] as String,
-        hostId: m['host_id'] as String?,
-        hostName: m['host_name'] as String?,
-        venue: m['venue'] as String,
-        lat: (m['lat'] as num?)?.toDouble(),
-        lng: (m['lng'] as num?)?.toDouble(),
-        startAt: DateTime.parse(m['start_at'] as String),
-        timeLabel: m['time_label'] as String?,
-        durationMin: (m['duration_min'] as int?) ?? 120,
-        total: m['total'] as int,
-        need: m['need'] as int?,
-        level: m['level'] as String?,
-        feeCents: (m['fee_cents'] as int?) ?? 0,
-        formation: (m['formation'] as String?) ?? '4-3-3',
-        fieldType: m['field_type'] as String?,
-        status: _parseStatus(m['status'] as String?),
-        createdAt: DateTime.parse(m['created_at'] as String),
-      );
+    id: m['id'] as String,
+    hostId: m['host_id'] as String?,
+    hostName: m['host_name'] as String?,
+    venue: m['venue'] as String,
+    lat: (m['lat'] as num?)?.toDouble(),
+    lng: (m['lng'] as num?)?.toDouble(),
+    startAt: DateTime.parse(m['start_at'] as String),
+    timeLabel: m['time_label'] as String?,
+    durationMin: (m['duration_min'] as int?) ?? 120,
+    total: m['total'] as int,
+    need: m['need'] as int?,
+    level: m['level'] as String?,
+    feeCents: (m['fee_cents'] as int?) ?? 0,
+    formation: (m['formation'] as String?) ?? '4-3-3',
+    fieldType: m['field_type'] as String?,
+    status: _parseStatus(m['status'] as String?),
+    createdAt: DateTime.parse(m['created_at'] as String),
+  );
 
   double get feeYuan => feeCents / 100;
   String get displayHost => hostName ?? '—';
@@ -93,14 +93,14 @@ class PickupSlot {
   });
 
   factory PickupSlot.fromMap(Map<String, dynamic> m) => PickupSlot(
-        id: m['id'] as String,
-        pickupId: m['pickup_id'] as String,
-        userId: m['user_id'] as String?,
-        displayName: m['display_name'] as String?,
-        position: m['position'] as String,
-        x: m['x'] as int,
-        y: m['y'] as int,
-      );
+    id: m['id'] as String,
+    pickupId: m['pickup_id'] as String,
+    userId: m['user_id'] as String?,
+    displayName: m['display_name'] as String?,
+    position: m['position'] as String,
+    x: m['x'] as int,
+    y: m['y'] as int,
+  );
 
   /// A slot is "filled" when someone occupies it (real user or demo name).
   bool get filled => userId != null || displayName != null;

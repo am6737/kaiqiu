@@ -44,8 +44,11 @@ class MessagesRepository {
         .from('conversation_members')
         .select('unread, conversations!inner(id, title, kind, updated_at)')
         .eq('user_id', currentUserId!)
-        .order('updated_at',
-            referencedTable: 'conversations', ascending: false);
+        .order(
+          'updated_at',
+          referencedTable: 'conversations',
+          ascending: false,
+        );
     return (rows as List)
         .cast<Map<String, dynamic>>()
         .map(ConversationRow.fromJoined)
@@ -70,11 +73,7 @@ class MessagesRepository {
   Future<Message> send(String convId, String body) async {
     final row = await supabase
         .from('messages')
-        .insert({
-          'conv_id': convId,
-          'sender_id': currentUserId,
-          'body': body,
-        })
+        .insert({'conv_id': convId, 'sender_id': currentUserId, 'body': body})
         .select()
         .single();
     return Message.fromMap(row);
@@ -119,5 +118,99 @@ class MessagesRepository {
       await controller.close();
     };
     return controller.stream;
+  }
+
+  /// Create a new conversation and add the current user as a member.
+  /// Returns the new conversation id.
+  Future<String> createConversation({
+    String? title,
+    String kind = 'group',
+  }) async {
+    final row = await supabase
+        .from('conversations')
+        .insert({'title': title, 'kind': kind})
+        .select()
+        .single();
+    final id = row['id'] as String;
+    final uid = currentUserId;
+    if (uid != null) {
+      await supabase.from('conversation_members').insert({
+        'conv_id': id,
+        'user_id': uid,
+        'unread': 0,
+      });
+    }
+    return id;
+  }
+
+  Future<void> deleteConversation(String convId) async {
+    await supabase.from('messages').delete().eq('conv_id', convId);
+    await supabase.from('conversation_members').delete().eq('conv_id', convId);
+    await supabase.from('conversations').delete().eq('id', convId);
+  }
+
+  Future<void> clearMessages(String convId) async {
+    await supabase.from('messages').delete().eq('conv_id', convId);
+  }
+
+  Future<void> markRead(String convId) async {
+    final uid = currentUserId;
+    if (uid == null) return;
+    await supabase
+        .from('conversation_members')
+        .update({'unread': 0})
+        .eq('conv_id', convId)
+        .eq('user_id', uid);
+  }
+
+  Future<void> markUnread(String convId, {int count = 1}) async {
+    final uid = currentUserId;
+    if (uid == null) return;
+    await supabase
+        .from('conversation_members')
+        .update({'unread': count})
+        .eq('conv_id', convId)
+        .eq('user_id', uid);
+  }
+
+  /// Returns (or creates) a conversation keyed by an event id so multiple
+  /// users can join the event discussion. Title format: `event:{id}`.
+  Future<String> ensureEventConversation(String eventId) async {
+    final uid = currentUserId;
+    if (uid == null) {
+      throw StateError('not signed in');
+    }
+    final title = 'event:$eventId';
+    final existing = await supabase
+        .from('conversations')
+        .select('id')
+        .eq('title', title)
+        .maybeSingle();
+    String convId;
+    if (existing != null) {
+      convId = existing['id'] as String;
+    } else {
+      final row = await supabase
+          .from('conversations')
+          .insert({'title': title, 'kind': 'group'})
+          .select()
+          .single();
+      convId = row['id'] as String;
+    }
+    // Ensure membership (upsert-like)
+    final member = await supabase
+        .from('conversation_members')
+        .select('id')
+        .eq('conv_id', convId)
+        .eq('user_id', uid)
+        .maybeSingle();
+    if (member == null) {
+      await supabase.from('conversation_members').insert({
+        'conv_id': convId,
+        'user_id': uid,
+        'unread': 0,
+      });
+    }
+    return convId;
   }
 }

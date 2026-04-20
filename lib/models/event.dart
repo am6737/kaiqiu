@@ -2,10 +2,10 @@
 enum EventStatus { registering, ongoing, done }
 
 EventStatus _parseEventStatus(String? s) => switch (s) {
-      'ongoing' => EventStatus.ongoing,
-      'done' => EventStatus.done,
-      _ => EventStatus.registering,
-    };
+  'ongoing' => EventStatus.ongoing,
+  'done' => EventStatus.done,
+  _ => EventStatus.registering,
+};
 
 class Event {
   final String id;
@@ -43,23 +43,22 @@ class Event {
   });
 
   factory Event.fromMap(Map<String, dynamic> m) => Event(
-        id: m['id'] as String,
-        creatorId: m['creator_id'] as String?,
-        name: m['name'] as String,
-        sub: m['sub'] as String?,
-        city: m['city'] as String?,
-        template: m['template'] as String?,
-        teamSize: (m['team_size'] as int?) ?? 11,
-        teamsMax: m['teams_max'] as int?,
-        prizeCents: m['prize_cents'] as int?,
-        feeCents: m['fee_cents'] as int?,
-        deadline: m['deadline'] != null ? DateTime.parse(m['deadline']) : null,
-        startsAt:
-            m['starts_at'] != null ? DateTime.parse(m['starts_at']) : null,
-        endsAt: m['ends_at'] != null ? DateTime.parse(m['ends_at']) : null,
-        status: _parseEventStatus(m['status'] as String?),
-        coverUrl: m['cover_url'] as String?,
-      );
+    id: m['id'] as String,
+    creatorId: m['creator_id'] as String?,
+    name: m['name'] as String,
+    sub: m['sub'] as String?,
+    city: m['city'] as String?,
+    template: m['template'] as String?,
+    teamSize: (m['team_size'] as int?) ?? 11,
+    teamsMax: m['teams_max'] as int?,
+    prizeCents: m['prize_cents'] as int?,
+    feeCents: m['fee_cents'] as int?,
+    deadline: m['deadline'] != null ? DateTime.parse(m['deadline']) : null,
+    startsAt: m['starts_at'] != null ? DateTime.parse(m['starts_at']) : null,
+    endsAt: m['ends_at'] != null ? DateTime.parse(m['ends_at']) : null,
+    status: _parseEventStatus(m['status'] as String?),
+    coverUrl: m['cover_url'] as String?,
+  );
 }
 
 class Match {
@@ -92,20 +91,19 @@ class Match {
   });
 
   factory Match.fromMap(Map<String, dynamic> m) => Match(
-        id: m['id'] as String,
-        eventId: m['event_id'] as String,
-        round: m['round'] as String?,
-        teamAId: m['team_a_id'] as String?,
-        teamBId: m['team_b_id'] as String?,
-        teamALabel: m['team_a_label'] as String?,
-        teamBLabel: m['team_b_label'] as String?,
-        scoreA: m['score_a'] as int?,
-        scoreB: m['score_b'] as int?,
-        pkScore: m['pk_score'] as String?,
-        playedAt:
-            m['played_at'] != null ? DateTime.parse(m['played_at']) : null,
-        done: (m['done'] as bool?) ?? false,
-      );
+    id: m['id'] as String,
+    eventId: m['event_id'] as String,
+    round: m['round'] as String?,
+    teamAId: m['team_a_id'] as String?,
+    teamBId: m['team_b_id'] as String?,
+    teamALabel: m['team_a_label'] as String?,
+    teamBLabel: m['team_b_label'] as String?,
+    scoreA: m['score_a'] as int?,
+    scoreB: m['score_b'] as int?,
+    pkScore: m['pk_score'] as String?,
+    playedAt: m['played_at'] != null ? DateTime.parse(m['played_at']) : null,
+    done: (m['done'] as bool?) ?? false,
+  );
 }
 
 /// Row returned by `event_player_ratings` view joined with profiles.

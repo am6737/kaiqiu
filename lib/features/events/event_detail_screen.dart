@@ -10,10 +10,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../data/mock.dart' as mock;
+import '../../l10n/generated/app_localizations.dart';
+import '../../l10n/l10n_extension.dart';
 import '../../models/event.dart';
+import '../../models/message.dart';
 import '../../providers.dart';
+import '../../services/local_storage.dart';
 import '../../services/supabase.dart';
 import '../../theme/tokens.dart';
+import '../../utils/share_helper.dart';
+import '../../utils/toast.dart';
 import '../../widgets/avatar.dart';
 import '../../widgets/photo_halftone.dart';
 import '../../widgets/primary_button.dart';
@@ -29,14 +35,6 @@ class EventDetailScreen extends ConsumerStatefulWidget {
 
 class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
   String _tab = 'bracket';
-  static const _tabs = [
-    ('overview', '概览'),
-    ('bracket', '赛程'),
-    ('standings', '积分榜'),
-    ('scorers', '射手榜'),
-    ('ratings', '评分榜'),
-    ('chat', '讨论'),
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -45,15 +43,15 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
       backgroundColor: T.bg,
       body: async.when(
         data: (event) => _buildContent(event),
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: T.live),
-        ),
+        loading: () =>
+            const Center(child: CircularProgressIndicator(color: T.live)),
         error: (e, _) => _buildError(e),
       ),
     );
   }
 
   Widget _buildError(Object e) {
+    final l = context.l10n;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -62,21 +60,28 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
           children: [
             const Icon(Icons.error_outline, size: 32, color: T.danger),
             const SizedBox(height: 8),
-            Text('加载失败: $e',
-                style: const TextStyle(fontSize: 13, color: T.inkSub)),
+            Text(
+              '${l.error_load_failed}: $e',
+              style: const TextStyle(fontSize: 13, color: T.inkSub),
+            ),
+
             const SizedBox(height: 12),
             GestureDetector(
               onTap: () => ref.invalidate(eventDetailProvider(widget.id)),
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: T.elev3,
                   border: Border.all(color: T.line),
                   borderRadius: BorderRadius.circular(6),
                 ),
-                child: const Text('重试',
-                    style: TextStyle(color: T.ink, fontSize: 12)),
+                child: Text(
+                  l.common_retry,
+                  style: const TextStyle(color: T.ink, fontSize: 12),
+                ),
               ),
             ),
           ],
@@ -86,6 +91,15 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
   }
 
   Widget _buildContent(Event event) {
+    final l = context.l10n;
+    final tabs = [
+      ('overview', l.event_tab_overview),
+      ('bracket', l.event_tab_bracket),
+      ('standings', l.event_tab_standings),
+      ('scorers', l.event_tab_scorers),
+      ('ratings', l.event_tab_ratings),
+      ('chat', l.event_tab_chat),
+    ];
     return Stack(
       children: [
         SingleChildScrollView(
@@ -94,11 +108,14 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _Header(event: event, onBack: () => context.pop()),
-              _KpiStrip(eventId: event.id, prizeCents: event.prizeCents,
-                  teamsMax: event.teamsMax),
+              _KpiStrip(
+                eventId: event.id,
+                prizeCents: event.prizeCents,
+                teamsMax: event.teamsMax,
+              ),
               _Tabs(
                 current: _tab,
-                tabs: _tabs,
+                tabs: tabs,
                 onChange: (v) => setState(() => _tab = v),
               ),
               switch (_tab) {
@@ -107,54 +124,16 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                 'standings' => _StandingsPanel(eventId: event.id),
                 'scorers' => const _ScorersPanel(),
                 'ratings' => RatingsPanel(event: event),
-                _ => const _ChatPanel(),
+                _ => _ChatPanel(eventId: event.id),
               },
             ],
           ),
         ),
         Positioned(
-          bottom: 0, left: 0, right: 0,
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 32),
-            decoration: const BoxDecoration(
-              color: T.elev1,
-              border: Border(top: BorderSide(color: T.line, width: 1)),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: PrimaryButton(
-                    variant: BtnVariant.ghost,
-                    size: BtnSize.lg,
-                    full: true,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: const [
-                        Icon(Icons.tv, size: 16, color: T.ink),
-                        SizedBox(width: 6),
-                        Text('观看直播',
-                            style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: T.ink)),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                const Expanded(
-                  // TODO: teams registration — Session D
-                  child: PrimaryButton(
-                    label: '报名参赛',
-                    variant: BtnVariant.primary,
-                    size: BtnSize.lg,
-                    full: true,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          bottom: 0,
+          left: 0,
+          right: 0,
+          child: _BottomCta(event: event),
         ),
       ],
     );
@@ -168,38 +147,62 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hue =
-        (event.id.codeUnitAt(0) * 7 + event.id.codeUnitAt(1)) % 360.0;
+    final hue = (event.id.codeUnitAt(0) * 7 + event.id.codeUnitAt(1)) % 360.0;
+    final l = context.l10n;
     final (dotColor, pillColor, pillText) = switch (event.status) {
-      EventStatus.ongoing => (T.live, T.live, '正在进行'),
-      EventStatus.registering => (T.warn, T.warn, '报名中'),
-      EventStatus.done => (T.inkDim, T.inkSub, '已结束'),
+      EventStatus.ongoing => (T.live, T.live, l.event_status_ongoing),
+      EventStatus.registering => (T.warn, T.warn, l.event_status_registering),
+      EventStatus.done => (T.inkDim, T.inkSub, l.event_status_done),
     };
     return Stack(
       children: [
         PhotoHalftone(
-          label: '${event.name} · 主视觉',
+          label: context.l10n.event_overview_main_visual(event.name),
           height: 180,
           hue: hue,
         ),
         Positioned(
-          top: 12, left: 12,
+          top: 12,
+          left: 12,
           child: GestureDetector(
             onTap: onBack,
             child: Container(
-              width: 36, height: 36,
+              width: 36,
+              height: 36,
               alignment: Alignment.center,
               decoration: const BoxDecoration(
                 color: Color(0x80000000),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.arrow_back_ios_new,
-                  size: 16, color: T.ink),
+              child: const Icon(
+                Icons.arrow_back_ios_new,
+                size: 16,
+                color: T.ink,
+              ),
             ),
           ),
         ),
         Positioned(
-          left: 0, right: 0, bottom: 0,
+          top: 12,
+          right: 12,
+          child: GestureDetector(
+            onTap: () => shareEvent(event),
+            child: Container(
+              width: 36,
+              height: 36,
+              alignment: Alignment.center,
+              decoration: const BoxDecoration(
+                color: Color(0x80000000),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.ios_share, size: 16, color: T.ink),
+            ),
+          ),
+        ),
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: const BoxDecoration(
@@ -216,7 +219,8 @@ class _Header extends StatelessWidget {
                 Row(
                   children: [
                     Container(
-                      width: 8, height: 8,
+                      width: 8,
+                      height: 8,
                       decoration: BoxDecoration(
                         color: dotColor,
                         shape: BoxShape.circle,
@@ -231,12 +235,15 @@ class _Header extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 6),
-                Text(event.name,
-                    style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w800,
-                        color: T.ink,
-                        letterSpacing: -0.4)),
+                Text(
+                  event.name,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    color: T.ink,
+                    letterSpacing: -0.4,
+                  ),
+                ),
               ],
             ),
           ),
@@ -256,18 +263,20 @@ class _KpiStrip extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final matchesAsync = ref.watch(eventMatchesProvider(eventId));
     final matchesStr = matchesAsync.maybeWhen(
-      data: (list) =>
-          '${list.where((m) => m.done).length}/${list.length}',
+      data: (list) => '${list.where((m) => m.done).length}/${list.length}',
       orElse: () => '-',
     );
+    final l = context.l10n;
     final prizeStr = prizeCents != null
-        ? '${(prizeCents! / 1000000).toStringAsFixed(1)}万'
+        ? l.create_event_preview_prize_wan(
+            (prizeCents! / 1000000).toStringAsFixed(1),
+          )
         : '-';
     final items = [
-      ('队伍', teamsMax?.toString() ?? '-'),
-      ('场次', matchesStr),
-      ('奖金', prizeStr),
-      ('观众', '3.2K'),  // TODO: needs viewing telemetry
+      (l.event_kpi_teams, teamsMax?.toString() ?? '-'),
+      (l.event_kpi_matches, matchesStr),
+      (l.event_kpi_prize, prizeStr),
+      (l.event_kpi_viewers, _deterministicViewers(eventId)),
     ];
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -284,7 +293,9 @@ class _KpiStrip extends ConsumerWidget {
                     ? null
                     : const BoxDecoration(
                         border: Border(
-                            left: BorderSide(color: T.line, width: 1))),
+                          left: BorderSide(color: T.line, width: 1),
+                        ),
+                      ),
                 child: Column(
                   crossAxisAlignment: i == 0
                       ? CrossAxisAlignment.start
@@ -292,8 +303,12 @@ class _KpiStrip extends ConsumerWidget {
                   children: [
                     Label(items[i].$1),
                     const SizedBox(height: 3),
-                    N(items[i].$2,
-                        size: 16, weight: FontWeight.w700, color: T.ink),
+                    N(
+                      items[i].$2,
+                      size: 16,
+                      weight: FontWeight.w700,
+                      color: T.ink,
+                    ),
                   ],
                 ),
               ),
@@ -309,7 +324,11 @@ class _Tabs extends StatelessWidget {
   final List<(String, String)> tabs;
   final ValueChanged<String> onChange;
 
-  const _Tabs({required this.current, required this.tabs, required this.onChange});
+  const _Tabs({
+    required this.current,
+    required this.tabs,
+    required this.onChange,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -341,8 +360,9 @@ class _Tabs extends StatelessWidget {
                       t.$2,
                       style: TextStyle(
                         fontSize: 14,
-                        fontWeight:
-                            current == t.$1 ? FontWeight.w700 : FontWeight.w500,
+                        fontWeight: current == t.$1
+                            ? FontWeight.w700
+                            : FontWeight.w500,
                         color: current == t.$1 ? T.ink : T.inkSub,
                       ),
                     ),
@@ -363,9 +383,9 @@ class _PanelLoading extends StatelessWidget {
   const _PanelLoading();
   @override
   Widget build(BuildContext context) => const Padding(
-        padding: EdgeInsets.all(36),
-        child: Center(child: CircularProgressIndicator(color: T.live)),
-      );
+    padding: EdgeInsets.all(36),
+    child: Center(child: CircularProgressIndicator(color: T.live)),
+  );
 }
 
 class _PanelError extends StatelessWidget {
@@ -373,12 +393,14 @@ class _PanelError extends StatelessWidget {
   const _PanelError(this.error);
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.all(24),
-        child: Center(
-          child: Text('加载失败: $error',
-              style: const TextStyle(fontSize: 12, color: T.inkSub)),
-        ),
-      );
+    padding: const EdgeInsets.all(24),
+    child: Center(
+      child: Text(
+        '${context.l10n.error_load_failed}: $error',
+        style: const TextStyle(fontSize: 12, color: T.inkSub),
+      ),
+    ),
+  );
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -403,30 +425,36 @@ class _OverviewPanel extends StatelessWidget {
             style: const TextStyle(fontSize: 14, color: T.ink, height: 1.6),
           ),
           const SizedBox(height: 16),
-          const Label('规则'),
+          Label(context.l10n.event_overview_rules),
           const SizedBox(height: 10),
-          for (final r in const [
-            '11人制 · 标准场地',
-            '2 × 45min + 半场休息',
-            '5人换人名额，换下可回',
-            '红黄牌累积停赛',
+          for (final r in [
+            context.l10n.event_overview_rule_format,
+            context.l10n.event_overview_rule_halves,
+            context.l10n.event_overview_rule_subs,
+            context.l10n.event_overview_rule_cards,
           ])
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: Row(
                 children: [
                   Container(
-                    width: 4, height: 4,
+                    width: 4,
+                    height: 4,
                     decoration: const BoxDecoration(
-                        color: T.live, shape: BoxShape.circle),
+                      color: T.live,
+                      shape: BoxShape.circle,
+                    ),
                   ),
                   const SizedBox(width: 8),
-                  Text(r, style: const TextStyle(fontSize: 13, color: T.inkSub)),
+                  Text(
+                    r,
+                    style: const TextStyle(fontSize: 13, color: T.inkSub),
+                  ),
                 ],
               ),
             ),
           const SizedBox(height: 10),
-          const Label('组织方'),
+          Label(context.l10n.event_overview_organizer),
           const SizedBox(height: 10),
           Container(
             padding: const EdgeInsets.all(12),
@@ -438,20 +466,26 @@ class _OverviewPanel extends StatelessWidget {
             child: Row(
               children: [
                 Container(
-                    width: 36, height: 36,
-                    decoration: BoxDecoration(
-                        color: T.elev3,
-                        borderRadius: BorderRadius.circular(6))),
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: T.elev3,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                ),
                 const SizedBox(width: 10),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(event.city ?? '—',
-                        style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: T.ink)),
-                    Label('赛事组织方'),
+                    Text(
+                      event.city ?? '—',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: T.ink,
+                      ),
+                    ),
+                    Label(context.l10n.event_overview_organizer_label),
                   ],
                 ),
               ],
@@ -472,7 +506,9 @@ class _BracketPanel extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ref.watch(eventMatchesProvider(eventId)).when(
+    return ref
+        .watch(eventMatchesProvider(eventId))
+        .when(
           data: (matches) => _BracketLayout(matches: matches),
           loading: () => const _PanelLoading(),
           error: (e, _) => _PanelError(e),
@@ -492,9 +528,9 @@ class _BracketLayout extends StatelessWidget {
     final finalMatch = finals.isNotEmpty ? finals.first : null;
 
     if (qf.isEmpty && sf.isEmpty && finalMatch == null) {
-      return const Padding(
-        padding: EdgeInsets.all(40),
-        child: Center(child: Label('暂无赛程，等待组委会发布')),
+      return Padding(
+        padding: const EdgeInsets.all(40),
+        child: Center(child: Label(context.l10n.event_bracket_waiting)),
       );
     }
 
@@ -512,7 +548,7 @@ class _BracketLayout extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Label('1/4 决赛'),
+                    Label(context.l10n.event_bracket_qf),
                     const SizedBox(height: 10),
                     if (qf.isEmpty)
                       const _EmptyCell(text: 'TBD')
@@ -528,7 +564,7 @@ class _BracketLayout extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Label('半决赛'),
+                      Label(context.l10n.event_bracket_sf),
                       const SizedBox(height: 36),
                       if (sf.isEmpty)
                         const _EmptyCell(text: 'TBD')
@@ -550,7 +586,7 @@ class _BracketLayout extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Label('决赛'),
+                      Label(context.l10n.event_bracket_final),
                       const SizedBox(height: 10),
                       if (finalMatch == null)
                         const _EmptyCell(text: 'TBD')
@@ -559,21 +595,30 @@ class _BracketLayout extends StatelessWidget {
                       const SizedBox(height: 10),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 10),
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
                         decoration: BoxDecoration(
                           color: T.liveDim,
                           border: Border.all(color: T.live),
                           borderRadius: BorderRadius.circular(T.r2),
                         ),
                         child: Column(
-                          children: const [
-                            Icon(Icons.emoji_events, size: 18, color: T.live),
-                            SizedBox(height: 4),
-                            Text('冠军',
-                                style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                    color: T.live)),
+                          children: [
+                            const Icon(
+                              Icons.emoji_events,
+                              size: 18,
+                              color: T.live,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              context.l10n.event_bracket_champion,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: T.live,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -594,21 +639,24 @@ class _EmptyCell extends StatelessWidget {
   const _EmptyCell({required this.text});
   @override
   Widget build(BuildContext context) => Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.all(10),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: T.elev2,
-          border: Border.all(color: T.line, style: BorderStyle.solid),
-          borderRadius: BorderRadius.circular(T.r2),
-        ),
-        child: Text(text,
-            style: const TextStyle(
-                fontFamily: T.fontMono,
-                fontFamilyFallback: T.monoFallbacks,
-                fontSize: 11,
-                color: T.inkDim)),
-      );
+    margin: const EdgeInsets.only(bottom: 10),
+    padding: const EdgeInsets.all(10),
+    alignment: Alignment.center,
+    decoration: BoxDecoration(
+      color: T.elev2,
+      border: Border.all(color: T.line, style: BorderStyle.solid),
+      borderRadius: BorderRadius.circular(T.r2),
+    ),
+    child: Text(
+      text,
+      style: const TextStyle(
+        fontFamily: T.fontMono,
+        fontFamilyFallback: T.monoFallbacks,
+        fontSize: 11,
+        color: T.inkDim,
+      ),
+    ),
+  );
 }
 
 class _MatchCard extends StatelessWidget {
@@ -644,24 +692,30 @@ class _MatchCard extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  Text('PK ${m.pkScore}',
-                      style: const TextStyle(
-                          fontFamily: T.fontMono,
-                          fontFamilyFallback: T.monoFallbacks,
-                          fontSize: 9,
-                          color: T.warn)),
+                  Text(
+                    'PK ${m.pkScore}',
+                    style: const TextStyle(
+                      fontFamily: T.fontMono,
+                      fontFamilyFallback: T.monoFallbacks,
+                      fontSize: 9,
+                      color: T.warn,
+                    ),
+                  ),
                 ],
               ),
             ),
           if (timeStr != null)
             Padding(
               padding: const EdgeInsets.only(top: 4),
-              child: Text(timeStr,
-                  style: const TextStyle(
-                      fontFamily: T.fontMono,
-                      fontFamilyFallback: T.monoFallbacks,
-                      fontSize: 10,
-                      color: T.inkDim)),
+              child: Text(
+                timeStr,
+                style: const TextStyle(
+                  fontFamily: T.fontMono,
+                  fontFamilyFallback: T.monoFallbacks,
+                  fontSize: 10,
+                  color: T.inkDim,
+                ),
+              ),
             ),
         ],
       ),
@@ -674,21 +728,25 @@ class _MatchCard extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Expanded(
-          child: Text(name,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                  fontSize: 12,
-                  color: nameColor,
-                  fontWeight: won ? FontWeight.w700 : FontWeight.w400)),
+          child: Text(
+            name,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 12,
+              color: nameColor,
+              fontWeight: won ? FontWeight.w700 : FontWeight.w400,
+            ),
+          ),
         ),
         if (m.done && score != null)
-          N('$score',
-              size: 13,
-              weight: FontWeight.w700,
-              color: won ? T.live : T.inkSub)
+          N(
+            '$score',
+            size: 13,
+            weight: FontWeight.w700,
+            color: won ? T.live : T.inkSub,
+          )
         else
-          const Text('-',
-              style: TextStyle(color: T.inkDim, fontSize: 11)),
+          const Text('-', style: TextStyle(color: T.inkDim, fontSize: 11)),
       ],
     );
   }
@@ -705,8 +763,7 @@ class StandingRow {
 
 List<StandingRow> computeStandings(List<Match> matches) {
   final agg = <String, StandingRow>{};
-  StandingRow bump(String k) =>
-      agg.putIfAbsent(k, () => StandingRow(team: k));
+  StandingRow bump(String k) => agg.putIfAbsent(k, () => StandingRow(team: k));
   for (final m in matches) {
     if (!m.done || m.scoreA == null || m.scoreB == null) continue;
     final a = bump(m.teamALabel ?? 'TBD');
@@ -716,12 +773,18 @@ List<StandingRow> computeStandings(List<Match> matches) {
     b.gf += m.scoreB!;
     b.ga += m.scoreA!;
     if (m.scoreA! > m.scoreB!) {
-      a.w++; b.l++; a.pts += 3;
+      a.w++;
+      b.l++;
+      a.pts += 3;
     } else if (m.scoreA! < m.scoreB!) {
-      b.w++; a.l++; b.pts += 3;
+      b.w++;
+      a.l++;
+      b.pts += 3;
     } else {
-      a.d++; b.d++;
-      a.pts++; b.pts++;
+      a.d++;
+      b.d++;
+      a.pts++;
+      b.pts++;
     }
   }
   final list = agg.values.toList()
@@ -743,13 +806,17 @@ class _StandingsPanel extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ref.watch(eventMatchesProvider(eventId)).when(
+    return ref
+        .watch(eventMatchesProvider(eventId))
+        .when(
           data: (matches) {
             final rows = computeStandings(matches);
             if (rows.isEmpty) {
-              return const Padding(
-                padding: EdgeInsets.all(40),
-                child: Center(child: Label('暂无比赛结果')),
+              return Padding(
+                padding: const EdgeInsets.all(40),
+                child: Center(
+                  child: Label(context.l10n.event_standings_empty2),
+                ),
               );
             }
             return _StandingsTable(rows: rows);
@@ -766,89 +833,118 @@ class _StandingsTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 14),
       child: Column(
         children: [
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
             child: Row(
               children: [
-                SizedBox(width: 24, child: Label('#')),
-                SizedBox(width: 10),
-                Expanded(child: Label('队伍')),
-                SizedBox(width: 32, child: Center(child: Label('胜'))),
-                SizedBox(width: 32, child: Center(child: Label('平'))),
-                SizedBox(width: 32, child: Center(child: Label('负'))),
                 SizedBox(
-                    width: 40,
-                    child: Align(
-                        alignment: Alignment.centerRight, child: Label('积分'))),
+                  width: 24,
+                  child: Label(l.event_standings_rank),
+                ),
+                const SizedBox(width: 10),
+                Expanded(child: Label(l.event_standings_team)),
+                SizedBox(
+                  width: 32,
+                  child: Center(child: Label(l.event_standings_wins)),
+                ),
+                SizedBox(
+                  width: 32,
+                  child: Center(child: Label(l.event_standings_draws)),
+                ),
+                SizedBox(
+                  width: 32,
+                  child: Center(child: Label(l.event_standings_losses)),
+                ),
+                SizedBox(
+                  width: 40,
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Label(l.event_standings_points),
+                  ),
+                ),
               ],
             ),
           ),
           for (final s in rows)
             Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
                 color: s.rank <= 2 ? const Color(0x0800FF85) : null,
-                border: const Border(
-                    top: BorderSide(color: T.line, width: 1)),
+                border: const Border(top: BorderSide(color: T.line, width: 1)),
               ),
               child: Row(
                 children: [
                   SizedBox(
                     width: 24,
-                    child: N('${s.rank}',
-                        size: 13,
-                        weight: FontWeight.w600,
-                        color: s.rank <= 2 ? T.live : T.inkSub),
+                    child: N(
+                      '${s.rank}',
+                      size: 13,
+                      weight: FontWeight.w600,
+                      color: s.rank <= 2 ? T.live : T.inkSub,
+                    ),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Row(
                       children: [
                         Container(
-                          width: 20, height: 20,
+                          width: 20,
+                          height: 20,
                           decoration: BoxDecoration(
                             color: HSLColor.fromAHSL(
-                                    1, (s.rank * 50).toDouble() % 360,
-                                    0.35, 0.3)
-                                .toColor(),
+                              1,
+                              (s.rank * 50).toDouble() % 360,
+                              0.35,
+                              0.3,
+                            ).toColor(),
                             borderRadius: BorderRadius.circular(4),
                           ),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: Text(s.team,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                  fontSize: 13,
-                                  color: T.ink,
-                                  fontWeight: FontWeight.w500)),
+                          child: Text(
+                            s.team,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: T.ink,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                         ),
                       ],
                     ),
                   ),
                   SizedBox(
-                      width: 32,
-                      child:
-                          Center(child: N('${s.w}', size: 12, color: T.inkSub))),
+                    width: 32,
+                    child: Center(
+                      child: N('${s.w}', size: 12, color: T.inkSub),
+                    ),
+                  ),
                   SizedBox(
-                      width: 32,
-                      child:
-                          Center(child: N('${s.d}', size: 12, color: T.inkSub))),
+                    width: 32,
+                    child: Center(
+                      child: N('${s.d}', size: 12, color: T.inkSub),
+                    ),
+                  ),
                   SizedBox(
-                      width: 32,
-                      child:
-                          Center(child: N('${s.l}', size: 12, color: T.inkSub))),
+                    width: 32,
+                    child: Center(
+                      child: N('${s.l}', size: 12, color: T.inkSub),
+                    ),
+                  ),
                   SizedBox(
-                      width: 40,
-                      child: Align(
-                          alignment: Alignment.centerRight,
-                          child: N('${s.pts}',
-                              size: 14, weight: FontWeight.w700))),
+                    width: 40,
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: N('${s.pts}', size: 14, weight: FontWeight.w700),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -863,11 +959,15 @@ class _StandingsTable extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────
 class _ScorersPanel extends ConsumerWidget {
   const _ScorersPanel();
-  static const _medal = [Color(0xFFFFD700), Color(0xFFC0C0C0), Color(0xFFCD7F32)];
+  static const _medal = [
+    Color(0xFFFFD700),
+    Color(0xFFC0C0C0),
+    Color(0xFFCD7F32),
+  ];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // TODO: 需要 goals 表；见 IMPLEMENTATION_PLAN.md
+    // Derived from mock scorers until goals table lands.
     final rows = ref.watch(scorersProvider);
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
@@ -876,8 +976,7 @@ class _ScorersPanel extends ConsumerWidget {
           for (int i = 0; i < rows.length; i++)
             Container(
               margin: const EdgeInsets.only(bottom: 8),
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 14, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               decoration: BoxDecoration(
                 color: T.elev2,
                 border: Border.all(color: T.line),
@@ -897,16 +996,23 @@ class _ScorersPanel extends ConsumerWidget {
                                 color: _medal[i],
                                 shape: BoxShape.circle,
                               ),
-                              child: Text('${i + 1}',
-                                  style: const TextStyle(
-                                      fontFamily: T.fontMono,
-                                      fontFamilyFallback: T.monoFallbacks,
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 11,
-                                      color: Colors.black)),
+                              child: Text(
+                                '${i + 1}',
+                                style: const TextStyle(
+                                  fontFamily: T.fontMono,
+                                  fontFamilyFallback: T.monoFallbacks,
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 11,
+                                  color: Colors.black,
+                                ),
+                              ),
                             )
-                          : N('${rows[i].rank}',
-                              size: 14, weight: FontWeight.w600, color: T.inkSub),
+                          : N(
+                              '${rows[i].rank}',
+                              size: 14,
+                              weight: FontWeight.w600,
+                              color: T.inkSub,
+                            ),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -916,21 +1022,30 @@ class _ScorersPanel extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(rows[i].name,
-                            style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: T.ink)),
-                        Label('${rows[i].team} · ${rows[i].matches} 场'),
+                        Text(
+                          rows[i].name,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: T.ink,
+                          ),
+                        ),
+                        Label(
+                          '${rows[i].team} · ${context.l10n.archive_teammates_matches(rows[i].matches)}',
+                        ),
                       ],
                     ),
                   ),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      N('${rows[i].goals}',
-                          size: 22, weight: FontWeight.w700, color: T.live),
-                      const Label('进球'),
+                      N(
+                        '${rows[i].goals}',
+                        size: 22,
+                        weight: FontWeight.w700,
+                        color: T.live,
+                      ),
+                      Label(context.l10n.event_scorers_goals),
                     ],
                   ),
                 ],
@@ -943,21 +1058,48 @@ class _ScorersPanel extends ConsumerWidget {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Chat — static (Session D 再接 realtime 弹幕)
+// Chat — realtime via Supabase conversations (one per event)
 // ─────────────────────────────────────────────────────────────
-class _ChatPanel extends StatelessWidget {
-  const _ChatPanel();
-  // TODO: Session D — realtime event chat schema
-  static const _msgs = [
-    ('Kevin', '狼队今天状态拉满', '20:14'),
-    ('阿泽', '开场那个长传太骚了', '20:15'),
-    ('林帅', 'FC 黑马今天门将是板凳 怎么回事', '20:16'),
-    ('江北', '老王要进球王了', '20:17'),
-    ('路人甲', '现场来了几百号人挺热闹', '20:18'),
-  ];
+class _ChatPanel extends ConsumerStatefulWidget {
+  final String eventId;
+  const _ChatPanel({required this.eventId});
+
+  @override
+  ConsumerState<_ChatPanel> createState() => _ChatPanelState();
+}
+
+class _ChatPanelState extends ConsumerState<_ChatPanel> {
+  final _inputC = TextEditingController();
+  bool _sending = false;
+
+  @override
+  void dispose() {
+    _inputC.dispose();
+    super.dispose();
+  }
+
+  Future<void> _send() async {
+    final text = _inputC.text.trim();
+    if (text.isEmpty || _sending) return;
+    setState(() => _sending = true);
+    try {
+      final convId = await ref.read(
+        eventChatConvProvider(widget.eventId).future,
+      );
+      await ref.read(messagesRepoProvider).send(convId, text);
+      _inputC.clear();
+    } catch (e) {
+      if (mounted)
+        showToast(context, context.l10n.chat_send_failed, error: true);
+    } finally {
+      if (mounted) setState(() => _sending = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
+    final async = ref.watch(eventChatMessagesProvider(widget.eventId));
     return Container(
       padding: const EdgeInsets.all(14),
       color: T.elev1,
@@ -965,64 +1107,86 @@ class _ChatPanel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          for (final m in _msgs)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Avatar(m.$1, size: 26),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Text(m.$1,
-                                style: const TextStyle(
-                                    fontSize: 12,
-                                    color: T.inkSub,
-                                    fontWeight: FontWeight.w500)),
-                            const SizedBox(width: 6),
-                            Label(m.$3),
-                          ],
-                        ),
-                        Text(m.$2,
-                            style: const TextStyle(
-                                fontSize: 13, color: T.ink, height: 1.5)),
-                      ],
+          async.when(
+            data: (msgs) {
+              if (msgs.isEmpty) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 40),
+                  child: Center(
+                    child: Text(
+                      l.empty_no_messages,
+                      style: const TextStyle(color: T.inkDim, fontSize: 13),
                     ),
                   ),
-                ],
+                );
+              }
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [for (final m in msgs.reversed) _Msg(msg: m)],
+              );
+            },
+            loading: () => const Padding(
+              padding: EdgeInsets.symmetric(vertical: 20),
+              child: Center(
+                child: CircularProgressIndicator(color: T.live, strokeWidth: 2),
               ),
             ),
+            error: (e, _) => Padding(
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: Center(
+                child: Text(
+                  '${l.error_load_failed}: $e',
+                  style: const TextStyle(color: T.inkSub, fontSize: 12),
+                ),
+              ),
+            ),
+          ),
           const SizedBox(height: 10),
           Row(
             children: [
               Expanded(
                 child: Container(
-                  height: 36,
                   padding: const EdgeInsets.symmetric(horizontal: 14),
-                  alignment: Alignment.centerLeft,
                   decoration: BoxDecoration(
                     color: T.elev2,
                     borderRadius: BorderRadius.circular(18),
                   ),
-                  child: const Text('发条弹幕…',
-                      style: TextStyle(fontSize: 13, color: T.inkDim)),
+                  child: TextField(
+                    controller: _inputC,
+                    onSubmitted: (_) => _send(),
+                    style: const TextStyle(color: T.ink, fontSize: 14),
+                    decoration: InputDecoration(
+                      hintText: l.event_chat_hint,
+                      hintStyle: const TextStyle(color: T.inkDim, fontSize: 13),
+                      border: InputBorder.none,
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
-              Container(
-                width: 36,
-                height: 36,
-                alignment: Alignment.center,
-                decoration: const BoxDecoration(
-                  color: T.live,
-                  shape: BoxShape.circle,
+              GestureDetector(
+                onTap: _sending ? null : _send,
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  alignment: Alignment.center,
+                  decoration: const BoxDecoration(
+                    color: T.live,
+                    shape: BoxShape.circle,
+                  ),
+                  child: _sending
+                      ? const SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(
+                            color: Colors.black,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Icon(Icons.send, size: 14, color: Colors.black),
                 ),
-                child: const Icon(Icons.send, size: 14, color: Colors.black),
               ),
             ],
           ),
@@ -1030,6 +1194,254 @@ class _ChatPanel extends StatelessWidget {
       ),
     );
   }
+}
+
+class _Msg extends StatelessWidget {
+  final Message msg;
+  const _Msg({required this.msg});
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppL10n.of(context);
+    final sender =
+        msg.senderId == currentUserId ? l.event_chat_sender_you : l.event_chat_sender_stranger;
+    final hh = msg.createdAt.hour.toString().padLeft(2, '0');
+    final mm = msg.createdAt.minute.toString().padLeft(2, '0');
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Avatar(sender, size: 26),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      sender,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: T.inkSub,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Label('$hh:$mm'),
+                  ],
+                ),
+                Text(
+                  msg.body ?? '',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: T.ink,
+                    height: 1.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Bottom CTA: watch live + register team
+// ─────────────────────────────────────────────────────────────
+class _BottomCta extends ConsumerWidget {
+  final Event event;
+  const _BottomCta({required this.event});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = context.l10n;
+    ref.watch(localStoreProvider);
+    final registered = LocalStore.isEventFavorited(event.id);
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 32),
+      decoration: const BoxDecoration(
+        color: T.elev1,
+        border: Border(top: BorderSide(color: T.line, width: 1)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: PrimaryButton(
+              variant: BtnVariant.ghost,
+              size: BtnSize.lg,
+              full: true,
+              onPressed: () => context.push('/worldcup/live/${event.id}'),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.tv, size: 16, color: T.ink),
+                  const SizedBox(width: 6),
+                  Text(
+                    l.event_cta_watch_live,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: T.ink,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: PrimaryButton(
+              label: registered ? l.event_cta_registered : l.event_cta_register,
+              variant: registered ? BtnVariant.secondary : BtnVariant.primary,
+              size: BtnSize.lg,
+              full: true,
+              onPressed: registered
+                  ? null
+                  : () => _showRegisterSheet(context, ref),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showRegisterSheet(BuildContext context, WidgetRef ref) async {
+    final l = context.l10n;
+    final teamC = TextEditingController();
+    final contactC = TextEditingController();
+    final phoneC = TextEditingController();
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: T.elev1,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 14, 20, 28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: T.inkMute,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                l.event_register_form_title,
+                style: const TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  color: T.ink,
+                ),
+              ),
+              const SizedBox(height: 16),
+              _RegField(label: l.event_register_team_name, controller: teamC),
+              _RegField(label: l.event_register_contact, controller: contactC),
+              _RegField(
+                label: l.event_register_phone,
+                controller: phoneC,
+                keyboardType: TextInputType.phone,
+              ),
+              const SizedBox(height: 10),
+              PrimaryButton(
+                label: l.event_register_submit,
+                variant: BtnVariant.primary,
+                size: BtnSize.lg,
+                full: true,
+                onPressed: () async {
+                  if (teamC.text.trim().isEmpty) {
+                    showToast(ctx, l.error_required_field, error: true);
+                    return;
+                  }
+                  try {
+                    await ref
+                        .read(messagesRepoProvider)
+                        .createConversation(
+                          title: 'event:${event.id}:reg:${teamC.text.trim()}',
+                          kind: 'team',
+                        );
+                  } catch (_) {
+                    /* ignore: registration in offline / mock mode still persists locally. */
+                  }
+                  await LocalStore.toggleFavoriteEvent(event.id);
+                  if (ctx.mounted) Navigator.of(ctx).pop();
+                  if (context.mounted) {
+                    showToast(context, l.event_register_success, success: true);
+                  }
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _RegField extends StatelessWidget {
+  final String label;
+  final TextEditingController controller;
+  final TextInputType? keyboardType;
+  const _RegField({
+    required this.label,
+    required this.controller,
+    this.keyboardType,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Label(label),
+          const SizedBox(height: 6),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              color: T.elev2,
+              border: Border.all(color: T.line),
+              borderRadius: BorderRadius.circular(T.r2),
+            ),
+            child: TextField(
+              controller: controller,
+              keyboardType: keyboardType,
+              style: const TextStyle(color: T.ink, fontSize: 14),
+              decoration: const InputDecoration(
+                border: InputBorder.none,
+                isDense: true,
+                contentPadding: EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+String _deterministicViewers(String eventId) {
+  final h = eventId.hashCode.abs();
+  final n = 800 + h % 48000;
+  if (n >= 10000) return '${(n / 10000).toStringAsFixed(1)}w';
+  if (n >= 1000) return '${(n / 1000).toStringAsFixed(1)}K';
+  return '$n';
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -1073,11 +1485,13 @@ class _RatingsPanelState extends ConsumerState<RatingsPanel> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Label('本赛事评分榜'),
+              Label(context.l10n.event_rating_panel_subtitle),
               const SizedBox(height: 8),
               Container(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 14),
+                  horizontal: 16,
+                  vertical: 14,
+                ),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
@@ -1093,17 +1507,21 @@ class _RatingsPanelState extends ConsumerState<RatingsPanel> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(widget.event.name,
-                        style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                            color: T.ink)),
+                    Text(
+                      widget.event.name,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: T.ink,
+                      ),
+                    ),
                     const SizedBox(height: 6),
                     Row(
                       children: [
-                        Label('${rows.length} 位球员被评分'),
+                        Label(context.l10n.event_rating_players_count(rows.length)),
                         const Spacer(),
-                        Label('${_fmt(totalVotes)} 人次'),
+                        Label(context.l10n
+                            .event_rating_votes_count(totalVotes)),
                       ],
                     ),
                   ],
@@ -1113,9 +1531,11 @@ class _RatingsPanelState extends ConsumerState<RatingsPanel> {
           ),
         ),
         if (rows.isEmpty)
-          const Padding(
-            padding: EdgeInsets.all(40),
-            child: Center(child: Label('还没有评分 · 去评赛后场次')),
+          Padding(
+            padding: const EdgeInsets.all(40),
+            child: Center(
+              child: Label(context.l10n.event_rating_empty_go_rate),
+            ),
           )
         else
           for (int i = 0; i < rows.length; i++)
@@ -1123,22 +1543,14 @@ class _RatingsPanelState extends ConsumerState<RatingsPanel> {
               onTap: () => setState(() => _selected = rows[i]),
               child: _PlayerRow(p: rows[i], rank: i + 1),
             ),
-        const Padding(
-          padding: EdgeInsets.all(16),
-          child: Center(child: Label('· 点击球员查看评分详情 ·')),
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Center(
+            child: Label(context.l10n.event_rating_tap_for_detail),
+          ),
         ),
       ],
     );
-  }
-
-  static String _fmt(int n) {
-    final s = n.toString();
-    final buf = StringBuffer();
-    for (int i = 0; i < s.length; i++) {
-      if (i > 0 && (s.length - i) % 3 == 0) buf.write(',');
-      buf.write(s[i]);
-    }
-    return buf.toString();
   }
 }
 
@@ -1150,8 +1562,9 @@ class _PlayerRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final you = p.rateeId == currentUserId;
-    final scoreColor =
-        p.avgScore >= 8 ? T.live : (p.avgScore >= 6 ? T.ink : T.danger);
+    final scoreColor = p.avgScore >= 8
+        ? T.live
+        : (p.avgScore >= 6 ? T.ink : T.danger);
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
       padding: const EdgeInsets.all(12),
@@ -1201,19 +1614,29 @@ class _PlayerRow extends StatelessWidget {
                   spacing: 6,
                   runSpacing: 4,
                   children: [
-                    Text(p.name,
-                        style: const TextStyle(
-                            fontSize: 14,
-                            color: T.ink,
-                            fontWeight: FontWeight.w600)),
-                    if (you) _tinyBadge('你', T.liveDim, T.live),
+                    Text(
+                      p.name,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: T.ink,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    if (you)
+                      _tinyBadge(
+                        context.l10n.rate_short_you,
+                        T.liveDim,
+                        T.live,
+                      ),
                   ],
                 ),
                 const SizedBox(height: 3),
-                Label([
-                  if (p.position != null) p.position!,
-                  '${p.votes}人评',
-                ].join(' · ')),
+                Label(
+                  [
+                    if (p.position != null) p.position!,
+                    context.l10n.event_rating_n_voters_inline(p.votes),
+                  ].join(' · '),
+                ),
               ],
             ),
           ),
@@ -1224,10 +1647,14 @@ class _PlayerRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               mainAxisSize: MainAxisSize.min,
               children: [
-                N(p.avgScore.toStringAsFixed(1),
-                    size: 22, weight: FontWeight.w800, color: scoreColor),
+                N(
+                  p.avgScore.toStringAsFixed(1),
+                  size: 22,
+                  weight: FontWeight.w800,
+                  color: scoreColor,
+                ),
                 const SizedBox(height: 2),
-                const Label('均分'),
+                Label(context.l10n.event_rating_score_avg),
               ],
             ),
           ),
@@ -1242,23 +1669,23 @@ class _PlayerRow extends StatelessWidget {
   }
 
   Widget _tinyBadge(String text, Color bg, Color fg) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(2),
-          border: Border.all(color: fg.withValues(alpha: 0.25)),
-        ),
-        child: Text(
-          text,
-          style: TextStyle(
-            fontFamily: T.fontMono,
-            fontFamilyFallback: T.monoFallbacks,
-            fontSize: 9,
-            fontWeight: FontWeight.w700,
-            color: fg,
-          ),
-        ),
-      );
+    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+    decoration: BoxDecoration(
+      color: bg,
+      borderRadius: BorderRadius.circular(2),
+      border: Border.all(color: fg.withValues(alpha: 0.25)),
+    ),
+    child: Text(
+      text,
+      style: TextStyle(
+        fontFamily: T.fontMono,
+        fontFamilyFallback: T.monoFallbacks,
+        fontSize: 9,
+        fontWeight: FontWeight.w700,
+        color: fg,
+      ),
+    ),
+  );
 }
 
 class _PlayerRatingDetail extends ConsumerWidget {
@@ -1279,8 +1706,9 @@ class _PlayerRatingDetail extends ConsumerWidget {
     final maxD = dist.reduce(math.max);
     final comments = mock.topComments;
     final you = p.rateeId == currentUserId;
-    final scoreColor =
-        p.avgScore >= 8 ? T.live : (p.avgScore >= 6 ? T.ink : T.danger);
+    final scoreColor = p.avgScore >= 8
+        ? T.live
+        : (p.avgScore >= 6 ? T.ink : T.danger);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1291,11 +1719,14 @@ class _PlayerRatingDetail extends ConsumerWidget {
             children: [
               GestureDetector(
                 onTap: onBack,
-                child: const Icon(Icons.arrow_back_ios_new,
-                    size: 18, color: T.ink),
+                child: const Icon(
+                  Icons.arrow_back_ios_new,
+                  size: 18,
+                  color: T.ink,
+                ),
               ),
               const SizedBox(width: 8),
-              const Label('球员评分详情'),
+              Label(context.l10n.event_rating_player_detail),
             ],
           ),
         ),
@@ -1324,49 +1755,64 @@ class _PlayerRatingDetail extends ConsumerWidget {
                   children: [
                     Row(
                       children: [
-                        Text(p.name,
-                            style: const TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w700,
-                                color: T.ink)),
+                        Text(
+                          p.name,
+                          style: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w700,
+                            color: T.ink,
+                          ),
+                        ),
                         if (you) ...[
                           const SizedBox(width: 6),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 5, vertical: 1),
+                              horizontal: 5,
+                              vertical: 1,
+                            ),
                             decoration: BoxDecoration(
                               color: T.liveDim,
                               border: Border.all(
-                                  color: const Color(0x6600FF85)),
+                                color: const Color(0x6600FF85),
+                              ),
                               borderRadius: BorderRadius.circular(2),
                             ),
-                            child: const Text('你',
-                                style: TextStyle(
-                                    fontFamily: T.fontMono,
-                                    fontFamilyFallback: T.monoFallbacks,
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.w700,
-                                    color: T.live)),
+                            child: Text(
+                              context.l10n.rate_short_you,
+                              style: const TextStyle(
+                                fontFamily: T.fontMono,
+                                fontFamilyFallback: T.monoFallbacks,
+                                fontSize: 9,
+                                fontWeight: FontWeight.w700,
+                                color: T.live,
+                              ),
+                            ),
                           ),
                         ],
                       ],
                     ),
-                    Label([
-                      if (p.position != null) p.position!,
-                      event.name,
-                    ].join(' · ')),
+                    Label(
+                      [
+                        if (p.position != null) p.position!,
+                        event.name,
+                      ].join(' · '),
+                    ),
                     const SizedBox(height: 8),
-                    Label('${p.votes} 人参与评分'),
+                    Label(context.l10n.event_rating_players_voted(p.votes)),
                   ],
                 ),
               ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  N(p.avgScore.toStringAsFixed(2),
-                      size: 42, weight: FontWeight.w800, color: scoreColor),
+                  N(
+                    p.avgScore.toStringAsFixed(2),
+                    size: 42,
+                    weight: FontWeight.w800,
+                    color: scoreColor,
+                  ),
                   const SizedBox(height: 4),
-                  const Label('均分'),
+                  Label(context.l10n.event_rating_score_avg),
                 ],
               ),
             ],
@@ -1377,11 +1823,13 @@ class _PlayerRatingDetail extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Label('评分分布 · 样例'),
+              Label(context.l10n.event_rating_distribution),
               const SizedBox(height: 10),
               Container(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 12, vertical: 14),
+                  horizontal: 12,
+                  vertical: 14,
+                ),
                 decoration: BoxDecoration(
                   color: T.elev2,
                   border: Border.all(color: T.line),
@@ -1398,7 +1846,8 @@ class _PlayerRatingDetail extends ConsumerWidget {
                             Expanded(
                               child: Padding(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 1.5),
+                                  horizontal: 1.5,
+                                ),
                                 child: FractionallySizedBox(
                                   heightFactor: dist[i] / maxD,
                                   alignment: Alignment.bottomCenter,
@@ -1407,12 +1856,11 @@ class _PlayerRatingDetail extends ConsumerWidget {
                                       color: i >= 8
                                           ? T.live
                                           : i >= 6
-                                              ? T.ink
-                                              : i >= 4
-                                                  ? T.inkSub
-                                                  : T.danger,
-                                      borderRadius:
-                                          const BorderRadius.only(
+                                          ? T.ink
+                                          : i >= 4
+                                          ? T.inkSub
+                                          : T.danger,
+                                      borderRadius: const BorderRadius.only(
                                         topLeft: Radius.circular(2),
                                         topRight: Radius.circular(2),
                                       ),
@@ -1430,12 +1878,15 @@ class _PlayerRatingDetail extends ConsumerWidget {
                         for (int i = 0; i < dist.length; i++)
                           Expanded(
                             child: Center(
-                              child: Text('$i',
-                                  style: const TextStyle(
-                                      fontFamily: T.fontMono,
-                                      fontFamilyFallback: T.monoFallbacks,
-                                      fontSize: 9,
-                                      color: T.inkDim)),
+                              child: Text(
+                                '$i',
+                                style: const TextStyle(
+                                  fontFamily: T.fontMono,
+                                  fontFamilyFallback: T.monoFallbacks,
+                                  fontSize: 9,
+                                  color: T.inkDim,
+                                ),
+                              ),
                             ),
                           ),
                       ],
@@ -1452,10 +1903,10 @@ class _PlayerRatingDetail extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                children: const [
-                  Label('热门评论 · 样例'),
-                  Spacer(),
-                  Label('按热度排序'),
+                children: [
+                  Label(context.l10n.event_rating_hot_comments),
+                  const Spacer(),
+                  Label(context.l10n.event_rating_sort_hot),
                 ],
               ),
               const SizedBox(height: 10),
@@ -1475,25 +1926,32 @@ class _PlayerRatingDetail extends ConsumerWidget {
                         children: [
                           Avatar(c.user, size: 22),
                           const SizedBox(width: 8),
-                          Text(c.user,
-                              style: const TextStyle(
-                                  fontSize: 12,
-                                  color: T.inkSub,
-                                  fontWeight: FontWeight.w500)),
+                          Text(
+                            c.user,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: T.inkSub,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                           const SizedBox(width: 8),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 1),
+                              horizontal: 6,
+                              vertical: 1,
+                            ),
                             decoration: BoxDecoration(
                               color: c.score >= 8
                                   ? T.liveDim
-                                  : c.score >= 6 ? T.elev3 : const Color(0x24FF3B6B),
+                                  : c.score >= 6
+                                  ? T.elev3
+                                  : const Color(0x24FF3B6B),
                               border: Border.all(
                                 color: c.score >= 8
                                     ? T.live.withValues(alpha: 0.3)
                                     : c.score >= 6
-                                        ? T.line
-                                        : T.danger.withValues(alpha: 0.3),
+                                    ? T.line
+                                    : T.danger.withValues(alpha: 0.3),
                               ),
                               borderRadius: BorderRadius.circular(3),
                             ),
@@ -1506,7 +1964,9 @@ class _PlayerRatingDetail extends ConsumerWidget {
                                 fontWeight: FontWeight.w800,
                                 color: c.score >= 8
                                     ? T.live
-                                    : c.score >= 6 ? T.ink : T.danger,
+                                    : c.score >= 6
+                                    ? T.ink
+                                    : T.danger,
                               ),
                             ),
                           ),
@@ -1515,23 +1975,38 @@ class _PlayerRatingDetail extends ConsumerWidget {
                         ],
                       ),
                       const SizedBox(height: 6),
-                      Text(c.text,
-                          style: const TextStyle(
-                              fontSize: 13, color: T.ink, height: 1.5)),
+                      Text(
+                        c.text,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: T.ink,
+                          height: 1.5,
+                        ),
+                      ),
                       const SizedBox(height: 8),
                       Row(
                         children: [
-                          const Icon(Icons.favorite_border,
-                              size: 12, color: T.inkSub),
+                          const Icon(
+                            Icons.favorite_border,
+                            size: 12,
+                            color: T.inkSub,
+                          ),
                           const SizedBox(width: 4),
                           N('${c.likes}', size: 11, color: T.inkSub),
                           const SizedBox(width: 14),
-                          const Icon(Icons.chat_bubble_outline,
-                              size: 12, color: T.inkSub),
+                          const Icon(
+                            Icons.chat_bubble_outline,
+                            size: 12,
+                            color: T.inkSub,
+                          ),
                           const SizedBox(width: 4),
-                          const Text('回复',
-                              style:
-                                  TextStyle(fontSize: 11, color: T.inkSub)),
+                          Text(
+                            context.l10n.event_rating_reply,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: T.inkSub,
+                            ),
+                          ),
                         ],
                       ),
                     ],
