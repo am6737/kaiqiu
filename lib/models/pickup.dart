@@ -13,6 +13,7 @@ class Pickup {
   final String? hostId; // nullable: seed data has no host yet
   final String? hostName; // display-only fallback when hostId is null
   final String venue;
+  final String? address;
   final double? lat;
   final double? lng;
   final DateTime startAt;
@@ -32,6 +33,7 @@ class Pickup {
     this.hostId,
     this.hostName,
     required this.venue,
+    this.address,
     this.lat,
     this.lng,
     required this.startAt,
@@ -52,6 +54,7 @@ class Pickup {
     hostId: m['host_id'] as String?,
     hostName: m['host_name'] as String?,
     venue: m['venue'] as String,
+    address: m['address'] as String?,
     lat: (m['lat'] as num?)?.toDouble(),
     lng: (m['lng'] as num?)?.toDouble(),
     startAt: DateTime.parse(m['start_at'] as String),
