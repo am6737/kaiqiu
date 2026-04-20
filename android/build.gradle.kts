@@ -1,7 +1,72 @@
+import java.io.File
+
 allprojects {
     repositories {
         google()
         mavenCentral()
+    }
+}
+
+// amap_flutter_map 3.0.0 still ships Flutter v1-embedding Java code
+// (io.flutter.view.FlutterMain + PluginRegistry.Registrar) that modern
+// Flutter has removed. We patch the pub-cache source in place so the
+// plugin compiles on Flutter 3.x+. Idempotent — second run is a no-op.
+fun patchAmapV1Embedding(androidDir: File) {
+    val convertUtil = File(
+        androidDir,
+        "src/main/java/com/amap/flutter/map/utils/ConvertUtil.java",
+    )
+    if (convertUtil.exists()) {
+        val original = convertUtil.readText()
+        var patched = original
+        patched = patched.replace(
+            "import io.flutter.view.FlutterMain;",
+            "import io.flutter.FlutterInjector;",
+        )
+        patched = patched.replace(
+            "FlutterMain.getLookupKeyForAsset",
+            "FlutterInjector.instance().flutterLoader().getLookupKeyForAsset",
+        )
+        if (patched != original) {
+            convertUtil.writeText(patched)
+        }
+    }
+
+    // Remove the registerWith(Registrar) method wholesale. Walk matching
+    // braces so we don't get confused by anything inside the body.
+    val pluginFile = File(
+        androidDir,
+        "src/main/java/com/amap/flutter/map/AMapFlutterMapPlugin.java",
+    )
+    if (pluginFile.exists()) {
+        val src = pluginFile.readText()
+        val marker = "public static void registerWith(PluginRegistry.Registrar registrar)"
+        val start = src.indexOf(marker)
+        if (start >= 0) {
+            val openBrace = src.indexOf('{', start)
+            if (openBrace > 0) {
+                var depth = 0
+                var closeBrace = -1
+                for (i in openBrace until src.length) {
+                    when (src[i]) {
+                        '{' -> depth++
+                        '}' -> {
+                            depth--
+                            if (depth == 0) {
+                                closeBrace = i
+                                break
+                            }
+                        }
+                    }
+                }
+                if (closeBrace > 0) {
+                    val patched = src.substring(0, start) +
+                        "// v1 embedding registerWith removed for Flutter 3.x compat\n" +
+                        src.substring(closeBrace + 1)
+                    pluginFile.writeText(patched)
+                }
+            }
+        }
     }
 }
 
@@ -81,6 +146,14 @@ subprojects {
                 if (patched != original) {
                     manifest.writeText(patched)
                 }
+            }
+
+            // 4. amap_flutter_map still imports Flutter v1 embedding symbols
+            //    (io.flutter.view.FlutterMain, PluginRegistry.Registrar) that
+            //    have been deleted in Flutter 3.x. Rewrite the Java source to
+            //    use FlutterInjector + drop the old registerWith entry point.
+            if (project.name == "amap_flutter_map") {
+                patchAmapV1Embedding(project.projectDir)
             }
         }
     }
