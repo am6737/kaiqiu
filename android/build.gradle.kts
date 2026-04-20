@@ -26,10 +26,11 @@ subprojects {
     // afterEvaluate hooks would throw "project is already evaluated".
     plugins.withId("com.android.library") {
         if (project.name in setOf("amap_flutter_map", "amap_flutter_location")) {
-            // 1. Inject the missing namespace AGP 8+ requires.
             project.extensions.findByName("android")?.let { ext ->
+                val clazz = ext::class.java
+
+                // 1. Inject the missing namespace AGP 8+ requires.
                 try {
-                    val clazz = ext::class.java
                     val current =
                         clazz.getMethod("getNamespace").invoke(ext) as String?
                     if (current.isNullOrBlank()) {
@@ -40,9 +41,31 @@ subprojects {
                 } catch (_: Throwable) {
                     // AGP < 7 doesn't expose get/setNamespace; ignore.
                 }
+
+                // 2. Bump compileSdk. The plugin pins 29 but its transitive
+                //    AndroidX deps reference API 31+ attributes (e.g.
+                //    android:attr/lStar) causing `verifyReleaseResources` to
+                //    fail with "resource android:attr/lStar not found".
+                //    Setting it to 34 matches what Flutter's stable channel
+                //    uses today and resolves all modern AndroidX attrs.
+                try {
+                    clazz
+                        .getMethod("setCompileSdk", Int::class.javaPrimitiveType)
+                        .invoke(ext, 34)
+                } catch (_: Throwable) {
+                    // Fall back to the string-based API on older AGP.
+                    try {
+                        clazz
+                            .getMethod("setCompileSdkVersion", String::class.java)
+                            .invoke(ext, "android-34")
+                    } catch (_: Throwable) {
+                        // Can't set compileSdk — let it fail loudly instead
+                        // of silently compiling against an old API.
+                    }
+                }
             }
 
-            // 2. AGP 8+ also refuses to process a manifest that still carries
+            // 3. AGP 8+ also refuses to process a manifest that still carries
             //    the legacy `package="..."` attribute, even when a namespace
             //    has been set programmatically. Strip it from the pub-cache
             //    file in place; the regex is idempotent so subsequent builds
