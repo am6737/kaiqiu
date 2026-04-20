@@ -1,5 +1,7 @@
 # 开球 · GameOn — Flutter App
 
+**中文** · [English](README.en.md)
+
 业余球类运动社交 App · 约球 + 赛事 + 评分
 
 > 用开球，组一局。
