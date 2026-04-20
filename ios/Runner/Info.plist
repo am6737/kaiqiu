@@ -81,5 +81,13 @@
 	     dart-define / env var. -->
 	<key>AMapServices_AppKey</key>
 	<string>$(AMAP_IOS_KEY)</string>
+	<!-- Whitelisted URL schemes for the pickup-detail nav chooser. iOS 9+
+	     requires apps to be declared here before canOpenURL / canLaunchUrl
+	     will return true for third-party schemes. -->
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>iosamap</string>
+		<string>baidumap</string>
+	</array>
 </dict>
 </plist>

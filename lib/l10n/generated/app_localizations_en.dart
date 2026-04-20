@@ -393,6 +393,13 @@ class AppL10nEn extends AppL10n {
   String get pickup_create_venue => 'Venue';
 
   @override
+  String get pickup_create_address => 'Street address (optional)';
+
+  @override
+  String get pickup_create_address_hint =>
+      'Full address — helps teammates navigate';
+
+  @override
   String get pickup_create_start_at => 'Start time';
 
   @override
@@ -1908,6 +1915,24 @@ class AppL10nEn extends AppL10n {
   String pickup_detail_location_km(String km) {
     return 'Location · ${km}km away';
   }
+
+  @override
+  String get pickup_detail_navigate => 'Navigate';
+
+  @override
+  String get pickup_detail_nav_chooser_title => 'Choose a map app';
+
+  @override
+  String get pickup_detail_nav_amap => 'Amap';
+
+  @override
+  String get pickup_detail_nav_baidu => 'Baidu Maps';
+
+  @override
+  String get pickup_detail_nav_system => 'System maps';
+
+  @override
+  String get pickup_detail_nav_none => 'No map app installed';
 
   @override
   String get pickup_detail_aa_fee => 'Split fee';

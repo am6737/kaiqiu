@@ -389,6 +389,12 @@ class AppL10nZh extends AppL10n {
   String get pickup_create_venue => '场地';
 
   @override
+  String get pickup_create_address => '详细地址（可选）';
+
+  @override
+  String get pickup_create_address_hint => '街道门牌号，便于队友导航';
+
+  @override
   String get pickup_create_start_at => '开始时间';
 
   @override
@@ -1885,6 +1891,24 @@ class AppL10nZh extends AppL10n {
   String pickup_detail_location_km(String km) {
     return '位置 · 距你 ${km}km';
   }
+
+  @override
+  String get pickup_detail_navigate => '导航';
+
+  @override
+  String get pickup_detail_nav_chooser_title => '选择导航应用';
+
+  @override
+  String get pickup_detail_nav_amap => '高德地图';
+
+  @override
+  String get pickup_detail_nav_baidu => '百度地图';
+
+  @override
+  String get pickup_detail_nav_system => '系统地图';
+
+  @override
+  String get pickup_detail_nav_none => '未找到可用的地图应用';
 
   @override
   String get pickup_detail_aa_fee => 'AA 费用';

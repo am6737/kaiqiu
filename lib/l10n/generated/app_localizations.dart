@@ -829,6 +829,18 @@ abstract class AppL10n {
   /// **'场地'**
   String get pickup_create_venue;
 
+  /// No description provided for @pickup_create_address.
+  ///
+  /// In zh, this message translates to:
+  /// **'详细地址（可选）'**
+  String get pickup_create_address;
+
+  /// No description provided for @pickup_create_address_hint.
+  ///
+  /// In zh, this message translates to:
+  /// **'街道门牌号，便于队友导航'**
+  String get pickup_create_address_hint;
+
   /// No description provided for @pickup_create_start_at.
   ///
   /// In zh, this message translates to:
@@ -3666,6 +3678,42 @@ abstract class AppL10n {
   /// In zh, this message translates to:
   /// **'位置 · 距你 {km}km'**
   String pickup_detail_location_km(String km);
+
+  /// No description provided for @pickup_detail_navigate.
+  ///
+  /// In zh, this message translates to:
+  /// **'导航'**
+  String get pickup_detail_navigate;
+
+  /// No description provided for @pickup_detail_nav_chooser_title.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择导航应用'**
+  String get pickup_detail_nav_chooser_title;
+
+  /// No description provided for @pickup_detail_nav_amap.
+  ///
+  /// In zh, this message translates to:
+  /// **'高德地图'**
+  String get pickup_detail_nav_amap;
+
+  /// No description provided for @pickup_detail_nav_baidu.
+  ///
+  /// In zh, this message translates to:
+  /// **'百度地图'**
+  String get pickup_detail_nav_baidu;
+
+  /// No description provided for @pickup_detail_nav_system.
+  ///
+  /// In zh, this message translates to:
+  /// **'系统地图'**
+  String get pickup_detail_nav_system;
+
+  /// No description provided for @pickup_detail_nav_none.
+  ///
+  /// In zh, this message translates to:
+  /// **'未找到可用的地图应用'**
+  String get pickup_detail_nav_none;
 
   /// No description provided for @pickup_detail_aa_fee.
   ///

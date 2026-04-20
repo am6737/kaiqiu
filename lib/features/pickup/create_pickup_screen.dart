@@ -23,6 +23,7 @@ class CreatePickupScreen extends ConsumerStatefulWidget {
 
 class _CreatePickupScreenState extends ConsumerState<CreatePickupScreen> {
   final _venue = TextEditingController(text: '莲花山足球场');
+  final _address = TextEditingController();
   final _start = TextEditingController(text: _defaultStart());
   final _duration = TextEditingController(text: '90');
   final _total = TextEditingController(text: '11');
@@ -65,7 +66,7 @@ class _CreatePickupScreenState extends ConsumerState<CreatePickupScreen> {
 
   @override
   void dispose() {
-    for (final c in [_venue, _start, _duration, _total, _fee]) {
+    for (final c in [_venue, _address, _start, _duration, _total, _fee]) {
       c.dispose();
     }
     super.dispose();
@@ -117,6 +118,8 @@ class _CreatePickupScreenState extends ConsumerState<CreatePickupScreen> {
             payload: {
               'host_id': uid,
               'venue': _venue.text.trim(),
+              if (_address.text.trim().isNotEmpty)
+                'address': _address.text.trim(),
               'start_at': startAt.toUtc().toIso8601String(),
               'duration_min': durationMin,
               'total': total,
@@ -161,6 +164,11 @@ class _CreatePickupScreenState extends ConsumerState<CreatePickupScreen> {
                 padding: const EdgeInsets.only(bottom: 120),
                 children: [
                   _Field(label: l.pickup_create_venue, controller: _venue),
+                  _Field(
+                    label: l.pickup_create_address,
+                    controller: _address,
+                    hint: l.pickup_create_address_hint,
+                  ),
                   _Field(
                     label: l.pickup_create_start_at,
                     controller: _start,
@@ -364,6 +372,7 @@ class _Field extends StatelessWidget {
   final TextEditingController controller;
   final TextInputType? keyboardType;
   final String? prefix;
+  final String? hint;
   final VoidCallback? onTap;
   final bool readOnly;
   const _Field({
@@ -371,6 +380,7 @@ class _Field extends StatelessWidget {
     required this.controller,
     this.keyboardType,
     this.prefix,
+    this.hint,
     this.onTap,
     this.readOnly = false,
   });
@@ -405,10 +415,14 @@ class _Field extends StatelessWidget {
                     readOnly: readOnly,
                     onTap: onTap,
                     style: const TextStyle(color: T.ink, fontSize: 14),
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       border: InputBorder.none,
                       isDense: true,
-                      contentPadding: EdgeInsets.symmetric(vertical: 12),
+                      contentPadding:
+                          const EdgeInsets.symmetric(vertical: 12),
+                      hintText: hint,
+                      hintStyle:
+                          const TextStyle(color: T.inkDim, fontSize: 13),
                     ),
                   ),
                 ),

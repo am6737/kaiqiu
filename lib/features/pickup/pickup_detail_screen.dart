@@ -9,6 +9,7 @@ import '../../models/pickup.dart';
 import '../../providers.dart';
 import '../../repositories/favorites_repository.dart';
 import '../../services/local_storage.dart';
+import '../../services/map_launcher.dart';
 import '../../services/supabase.dart' as svc;
 import '../../theme/tokens.dart';
 import 'map/mini_map.dart';
@@ -74,6 +75,8 @@ class PickupDetailScreen extends ConsumerWidget {
                 ),
                 _Details(),
                 _MiniMap(
+                  venue: pickupAsync.valueOrNull?.venue ?? '',
+                  address: pickupAsync.valueOrNull?.address,
                   lat: pickupAsync.valueOrNull?.lat,
                   lng: pickupAsync.valueOrNull?.lng,
                 ),
@@ -703,22 +706,93 @@ class _Details extends StatelessWidget {
 }
 
 class _MiniMap extends StatelessWidget {
+  final String venue;
+  final String? address;
   final double? lat;
   final double? lng;
-  const _MiniMap({this.lat, this.lng});
+  const _MiniMap({
+    required this.venue,
+    this.address,
+    this.lat,
+    this.lng,
+  });
+
+  bool get _canNavigate => lat != null && lng != null;
+
+  void _openNav(BuildContext context) {
+    if (!_canNavigate) return;
+    MapLauncher.openNavigation(
+      context: context,
+      lat: lat!,
+      lng: lng!,
+      name: venue.isEmpty ? (address ?? '') : venue,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
+    final detailText = (address != null && address!.trim().isNotEmpty)
+        ? address!
+        : venue;
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Label(context.l10n.pickup_detail_location_km('2.4')),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Label(l.pickup_detail_location_km('2.4')),
+                    if (detailText.trim().isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        detailText,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: T.inkSub,
+                          height: 1.35,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              TextButton.icon(
+                onPressed: _canNavigate ? () => _openNav(context) : null,
+                icon: const Icon(Icons.near_me, size: 16),
+                label: Text(l.pickup_detail_navigate),
+                style: TextButton.styleFrom(
+                  foregroundColor: T.live,
+                  disabledForegroundColor: T.inkMute,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  minimumSize: const Size(0, 32),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  textStyle: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 10),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(T.r2),
-            child: PickupMiniMap(lat: lat, lng: lng),
+          GestureDetector(
+            onTap: _canNavigate ? () => _openNav(context) : null,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(T.r2),
+              child: PickupMiniMap(lat: lat, lng: lng),
+            ),
           ),
         ],
       ),
