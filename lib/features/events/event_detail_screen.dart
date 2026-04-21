@@ -256,17 +256,17 @@ class _Header extends StatelessWidget {
                     Label(pillText, color: pillColor),
                     if (event.sub != null && event.sub!.isNotEmpty) ...[
                       const SizedBox(width: 8),
-                      Label('· ${event.sub!}'),
+                      Label('· ${event.sub!}', color: const Color(0xCCFFFFFF)),
                     ],
                   ],
                 ),
                 const SizedBox(height: 6),
                 Text(
                   event.name,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w800,
-                    color: context.tokens.ink,
+                    color: Color(0xFFFFFFFF),
                     letterSpacing: -0.4,
                   ),
                 ),
