@@ -256,6 +256,28 @@ final profileByIdProvider = FutureProvider.family.autoDispose<Profile?, String>(
   },
 );
 
+/// Profile of the peer (the non-me member) of a 1v1 DM conversation.
+/// Returns null for group conversations or if the peer profile isn't found.
+final dmPeerProfileProvider =
+    FutureProvider.family.autoDispose<Profile?, String>((ref, convId) async {
+  final peerId = await ref.read(messagesRepoProvider).fetchDmPeerId(convId);
+  if (peerId == null) return null;
+  return ref.watch(profileByIdProvider(peerId).future);
+});
+
+/// Look up a single conversation by its id from the cached conversations
+/// list. Returns null while [conversationsProvider] is still loading or if
+/// no match is found.
+final conversationByIdProvider =
+    Provider.family.autoDispose<ConversationRow?, String>((ref, convId) {
+  final list = ref.watch(conversationsProvider).valueOrNull;
+  if (list == null) return null;
+  for (final c in list) {
+    if (c.id == convId) return c;
+  }
+  return null;
+});
+
 /// Current user's profile — real fields from Supabase (name, handle, city,
 /// position, height, foot), plus mock fallbacks for fields the DB doesn't
 /// carry yet (rating / stats / attrs / honors — those need real match data).
