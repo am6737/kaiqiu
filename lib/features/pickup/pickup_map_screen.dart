@@ -296,6 +296,11 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                       ),
                       const Spacer(),
                       _CircleBtn(
+                        icon: Icons.add,
+                        onTap: () => context.push('/pickup/create'),
+                      ),
+                      const SizedBox(width: 8),
+                      _CircleBtn(
                         icon: Icons.filter_list,
                         onTap: () => _showFilterSheet(context),
                       ),
@@ -356,35 +361,6 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                     label: context.l10n.pickup_map_legend_full,
                   ),
                 ],
-              ),
-            ),
-          ),
-          // FAB — host a new pickup (sits just above the bottom sheet)
-          AnimatedPositioned(
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOut,
-            right: 16,
-            bottom:
-                (_sheetOpen ? MediaQuery.of(context).size.height * 0.55 : 80) +
-                12,
-            child: GestureDetector(
-              onTap: () => context.push('/pickup/create'),
-              child: Container(
-                width: 52,
-                height: 52,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: T.live,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: T.live.withValues(alpha: 0.3),
-                      blurRadius: 12,
-                      spreadRadius: 2,
-                    ),
-                  ],
-                ),
-                child: const Icon(Icons.add, size: 24, color: Colors.black),
               ),
             ),
           ),
