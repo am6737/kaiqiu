@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../l10n/l10n_extension.dart';
 import '../../models/pickup.dart';
@@ -303,7 +302,7 @@ class _HostStrip extends ConsumerWidget {
             ),
           ),
           GestureDetector(
-            onTap: () => launchUrl(Uri(scheme: 'tel', path: '10010')),
+            onTap: () => context.push('/messages'),
             child: Container(
               width: 34,
               height: 34,
@@ -314,7 +313,11 @@ class _HostStrip extends ConsumerWidget {
                 border: Border.all(color: T.line),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.phone, size: 14, color: T.ink),
+              child: const Icon(
+                Icons.chat_bubble_outline,
+                size: 14,
+                color: T.ink,
+              ),
             ),
           ),
           PrimaryButton(
