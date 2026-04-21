@@ -1636,6 +1636,133 @@ class _GoldenBootHero extends ConsumerWidget {
   }
 }
 
+enum _MedalKind { silver, bronze }
+
+class _MedalCard extends ConsumerWidget {
+  final ScorerRow row;
+  final int rank;
+  final _MedalKind kind;
+  final VoidCallback? onTap;
+
+  const _MedalCard({
+    required this.row,
+    required this.rank,
+    required this.kind,
+    this.onTap,
+  });
+
+  Color get _medalColor => kind == _MedalKind.silver
+      ? const Color(0xFFC0C0C0)
+      : const Color(0xFFCD7F32);
+
+  Color get _medalBorder => kind == _MedalKind.silver
+      ? const Color(0x66C0C0C0)
+      : const Color(0x66CD7F32);
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = context.l10n;
+    final profileAsync = row.scorerId == null
+        ? const AsyncValue<Profile?>.data(null)
+        : ref.watch(profileByIdProvider(row.scorerId!));
+    final avatarUrl = profileAsync.valueOrNull?.avatarUrl;
+    final radius = BorderRadius.circular(context.tokens.r2);
+    final perMatch = row.matches > 0
+        ? (row.goals / row.matches).toStringAsFixed(2)
+        : null;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: Material(
+        color: context.tokens.elev2,
+        borderRadius: radius,
+        child: InkWell(
+          borderRadius: radius,
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              border: Border.all(color: _medalBorder),
+              borderRadius: radius,
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 24,
+                  height: 24,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: _medalColor,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Text(
+                    '$rank',
+                    style: TextStyle(
+                      fontFamily: context.tokens.fontMono,
+                      fontFamilyFallback: context.tokens.monoFallbacks,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 12,
+                      color: Colors.black,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: _medalColor, width: 2),
+                  ),
+                  padding: const EdgeInsets.all(2),
+                  child: NetworkAvatar(
+                    row.name,
+                    url: avatarUrl,
+                    size: 72,
+                    square: true,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        row.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: context.tokens.ink,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      if (perMatch != null)
+                        Label(l.event_scorers_per_match(perMatch))
+                      else
+                        Label(l.archive_teammates_matches(row.matches)),
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    N(
+                      '${row.goals}',
+                      size: 24,
+                      weight: FontWeight.w700,
+                      color: context.tokens.accent,
+                    ),
+                    Label(l.event_scorers_goals),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _ScorerCard extends ConsumerWidget {
   final int rank;
   final ScorerRow row;
