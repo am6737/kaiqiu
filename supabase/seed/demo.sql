@@ -176,7 +176,7 @@ values (
   16,
   5000000,
   now() - interval '6 days',
-  'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1200&h=600&q=70'
+  'https://images.unsplash.com/photo-1654462977797-a349656aadcf?auto=format&fit=crop&w=1200&h=600&q=70'
 );
 
 -- 16 支参赛队（approved 全为 true，captain_id 暂不绑定）。

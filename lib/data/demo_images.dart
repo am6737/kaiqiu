@@ -14,14 +14,14 @@ class DemoImages {
   static const _square = '?auto=format&fit=crop&w=400&h=400&q=70';
 
   // ── 赛事海报（events.cover_url）─────────────────────────────
-  /// 2026 龙岗村超 — 夜场看台氛围
+  /// 2026 龙岗村超 — 慕尼黑奥林匹克球场空场绿茵,World Cup hero 兜底用
   static const eventCoverLonggang =
-      'https://images.unsplash.com/photo-1508098682722-e99c43a406b2$_landscape';
+      'https://images.unsplash.com/photo-1654462977797-a349656aadcf$_landscape';
 
   /// 通用赛事备选海报池（无 cover_url 时按 id 哈希挑选,确保每个赛事都有海报）。
-  /// 全部是真实绿茵场/球场氛围照,跟 World Cup hero 风格保持一致。
+  /// 全部是真实绿茵场俯拍/空场特写,跟 World Cup hero 风格保持一致。
   static const eventCoverPool = <String>[
-    eventCoverLonggang, // 夜场看台
+    eventCoverLonggang, // 慕尼黑奥林匹克球场绿茵
     venueLonggang,
     venueDayun,
     venueBantian,
@@ -37,18 +37,20 @@ class DemoImages {
   }
 
   // ── 场地照片（pickups.venue_photo_url）──────────────────────
+  // 全部换成真实绿茵场照片（俯拍/空场),事件海报池 eventCoverPool 复用这批。
+  // venuePinghu 未进 pool,保留原图(有白线草皮特写,场地详情页仍合适)。
   static const venueLonggang =
-      'https://images.unsplash.com/photo-1529900748604-07564a03e7a6$_landscape';
+      'https://images.unsplash.com/photo-1709495034740-f6e6c22f1d1f$_landscape';
   static const venueDayun =
-      'https://images.unsplash.com/photo-1459865264687-595d652de67e$_landscape';
+      'https://images.unsplash.com/photo-1461175905877-4c544d68b675$_landscape';
   static const venuePinghu =
       'https://images.unsplash.com/photo-1579952363873-27f3bade9f55$_landscape';
   static const venueBantian =
-      'https://images.unsplash.com/photo-1574629810360-7efbbe195018$_landscape';
+      'https://images.unsplash.com/photo-1510526292299-20af3f62d453$_landscape';
   static const venueHuanancheng =
-      'https://images.unsplash.com/photo-1551958219-acbc608c6377$_landscape';
+      'https://images.unsplash.com/photo-1520692764874-270b6fe97fb3$_landscape';
   static const venueDapeng =
-      'https://images.unsplash.com/photo-1522778119026-d647f0596c20$_landscape';
+      'https://images.unsplash.com/photo-1546717003-caee5f93a9db$_landscape';
 
   static const Map<String, String> venueByName = {
     '龙岗体育中心 3号场': venueLonggang,

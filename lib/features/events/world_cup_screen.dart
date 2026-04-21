@@ -25,7 +25,7 @@ class WorldCupScreen extends ConsumerWidget {
     final l = context.l10n;
     final focusMatchId = 'wc-focus';
 
-    // Hero uses a real photo backdrop (stadium night atmosphere) with a
+    // Hero uses a real photo backdrop (empty green pitch) with a
     // dark gradient scrim so the title is readable in both themes.
     // All hero text is forced white because it sits over the photo.
     const heroTitleColor = Color(0xFFFFFFFF);
