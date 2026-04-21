@@ -28,6 +28,16 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
   final _notifsKey = GlobalKey<NotificationsTabState>();
 
   @override
+  void initState() {
+    super.initState();
+    // The notification tab dot depends on _notifsKey.currentState, which is
+    // null during the first build. Re-evaluate once the subtree is mounted.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l = context.l10n;
     return Scaffold(
