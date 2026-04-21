@@ -11,6 +11,9 @@ android {
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
+        // Required by flutter_local_notifications: uses java.time.* which
+        // needs desugaring below Android 26.
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
@@ -26,10 +29,10 @@ android {
         versionCode = flutter.versionCode
         versionName = flutter.versionName
 
-        // Populated by CI via -PAMAP_ANDROID_KEY=... or locally via
+        // Populated by CI via -PGMAPS_ANDROID_KEY=... or locally via
         // ~/.gradle/gradle.properties. Empty default keeps debug builds happy.
-        val amapKey = (project.findProperty("AMAP_ANDROID_KEY") as String?) ?: ""
-        manifestPlaceholders["AMAP_ANDROID_KEY"] = amapKey
+        val gmapsKey = (project.findProperty("GMAPS_ANDROID_KEY") as String?) ?: ""
+        manifestPlaceholders["GMAPS_ANDROID_KEY"] = gmapsKey
     }
 
     buildTypes {
@@ -43,4 +46,8 @@ android {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.2")
 }

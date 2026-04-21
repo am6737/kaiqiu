@@ -1,23 +1,20 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET"/>
-    <!-- S2 · Amap location -->
+    <!-- S2 · Location (Google Maps + geolocator) -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
-    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
-    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <application
         android:label="开球"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
-        <!-- S2 · Amap API key (injected via manifestPlaceholders from dart-define).
-             Android picks this up at install time; missing key → map renders
-             only the copyright strip without tiles. -->
+        <!-- S2 · Google Maps API key. Empty placeholder lets the app build
+             without a key; the map widget simply renders a gray tile until
+             GMAPS_API_KEY is supplied via CI secret (-P...) or local
+             ~/.gradle/gradle.properties. -->
         <meta-data
-            android:name="com.amap.api.v2.apikey"
-            android:value="${AMAP_ANDROID_KEY}"/>
+            android:name="com.google.android.geo.API_KEY"
+            android:value="${GMAPS_ANDROID_KEY}"/>
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -59,7 +56,7 @@
         <!-- Map-app launch probes (Android 11+ package visibility).
              Without these, canLaunchUrl() returns false even when the app
              is installed, and the pickup-detail nav chooser silently drops
-             Amap/Baidu/system-map options. -->
+             external-map options. -->
         <intent>
             <action android:name="android.intent.action.VIEW"/>
             <data android:scheme="androidamap"/>
@@ -71,6 +68,10 @@
         <intent>
             <action android:name="android.intent.action.VIEW"/>
             <data android:scheme="geo"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="google.navigation"/>
         </intent>
     </queries>
 </manifest>

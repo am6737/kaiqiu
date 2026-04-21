@@ -76,11 +76,11 @@
 	<string>用于显示附近的约球与赛事</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>用于显示附近的约球与赛事（前台）</string>
-	<!-- S2 · Amap: the SDK reads this via +[AMapServices sharedServices] at
-	     launch. Value is substituted at build time from the AMAP_IOS_KEY
-	     dart-define / env var. -->
-	<key>AMapServices_AppKey</key>
-	<string>$(AMAP_IOS_KEY)</string>
+	<!-- S2 · Google Maps iOS key. Read by AppDelegate at launch via
+	     Bundle.main.object(forInfoDictionaryKey: "GMS_API_KEY"). CI
+	     injects this via the GMAPS_IOS_KEY build setting / xcconfig. -->
+	<key>GMS_API_KEY</key>
+	<string>$(GMAPS_IOS_KEY)</string>
 	<!-- Whitelisted URL schemes for the pickup-detail nav chooser. iOS 9+
 	     requires apps to be declared here before canOpenURL / canLaunchUrl
 	     will return true for third-party schemes. -->

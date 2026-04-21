@@ -25,33 +25,41 @@
 
 ---
 
-## 3 · 地图（S2）— 已选高德
+## 3 · 地图（S2）— Google Maps
 
-代码已用 `amap_flutter_map` 接入，并通过 `lib/features/pickup/map/real_map.dart`
-的条件导入让 web 回落到 SVG canvas（`real_map_stub.dart`）。
+代码已用 `google_maps_flutter` 接入，通过 `lib/features/pickup/map/real_map.dart`
+的条件导入让 web 保留 SVG canvas fallback（`real_map_stub.dart`）。
+没有 key 也能 build，只是地图会渲染成灰色瓦片。
 
-### 申请 Amap key
+### 为什么换掉高德
 
-1. https://lbs.amap.com → 注册/登录 → 我的应用 → 创建新应用（名称"开球"）
-2. Android key：
-   - Package name: `com.kaiqiu.gameon`
-   - SHA-1: `keytool -list -v -keystore release.keystore -alias kaiqiu`
-     取 Certificate fingerprints 里的 SHA1
-3. iOS key：
-   - Bundle ID: `com.kaiqiu.gameon`
-4. （可选）Web 服务 key：要在服务端地理编码时用
+高德的 Flutter 插件 (`amap_flutter_map@3.0.0`) 弃坑状态：需要 8 层源码补丁
+（Java v1 embedding、Dart `hashValues`、AGP 8 namespace、manifest `package=`、
+compileSdk 等）还要手动从 lbs.amap.com 下载 Android AAR 才能过 R8。
+Google Maps 走 Maven Central，没有手动下载步骤。
+
+### 申请 GMaps key
+
+1. https://console.cloud.google.com → 选 project → APIs & Services
+2. Enable APIs: **Maps SDK for Android** + **Maps SDK for iOS** + **Maps JavaScript API**（web 用；我们暂时不启用 web 真实地图）
+3. Credentials → Create Credentials → API Key
+4. 建议限制：
+   - Android key → 限制到 `com.kaiqiu.gameon` + release SHA-1
+   - iOS key → 限制到 `com.kaiqiu.gameon`
+5. 计费：GMaps 免费配额每月 $200（约等于 28,000 次地图加载），中等流量以下够用
 
 ### 注入方式
 
-- **CI**：在 GitHub Secrets 加 `AMAP_IOS_KEY` + `AMAP_ANDROID_KEY`，
-  release-android.yml 已同时暴露为 `ORG_GRADLE_PROJECT_AMAP_ANDROID_KEY`
+- **CI**：GitHub Secrets 加 `GMAPS_ANDROID_KEY` + `GMAPS_IOS_KEY`。
+  `release-android.yml` 同时暴露为 `ORG_GRADLE_PROJECT_GMAPS_ANDROID_KEY`
   给 native manifest placeholder。
-- **本地 iOS**：在 Xcode scheme 里加 `AMAP_IOS_KEY` env var；Info.plist
-  会通过 `$(AMAP_IOS_KEY)` 插值。或者直接改 plist 值（不推荐进仓）。
-- **本地 Android**：在 `~/.gradle/gradle.properties` 加
-  `AMAP_ANDROID_KEY=...`。
-- **Dart 侧**：`--dart-define=AMAP_IOS_KEY=... --dart-define=AMAP_ANDROID_KEY=...`
-  （仅用于 `AMapApiKey(...)` 构造，和 native manifest 里的值必须一致）。
+- **本地 Android**：`~/.gradle/gradle.properties` 加
+  `GMAPS_ANDROID_KEY=...`。
+- **本地 iOS**：Xcode → Runner target → Build Settings → User-Defined
+  加 `GMAPS_IOS_KEY = ...`，Info.plist 通过 `$(GMAPS_IOS_KEY)` 读。
+  也可以在 `ios/Flutter/Debug.xcconfig` 里加。
+- **运行时**：AppDelegate.swift 启动时从 Info.plist 的 `GMS_API_KEY`
+  读出来并调 `GMSServices.provideAPIKey(key)`，所以只要 plist 里有值即可。
 
 ---
 
@@ -112,9 +120,9 @@ Dashboard → Database → Extensions 启用 `pg_cron` + `pg_net`；
 - `FIREBASE_MESSAGING_SENDER_ID`
 - `FIREBASE_PROJECT_ID`
 
-**地图（S2 完成后）**
-- `AMAP_IOS_KEY`
-- `AMAP_ANDROID_KEY`
+**地图（S2）**
+- `GMAPS_ANDROID_KEY`
+- `GMAPS_IOS_KEY`
 
 **iOS release**（workflow 在 `workflows-disabled/`，Apple 账号到位后启用）
 - `APPLE_CERT_P12`

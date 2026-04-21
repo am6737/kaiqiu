@@ -15,6 +15,9 @@ migrate_working_dir/
 # Superpowers / Claude Code skill scratch
 .superpowers/
 
+# Gradle build artifacts that escape /build/ on some subproject setups
+/android/build/
+
 # IntelliJ related
 *.iml
 *.ipr

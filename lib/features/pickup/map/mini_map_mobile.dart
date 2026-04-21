@@ -1,9 +1,6 @@
-// mini_map_mobile.dart — read-only AMapWidget for pickup detail.
-import 'package:amap_flutter_base/amap_flutter_base.dart';
-import 'package:amap_flutter_map/amap_flutter_map.dart';
+// mini_map_mobile.dart — read-only Google Maps for pickup detail.
 import 'package:flutter/material.dart';
-
-import '../../../config/env.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class PickupMiniMap extends StatelessWidget {
   final double? lat;
@@ -19,29 +16,22 @@ class PickupMiniMap extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Shenzhen center fallback when the pickup has no coords yet.
+    // Shenzhen fallback when the pickup has no coords yet.
     final target = LatLng(lat ?? 22.5431, lng ?? 114.0579);
     return SizedBox(
       height: height,
       child: AbsorbPointer(
-        child: AMapWidget(
-          apiKey: AMapApiKey(
-            iosKey: Env.amapIosKey,
-            androidKey: Env.amapAndroidKey,
-          ),
-          privacyStatement: const AMapPrivacyStatement(
-            hasContains: true,
-            hasShow: true,
-            hasAgree: true,
-          ),
+        child: GoogleMap(
           initialCameraPosition: CameraPosition(target: target, zoom: 16),
           markers: {
             if (lat != null && lng != null)
               Marker(
+                markerId: const MarkerId('venue'),
                 position: target,
-                infoWindow: const InfoWindow(title: ''),
               ),
           },
+          zoomControlsEnabled: false,
+          liteModeEnabled: true,
         ),
       ),
     );

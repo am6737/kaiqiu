@@ -1,15 +1,11 @@
-// real_map_mobile.dart — AMapWidget-backed pickup map (iOS + Android).
+// real_map_mobile.dart — Google Maps-backed pickup map (iOS + Android).
 //
-// Requires AMAP_IOS_KEY / AMAP_ANDROID_KEY to be injected at runtime; without
-// them the plugin still renders a (blank-with-copyright) basemap and we keep
-// the rest of the UI functional.
+// `GoogleMap` renders an empty gray tile when GMAPS_API_KEY isn't provided,
+// so the app still ships before you register a key on Google Cloud.
 
-import 'package:amap_flutter_base/amap_flutter_base.dart';
-import 'package:amap_flutter_map/amap_flutter_map.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-import '../../../config/env.dart';
 import '../../../models/pickup.dart';
 
 /// Shenzhen default center.
@@ -35,29 +31,19 @@ class RealPickupMap extends StatefulWidget {
 }
 
 class _RealPickupMapState extends State<RealPickupMap> {
+  GoogleMapController? _controller;
+
   @override
   Widget build(BuildContext context) {
-    final markers = _buildMarkers();
-
-    return AMapWidget(
-      apiKey: AMapApiKey(
-        iosKey: Env.amapIosKey,
-        androidKey: Env.amapAndroidKey,
-      ),
-      // Terms must be accepted before any network call is made. The
-      // acceptance flag is stored per-install; the calling app is
-      // expected to show user-facing ToS elsewhere.
-      privacyStatement: const AMapPrivacyStatement(
-        hasContains: true,
-        hasShow: true,
-        hasAgree: true,
-      ),
+    return GoogleMap(
       initialCameraPosition: const CameraPosition(
         target: LatLng(defaultCenterLat, defaultCenterLng),
         zoom: 12,
       ),
-      markers: markers,
-      myLocationStyleOptions: MyLocationStyleOptions(true),
+      markers: _buildMarkers(),
+      myLocationEnabled: true,
+      myLocationButtonEnabled: true,
+      onMapCreated: (c) => _controller = c,
     );
   }
 
@@ -70,18 +56,21 @@ class _RealPickupMapState extends State<RealPickupMap> {
       final (la, ln) = _normaliseToShenzhen(latRaw, lngRaw);
       out.add(
         Marker(
+          markerId: MarkerId(p.id),
           position: LatLng(la, ln),
-          infoWindow: InfoWindow(title: p.venue, snippet: p.hostName ?? '球局'),
-          onTap: (markerId) => widget.onPinTap(p.id),
+          infoWindow: InfoWindow(
+            title: p.venue,
+            snippet: p.hostName ?? '球局',
+          ),
+          onTap: () => widget.onPinTap(p.id),
         ),
       );
     }
     return out;
   }
 
-  /// Seed data may still carry normalised 0-1 coords; convert those to real
-  /// world coords inside Shenzhen's bounding box so pins aren't all stuck at
-  /// latLng(0,0) which high-德 renders as "off the equator, far at sea".
+  /// Seed data may still carry normalised 0-1 coords; scatter them into a
+  /// plausible Shenzhen bounding box so pins aren't all pinned at (0, 0).
   (double, double) _normaliseToShenzhen(double lat, double lng) {
     final looksNormalised = lat >= 0 && lat <= 1 && lng >= 0 && lng <= 1;
     if (!looksNormalised) return (lat, lng);
@@ -91,12 +80,12 @@ class _RealPickupMapState extends State<RealPickupMap> {
     const latMax = 22.7;
     final la = latMin + (latMax - latMin) * lat;
     final ln = lngMin + (lngMax - lngMin) * lng;
-    if (kDebugMode) {
-      debugPrint('[map] normalised pickup coords ($lat,$lng) → ($la,$ln)');
-    }
     return (la, ln);
   }
 
-  // AMapController lifecycle is owned by AMapWidget internally; no explicit
-  // dispose needed here.
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
+  }
 }

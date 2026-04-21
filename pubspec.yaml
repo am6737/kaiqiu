@@ -39,11 +39,10 @@ dependencies:
   firebase_messaging: ^15.1.6
   flutter_local_notifications: ^18.0.1
 
-  # Maps (S2). iOS + Android plugins; web falls back to the existing
-  # SVG canvas via conditional imports in lib/features/pickup/map/.
-  amap_flutter_map: ^3.0.0
-  amap_flutter_base: ^3.0.0
-  amap_flutter_location: ^3.0.0
+  # Maps (S2). google_maps_flutter has first-class iOS/Android/web
+  # support; the widget renders a gray tile without a key but the app
+  # still builds, so CI stays green before you plug in GMAPS_API_KEY.
+  google_maps_flutter: ^2.9.0
   geolocator: ^13.0.2
   permission_handler: ^11.3.1
 
