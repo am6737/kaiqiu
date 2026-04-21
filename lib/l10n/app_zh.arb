@@ -857,5 +857,11 @@
   "@event_standings_points_diff": { "placeholders": { "n": { "type": "int" } } },
   "event_scorers_golden_boot": "金靴得主",
   "event_scorers_per_match": "场均 {avg} 球",
-  "@event_scorers_per_match": { "placeholders": { "avg": { "type": "String" } } }
+  "@event_scorers_per_match": { "placeholders": { "avg": { "type": "String" } } },
+
+  "messages_new_dm": "发起私聊",
+  "messages_new_dm_hint": "输入对方 @handle",
+  "messages_new_dm_not_found": "用户不存在",
+  "messages_new_dm_cant_self": "不能和自己私聊",
+  "user_card_close": "关闭"
 }

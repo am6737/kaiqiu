@@ -2189,4 +2189,19 @@ class AppL10nZh extends AppL10n {
   String event_scorers_per_match(String avg) {
     return '场均 $avg 球';
   }
+
+  @override
+  String get messages_new_dm => '发起私聊';
+
+  @override
+  String get messages_new_dm_hint => '输入对方 @handle';
+
+  @override
+  String get messages_new_dm_not_found => '用户不存在';
+
+  @override
+  String get messages_new_dm_cant_self => '不能和自己私聊';
+
+  @override
+  String get user_card_close => '关闭';
 }

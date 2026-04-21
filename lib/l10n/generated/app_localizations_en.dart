@@ -2219,4 +2219,19 @@ class AppL10nEn extends AppL10n {
   String event_scorers_per_match(String avg) {
     return '$avg / match';
   }
+
+  @override
+  String get messages_new_dm => 'Start DM';
+
+  @override
+  String get messages_new_dm_hint => 'Enter the user\'s handle';
+
+  @override
+  String get messages_new_dm_not_found => 'User not found';
+
+  @override
+  String get messages_new_dm_cant_self => 'Can\'t DM yourself';
+
+  @override
+  String get user_card_close => 'Close';
 }
