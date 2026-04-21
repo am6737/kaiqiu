@@ -26,6 +26,7 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
   String _filter = 'today';
   bool _sheetOpen = true;
   String? _activePin;
+  double _overscrollAccum = 0;
 
   // Extended filter state (opened from the filter icon sheet).
   double _distKm = 5;
@@ -434,11 +435,29 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                     ),
                   ),
                   Expanded(
-                    child: ListView.builder(
-                      itemCount: pickups.length,
-                      itemBuilder: (_, i) => _MapListRow(
-                        item: pickups[i],
-                        onTap: () => context.push('/pickup/${pickups[i].id}'),
+                    child: NotificationListener<ScrollNotification>(
+                      onNotification: (notification) {
+                        if (!_sheetOpen) return false;
+                        if (notification is OverscrollNotification &&
+                            notification.overscroll < 0) {
+                          _overscrollAccum += notification.overscroll.abs();
+                          if (_overscrollAccum > 80) {
+                            setState(() => _sheetOpen = false);
+                            _overscrollAccum = 0;
+                          }
+                          return true;
+                        }
+                        if (notification is ScrollEndNotification) {
+                          _overscrollAccum = 0;
+                        }
+                        return false;
+                      },
+                      child: ListView.builder(
+                        itemCount: pickups.length,
+                        itemBuilder: (_, i) => _MapListRow(
+                          item: pickups[i],
+                          onTap: () => context.push('/pickup/${pickups[i].id}'),
+                        ),
                       ),
                     ),
                   ),
