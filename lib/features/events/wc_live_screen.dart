@@ -234,7 +234,7 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
                         '$_scoreB',
                         size: 32,
                         weight: FontWeight.w800,
-                        color: context.tokens.ink,
+                        color: context.tokens.accent,
                       ),
                     ],
                   ),
