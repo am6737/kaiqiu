@@ -246,6 +246,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final messagesAsync = ref.watch(chatMessagesProvider(widget.convId));
     final me = svc.currentUserId;
 
+    final conv = ref.watch(conversationByIdProvider(widget.convId));
+    String title;
+    if (conv?.kind == 'dm') {
+      final peer = ref.watch(dmPeerProfileProvider(widget.convId)).valueOrNull;
+      title = peer?.name ?? context.l10n.chat_default_group_title;
+    } else {
+      title = conv?.title ?? context.l10n.chat_default_group_title;
+    }
+
     // Auto-scroll to bottom when new data arrives.
     messagesAsync.whenData((_) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -278,7 +287,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      context.l10n.chat_default_group_title,
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,

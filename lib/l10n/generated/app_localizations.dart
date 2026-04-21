@@ -1783,18 +1783,6 @@ abstract class AppL10n {
   /// **'新建群聊'**
   String get messages_new_group;
 
-  /// No description provided for @messages_new_scan.
-  ///
-  /// In zh, this message translates to:
-  /// **'扫码加群'**
-  String get messages_new_scan;
-
-  /// No description provided for @messages_new_contact_organizer.
-  ///
-  /// In zh, this message translates to:
-  /// **'联系组织者'**
-  String get messages_new_contact_organizer;
-
   /// No description provided for @messages_new_group_title_hint.
   ///
   /// In zh, this message translates to:
@@ -4224,6 +4212,30 @@ abstract class AppL10n {
   /// In zh, this message translates to:
   /// **'场均 {avg} 球'**
   String event_scorers_per_match(String avg);
+
+  /// No description provided for @messages_new_dm.
+  ///
+  /// In zh, this message translates to:
+  /// **'发起私聊'**
+  String get messages_new_dm;
+
+  /// No description provided for @messages_new_dm_hint.
+  ///
+  /// In zh, this message translates to:
+  /// **'输入对方 @handle'**
+  String get messages_new_dm_hint;
+
+  /// No description provided for @messages_new_dm_not_found.
+  ///
+  /// In zh, this message translates to:
+  /// **'用户不存在'**
+  String get messages_new_dm_not_found;
+
+  /// No description provided for @messages_new_dm_cant_self.
+  ///
+  /// In zh, this message translates to:
+  /// **'不能和自己私聊'**
+  String get messages_new_dm_cant_self;
 }
 
 class _AppL10nDelegate extends LocalizationsDelegate<AppL10n> {

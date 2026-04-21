@@ -892,12 +892,6 @@ class AppL10nZh extends AppL10n {
   String get messages_new_group => '新建群聊';
 
   @override
-  String get messages_new_scan => '扫码加群';
-
-  @override
-  String get messages_new_contact_organizer => '联系组织者';
-
-  @override
   String get messages_new_group_title_hint => '群聊名称';
 
   @override
@@ -2189,4 +2183,16 @@ class AppL10nZh extends AppL10n {
   String event_scorers_per_match(String avg) {
     return '场均 $avg 球';
   }
+
+  @override
+  String get messages_new_dm => '发起私聊';
+
+  @override
+  String get messages_new_dm_hint => '输入对方 @handle';
+
+  @override
+  String get messages_new_dm_not_found => '用户不存在';
+
+  @override
+  String get messages_new_dm_cant_self => '不能和自己私聊';
 }

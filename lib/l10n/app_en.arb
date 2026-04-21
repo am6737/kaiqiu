@@ -350,8 +350,6 @@
   "messages_empty_sub": "Find more players in Pickup & Events",
   "messages_new_sheet_title": "New",
   "messages_new_group": "New group",
-  "messages_new_scan": "Scan to join",
-  "messages_new_contact_organizer": "Contact organizer",
   "messages_new_group_title_hint": "Group name",
   "messages_new_created": "Conversation created",
   "messages_new_failed": "Failed to create",
@@ -857,5 +855,10 @@
   "@event_standings_points_diff": { "placeholders": { "n": { "type": "int" } } },
   "event_scorers_golden_boot": "Golden Boot",
   "event_scorers_per_match": "{avg} / match",
-  "@event_scorers_per_match": { "placeholders": { "avg": { "type": "String" } } }
+  "@event_scorers_per_match": { "placeholders": { "avg": { "type": "String" } } },
+
+  "messages_new_dm": "Start DM",
+  "messages_new_dm_hint": "Enter the user's handle",
+  "messages_new_dm_not_found": "User not found",
+  "messages_new_dm_cant_self": "Can't DM yourself"
 }

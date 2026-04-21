@@ -13,6 +13,7 @@ import '../../widgets/avatar.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/typography.dart';
 import '../../theme/app_tokens.dart';
+import 'new_dm_sheet.dart';
 
 class MessagesScreen extends ConsumerWidget {
   const MessagesScreen({super.key});
@@ -177,6 +178,20 @@ class MessagesScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 12),
             ListTile(
+              leading: Icon(Icons.chat_bubble_outline,
+                  color: context.tokens.accent),
+              title: Text(
+                l.messages_new_dm,
+                style: TextStyle(color: context.tokens.ink),
+              ),
+              onTap: () async {
+                Navigator.of(ctx).pop();
+                if (context.mounted) {
+                  await showNewDmSheet(context, ref);
+                }
+              },
+            ),
+            ListTile(
               leading: Icon(Icons.groups_outlined, color: context.tokens.accent),
               title: Text(
                 l.messages_new_group,
@@ -185,28 +200,6 @@ class MessagesScreen extends ConsumerWidget {
               onTap: () async {
                 Navigator.of(ctx).pop();
                 await _newGroup(context, ref);
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.qr_code, color: context.tokens.inkSub),
-              title: Text(
-                l.messages_new_scan,
-                style: TextStyle(color: context.tokens.ink),
-              ),
-              onTap: () {
-                Navigator.of(ctx).pop();
-                showToast(context, l.common_more);
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.support_agent, color: context.tokens.inkSub),
-              title: Text(
-                l.messages_new_contact_organizer,
-                style: TextStyle(color: context.tokens.ink),
-              ),
-              onTap: () {
-                Navigator.of(ctx).pop();
-                showToast(context, l.common_more);
               },
             ),
             const SizedBox(height: 10),
@@ -410,7 +403,13 @@ class _ThreadRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(localStoreProvider);
-    final title = thread.title ?? context.l10n.messages_thread_default_title;
+    String title;
+    if (thread.kind == 'dm') {
+      final peer = ref.watch(dmPeerProfileProvider(thread.id)).valueOrNull;
+      title = peer?.name ?? context.l10n.messages_thread_default_title;
+    } else {
+      title = thread.title ?? context.l10n.messages_thread_default_title;
+    }
     final time = DateFormat('HH:mm').format(thread.updatedAt.toLocal());
     final pinned = LocalStore.isPinned(thread.id);
     return GestureDetector(
