@@ -167,6 +167,7 @@ class _CircleBtn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = color ?? context.tokens.ink;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -174,7 +175,7 @@ class _CircleBtn extends StatelessWidget {
         height: 36,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: Color(0x80000000),
+          color: isDark ? const Color(0x80000000) : const Color(0x33000000),
           shape: BoxShape.circle,
         ),
         child: Icon(icon, size: 16, color: c),
@@ -430,7 +431,7 @@ class _Formation extends ConsumerWidget {
                     ),
                     decoration: BoxDecoration(
                       color: context.tokens.accentSubtle,
-                      border: Border.all(color: const Color(0x6600FF85)),
+                      border: Border.all(color: context.tokens.accent.withAlpha(0x66)),
                       borderRadius: BorderRadius.circular(context.tokens.r1),
                     ),
                     child: Row(
@@ -476,6 +477,15 @@ class _Formation extends ConsumerWidget {
             builder: (_, c) {
               final w = c.maxWidth;
               final h = 340.0;
+              final isDark = Theme.of(context).brightness == Brightness.dark;
+              final fieldL1 = isDark ? 0.20 : 0.62;
+              final fieldL2 = isDark ? 0.16 : 0.56;
+              final lineColor = isDark
+                  ? const Color(0x33FFFFFF)
+                  : const Color(0x4DFFFFFF);
+              final dotColor = isDark
+                  ? const Color(0x4DFFFFFF)
+                  : const Color(0x66FFFFFF);
               return Container(
                 width: w,
                 height: h,
@@ -484,8 +494,8 @@ class _Formation extends ConsumerWidget {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      HSLColor.fromAHSL(1, 150, 0.25, 0.20).toColor(),
-                      HSLColor.fromAHSL(1, 150, 0.25, 0.16).toColor(),
+                      HSLColor.fromAHSL(1, 140, 0.30, fieldL1).toColor(),
+                      HSLColor.fromAHSL(1, 140, 0.30, fieldL2).toColor(),
                     ],
                   ),
                   border: Border.all(color: context.tokens.line),
@@ -494,7 +504,12 @@ class _Formation extends ConsumerWidget {
                 child: Stack(
                   children: [
                     Positioned.fill(
-                      child: CustomPaint(painter: _FieldPainter()),
+                      child: CustomPaint(
+                        painter: _FieldPainter(
+                          lineColor: lineColor,
+                          dotColor: dotColor,
+                        ),
+                      ),
                     ),
                     for (final p in _formation)
                       Positioned(
@@ -524,10 +539,14 @@ class _Formation extends ConsumerWidget {
 }
 
 class _FieldPainter extends CustomPainter {
+  final Color lineColor;
+  final Color dotColor;
+  const _FieldPainter({required this.lineColor, required this.dotColor});
+
   @override
   void paint(Canvas canvas, Size size) {
     final stroke = Paint()
-      ..color = const Color(0x33FFFFFF)
+      ..color = lineColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1;
     canvas.drawRect(
@@ -543,7 +562,7 @@ class _FieldPainter extends CustomPainter {
     canvas.drawCircle(
       Offset(size.width / 2, size.height / 2),
       2,
-      Paint()..color = const Color(0x4DFFFFFF),
+      Paint()..color = dotColor,
     );
     canvas.drawRect(
       Rect.fromLTWH(size.width * 0.3, 1, size.width * 0.4, size.height * 0.14),
@@ -574,7 +593,8 @@ class _FieldPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _FieldPainter old) => false;
+  bool shouldRepaint(covariant _FieldPainter old) =>
+      old.lineColor != lineColor || old.dotColor != dotColor;
 }
 
 class _PlayerDot extends StatelessWidget {
@@ -622,7 +642,9 @@ class _PlayerDot extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
             decoration: BoxDecoration(
-              color: const Color(0x80000000),
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? const Color(0x80000000)
+                  : const Color(0x80FFFFFF),
               borderRadius: BorderRadius.circular(2),
             ),
             child: Text(
@@ -918,10 +940,10 @@ class _BottomCta extends ConsumerWidget {
                     )
                   : Text(
                       context.l10n.pickup_detail_select_position,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: Colors.black,
+                        color: context.tokens.accentInk,
                       ),
                     ),
             ),
