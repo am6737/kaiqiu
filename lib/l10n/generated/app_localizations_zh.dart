@@ -2201,7 +2201,4 @@ class AppL10nZh extends AppL10n {
 
   @override
   String get messages_new_dm_cant_self => '不能和自己私聊';
-
-  @override
-  String get user_card_close => '关闭';
 }

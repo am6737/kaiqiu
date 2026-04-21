@@ -223,6 +223,9 @@ class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // TODO(dm-initiation): 当 RatingPlayer 增加 userId 字段后，追加
+                        //   onLongPress: () => showUserCardSheet(context, ref, userId: p.userId!);
+                        // 现阶段 RatingPlayer 仅存 name（mock 数据），无法驱动 profile 查询。
                         Row(
                           children: [
                             Avatar(p.name, size: 50),

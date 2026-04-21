@@ -4248,12 +4248,6 @@ abstract class AppL10n {
   /// In zh, this message translates to:
   /// **'不能和自己私聊'**
   String get messages_new_dm_cant_self;
-
-  /// No description provided for @user_card_close.
-  ///
-  /// In zh, this message translates to:
-  /// **'关闭'**
-  String get user_card_close;
 }
 
 class _AppL10nDelegate extends LocalizationsDelegate<AppL10n> {

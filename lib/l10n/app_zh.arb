@@ -862,6 +862,5 @@
   "messages_new_dm": "发起私聊",
   "messages_new_dm_hint": "输入对方 @handle",
   "messages_new_dm_not_found": "用户不存在",
-  "messages_new_dm_cant_self": "不能和自己私聊",
-  "user_card_close": "关闭"
+  "messages_new_dm_cant_self": "不能和自己私聊"
 }

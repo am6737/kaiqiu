@@ -288,6 +288,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   Expanded(
                     child: Text(
                       title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,

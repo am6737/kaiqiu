@@ -2231,7 +2231,4 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get messages_new_dm_cant_self => 'Can\'t DM yourself';
-
-  @override
-  String get user_card_close => 'Close';
 }

@@ -862,6 +862,5 @@
   "messages_new_dm": "Start DM",
   "messages_new_dm_hint": "Enter the user's handle",
   "messages_new_dm_not_found": "User not found",
-  "messages_new_dm_cant_self": "Can't DM yourself",
-  "user_card_close": "Close"
+  "messages_new_dm_cant_self": "Can't DM yourself"
 }
