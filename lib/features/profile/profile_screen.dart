@@ -92,30 +92,14 @@ class ProfileScreen extends ConsumerWidget {
             // Title
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 6, 16, 14),
-              child: Row(
-                children: [
-                  Text(
-                    l.profile_title,
-                    style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.w800,
-                      color: context.tokens.ink,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                  const Spacer(),
-                  GestureDetector(
-                    onTap: () => context.push('/settings/account'),
-                    child: Padding(
-                      padding: EdgeInsets.all(6),
-                      child: Icon(
-                        Icons.settings_outlined,
-                        color: context.tokens.ink,
-                        size: 20,
-                      ),
-                    ),
-                  ),
-                ],
+              child: Text(
+                l.profile_title,
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w800,
+                  color: context.tokens.ink,
+                  letterSpacing: -0.5,
+                ),
               ),
             ),
             // Identity strip (avatar + name + @handle + 编辑)
