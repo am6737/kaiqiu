@@ -180,4 +180,25 @@ void main() {
     // Repo was called with the right id.
     expect(repo.deletedIds, ['c1']);
   });
+
+  testWidgets('tapping pin action toggles LocalStore.isPinned',
+      (tester) async {
+    final repo = _FakeMessagesRepo();
+    await tester.pumpWidget(_wrap(
+      conversations: [_conv('c1', title: 'Alpha')],
+      repo: repo,
+    ));
+    await tester.pumpAndSettle();
+
+    expect(LocalStore.isPinned('c1'), isFalse);
+
+    await tester.drag(find.text('Alpha'), const Offset(-400, 0));
+    await tester.pumpAndSettle();
+
+    // Tap the pin icon.
+    await tester.tap(find.byIcon(Icons.push_pin_outlined));
+    await tester.pumpAndSettle();
+
+    expect(LocalStore.isPinned('c1'), isTrue);
+  });
 }
