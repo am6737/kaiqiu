@@ -34,6 +34,7 @@ const _kRememberedEmail = 'remembered_email';
 const _kMutedConvs = 'muted_convs';
 const _kThemeMode = 'theme_mode';
 const _kThemeSeed = 'theme_seed';
+const _kDanmakuEnabled = 'danmaku_enabled';
 
 class LocalStoreNotifier extends ChangeNotifier {
   void bump() => notifyListeners();
@@ -175,6 +176,13 @@ class LocalStore {
       _prefs.getBool(_kNotifMatchReminder) ?? true;
   static Future<void> setNotifMatchReminder(bool v) async {
     await _prefs.setBool(_kNotifMatchReminder, v);
+    localStoreNotifier.bump();
+  }
+
+  // ─── live danmaku overlay
+  static bool get danmakuEnabled => _prefs.getBool(_kDanmakuEnabled) ?? true;
+  static Future<void> setDanmakuEnabled(bool v) async {
+    await _prefs.setBool(_kDanmakuEnabled, v);
     localStoreNotifier.bump();
   }
 
