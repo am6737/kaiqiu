@@ -1615,6 +1615,18 @@ abstract class AppL10n {
   /// **'提醒'**
   String get wc_btn_remind;
 
+  /// No description provided for @wc_btn_danmaku_on.
+  ///
+  /// In zh, this message translates to:
+  /// **'弹幕 开'**
+  String get wc_btn_danmaku_on;
+
+  /// No description provided for @wc_btn_danmaku_off.
+  ///
+  /// In zh, this message translates to:
+  /// **'弹幕 关'**
+  String get wc_btn_danmaku_off;
+
   /// No description provided for @wc_remind_set.
   ///
   /// In zh, this message translates to:

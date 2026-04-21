@@ -811,6 +811,12 @@ class AppL10nEn extends AppL10n {
   String get wc_btn_remind => 'Remind';
 
   @override
+  String get wc_btn_danmaku_on => 'Danmaku On';
+
+  @override
+  String get wc_btn_danmaku_off => 'Danmaku Off';
+
+  @override
   String get wc_remind_set =>
       'Reminder set · we\'ll notify you 10 min before kickoff';
 

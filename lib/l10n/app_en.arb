@@ -310,6 +310,8 @@
   "wc_btn_watch_live": "Watch Live",
   "wc_btn_predict": "Predict",
   "wc_btn_remind": "Remind",
+  "wc_btn_danmaku_on": "Danmaku On",
+  "wc_btn_danmaku_off": "Danmaku Off",
   "wc_remind_set": "Reminder set · we'll notify you 10 min before kickoff",
   "wc_remind_unset": "Reminder removed",
   "wc_remind_sheet_title": "Pre-match reminder",

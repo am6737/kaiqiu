@@ -801,6 +801,12 @@ class AppL10nZh extends AppL10n {
   String get wc_btn_remind => '提醒';
 
   @override
+  String get wc_btn_danmaku_on => '弹幕 开';
+
+  @override
+  String get wc_btn_danmaku_off => '弹幕 关';
+
+  @override
   String get wc_remind_set => '已设置提醒，比赛开始前 10 分钟通知你';
 
   @override
