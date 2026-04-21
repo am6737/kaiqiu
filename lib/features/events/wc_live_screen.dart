@@ -212,7 +212,7 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
                         '$_scoreA',
                         size: 32,
                         weight: FontWeight.w800,
-                        color: T.live,
+                        color: context.tokens.accent,
                       ),
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 10),
@@ -273,9 +273,9 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
                                     vertical: 6,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: d.self ? T.liveDim : context.tokens.elev2,
+                                    color: d.self ? context.tokens.accentSubtle : context.tokens.elev2,
                                     border: Border.all(
-                                      color: d.self ? T.live : context.tokens.line,
+                                      color: d.self ? context.tokens.accent : context.tokens.line,
                                     ),
                                     borderRadius: BorderRadius.circular(999),
                                   ),
@@ -286,7 +286,7 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
                                           text: '${d.user}: ',
                                           style: TextStyle(
                                             fontSize: 12,
-                                            color: d.self ? T.live : context.tokens.inkSub,
+                                            color: d.self ? context.tokens.accent : context.tokens.inkSub,
                                             fontWeight: FontWeight.w700,
                                           ),
                                         ),
@@ -350,7 +350,7 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
                       height: 42,
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: T.live,
+                        color: context.tokens.accent,
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
@@ -422,7 +422,7 @@ class _ReminderButton extends StatelessWidget {
             Icon(
               hasReminder ? Icons.notifications_active : Icons.notifications_none,
               size: 14,
-              color: hasReminder ? T.live : Colors.white,
+              color: hasReminder ? context.tokens.accent : Colors.white,
             ),
             const SizedBox(width: 4),
             Text(

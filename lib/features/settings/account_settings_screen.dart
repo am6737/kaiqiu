@@ -99,10 +99,10 @@ class AccountSettingsScreen extends ConsumerWidget {
                   ),
                   child: Text(
                     l.settings_account_logout,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: T.danger,
+                      color: context.tokens.danger,
                     ),
                   ),
                 ),
@@ -238,7 +238,7 @@ class AccountSettingsScreen extends ConsumerWidget {
               ListTile(
                 title: Text(opt.$2, style: TextStyle(color: context.tokens.ink)),
                 trailing: cur == opt.$1
-                    ? const Icon(Icons.check, color: T.live, size: 18)
+                    ? Icon(Icons.check, color: context.tokens.accent, size: 18)
                     : null,
                 onTap: () async {
                   await LocaleController.instance.set(opt.$1);
@@ -361,7 +361,7 @@ class AccountSettingsScreen extends ConsumerWidget {
                 onPressed: () => Navigator.of(ctx).pop(true),
                 child: Text(
                   l.settings_account_logout,
-                  style: const TextStyle(color: T.danger),
+                  style: TextStyle(color: context.tokens.danger),
                 ),
               ),
             ],
@@ -396,7 +396,7 @@ class AccountSettingsScreen extends ConsumerWidget {
                 onPressed: () => Navigator.of(ctx).pop(true),
                 child: Text(
                   l.common_confirm,
-                  style: const TextStyle(color: T.danger),
+                  style: TextStyle(color: context.tokens.danger),
                 ),
               ),
             ],

@@ -189,11 +189,11 @@ class _FormationRatingScreenState
         shape: Border(bottom: BorderSide(color: context.tokens.line, width: 1)),
       ),
       body: slotsAsync.when(
-        loading: () => const Center(
+        loading: () => Center(
           child: SizedBox(
             width: 22,
             height: 22,
-            child: CircularProgressIndicator(color: T.live, strokeWidth: 2),
+            child: CircularProgressIndicator(color: context.tokens.accent, strokeWidth: 2),
           ),
         ),
         error: (e, _) => Center(
@@ -277,7 +277,7 @@ class _ProgressHeader extends StatelessWidget {
                 context.l10n.rate_pitch_progress(rated, total),
                 size: 12,
                 weight: FontWeight.w700,
-                color: rated == total ? T.live : context.tokens.ink,
+                color: rated == total ? context.tokens.accent : context.tokens.ink,
               ),
             ],
           ),
@@ -288,7 +288,7 @@ class _ProgressHeader extends StatelessWidget {
               value: frac,
               minHeight: 3,
               backgroundColor: context.tokens.elev3,
-              valueColor: const AlwaysStoppedAnimation(T.live),
+              valueColor: AlwaysStoppedAnimation(context.tokens.accent),
             ),
           ),
         ],

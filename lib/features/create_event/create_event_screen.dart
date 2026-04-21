@@ -140,7 +140,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                         Container(
                           height: 3,
                           decoration: BoxDecoration(
-                            color: i + 1 <= _step ? T.live : context.tokens.elev3,
+                            color: i + 1 <= _step ? context.tokens.accent : context.tokens.elev3,
                             borderRadius: BorderRadius.circular(2),
                           ),
                         ),
@@ -153,7 +153,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                             fontSize: 9,
                             fontWeight: FontWeight.w600,
                             color: i + 1 == _step
-                                ? T.live
+                                ? context.tokens.accent
                                 : i + 1 < _step
                                 ? context.tokens.ink
                                 : context.tokens.inkDim,
@@ -335,7 +335,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   color: _tpl == t.$1 ? context.tokens.elev3 : context.tokens.elev2,
-                  border: Border.all(color: _tpl == t.$1 ? T.live : context.tokens.line),
+                  border: Border.all(color: _tpl == t.$1 ? context.tokens.accent : context.tokens.line),
                   borderRadius: BorderRadius.circular(T.r3),
                 ),
                 child: Row(
@@ -344,7 +344,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                       width: 48,
                       height: 48,
                       child: CustomPaint(
-                        painter: _BracketMiniPainter(t.$1, _tpl == t.$1, inkSub: context.tokens.inkSub, inkMute: context.tokens.inkMute),
+                        painter: _BracketMiniPainter(t.$1, _tpl == t.$1, inkSub: context.tokens.inkSub, inkMute: context.tokens.inkMute, accent: context.tokens.accent),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -376,10 +376,10 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                       height: 20,
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: _tpl == t.$1 ? T.live : Colors.transparent,
+                        color: _tpl == t.$1 ? context.tokens.accent : Colors.transparent,
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: _tpl == t.$1 ? T.live : context.tokens.line,
+                          color: _tpl == t.$1 ? context.tokens.accent : context.tokens.line,
                           width: 1.5,
                         ),
                       ),
@@ -507,7 +507,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                       decoration: BoxDecoration(
                         color: _review == opt.$1 ? context.tokens.elev3 : context.tokens.elev2,
                         border: Border.all(
-                          color: _review == opt.$1 ? T.live : context.tokens.line,
+                          color: _review == opt.$1 ? context.tokens.accent : context.tokens.line,
                         ),
                         borderRadius: BorderRadius.circular(T.r2),
                       ),
@@ -516,7 +516,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: _review == opt.$1 ? T.live : context.tokens.ink,
+                          color: _review == opt.$1 ? context.tokens.accent : context.tokens.ink,
                         ),
                       ),
                     ),
@@ -559,9 +559,9 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.emoji_events, size: 14, color: T.warn),
+                    Icon(Icons.emoji_events, size: 14, color: context.tokens.warn),
                     const SizedBox(width: 8),
-                    Label(l.create_event_organizer_tip_title, color: T.warn),
+                    Label(l.create_event_organizer_tip_title, color: context.tokens.warn),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -624,7 +624,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                         ? Icons.add_photo_alternate_outlined
                         : Icons.check_circle,
                     size: 18,
-                    color: _coverUrl == null ? context.tokens.inkSub : T.live,
+                    color: _coverUrl == null ? context.tokens.inkSub : context.tokens.accent,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
@@ -634,12 +634,12 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                     ),
                   ),
                   if (_uploadingCover)
-                    const SizedBox(
+                    SizedBox(
                       width: 14,
                       height: 14,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: T.live,
+                        color: context.tokens.accent,
                       ),
                     ),
                 ],
@@ -755,20 +755,20 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: T.liveDim,
+              color: context.tokens.accentSubtle,
               border: Border.all(color: const Color(0x6600FF85)),
               borderRadius: BorderRadius.circular(T.r2),
             ),
             child: Row(
               children: [
-                const Icon(Icons.check, size: 14, color: T.live),
+                Icon(Icons.check, size: 14, color: context.tokens.accent),
                 const SizedBox(width: 8),
                 Text(
                   l.create_event_preview_config_ok,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: T.live,
+                    color: context.tokens.accent,
                   ),
                 ),
               ],
@@ -868,12 +868,13 @@ class _BracketMiniPainter extends CustomPainter {
   final bool active;
   final Color inkSub;
   final Color inkMute;
-  _BracketMiniPainter(this.variant, this.active, {required this.inkSub, required this.inkMute});
+  final Color accent;
+  _BracketMiniPainter(this.variant, this.active, {required this.inkSub, required this.inkMute, required this.accent});
 
   @override
   void paint(Canvas canvas, Size size) {
-    final c = active ? T.live : inkSub;
-    final cDim = active ? T.live : inkMute;
+    final c = active ? accent : inkSub;
+    final cDim = active ? accent : inkMute;
     final scale = size.width / 48;
     canvas.save();
     canvas.scale(scale);

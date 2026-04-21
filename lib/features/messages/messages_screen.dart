@@ -50,11 +50,11 @@ class MessagesScreen extends ConsumerWidget {
                       height: 34,
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: T.liveDim,
+                        color: context.tokens.accentSubtle,
                         border: Border.all(color: const Color(0x6600FF85)),
                         borderRadius: BorderRadius.circular(999),
                       ),
-                      child: const Icon(Icons.add, size: 18, color: T.live),
+                      child: Icon(Icons.add, size: 18, color: context.tokens.accent),
                     ),
                   ),
                 ],
@@ -65,7 +65,7 @@ class MessagesScreen extends ConsumerWidget {
                 data: (list) {
                   if (list.isEmpty) {
                     return RefreshIndicator(
-                      color: T.live,
+                      color: context.tokens.accent,
                       backgroundColor: context.tokens.elev1,
                       onRefresh: () async =>
                           ref.invalidate(conversationsProvider),
@@ -84,7 +84,7 @@ class MessagesScreen extends ConsumerWidget {
                       .toList();
                   final sorted = [...pinned, ...others];
                   return RefreshIndicator(
-                    color: T.live,
+                    color: context.tokens.accent,
                     backgroundColor: context.tokens.elev1,
                     onRefresh: () async =>
                         ref.invalidate(conversationsProvider),
@@ -101,9 +101,9 @@ class MessagesScreen extends ConsumerWidget {
                     ),
                   );
                 },
-                loading: () => const Center(
+                loading: () => Center(
                   child: CircularProgressIndicator(
-                    color: T.live,
+                    color: context.tokens.accent,
                     strokeWidth: 2,
                   ),
                 ),
@@ -113,10 +113,10 @@ class MessagesScreen extends ConsumerWidget {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.error_outline,
                           size: 32,
-                          color: T.warn,
+                          color: context.tokens.warn,
                         ),
                         const SizedBox(height: 8),
                         Text(
@@ -178,7 +178,7 @@ class MessagesScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 12),
             ListTile(
-              leading: const Icon(Icons.groups_outlined, color: T.live),
+              leading: Icon(Icons.groups_outlined, color: context.tokens.accent),
               title: Text(
                 l.messages_new_group,
                 style: TextStyle(color: context.tokens.ink),
@@ -297,7 +297,7 @@ class MessagesScreen extends ConsumerWidget {
                 LocalStore.isPinned(c.id)
                     ? Icons.push_pin
                     : Icons.push_pin_outlined,
-                color: T.live,
+                color: context.tokens.accent,
               ),
               title: Text(
                 LocalStore.isPinned(c.id) ? l.common_unpin : l.common_pin,
@@ -340,10 +340,10 @@ class MessagesScreen extends ConsumerWidget {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.delete_outline, color: T.danger),
+              leading: Icon(Icons.delete_outline, color: context.tokens.danger),
               title: Text(
                 l.messages_long_press_actions_delete,
-                style: const TextStyle(color: T.danger),
+                style: TextStyle(color: context.tokens.danger),
               ),
               onTap: () async {
                 Navigator.of(ctx).pop();
@@ -365,7 +365,7 @@ class MessagesScreen extends ConsumerWidget {
                         onPressed: () => Navigator.of(d).pop(true),
                         child: Text(
                           l.common_delete,
-                          style: const TextStyle(color: T.danger),
+                          style: TextStyle(color: context.tokens.danger),
                         ),
                       ),
                     ],
@@ -444,7 +444,7 @@ class _ThreadRow extends ConsumerWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 5),
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: T.warn,
+                        color: context.tokens.warn,
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(color: context.tokens.bg, width: 2),
                       ),
@@ -470,9 +470,9 @@ class _ThreadRow extends ConsumerWidget {
                   Row(
                     children: [
                       if (pinned)
-                        const Padding(
+                        Padding(
                           padding: EdgeInsets.only(right: 4),
-                          child: Icon(Icons.push_pin, size: 11, color: T.live),
+                          child: Icon(Icons.push_pin, size: 11, color: context.tokens.accent),
                         ),
                       Expanded(
                         child: Text(

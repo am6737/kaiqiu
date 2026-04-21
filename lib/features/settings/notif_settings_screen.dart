@@ -104,7 +104,7 @@ class NotifSettingsScreen extends ConsumerWidget {
           ),
           Switch(
             value: value,
-            activeThumbColor: T.live,
+            activeThumbColor: context.tokens.accent,
             onChanged: (v) async => await onChanged(v),
           ),
         ],

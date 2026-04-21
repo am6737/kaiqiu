@@ -38,9 +38,9 @@ class _MyPickupsScreenState extends ConsumerState<MyPickupsScreen> {
               actions: [
                 GestureDetector(
                   onTap: () => context.push('/pickup/create'),
-                  child: const Padding(
+                  child: Padding(
                     padding: EdgeInsets.all(6),
-                    child: Icon(Icons.add, color: T.live),
+                    child: Icon(Icons.add, color: context.tokens.accent),
                   ),
                 ),
               ],
@@ -133,7 +133,7 @@ class _HostedView extends ConsumerWidget {
         return _PickupList(items: list);
       },
       loading: () =>
-          const Center(child: CircularProgressIndicator(color: T.live)),
+          Center(child: CircularProgressIndicator(color: context.tokens.accent)),
       error: (e, _) => Center(child: Text('${l.error_load_failed}: $e')),
     );
   }
@@ -156,7 +156,7 @@ class _JoinedView extends ConsumerWidget {
         return _PickupList(items: list);
       },
       loading: () =>
-          const Center(child: CircularProgressIndicator(color: T.live)),
+          Center(child: CircularProgressIndicator(color: context.tokens.accent)),
       error: (e, _) => Center(child: Text('${l.error_load_failed}: $e')),
     );
   }

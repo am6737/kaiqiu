@@ -69,21 +69,21 @@ class _EventsHubScreenState extends ConsumerState<EventsHubScreen> {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: T.liveDim,
+                        color: context.tokens.accentSubtle,
                         border: Border.all(color: const Color(0x6600FF85)),
                         borderRadius: BorderRadius.circular(999),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.add, size: 13, color: T.live),
+                          Icon(Icons.add, size: 13, color: context.tokens.accent),
                           const SizedBox(width: 5),
                           Text(
                             l.events_create,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
-                              color: T.live,
+                              color: context.tokens.accent,
                             ),
                           ),
                         ],
@@ -158,10 +158,10 @@ class _EventsHubScreenState extends ConsumerState<EventsHubScreen> {
             ),
         ];
       },
-      loading: () => const [
+      loading: () => [
         Padding(
-          padding: EdgeInsets.all(40),
-          child: Center(child: CircularProgressIndicator(color: T.live)),
+          padding: const EdgeInsets.all(40),
+          child: Center(child: CircularProgressIndicator(color: context.tokens.accent)),
         ),
       ],
       error: (err, _) => [
@@ -294,11 +294,11 @@ class _WcBanner extends StatelessWidget {
                     children: [
                       Label(l.events_wc_live_now),
                       const SizedBox(height: 2),
-                      const N(
+                      N(
                         '3',
                         size: 20,
                         weight: FontWeight.w700,
-                        color: T.live,
+                        color: context.tokens.accent,
                       ),
                     ],
                   ),
@@ -390,15 +390,15 @@ class _LiveEventRow extends StatelessWidget {
                         vertical: 3,
                       ),
                       decoration: BoxDecoration(
-                        color: isReg ? T.liveDim : const Color(0x80000000),
-                        border: Border.all(color: isReg ? T.live : context.tokens.line),
+                        color: isReg ? context.tokens.accentSubtle : const Color(0x80000000),
+                        border: Border.all(color: isReg ? context.tokens.accent : context.tokens.line),
                         borderRadius: BorderRadius.circular(3),
                       ),
                       child: Label(
                         isReg
                             ? context.l10n.events_tab_registering
                             : context.l10n.events_tab_ongoing,
-                        color: isReg ? T.live : context.tokens.ink,
+                        color: isReg ? context.tokens.accent : context.tokens.ink,
                       ),
                     ),
                   ),
@@ -417,10 +417,10 @@ class _LiveEventRow extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.emoji_events,
                             size: 11,
-                            color: T.warn,
+                            color: context.tokens.warn,
                           ),
                           const SizedBox(width: 4),
                           N(
@@ -483,7 +483,7 @@ class _LiveEventRow extends StatelessWidget {
                               minHeight: 3,
                               backgroundColor: context.tokens.elev3,
                               valueColor: AlwaysStoppedAnimation(
-                                isReg ? T.live : context.tokens.inkSub,
+                                isReg ? context.tokens.accent : context.tokens.inkSub,
                               ),
                             ),
                           ),
@@ -498,7 +498,7 @@ class _LiveEventRow extends StatelessWidget {
                             deadlineLabel,
                             size: 11,
                             weight: FontWeight.w600,
-                            color: isReg ? T.warn : context.tokens.inkSub,
+                            color: isReg ? context.tokens.warn : context.tokens.inkSub,
                           ),
                         ],
                       ),
@@ -625,7 +625,7 @@ class _EventsError extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Label(context.l10n.error_load_failed, color: T.danger),
+            Label(context.l10n.error_load_failed, color: context.tokens.danger),
             const SizedBox(height: 6),
             Text(
               '$error',

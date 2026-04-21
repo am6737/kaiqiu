@@ -127,7 +127,7 @@ class MapLauncher {
               for (final opt in options)
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  leading: Icon(opt.icon, color: T.live),
+                  leading: Icon(opt.icon, color: context.tokens.accent),
                   title: Text(
                     opt.label,
                     style: TextStyle(

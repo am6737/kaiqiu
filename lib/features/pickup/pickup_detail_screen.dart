@@ -144,7 +144,7 @@ class _Header extends ConsumerWidget {
                       .read(favoritesRepoProvider)
                       .toggle(FavoriteEntity.pickup, pickupId);
                 },
-                color: faved ? T.live : context.tokens.ink,
+                color: faved ? context.tokens.accent : context.tokens.ink,
               ),
               const SizedBox(width: 8),
               _CircleBtn(icon: Icons.ios_share, onTap: onShare),
@@ -218,7 +218,7 @@ class _VenueInfo extends StatelessWidget {
             children: [
               const StatusDot(state: 'open'),
               const SizedBox(width: 6),
-              Label(context.l10n.pickup_detail_open_need_n(3), color: T.live),
+              Label(context.l10n.pickup_detail_open_need_n(3), color: context.tokens.accent),
             ],
           ),
           const SizedBox(height: 8),
@@ -242,7 +242,7 @@ class _VenueInfo extends StatelessWidget {
                 icon: const Icon(Icons.near_me, size: 16),
                 label: Text(context.l10n.pickup_detail_navigate),
                 style: TextButton.styleFrom(
-                  foregroundColor: T.live,
+                  foregroundColor: context.tokens.accent,
                   disabledForegroundColor: context.tokens.inkMute,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 10,
@@ -429,21 +429,21 @@ class _Formation extends ConsumerWidget {
                       vertical: 5,
                     ),
                     decoration: BoxDecoration(
-                      color: T.liveDim,
+                      color: context.tokens.accentSubtle,
                       border: Border.all(color: const Color(0x6600FF85)),
                       borderRadius: BorderRadius.circular(T.r1),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.star_rate, size: 12, color: T.live),
+                        Icon(Icons.star_rate, size: 12, color: context.tokens.accent),
                         const SizedBox(width: 4),
                         Text(
                           context.l10n.rate_pitch_rate_teammates_cta,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
-                            color: T.live,
+                            color: context.tokens.accent,
                           ),
                         ),
                       ],
@@ -458,7 +458,7 @@ class _Formation extends ConsumerWidget {
                     '$filledCount',
                     size: 12,
                     weight: FontWeight.w600,
-                    color: T.live,
+                    color: context.tokens.accent,
                   ),
                   N(
                     context.l10n.pickup_detail_slots_filled_of(
@@ -605,7 +605,7 @@ class _PlayerDot extends StatelessWidget {
             decoration: BoxDecoration(
               color: filled ? context.tokens.elev1 : Colors.transparent,
               shape: BoxShape.circle,
-              border: Border.all(color: filled ? context.tokens.line : T.live, width: 1.5),
+              border: Border.all(color: filled ? context.tokens.line : context.tokens.accent, width: 1.5),
             ),
             child: Text(
               label,
@@ -614,7 +614,7 @@ class _PlayerDot extends StatelessWidget {
                 fontFamilyFallback: T.monoFallbacks,
                 fontSize: label.length > 1 ? 9 : 10,
                 fontWeight: FontWeight.w600,
-                color: filled ? context.tokens.ink : T.live,
+                color: filled ? context.tokens.ink : context.tokens.accent,
               ),
             ),
           ),
@@ -632,7 +632,7 @@ class _PlayerDot extends StatelessWidget {
                 fontFamilyFallback: T.monoFallbacks,
                 fontSize: 8.5,
                 fontWeight: FontWeight.w600,
-                color: filled ? context.tokens.ink : T.live,
+                color: filled ? context.tokens.ink : context.tokens.accent,
               ),
             ),
           ),
@@ -656,11 +656,11 @@ class _FormationLoading extends StatelessWidget {
           border: Border.all(color: context.tokens.line),
           borderRadius: BorderRadius.circular(T.r3),
         ),
-        child: const Center(
+        child: Center(
           child: SizedBox(
             width: 22,
             height: 22,
-            child: CircularProgressIndicator(color: T.live, strokeWidth: 2),
+            child: CircularProgressIndicator(color: context.tokens.accent, strokeWidth: 2),
           ),
         ),
       ),
@@ -688,7 +688,7 @@ class _FormationError extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, size: 32, color: T.warn),
+            Icon(Icons.error_outline, size: 32, color: context.tokens.warn),
             const SizedBox(height: 10),
             Text(
               context.l10n.pickup_detail_formation_load_failed,

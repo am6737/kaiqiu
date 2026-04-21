@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../theme/tokens.dart';
+import '../../../theme/app_tokens.dart';
 
 class PickupMiniMap extends StatelessWidget {
   final double? lat;
@@ -21,13 +22,16 @@ class PickupMiniMap extends StatelessWidget {
       height: height,
       child: Container(
         color: const Color(0xFF0E1310),
-        child: CustomPaint(painter: _MiniStubPainter()),
+        child: CustomPaint(painter: _MiniStubPainter(accentColor: context.tokens.accent)),
       ),
     );
   }
 }
 
 class _MiniStubPainter extends CustomPainter {
+  final Color accentColor;
+  const _MiniStubPainter({required this.accentColor});
+
   @override
   void paint(Canvas canvas, Size size) {
     final g = Paint()..color = const Color(0x0AFFFFFF);
@@ -50,7 +54,7 @@ class _MiniStubPainter extends CustomPainter {
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1,
     );
-    canvas.drawCircle(Offset(size.width / 2, 60), 5, Paint()..color = T.live);
+    canvas.drawCircle(Offset(size.width / 2, 60), 5, Paint()..color = accentColor);
   }
 
   @override

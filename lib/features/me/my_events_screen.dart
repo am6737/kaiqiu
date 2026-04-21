@@ -127,7 +127,7 @@ class _RegisteredView extends ConsumerWidget {
         );
       },
       loading: () =>
-          const Center(child: CircularProgressIndicator(color: T.live)),
+          Center(child: CircularProgressIndicator(color: context.tokens.accent)),
       error: (e, _) => Center(child: Text('${l.error_load_failed}: $e')),
     );
   }
@@ -154,14 +154,14 @@ class _HostedView extends ConsumerWidget {
                   vertical: 8,
                 ),
                 decoration: BoxDecoration(
-                  color: T.liveDim,
+                  color: context.tokens.accentSubtle,
                   border: Border.all(color: const Color(0x6600FF85)),
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(
                   l.events_create,
-                  style: const TextStyle(
-                    color: T.live,
+                  style: TextStyle(
+                    color: context.tokens.accent,
                     fontWeight: FontWeight.w600,
                     fontSize: 12,
                   ),
@@ -176,7 +176,7 @@ class _HostedView extends ConsumerWidget {
         );
       },
       loading: () =>
-          const Center(child: CircularProgressIndicator(color: T.live)),
+          Center(child: CircularProgressIndicator(color: context.tokens.accent)),
       error: (e, _) => Center(child: Text('${l.error_load_failed}: $e')),
     );
   }
@@ -199,7 +199,7 @@ class _DoneView extends ConsumerWidget {
         );
       },
       loading: () =>
-          const Center(child: CircularProgressIndicator(color: T.live)),
+          Center(child: CircularProgressIndicator(color: context.tokens.accent)),
       error: (e, _) => Center(child: Text('${l.error_load_failed}: $e')),
     );
   }

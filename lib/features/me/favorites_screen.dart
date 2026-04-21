@@ -169,10 +169,10 @@ class _PickupTab extends ConsumerWidget {
                               .read(favoritesRepoProvider)
                               .toggle(FavoriteEntity.pickup, p.id);
                         },
-                        child: const Icon(
+                        child: Icon(
                           Icons.favorite,
                           size: 18,
-                          color: T.live,
+                          color: context.tokens.accent,
                         ),
                       ),
                     ],
@@ -183,7 +183,7 @@ class _PickupTab extends ConsumerWidget {
         );
       },
       loading: () =>
-          const Center(child: CircularProgressIndicator(color: T.live)),
+          Center(child: CircularProgressIndicator(color: context.tokens.accent)),
       error: (e, _) => Center(child: Text('${l.error_load_failed}: $e')),
     );
   }
@@ -207,7 +207,7 @@ class _EventTab extends ConsumerWidget {
           children: [
             for (final e in list)
               ListTile(
-                leading: const Icon(Icons.emoji_events, color: T.warn),
+                leading: Icon(Icons.emoji_events, color: context.tokens.warn),
                 title: Text(
                   e.name,
                   style: TextStyle(
@@ -221,7 +221,7 @@ class _EventTab extends ConsumerWidget {
                   style: TextStyle(fontSize: 12, color: context.tokens.inkSub),
                 ),
                 trailing: IconButton(
-                  icon: const Icon(Icons.favorite, size: 18, color: T.live),
+                  icon: Icon(Icons.favorite, size: 18, color: context.tokens.accent),
                   onPressed: () async {
                     await ref
                         .read(favoritesRepoProvider)
@@ -234,7 +234,7 @@ class _EventTab extends ConsumerWidget {
         );
       },
       loading: () =>
-          const Center(child: CircularProgressIndicator(color: T.live)),
+          Center(child: CircularProgressIndicator(color: context.tokens.accent)),
       error: (e, _) => Center(child: Text('${l.error_load_failed}: $e')),
     );
   }

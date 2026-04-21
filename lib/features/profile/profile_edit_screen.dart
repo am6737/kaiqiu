@@ -151,8 +151,8 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
             ),
             Expanded(
               child: _loading
-                  ? const Center(
-                      child: CircularProgressIndicator(color: T.live),
+                  ? Center(
+                      child: CircularProgressIndicator(color: context.tokens.accent),
                     )
                   : ListView(
                       padding: const EdgeInsets.only(bottom: 120),
@@ -277,14 +277,14 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
               children: [
                 NetworkAvatar(n, url: _avatarUrl, size: 56),
                 if (_uploadingAvatar)
-                  const Positioned.fill(
+                  Positioned.fill(
                     child: Center(
                       child: SizedBox(
                         width: 22,
                         height: 22,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: T.live,
+                          color: context.tokens.accent,
                         ),
                       ),
                     ),
@@ -347,15 +347,15 @@ class _ChoiceBtn extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: active ? T.liveDim : context.tokens.elev2,
-          border: Border.all(color: active ? T.live : context.tokens.line),
+          color: active ? context.tokens.accentSubtle : context.tokens.elev2,
+          border: Border.all(color: active ? context.tokens.accent : context.tokens.line),
           borderRadius: BorderRadius.circular(T.r2),
         ),
         child: Text(
           label,
           style: TextStyle(
             fontSize: 12,
-            color: active ? T.live : context.tokens.ink,
+            color: active ? context.tokens.accent : context.tokens.ink,
             fontWeight: FontWeight.w600,
           ),
         ),

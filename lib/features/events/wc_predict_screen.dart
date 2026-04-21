@@ -154,7 +154,7 @@ class _WcPredictScreenState extends ConsumerState<WcPredictScreen> {
                         _Bar(
                           flex: aPct,
                           label: '$aPct%',
-                          color: T.live,
+                          color: context.tokens.accent,
                           fg: Colors.black,
                         ),
                         const SizedBox(width: 6),
@@ -192,13 +192,13 @@ class _WcPredictScreenState extends ConsumerState<WcPredictScreen> {
                 child: Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: T.liveDim,
+                    color: context.tokens.accentSubtle,
                     border: Border.all(color: const Color(0x6600FF85)),
                     borderRadius: BorderRadius.circular(T.r2),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.check_circle, color: T.live, size: 18),
+                      Icon(Icons.check_circle, color: context.tokens.accent, size: 18),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
@@ -277,8 +277,8 @@ class _Option extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 16),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: active ? T.liveDim : context.tokens.elev2,
-          border: Border.all(color: active ? T.live : context.tokens.line),
+          color: active ? context.tokens.accentSubtle : context.tokens.elev2,
+          border: Border.all(color: active ? context.tokens.accent : context.tokens.line),
           borderRadius: BorderRadius.circular(T.r2),
         ),
         child: Text(
@@ -286,7 +286,7 @@ class _Option extends StatelessWidget {
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w700,
-            color: active ? T.live : context.tokens.ink,
+            color: active ? context.tokens.accent : context.tokens.ink,
           ),
         ),
       ),
@@ -312,15 +312,15 @@ class _StakeBtn extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 12),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: active ? T.liveDim : context.tokens.elev2,
-          border: Border.all(color: active ? T.live : context.tokens.line),
+          color: active ? context.tokens.accentSubtle : context.tokens.elev2,
+          border: Border.all(color: active ? context.tokens.accent : context.tokens.line),
           borderRadius: BorderRadius.circular(T.r2),
         ),
         child: N(
           '$value',
           size: 13,
           weight: FontWeight.w700,
-          color: active ? T.live : context.tokens.ink,
+          color: active ? context.tokens.accent : context.tokens.ink,
         ),
       ),
     );

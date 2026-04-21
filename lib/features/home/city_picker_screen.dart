@@ -91,10 +91,10 @@ class CityPickerScreen extends ConsumerWidget {
                 ),
                 child: Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.location_on_outlined,
                       size: 18,
-                      color: T.live,
+                      color: context.tokens.accent,
                     ),
                     const SizedBox(width: 8),
                     Expanded(
@@ -120,7 +120,7 @@ class CityPickerScreen extends ConsumerWidget {
                         ],
                       ),
                     ),
-                    const Icon(Icons.check, size: 16, color: T.live),
+                    Icon(Icons.check, size: 16, color: context.tokens.accent),
                   ],
                 ),
               ),
@@ -178,8 +178,8 @@ class _CityChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: active ? T.liveDim : context.tokens.elev2,
-          border: Border.all(color: active ? T.live : context.tokens.line),
+          color: active ? context.tokens.accentSubtle : context.tokens.elev2,
+          border: Border.all(color: active ? context.tokens.accent : context.tokens.line),
           borderRadius: BorderRadius.circular(999),
         ),
         child: Text(
@@ -187,7 +187,7 @@ class _CityChip extends StatelessWidget {
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: active ? T.live : context.tokens.ink,
+            color: active ? context.tokens.accent : context.tokens.ink,
           ),
         ),
       ),
@@ -221,12 +221,12 @@ class _CityRow extends StatelessWidget {
                 city,
                 style: TextStyle(
                   fontSize: 15,
-                  color: active ? T.live : context.tokens.ink,
+                  color: active ? context.tokens.accent : context.tokens.ink,
                   fontWeight: active ? FontWeight.w700 : FontWeight.w500,
                 ),
               ),
             ),
-            if (active) const Icon(Icons.check, size: 16, color: T.live),
+            if (active) Icon(Icons.check, size: 16, color: context.tokens.accent),
           ],
         ),
       ),

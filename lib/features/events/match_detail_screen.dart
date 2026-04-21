@@ -162,17 +162,17 @@ class _HeaderCard extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: T.warnDim,
+                  color: context.tokens.warnSubtle,
                   borderRadius: BorderRadius.circular(T.r1),
                 ),
                 child: Text(
                   'PK ${match.pkScore}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: T.fontMono,
                     fontFamilyFallback: T.monoFallbacks,
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    color: T.warn,
+                    color: context.tokens.warn,
                   ),
                 ),
               ),
@@ -229,7 +229,7 @@ class _TeamRow extends StatelessWidget {
             '$score',
             size: 22,
             weight: FontWeight.w800,
-            color: won ? T.live : context.tokens.inkSub,
+            color: won ? context.tokens.accent : context.tokens.inkSub,
           )
         else
           Text('-', style: TextStyle(color: context.tokens.inkDim, fontSize: 16)),
@@ -247,7 +247,7 @@ class _StatusChip extends StatelessWidget {
     final l = context.l10n;
     final (bg, fg, text) = switch (status) {
       _MatchStatus.upcoming => (context.tokens.elev3, context.tokens.inkSub, l.match_status_upcoming),
-      _MatchStatus.live => (T.liveDim, T.live, l.match_status_live),
+      _MatchStatus.live => (context.tokens.accentSubtle, context.tokens.accent, l.match_status_live),
       _MatchStatus.done => (context.tokens.elev3, context.tokens.inkDim, l.match_status_done),
     };
     return Container(
@@ -331,7 +331,7 @@ class _GoalRow extends StatelessWidget {
               goal.minute != null ? "${goal.minute}'" : '-',
               size: 13,
               weight: FontWeight.w700,
-              color: T.live,
+              color: context.tokens.accent,
             ),
           ),
           const SizedBox(width: 10),
@@ -359,10 +359,10 @@ class _GoalRow extends StatelessWidget {
               ],
             ),
           ),
-          if (goal.isPenalty) _GoalTag(text: l.match_penalty, color: T.live),
+          if (goal.isPenalty) _GoalTag(text: l.match_penalty, color: context.tokens.accent),
           if (goal.isOwnGoal) ...[
             if (goal.isPenalty) const SizedBox(width: 6),
-            _GoalTag(text: l.match_own_goal, color: T.warn),
+            _GoalTag(text: l.match_own_goal, color: context.tokens.warn),
           ],
         ],
       ),
@@ -478,11 +478,11 @@ class _BottomCtaAreaState extends ConsumerState<_BottomCtaArea> {
 class _Loading extends StatelessWidget {
   const _Loading();
   @override
-  Widget build(BuildContext context) => const Center(
+  Widget build(BuildContext context) => Center(
     child: SizedBox(
       width: 22,
       height: 22,
-      child: CircularProgressIndicator(color: T.live, strokeWidth: 2),
+      child: CircularProgressIndicator(color: context.tokens.accent, strokeWidth: 2),
     ),
   );
 }

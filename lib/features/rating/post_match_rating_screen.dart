@@ -144,7 +144,7 @@ class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
                       height: 2,
                       decoration: BoxDecoration(
                         color: i < _idx
-                            ? T.live
+                            ? context.tokens.accent
                             : i == _idx
                             ? context.tokens.ink
                             : context.tokens.elev3,
@@ -189,7 +189,7 @@ class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
                           '${info.scoreA}',
                           size: 20,
                           weight: FontWeight.w700,
-                          color: T.live,
+                          color: context.tokens.accent,
                         ),
                         Text(' - ', style: TextStyle(color: context.tokens.inkDim)),
                         N(
@@ -250,7 +250,7 @@ class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
                                             vertical: 1,
                                           ),
                                           decoration: BoxDecoration(
-                                            color: T.liveDim,
+                                            color: context.tokens.accentSubtle,
                                             border: Border.all(
                                               color: const Color(0x6600FF85),
                                             ),
@@ -260,13 +260,13 @@ class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
                                           ),
                                           child: Text(
                                             context.l10n.rate_short_you,
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                               fontFamily: T.fontMono,
                                               fontFamilyFallback:
                                                   T.monoFallbacks,
                                               fontSize: 9,
                                               fontWeight: FontWeight.w700,
-                                              color: T.live,
+                                              color: context.tokens.accent,
                                             ),
                                           ),
                                         ),
@@ -285,13 +285,13 @@ class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
                                   vertical: 5,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: T.warnDim,
+                                  color: context.tokens.warnSubtle,
                                   border: Border.all(
                                     color: const Color(0x66FF6B35),
                                   ),
                                   borderRadius: BorderRadius.circular(3),
                                 ),
-                                child: Label(p.highlight!, color: T.warn),
+                                child: Label(p.highlight!, color: context.tokens.warn),
                               ),
                           ],
                         ),
@@ -362,7 +362,7 @@ class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
                             p.avgScore.toStringAsFixed(1),
                             size: 15,
                             weight: FontWeight.w700,
-                            color: p.avgScore >= 8 ? T.live : context.tokens.ink,
+                            color: p.avgScore >= 8 ? context.tokens.accent : context.tokens.ink,
                           ),
                         ],
                       ),
@@ -461,10 +461,10 @@ class _RatingSlider extends StatelessWidget {
   const _RatingSlider({required this.value, required this.onChanged});
 
   Color _colorFor(BuildContext context, double v) {
-    if (v >= 8) return T.live;
+    if (v >= 8) return context.tokens.accent;
     if (v >= 6) return context.tokens.ink;
-    if (v >= 4) return T.warn;
-    return T.danger;
+    if (v >= 4) return context.tokens.warn;
+    return context.tokens.danger;
   }
 
   @override
@@ -596,10 +596,10 @@ class _RatingSlider extends StatelessWidget {
           builder: (context) => Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Label(context.l10n.rate_level_bad, color: T.danger),
+              Label(context.l10n.rate_level_bad, color: context.tokens.danger),
               Label(context.l10n.rate_level_meh),
-              Label(context.l10n.rate_level_good, color: T.warn),
-              Label(context.l10n.rate_level_god, color: T.live),
+              Label(context.l10n.rate_level_good, color: context.tokens.warn),
+              Label(context.l10n.rate_level_god, color: context.tokens.accent),
             ],
           ),
         ),
@@ -634,11 +634,11 @@ class _DonePage extends StatelessWidget {
                   height: 72,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: T.liveDim,
+                    color: context.tokens.accentSubtle,
                     shape: BoxShape.circle,
-                    border: Border.all(color: T.live, width: 2),
+                    border: Border.all(color: context.tokens.accent, width: 2),
                   ),
-                  child: const Icon(Icons.check, size: 32, color: T.live),
+                  child: Icon(Icons.check, size: 32, color: context.tokens.accent),
                 ),
                 const SizedBox(height: 18),
                 Text(

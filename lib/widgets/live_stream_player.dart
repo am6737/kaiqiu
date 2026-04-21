@@ -12,6 +12,7 @@ import 'package:video_player/video_player.dart';
 
 import '../l10n/l10n_extension.dart';
 import '../theme/tokens.dart';
+import '../theme/app_tokens.dart';
 import 'live_pill.dart';
 
 /// Public HLS test streams (reliable CDNs, always-on).
@@ -382,10 +383,10 @@ class _ScoreboardChip extends StatelessWidget {
           Container(
             width: 6,
             height: 6,
-            decoration: const BoxDecoration(
-              color: T.live,
+            decoration: BoxDecoration(
+              color: context.tokens.accent,
               shape: BoxShape.circle,
-              boxShadow: [BoxShadow(color: T.live, blurRadius: 6)],
+              boxShadow: [BoxShadow(color: context.tokens.accent, blurRadius: 6)],
             ),
           ),
           const SizedBox(width: 6),
@@ -438,12 +439,12 @@ class _LoadingIndicator extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const SizedBox(
+        SizedBox(
           width: 26,
           height: 26,
           child: CircularProgressIndicator(
             strokeWidth: 2.4,
-            valueColor: AlwaysStoppedAnimation(T.live),
+            valueColor: AlwaysStoppedAnimation(context.tokens.accent),
           ),
         ),
         const SizedBox(height: 10),

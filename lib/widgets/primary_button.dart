@@ -35,10 +35,10 @@ class PrimaryButton extends StatelessWidget {
       BtnSize.lg => (52.0, 24.0, 16.0),
     };
     final (bg, fg, border) = switch (variant) {
-      BtnVariant.primary => (T.live, Colors.black, Colors.transparent),
+      BtnVariant.primary => (context.tokens.accent, Colors.black, Colors.transparent),
       BtnVariant.secondary => (context.tokens.elev3, context.tokens.ink, context.tokens.line),
       BtnVariant.ghost => (Colors.transparent, context.tokens.ink, context.tokens.lineStrong),
-      BtnVariant.warn => (T.warn, Colors.black, Colors.transparent),
+      BtnVariant.warn => (context.tokens.warn, Colors.black, Colors.transparent),
     };
     return Opacity(
       opacity: disabled ? 0.4 : 1,

@@ -29,7 +29,7 @@ class _LivePillState extends State<LivePill>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
       decoration: BoxDecoration(
-        color: T.live,
+        color: context.tokens.accent,
         borderRadius: BorderRadius.circular(3),
       ),
       child: Row(
@@ -74,9 +74,9 @@ class StatusDot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = switch (state) {
-      'almost' => T.warn,
+      'almost' => context.tokens.warn,
       'full' => context.tokens.inkMute,
-      _ => T.live, // open / live
+      _ => context.tokens.accent, // open / live
     };
     final glow = state == 'open' || state == 'live';
     return Container(

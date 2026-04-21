@@ -90,10 +90,10 @@ class _PlayerDot extends StatelessWidget {
   });
 
   Color _ratedColor(BuildContext context, double v) {
-    if (v >= 8) return T.live;
+    if (v >= 8) return context.tokens.accent;
     if (v >= 6) return context.tokens.ink;
-    if (v >= 4) return T.warn;
-    return T.danger;
+    if (v >= 4) return context.tokens.warn;
+    return context.tokens.danger;
   }
 
   @override
@@ -121,7 +121,7 @@ class _PlayerDot extends StatelessWidget {
                   height: 36,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(color: T.live, width: 2),
+                    border: Border.all(color: context.tokens.accent, width: 2),
                   ),
                 ),
               Container(
@@ -198,7 +198,7 @@ class _PlayerDot extends StatelessWidget {
                 fontFamilyFallback: T.monoFallbacks,
                 fontSize: 8.5,
                 fontWeight: FontWeight.w600,
-                color: isSelf ? T.live : context.tokens.ink,
+                color: isSelf ? context.tokens.accent : context.tokens.ink,
               ),
             ),
           ),

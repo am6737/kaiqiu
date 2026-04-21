@@ -49,7 +49,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
       body: async.when(
         data: (event) => _buildContent(event),
         loading: () =>
-            const Center(child: CircularProgressIndicator(color: T.live)),
+            Center(child: CircularProgressIndicator(color: context.tokens.accent)),
         error: (e, _) => _buildError(e),
       ),
     );
@@ -63,7 +63,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.error_outline, size: 32, color: T.danger),
+            Icon(Icons.error_outline, size: 32, color: context.tokens.danger),
             const SizedBox(height: 8),
             Text(
               '${l.error_load_failed}: $e',
@@ -155,8 +155,8 @@ class _Header extends StatelessWidget {
     final hue = (event.id.codeUnitAt(0) * 7 + event.id.codeUnitAt(1)) % 360.0;
     final l = context.l10n;
     final (dotColor, pillColor, pillText) = switch (event.status) {
-      EventStatus.ongoing => (T.live, T.live, l.event_status_ongoing),
-      EventStatus.registering => (T.warn, T.warn, l.event_status_registering),
+      EventStatus.ongoing => (context.tokens.accent, context.tokens.accent, l.event_status_ongoing),
+      EventStatus.registering => (context.tokens.warn, context.tokens.warn, l.event_status_registering),
       EventStatus.done => (context.tokens.inkDim, context.tokens.inkSub, l.event_status_done),
     };
     return Stack(
@@ -357,7 +357,7 @@ class _Tabs extends StatelessWidget {
                     decoration: BoxDecoration(
                       border: Border(
                         bottom: BorderSide(
-                          color: current == t.$1 ? T.live : Colors.transparent,
+                          color: current == t.$1 ? context.tokens.accent : Colors.transparent,
                           width: 2,
                         ),
                       ),
@@ -388,9 +388,9 @@ class _Tabs extends StatelessWidget {
 class _PanelLoading extends StatelessWidget {
   const _PanelLoading();
   @override
-  Widget build(BuildContext context) => const Padding(
+  Widget build(BuildContext context) => Padding(
     padding: EdgeInsets.all(36),
-    child: Center(child: CircularProgressIndicator(color: T.live)),
+    child: Center(child: CircularProgressIndicator(color: context.tokens.accent)),
   );
 }
 
@@ -447,7 +447,7 @@ class _OverviewPanel extends StatelessWidget {
                     width: 4,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: T.live,
+                      color: context.tokens.accent,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -662,9 +662,9 @@ class _MatchCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: isFinal ? T.liveDim : context.tokens.elev2,
+        color: isFinal ? context.tokens.accentSubtle : context.tokens.elev2,
         border: Border.all(
-          color: isFinal ? T.live : context.tokens.line,
+          color: isFinal ? context.tokens.accent : context.tokens.line,
           width: isFinal ? 1.2 : 1,
         ),
         borderRadius: BorderRadius.circular(T.r2),
@@ -684,20 +684,20 @@ class _MatchCard extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 6),
                     decoration: BoxDecoration(
                       border: Border(
-                        bottom: BorderSide(color: T.live, width: 0.6),
+                        bottom: BorderSide(color: context.tokens.accent, width: 0.6),
                       ),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.emoji_events, size: 14, color: T.live),
+                        Icon(Icons.emoji_events, size: 14, color: context.tokens.accent),
                         const SizedBox(width: 4),
                         Text(
                           context.l10n.event_bracket_champion,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
-                            color: T.live,
+                            color: context.tokens.accent,
                             letterSpacing: 0.5,
                           ),
                         ),
@@ -732,11 +732,11 @@ class _MatchCard extends StatelessWidget {
                             children: [
                               Text(
                                 'PK ${m.pkScore}',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontFamily: T.fontMono,
                                   fontFamilyFallback: T.monoFallbacks,
                                   fontSize: 9,
-                                  color: T.warn,
+                                  color: context.tokens.warn,
                                 ),
                               ),
                             ],
@@ -781,7 +781,7 @@ class _MatchCard extends StatelessWidget {
           child: Row(
             children: [
               if (showWinnerIcon && won) ...[
-                const Icon(Icons.emoji_events, size: 12, color: T.live),
+                Icon(Icons.emoji_events, size: 12, color: context.tokens.accent),
                 const SizedBox(width: 4),
               ],
               Expanded(
@@ -803,7 +803,7 @@ class _MatchCard extends StatelessWidget {
             '$score',
             size: 13,
             weight: FontWeight.w700,
-            color: won ? T.live : context.tokens.inkSub,
+            color: won ? context.tokens.accent : context.tokens.inkSub,
           )
         else
           Text('-', style: TextStyle(color: context.tokens.inkDim, fontSize: 11)),
@@ -950,7 +950,7 @@ class _StandingsTable extends StatelessWidget {
                           '${s.rank}',
                           size: 13,
                           weight: FontWeight.w600,
-                          color: s.rank <= 2 ? T.live : context.tokens.inkSub,
+                          color: s.rank <= 2 ? context.tokens.accent : context.tokens.inkSub,
                         ),
                       ),
                       const SizedBox(width: 10),
@@ -1144,7 +1144,7 @@ class _TeamSheet extends StatelessWidget {
                     child: _StatCell(
                       value: '${standing.pts}',
                       label: l.event_standings_points,
-                      accent: T.live,
+                      accent: context.tokens.accent,
                     ),
                   ),
                   Expanded(
@@ -1195,7 +1195,7 @@ class _TeamSheet extends StatelessWidget {
                       value: gd > 0 ? '+$gd' : '$gd',
                       label: l.team_card_gd,
                       accent: gd > 0
-                          ? T.live
+                          ? context.tokens.accent
                           : gd < 0
                           ? context.tokens.inkSub
                           : null,
@@ -1244,7 +1244,7 @@ class _TeamMatchRow extends StatelessWidget {
     if (match.done && ownScore != null && oppScore != null) {
       if (ownScore > oppScore) {
         resultLabel = l.event_standings_wins;
-        resultColor = T.live;
+        resultColor = context.tokens.accent;
       } else if (ownScore < oppScore) {
         resultLabel = l.event_standings_losses;
         resultColor = context.tokens.inkSub;
@@ -1336,9 +1336,9 @@ class _ScorersPanel extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(eventScorersProvider(eventId));
     return async.when(
-      loading: () => const Padding(
+      loading: () => Padding(
         padding: EdgeInsets.symmetric(vertical: 40),
-        child: Center(child: CircularProgressIndicator(color: T.live)),
+        child: Center(child: CircularProgressIndicator(color: context.tokens.accent)),
       ),
       error: (_, _) => Padding(
         padding: const EdgeInsets.all(24),
@@ -1477,7 +1477,7 @@ class _ScorerCard extends ConsumerWidget {
         Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            N('${row.goals}', size: 22, weight: FontWeight.w700, color: T.live),
+            N('${row.goals}', size: 22, weight: FontWeight.w700, color: context.tokens.accent),
             Label(context.l10n.event_scorers_goals),
           ],
         ),
@@ -1586,7 +1586,7 @@ class _ScorerSheet extends ConsumerWidget {
                   child: _StatCell(
                     value: '${row.goals}',
                     label: l.event_scorers_goals,
-                    accent: T.live,
+                    accent: context.tokens.accent,
                   ),
                 ),
                 Expanded(
@@ -1801,10 +1801,10 @@ class _ChatPanelState extends ConsumerState<_ChatPanel> {
                 children: [for (final m in msgs.reversed) _Msg(msg: m)],
               );
             },
-            loading: () => const Padding(
+            loading: () => Padding(
               padding: EdgeInsets.symmetric(vertical: 20),
               child: Center(
-                child: CircularProgressIndicator(color: T.live, strokeWidth: 2),
+                child: CircularProgressIndicator(color: context.tokens.accent, strokeWidth: 2),
               ),
             ),
             error: (e, _) => Padding(
@@ -1849,7 +1849,7 @@ class _ChatPanelState extends ConsumerState<_ChatPanel> {
                   height: 36,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: T.live,
+                    color: context.tokens.accent,
                     shape: BoxShape.circle,
                   ),
                   child: _sending
@@ -2226,8 +2226,8 @@ class _ViewToggle extends StatelessWidget {
                   vertical: 7,
                 ),
                 decoration: BoxDecoration(
-                  color: view == it.$1 ? T.liveDim : Colors.transparent,
-                  border: Border.all(color: view == it.$1 ? T.live : context.tokens.line),
+                  color: view == it.$1 ? context.tokens.accentSubtle : Colors.transparent,
+                  border: Border.all(color: view == it.$1 ? context.tokens.accent : context.tokens.line),
                   borderRadius: BorderRadius.circular(T.r2),
                 ),
                 child: Text(
@@ -2236,7 +2236,7 @@ class _ViewToggle extends StatelessWidget {
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                     color: view == it.$1
-                        ? T.live
+                        ? context.tokens.accent
                         : (it.$3 ? context.tokens.inkSub : context.tokens.inkDim),
                   ),
                 ),
@@ -2366,8 +2366,8 @@ class _MatchPicker extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: isPicked ? T.liveDim : context.tokens.elev2,
-              border: Border.all(color: isPicked ? T.live : context.tokens.line),
+              color: isPicked ? context.tokens.accentSubtle : context.tokens.elev2,
+              border: Border.all(color: isPicked ? context.tokens.accent : context.tokens.line),
               borderRadius: BorderRadius.circular(T.r2),
             ),
             child: Row(
@@ -2377,7 +2377,7 @@ class _MatchPicker extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    color: isPicked ? T.live : context.tokens.inkSub,
+                    color: isPicked ? context.tokens.accent : context.tokens.inkSub,
                   ),
                 ),
               ],
@@ -2431,18 +2431,18 @@ class _ScoreStrip extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: T.liveDim,
-                  border: Border.all(color: T.live.withValues(alpha: 0.3)),
+                  color: context.tokens.accentSubtle,
+                  border: Border.all(color: context.tokens.accent.withValues(alpha: 0.3)),
                   borderRadius: BorderRadius.circular(3),
                 ),
                 child: Text(
                   event.name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: T.fontMono,
                     fontFamilyFallback: T.monoFallbacks,
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
-                    color: T.live,
+                    color: context.tokens.accent,
                   ),
                 ),
               ),
@@ -2482,7 +2482,7 @@ class _ScoreStrip extends StatelessWidget {
                 '$sa',
                 size: 26,
                 weight: FontWeight.w800,
-                color: winA ? T.live : context.tokens.ink,
+                color: winA ? context.tokens.accent : context.tokens.ink,
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 6),
@@ -2497,7 +2497,7 @@ class _ScoreStrip extends StatelessWidget {
                 '$sb',
                 size: 26,
                 weight: FontWeight.w800,
-                color: winB ? T.live : context.tokens.ink,
+                color: winB ? context.tokens.accent : context.tokens.ink,
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -2683,15 +2683,15 @@ class _PlayerRow extends StatelessWidget {
     final l = context.l10n;
     final you = p.rateeId == currentUserId;
     final scoreColor = p.avgScore >= 8
-        ? T.live
-        : (p.avgScore >= 6 ? context.tokens.ink : T.danger);
+        ? context.tokens.accent
+        : (p.avgScore >= 6 ? context.tokens.ink : context.tokens.danger);
     final hasMoment = showMomentBlock && (p.topComment?.isNotEmpty ?? false);
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: context.tokens.elev2,
-        border: Border.all(color: rank == 1 ? T.live : context.tokens.line),
+        border: Border.all(color: rank == 1 ? context.tokens.accent : context.tokens.line),
         borderRadius: BorderRadius.circular(T.r3),
       ),
       child: Row(
@@ -2704,7 +2704,7 @@ class _PlayerRow extends StatelessWidget {
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: rank == 1
-                  ? T.live
+                  ? context.tokens.accent
                   : (rank <= 3 ? context.tokens.elev3 : Colors.transparent),
               border: rank == 1 ? null : Border.all(color: context.tokens.line),
               borderRadius: BorderRadius.circular(4),
@@ -2743,9 +2743,9 @@ class _PlayerRow extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    if (you) _tinyBadge(l.rate_short_you, T.liveDim, T.live),
+                    if (you) _tinyBadge(l.rate_short_you, context.tokens.accentSubtle, context.tokens.accent),
                     if (rank == 1)
-                      _tinyBadge(l.event_rating_mvp, T.liveDim, T.live),
+                      _tinyBadge(l.event_rating_mvp, context.tokens.accentSubtle, context.tokens.accent),
                     if (p.topHighlight != null && p.topHighlight!.isNotEmpty)
                       _statChip(p.topHighlight!),
                   ],
@@ -2881,8 +2881,8 @@ class _PlayerRatingDetail extends ConsumerWidget {
     final comments = mock.topComments;
     final you = p.rateeId == currentUserId;
     final scoreColor = p.avgScore >= 8
-        ? T.live
-        : (p.avgScore >= 6 ? context.tokens.ink : T.danger);
+        ? context.tokens.accent
+        : (p.avgScore >= 6 ? context.tokens.ink : context.tokens.danger);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2945,7 +2945,7 @@ class _PlayerRatingDetail extends ConsumerWidget {
                               vertical: 1,
                             ),
                             decoration: BoxDecoration(
-                              color: T.liveDim,
+                              color: context.tokens.accentSubtle,
                               border: Border.all(
                                 color: const Color(0x6600FF85),
                               ),
@@ -2953,12 +2953,12 @@ class _PlayerRatingDetail extends ConsumerWidget {
                             ),
                             child: Text(
                               context.l10n.rate_short_you,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontFamily: T.fontMono,
                                 fontFamilyFallback: T.monoFallbacks,
                                 fontSize: 9,
                                 fontWeight: FontWeight.w700,
-                                color: T.live,
+                                color: context.tokens.accent,
                               ),
                             ),
                           ),
@@ -3028,12 +3028,12 @@ class _PlayerRatingDetail extends ConsumerWidget {
                                   child: Container(
                                     decoration: BoxDecoration(
                                       color: i >= 8
-                                          ? T.live
+                                          ? context.tokens.accent
                                           : i >= 6
                                           ? context.tokens.ink
                                           : i >= 4
                                           ? context.tokens.inkSub
-                                          : T.danger,
+                                          : context.tokens.danger,
                                       borderRadius: const BorderRadius.only(
                                         topLeft: Radius.circular(2),
                                         topRight: Radius.circular(2),
@@ -3116,16 +3116,16 @@ class _PlayerRatingDetail extends ConsumerWidget {
                             ),
                             decoration: BoxDecoration(
                               color: c.score >= 8
-                                  ? T.liveDim
+                                  ? context.tokens.accentSubtle
                                   : c.score >= 6
                                   ? context.tokens.elev3
                                   : const Color(0x24FF3B6B),
                               border: Border.all(
                                 color: c.score >= 8
-                                    ? T.live.withValues(alpha: 0.3)
+                                    ? context.tokens.accent.withValues(alpha: 0.3)
                                     : c.score >= 6
                                     ? context.tokens.line
-                                    : T.danger.withValues(alpha: 0.3),
+                                    : context.tokens.danger.withValues(alpha: 0.3),
                               ),
                               borderRadius: BorderRadius.circular(3),
                             ),
@@ -3137,10 +3137,10 @@ class _PlayerRatingDetail extends ConsumerWidget {
                                 fontSize: 10,
                                 fontWeight: FontWeight.w800,
                                 color: c.score >= 8
-                                    ? T.live
+                                    ? context.tokens.accent
                                     : c.score >= 6
                                     ? context.tokens.ink
-                                    : T.danger,
+                                    : context.tokens.danger,
                               ),
                             ),
                           ),

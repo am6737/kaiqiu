@@ -11,9 +11,9 @@ void showToast(
   bool error = false,
 }) {
   final Color bg = error
-      ? T.danger
+      ? context.tokens.danger
       : success
-      ? T.live
+      ? context.tokens.accent
       : context.tokens.elev3;
   final Color fg = (success || error) ? Colors.black : context.tokens.ink;
   ScaffoldMessenger.of(context).showSnackBar(

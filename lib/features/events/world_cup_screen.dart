@@ -102,7 +102,7 @@ class WorldCupScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Label('FIFA 2026', color: T.live),
+                    Label('FIFA 2026', color: context.tokens.accent),
                     const SizedBox(height: 6),
                     Text(
                       l.wc_hero_title,
@@ -175,7 +175,7 @@ class WorldCupScreen extends ConsumerWidget {
                           '${wcs[0].scoreA ?? 0}',
                           size: 40,
                           weight: FontWeight.w800,
-                          color: T.live,
+                          color: context.tokens.accent,
                         ),
                         const SizedBox(width: 8),
                         Text(
@@ -285,7 +285,7 @@ class WorldCupScreen extends ConsumerWidget {
               children: [
                 Row(
                   children: [
-                    _predBar(62, l.wc_team_argentina_win, T.live, Colors.black),
+                    _predBar(62, l.wc_team_argentina_win, context.tokens.accent, Colors.black),
                     const SizedBox(width: 8),
                     _predBar(14, l.wc_team_draw, context.tokens.inkMute, context.tokens.ink),
                     const SizedBox(width: 8),
@@ -416,9 +416,9 @@ class WorldCupScreen extends ConsumerWidget {
                               vertical: 5,
                             ),
                             decoration: BoxDecoration(
-                              color: reminded ? T.liveDim : context.tokens.elev3,
+                              color: reminded ? context.tokens.accentSubtle : context.tokens.elev3,
                               border: Border.all(
-                                color: reminded ? T.live : context.tokens.line,
+                                color: reminded ? context.tokens.accent : context.tokens.line,
                               ),
                               borderRadius: BorderRadius.circular(6),
                             ),
@@ -426,7 +426,7 @@ class WorldCupScreen extends ConsumerWidget {
                               l.wc_btn_remind,
                               style: TextStyle(
                                 fontSize: 11,
-                                color: reminded ? T.live : context.tokens.inkSub,
+                                color: reminded ? context.tokens.accent : context.tokens.inkSub,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),

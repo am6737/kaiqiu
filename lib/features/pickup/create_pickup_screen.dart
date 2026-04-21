@@ -297,7 +297,7 @@ class _CreatePickupScreenState extends ConsumerState<CreatePickupScreen> {
                                   ? Icons.add_photo_alternate_outlined
                                   : Icons.check_circle,
                               size: 18,
-                              color: _venuePhotoUrl == null ? context.tokens.inkSub : T.live,
+                              color: _venuePhotoUrl == null ? context.tokens.inkSub : context.tokens.accent,
                             ),
                             const SizedBox(width: 10),
                             Expanded(
@@ -312,12 +312,12 @@ class _CreatePickupScreenState extends ConsumerState<CreatePickupScreen> {
                               ),
                             ),
                             if (_uploadingPhoto)
-                              const SizedBox(
+                              SizedBox(
                                 width: 14,
                                 height: 14,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  color: T.live,
+                                  color: context.tokens.accent,
                                 ),
                               ),
                           ],
@@ -449,15 +449,15 @@ class _Chip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
         decoration: BoxDecoration(
-          color: active ? T.liveDim : context.tokens.elev2,
-          border: Border.all(color: active ? T.live : context.tokens.line),
+          color: active ? context.tokens.accentSubtle : context.tokens.elev2,
+          border: Border.all(color: active ? context.tokens.accent : context.tokens.line),
           borderRadius: BorderRadius.circular(999),
         ),
         child: Text(
           label,
           style: TextStyle(
             fontSize: 12,
-            color: active ? T.live : context.tokens.ink,
+            color: active ? context.tokens.accent : context.tokens.ink,
             fontWeight: FontWeight.w600,
           ),
         ),

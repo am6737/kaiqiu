@@ -77,8 +77,8 @@ class _Pin extends StatelessWidget {
 
     final statusColor = switch (pickup.status) {
       PickupStatus.full => context.tokens.inkMute,
-      PickupStatus.almost => T.warn,
-      _ => T.live,
+      PickupStatus.almost => context.tokens.warn,
+      _ => context.tokens.accent,
     };
 
     return Positioned(

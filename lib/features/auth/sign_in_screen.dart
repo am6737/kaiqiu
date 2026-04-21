@@ -219,7 +219,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                 children: [
                   Checkbox(
                     value: _remember,
-                    activeColor: T.live,
+                    activeColor: context.tokens.accent,
                     onChanged: (v) => setState(() => _remember = v ?? false),
                     visualDensity: VisualDensity.compact,
                   ),
@@ -237,9 +237,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                       padding: const EdgeInsets.all(4),
                       child: Text(
                         l.auth_forgot_password,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
-                          color: T.live,
+                          color: context.tokens.accent,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -252,13 +252,13 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: T.warnDim,
+                    color: context.tokens.warnSubtle,
                     borderRadius: BorderRadius.circular(T.r2),
                     border: Border.all(color: const Color(0x55FF6B35)),
                   ),
                   child: Text(
                     _error!,
-                    style: const TextStyle(fontSize: 12, color: T.warn),
+                    style: TextStyle(fontSize: 12, color: context.tokens.warn),
                   ),
                 ),
               ],
@@ -282,9 +282,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                     _isNewUser
                         ? l.auth_signup_toggle_old
                         : l.auth_signup_toggle_new,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: T.live,
+                      color: context.tokens.accent,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -334,10 +334,10 @@ class _Logo extends StatelessWidget {
           height: 10,
           margin: const EdgeInsets.only(right: 10, top: 18),
           decoration: BoxDecoration(
-            color: T.live,
+            color: context.tokens.accent,
             borderRadius: BorderRadius.circular(2),
             boxShadow: [
-              BoxShadow(color: T.live.withValues(alpha: 0.6), blurRadius: 12),
+              BoxShadow(color: context.tokens.accent.withValues(alpha: 0.6), blurRadius: 12),
             ],
           ),
         ),

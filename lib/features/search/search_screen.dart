@@ -214,7 +214,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           SectionHeader(title: l.search_result_pickups),
           for (final p in hits)
             ListTile(
-              leading: const Icon(Icons.sports_soccer, color: T.live),
+              leading: Icon(Icons.sports_soccer, color: context.tokens.accent),
               title: Text(
                 p.venue,
                 style: TextStyle(color: context.tokens.ink, fontSize: 14),
@@ -240,7 +240,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           SectionHeader(title: l.search_result_events),
           for (final e in events)
             ListTile(
-              leading: const Icon(Icons.emoji_events, color: T.warn),
+              leading: Icon(Icons.emoji_events, color: context.tokens.warn),
               title: Text(
                 e.name,
                 style: TextStyle(color: context.tokens.ink, fontSize: 14),

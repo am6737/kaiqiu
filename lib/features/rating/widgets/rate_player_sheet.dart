@@ -55,10 +55,10 @@ class _RatePlayerSheetState extends State<RatePlayerSheet> {
   }
 
   Color _colorFor(double v) {
-    if (v >= 8) return T.live;
+    if (v >= 8) return context.tokens.accent;
     if (v >= 6) return context.tokens.ink;
-    if (v >= 4) return T.warn;
-    return T.danger;
+    if (v >= 4) return context.tokens.warn;
+    return context.tokens.danger;
   }
 
   String _levelLabel(BuildContext ctx, double v) {
@@ -213,7 +213,7 @@ class _RatePlayerSheetState extends State<RatePlayerSheet> {
                     borderRadius: BorderRadius.circular(T.r2),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: T.live),
+                    borderSide: BorderSide(color: context.tokens.accent),
                     borderRadius: BorderRadius.circular(T.r2),
                   ),
                 ),
@@ -268,10 +268,10 @@ class _Slider extends StatelessWidget {
   const _Slider({required this.value, required this.onChanged});
 
   Color _colorFor(BuildContext context, double v) {
-    if (v >= 8) return T.live;
+    if (v >= 8) return context.tokens.accent;
     if (v >= 6) return context.tokens.ink;
-    if (v >= 4) return T.warn;
-    return T.danger;
+    if (v >= 4) return context.tokens.warn;
+    return context.tokens.danger;
   }
 
   void _update(double x, double width) {

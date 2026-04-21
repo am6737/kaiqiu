@@ -38,9 +38,9 @@ class MyTeamsScreen extends ConsumerWidget {
               actions: [
                 GestureDetector(
                   onTap: () => _showCreateSheet(context, ref),
-                  child: const Padding(
+                  child: Padding(
                     padding: EdgeInsets.all(6),
-                    child: Icon(Icons.add, color: T.live),
+                    child: Icon(Icons.add, color: context.tokens.accent),
                   ),
                 ),
               ],
@@ -256,7 +256,7 @@ class MyTeamsScreen extends ConsumerWidget {
                 onPressed: () => Navigator.of(ctx).pop(true),
                 child: Text(
                   l.common_confirm,
-                  style: const TextStyle(color: T.danger),
+                  style: TextStyle(color: context.tokens.danger),
                 ),
               ),
             ],
@@ -293,14 +293,14 @@ class _TeamCard extends StatelessWidget {
                 height: 40,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: T.liveDim,
+                  color: context.tokens.accentSubtle,
                   border: Border.all(color: const Color(0x6600FF85)),
                   borderRadius: BorderRadius.circular(6),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.shield_outlined,
                   size: 20,
-                  color: T.live,
+                  color: context.tokens.accent,
                 ),
               ),
               const SizedBox(width: 12),
@@ -327,7 +327,7 @@ class _TeamCard extends StatelessWidget {
                   padding: const EdgeInsets.all(4),
                   child: Text(
                     l.me_teams_remove,
-                    style: const TextStyle(fontSize: 12, color: T.danger),
+                    style: TextStyle(fontSize: 12, color: context.tokens.danger),
                   ),
                 ),
               ),

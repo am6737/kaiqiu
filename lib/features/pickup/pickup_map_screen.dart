@@ -92,7 +92,7 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                     min: 1,
                     max: 20,
                     divisions: 19,
-                    activeColor: T.live,
+                    activeColor: context.tokens.accent,
                     label: '${localDist.toInt()} km',
                     onChanged: (v) => setModal(() => localDist = v),
                   ),
@@ -103,7 +103,7 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                     min: 0,
                     max: 300,
                     divisions: 30,
-                    activeColor: T.live,
+                    activeColor: context.tokens.accent,
                     label: '¥$localFee',
                     onChanged: (v) => setModal(() => localFee = v.toInt()),
                   ),
@@ -129,9 +129,9 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                               vertical: 7,
                             ),
                             decoration: BoxDecoration(
-                              color: localLevel == lv.$1 ? T.liveDim : context.tokens.elev2,
+                              color: localLevel == lv.$1 ? context.tokens.accentSubtle : context.tokens.elev2,
                               border: Border.all(
-                                color: localLevel == lv.$1 ? T.live : context.tokens.line,
+                                color: localLevel == lv.$1 ? context.tokens.accent : context.tokens.line,
                               ),
                               borderRadius: BorderRadius.circular(999),
                             ),
@@ -139,7 +139,7 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                               lv.$2,
                               style: TextStyle(
                                 fontSize: 12,
-                                color: localLevel == lv.$1 ? T.live : context.tokens.ink,
+                                color: localLevel == lv.$1 ? context.tokens.accent : context.tokens.ink,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -200,7 +200,7 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
       data: (list) => _buildMap(context, list),
       loading: () => Scaffold(
         backgroundColor: context.tokens.bg,
-        body: Center(child: CircularProgressIndicator(color: T.live)),
+        body: Center(child: CircularProgressIndicator(color: context.tokens.accent)),
       ),
       error: (e, _) => Scaffold(
         backgroundColor: context.tokens.bg,
@@ -211,7 +211,7 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.error_outline, size: 32, color: T.danger),
+                  Icon(Icons.error_outline, size: 32, color: context.tokens.danger),
                   const SizedBox(height: 8),
                   Text(
                     '${context.l10n.error_load_failed}: $e',
@@ -571,7 +571,7 @@ class _MapListRow extends StatelessWidget {
                       : context.l10n.pickup_map_full_short,
                   size: 12,
                   weight: FontWeight.w600,
-                  color: need > 0 ? T.live : context.tokens.inkDim,
+                  color: need > 0 ? context.tokens.accent : context.tokens.inkDim,
                 ),
               ],
             ),

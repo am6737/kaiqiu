@@ -189,18 +189,18 @@ class ProfileScreen extends ConsumerWidget {
                         height: 44,
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
-                          color: T.liveDim,
+                          color: context.tokens.accentSubtle,
                           border: Border.all(color: const Color(0x6600FF85)),
                           borderRadius: BorderRadius.circular(T.r2),
                         ),
                         child: Text(
                           u.position,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: T.fontMono,
                             fontFamilyFallback: T.monoFallbacks,
                             fontSize: 13,
                             fontWeight: FontWeight.w800,
-                            color: T.live,
+                            color: context.tokens.accent,
                           ),
                         ),
                       ),
@@ -226,7 +226,7 @@ class ProfileScreen extends ConsumerWidget {
                                     vertical: 1,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: T.liveDim,
+                                    color: context.tokens.accentSubtle,
                                     border: Border.all(
                                       color: const Color(0x6600FF85),
                                     ),
@@ -234,12 +234,12 @@ class ProfileScreen extends ConsumerWidget {
                                   ),
                                   child: Text(
                                     l.profile_archive_new_badge,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontFamily: T.fontMono,
                                       fontFamilyFallback: T.monoFallbacks,
                                       fontSize: 9,
                                       fontWeight: FontWeight.w700,
-                                      color: T.live,
+                                      color: context.tokens.accent,
                                     ),
                                   ),
                                 ),
@@ -261,7 +261,7 @@ class ProfileScreen extends ConsumerWidget {
                                 _MiniStat(
                                   label: l.profile_mini_overall,
                                   value: '${u.rating}',
-                                  color: T.live,
+                                  color: context.tokens.accent,
                                 ),
                                 _MiniStat(
                                   label: l.profile_mini_matches,
@@ -276,7 +276,7 @@ class ProfileScreen extends ConsumerWidget {
                                 _MiniStat(
                                   label: l.profile_mini_mvp,
                                   value: '${u.stats.mvp}',
-                                  color: T.warn,
+                                  color: context.tokens.warn,
                                 ),
                               ],
                             ),
@@ -322,7 +322,7 @@ class ProfileScreen extends ConsumerWidget {
                               onPressed: () => Navigator.of(ctx).pop(true),
                               child: Text(
                                 l.settings_account_logout,
-                                style: const TextStyle(color: T.danger),
+                                style: TextStyle(color: context.tokens.danger),
                               ),
                             ),
                           ],
@@ -344,10 +344,10 @@ class ProfileScreen extends ConsumerWidget {
                   ),
                   child: Text(
                     l.profile_logout,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: T.danger,
+                      color: context.tokens.danger,
                     ),
                   ),
                 ),

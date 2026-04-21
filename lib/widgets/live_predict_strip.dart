@@ -136,11 +136,11 @@ class _UnvotedStrip extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: T.liveDim,
-                  border: Border.all(color: T.live, width: 0.5),
+                  color: context.tokens.accentSubtle,
+                  border: Border.all(color: context.tokens.accent, width: 0.5),
                   borderRadius: BorderRadius.circular(4),
                 ),
-                child: const Text(
+                child: Text(
                   'PREDICT',
                   style: TextStyle(
                     fontFamily: T.fontMono,
@@ -148,7 +148,7 @@ class _UnvotedStrip extends StatelessWidget {
                     fontSize: 9,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 1,
-                    color: T.live,
+                    color: context.tokens.accent,
                   ),
                 ),
               ),
@@ -276,7 +276,7 @@ class _VotedStrip extends StatelessWidget {
         ),
         child: Row(
           children: [
-            const Icon(Icons.check_circle, color: T.live, size: 16),
+            Icon(Icons.check_circle, color: context.tokens.accent, size: 16),
             const SizedBox(width: 8),
             Expanded(
               child: Text.rich(
@@ -300,9 +300,9 @@ class _VotedStrip extends StatelessWidget {
                     if (stake > 0)
                       TextSpan(
                         text: ' · $stake',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
-                          color: T.live,
+                          color: context.tokens.accent,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -321,7 +321,7 @@ class _VotedStrip extends StatelessWidget {
                 '$myPct%',
                 size: 11,
                 weight: FontWeight.w700,
-                color: T.live,
+                color: context.tokens.accent,
               ),
             ),
             const SizedBox(width: 6),
@@ -514,7 +514,7 @@ class _PredictSheetState extends ConsumerState<_PredictSheet> {
               padding: const EdgeInsets.symmetric(vertical: 14),
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: _submitting ? T.liveDim : T.live,
+                color: _submitting ? context.tokens.accentSubtle : context.tokens.accent,
                 borderRadius: BorderRadius.circular(T.r3),
               ),
               child: Text(
@@ -557,8 +557,8 @@ class _BigOption extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 14),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: active ? T.liveDim : T.elev2,
-          border: Border.all(color: active ? T.live : T.line),
+          color: active ? context.tokens.accentSubtle : T.elev2,
+          border: Border.all(color: active ? context.tokens.accent : T.line),
           borderRadius: BorderRadius.circular(T.r2),
         ),
         child: Column(
@@ -570,7 +570,7 @@ class _BigOption extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 fontSize: 14,
-                color: active ? T.live : context.tokens.ink,
+                color: active ? context.tokens.accent : context.tokens.ink,
                 fontWeight: FontWeight.w800,
               ),
             ),
@@ -580,7 +580,7 @@ class _BigOption extends StatelessWidget {
                 sub,
                 style: TextStyle(
                   fontSize: 10,
-                  color: active ? T.live : context.tokens.inkDim,
+                  color: active ? context.tokens.accent : context.tokens.inkDim,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -610,15 +610,15 @@ class _StakeChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 11),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: active ? T.liveDim : T.elev2,
-          border: Border.all(color: active ? T.live : T.line),
+          color: active ? context.tokens.accentSubtle : T.elev2,
+          border: Border.all(color: active ? context.tokens.accent : T.line),
           borderRadius: BorderRadius.circular(T.r2),
         ),
         child: N(
           '$value',
           size: 13,
           weight: FontWeight.w700,
-          color: active ? T.live : context.tokens.ink,
+          color: active ? context.tokens.accent : context.tokens.ink,
         ),
       ),
     );
@@ -642,7 +642,7 @@ class _DistBars extends StatelessWidget {
         children: [
           Row(
             children: [
-              _Bar(flex: dist.a, label: '${dist.a}%', color: T.live, fg: Colors.black),
+              _Bar(flex: dist.a, label: '${dist.a}%', color: context.tokens.accent, fg: Colors.black),
               const SizedBox(width: 6),
               _Bar(
                 flex: dist.d,

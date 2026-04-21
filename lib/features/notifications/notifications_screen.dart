@@ -254,7 +254,7 @@ class _NotifRow extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: context.tokens.line),
               ),
-              child: Icon(item.icon, size: 18, color: T.live),
+              child: Icon(item.icon, size: 18, color: context.tokens.accent),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -279,7 +279,7 @@ class _NotifRow extends StatelessWidget {
                           height: 6,
                           margin: const EdgeInsets.only(left: 6),
                           decoration: BoxDecoration(
-                            color: T.live,
+                            color: context.tokens.accent,
                             shape: BoxShape.circle,
                           ),
                         ),

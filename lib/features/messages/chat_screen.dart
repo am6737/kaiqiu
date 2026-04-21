@@ -102,10 +102,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.delete_sweep_outlined, color: T.warn),
+              leading: Icon(Icons.delete_sweep_outlined, color: context.tokens.warn),
               title: Text(
                 l.chat_more_clear_history,
-                style: const TextStyle(color: T.warn),
+                style: TextStyle(color: context.tokens.warn),
               ),
               onTap: () async {
                 Navigator.of(ctx).pop();
@@ -127,7 +127,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         onPressed: () => Navigator.of(d).pop(true),
                         child: Text(
                           l.common_delete,
-                          style: const TextStyle(color: T.danger),
+                          style: TextStyle(color: context.tokens.danger),
                         ),
                       ),
                     ],
@@ -309,9 +309,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   itemBuilder: (_, i) =>
                       _Bubble(msg: list[i], isMe: list[i].senderId == me),
                 ),
-                loading: () => const Center(
+                loading: () => Center(
                   child: CircularProgressIndicator(
-                    color: T.live,
+                    color: context.tokens.accent,
                     strokeWidth: 2,
                   ),
                 ),
@@ -381,7 +381,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       height: 40,
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: _sending ? context.tokens.elev3 : T.live,
+                        color: _sending ? context.tokens.elev3 : context.tokens.accent,
                         shape: BoxShape.circle,
                       ),
                       child: _sending
@@ -477,7 +477,7 @@ class _Bubble extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       constraints: const BoxConstraints(maxWidth: 260),
       decoration: BoxDecoration(
-        color: isMe ? T.live : context.tokens.elev2,
+        color: isMe ? context.tokens.accent : context.tokens.elev2,
         borderRadius: BorderRadius.circular(10),
       ),
       child: Text(

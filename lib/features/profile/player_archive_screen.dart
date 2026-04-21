@@ -123,7 +123,7 @@ class _PlayerArchiveScreenState extends ConsumerState<PlayerArchiveScreen>
                                 vertical: 2,
                               ),
                               decoration: BoxDecoration(
-                                color: T.liveDim,
+                                color: context.tokens.accentSubtle,
                                 borderRadius: BorderRadius.circular(3),
                                 border: Border.all(
                                   color: const Color(0x6600FF85),
@@ -131,12 +131,12 @@ class _PlayerArchiveScreenState extends ConsumerState<PlayerArchiveScreen>
                               ),
                               child: Text(
                                 u.position,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontFamily: T.fontMono,
                                   fontFamilyFallback: T.monoFallbacks,
                                   fontSize: 10,
                                   fontWeight: FontWeight.w700,
-                                  color: T.live,
+                                  color: context.tokens.accent,
                                 ),
                               ),
                             ),
@@ -243,10 +243,10 @@ class _PlayerArchiveScreenState extends ConsumerState<PlayerArchiveScreen>
                           children: [
                             Label(context.l10n.archive_goal_trend),
                             const Spacer(),
-                            const N(
+                            N(
                               '+28%',
                               size: 11,
-                              color: T.live,
+                              color: context.tokens.accent,
                               weight: FontWeight.w600,
                             ),
                           ],
@@ -255,7 +255,7 @@ class _PlayerArchiveScreenState extends ConsumerState<PlayerArchiveScreen>
                         SizedBox(
                           height: 60,
                           width: double.infinity,
-                          child: CustomPaint(painter: _TrendPainter()),
+                          child: CustomPaint(painter: _TrendPainter(accentColor: context.tokens.accent)),
                         ),
                       ],
                     ),
@@ -394,10 +394,10 @@ class _CardFront extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
               decoration: BoxDecoration(
-                border: Border.all(color: T.live),
+                border: Border.all(color: context.tokens.accent),
                 borderRadius: BorderRadius.circular(2),
               ),
-              child: Label(context.l10n.archive_card_profile, color: T.live),
+              child: Label(context.l10n.archive_card_profile, color: context.tokens.accent),
             ),
           ),
           Positioned(
@@ -410,13 +410,13 @@ class _CardFront extends StatelessWidget {
                   '${u.rating}',
                   size: 64,
                   weight: FontWeight.w800,
-                  color: T.live,
+                  color: context.tokens.accent,
                 ),
                 Row(
                   children: [
-                    Label(context.l10n.archive_card_overall, color: T.live),
+                    Label(context.l10n.archive_card_overall, color: context.tokens.accent),
                     const SizedBox(width: 6),
-                    Container(width: 10, height: 1, color: T.live),
+                    Container(width: 10, height: 1, color: context.tokens.accent),
                     const SizedBox(width: 6),
                     Label(u.position),
                   ],
@@ -567,7 +567,7 @@ class _CardBack extends StatelessWidget {
           Builder(
             builder: (context) => Row(
               children: [
-                Label(context.l10n.archive_radar_title, color: T.live),
+                Label(context.l10n.archive_radar_title, color: context.tokens.accent),
                 const Spacer(),
                 Label(context.l10n.archive_radar_flip_back),
               ],
@@ -577,7 +577,7 @@ class _CardBack extends StatelessWidget {
           SizedBox(
             height: 180,
             child: CustomPaint(
-              painter: _RadarPainter(u.attrs, labelColor: context.tokens.inkSub),
+              painter: _RadarPainter(u.attrs, labelColor: context.tokens.inkSub, accentColor: context.tokens.accent),
               size: Size.infinite,
             ),
           ),
@@ -617,7 +617,7 @@ class _CardBack extends StatelessWidget {
                           child: Container(
                             decoration: BoxDecoration(
                               color: e.value >= 80
-                                  ? T.live
+                                  ? context.tokens.accent
                                   : e.value >= 60
                                   ? context.tokens.ink
                                   : context.tokens.inkSub,
@@ -631,7 +631,7 @@ class _CardBack extends StatelessWidget {
                         '${e.value}',
                         size: 12,
                         weight: FontWeight.w700,
-                        color: e.value >= 80 ? T.live : context.tokens.ink,
+                        color: e.value >= 80 ? context.tokens.accent : context.tokens.ink,
                       ),
                     ],
                   ),
@@ -677,7 +677,8 @@ class _ScanLinesPainter extends CustomPainter {
 class _RadarPainter extends CustomPainter {
   final Map<String, int> attrs;
   final Color labelColor;
-  _RadarPainter(this.attrs, {required this.labelColor});
+  final Color accentColor;
+  _RadarPainter(this.attrs, {required this.labelColor, required this.accentColor});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -732,16 +733,16 @@ class _RadarPainter extends CustomPainter {
       }
     }
     dataPath.close();
-    canvas.drawPath(dataPath, Paint()..color = T.live.withValues(alpha: 0.15));
+    canvas.drawPath(dataPath, Paint()..color = accentColor.withValues(alpha: 0.15));
     canvas.drawPath(
       dataPath,
       Paint()
-        ..color = T.live
+        ..color = accentColor
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.2,
     );
 
-    final pt2 = Paint()..color = T.live;
+    final pt2 = Paint()..color = accentColor;
     for (int i = 0; i < n; i++) {
       canvas.drawCircle(pt(i, attrs[keys[i]]!.toDouble()), 2.5, pt2);
     }
@@ -767,11 +768,13 @@ class _RadarPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _RadarPainter old) => old.attrs != attrs || old.labelColor != labelColor;
+  bool shouldRepaint(covariant _RadarPainter old) => old.attrs != attrs || old.labelColor != labelColor || old.accentColor != accentColor;
 }
 
 class _TrendPainter extends CustomPainter {
   static const _data = [2, 3, 5, 4, 6, 8, 7, 9, 6, 8, 11, 10];
+  final Color accentColor;
+  _TrendPainter({required this.accentColor});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -790,7 +793,7 @@ class _TrendPainter extends CustomPainter {
     areaPath.lineTo(points.last.dx, size.height);
     areaPath.lineTo(points.first.dx, size.height);
     areaPath.close();
-    canvas.drawPath(areaPath, Paint()..color = T.live.withValues(alpha: 0.10));
+    canvas.drawPath(areaPath, Paint()..color = accentColor.withValues(alpha: 0.10));
 
     final linePath = Path()..moveTo(points[0].dx, points[0].dy);
     for (final p in points.skip(1)) {
@@ -799,12 +802,12 @@ class _TrendPainter extends CustomPainter {
     canvas.drawPath(
       linePath,
       Paint()
-        ..color = T.live
+        ..color = accentColor
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.6,
     );
 
-    final dotPaint = Paint()..color = T.live;
+    final dotPaint = Paint()..color = accentColor;
     for (int i = 0; i < points.length; i++) {
       canvas.drawCircle(points[i], i == points.length - 1 ? 3 : 1.5, dotPaint);
     }
@@ -845,7 +848,7 @@ class _RatingPanel extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Label(context.l10n.archive_rating_panel_title, color: T.live),
+                Label(context.l10n.archive_rating_panel_title, color: context.tokens.accent),
                 const SizedBox(height: 3),
                 Wrap(
                   spacing: 10,
@@ -858,12 +861,12 @@ class _RatingPanel extends StatelessWidget {
                     _StatMini(
                       label: context.l10n.archive_rating_rank,
                       value: '#1',
-                      color: T.live,
+                      color: context.tokens.accent,
                     ),
                     _StatMini(
                       label: context.l10n.archive_rating_trend,
                       value: '+0.12',
-                      color: T.live,
+                      color: context.tokens.accent,
                     ),
                   ],
                 ),
@@ -890,10 +893,10 @@ class _RatingBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = score >= 8
-        ? T.live
+        ? context.tokens.accent
         : score >= 6
         ? context.tokens.ink
-        : T.danger;
+        : context.tokens.danger;
     return Container(
       width: 64,
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
@@ -1046,9 +1049,9 @@ class _HistoryRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final Color scoreColor;
     if (match.score.contains('胜')) {
-      scoreColor = T.live;
+      scoreColor = context.tokens.accent;
     } else if (match.score.contains('负')) {
-      scoreColor = T.warn;
+      scoreColor = context.tokens.warn;
     } else {
       scoreColor = context.tokens.inkSub;
     }
@@ -1086,17 +1089,17 @@ class _HistoryRow extends StatelessWidget {
                           vertical: 1,
                         ),
                         decoration: BoxDecoration(
-                          color: T.warnDim,
+                          color: context.tokens.warnSubtle,
                           borderRadius: BorderRadius.circular(2),
                         ),
-                        child: const Text(
+                        child: Text(
                           'MVP',
                           style: TextStyle(
                             fontFamily: T.fontMono,
                             fontFamilyFallback: T.monoFallbacks,
                             fontSize: 9,
                             fontWeight: FontWeight.w700,
-                            color: T.warn,
+                            color: context.tokens.warn,
                           ),
                         ),
                       ),
