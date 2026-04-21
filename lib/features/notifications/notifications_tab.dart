@@ -1,4 +1,4 @@
-// notifications_screen.dart — 通知中心
+// notifications_tab.dart — 嵌入 InboxScreen 的通知列表（无 Scaffold / 无 PageTitleBar）。
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -12,21 +12,29 @@ import '../../widgets/section_header.dart';
 import '../../widgets/typography.dart';
 import '../../theme/app_tokens.dart';
 
-// Shell-branch roots must be entered via context.go() so the bottom-tab
-// StatefulShellRoute switches branches instead of pushing an empty overlay.
-const _branchRoots = {'/home', '/pickup', '/events', '/messages', '/me'};
+// Shell-branch roots (after inbox merge, /messages is gone).
+const _branchRoots = {'/home', '/pickup', '/events', '/me'};
 
-class NotificationsScreen extends ConsumerStatefulWidget {
-  const NotificationsScreen({super.key});
+class NotificationsTab extends ConsumerStatefulWidget {
+  const NotificationsTab({super.key});
 
   @override
-  ConsumerState<NotificationsScreen> createState() =>
-      _NotificationsScreenState();
+  ConsumerState<NotificationsTab> createState() => NotificationsTabState();
 }
 
-class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
+class NotificationsTabState extends ConsumerState<NotificationsTab> {
   bool _unreadOnly = false;
   final Set<String> _read = {};
+
+  /// Total count of unread items. Callers (InboxScreen) read this via GlobalKey
+  /// to decide whether to draw a red dot on the notification tab label.
+  int get unreadCount =>
+      _demoItems(context.l10n).where((n) => !_read.contains(n.id)).length;
+
+  /// Invoked by the "Mark all read" header action.
+  void markAllRead() {
+    setState(() => _read.addAll(_demoItems(context.l10n).map((i) => i.id)));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,84 +44,70 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         ? items.where((n) => !_read.contains(n.id)).toList()
         : items;
 
-    return Scaffold(
-      backgroundColor: context.tokens.bg,
-      body: SafeArea(
-        child: Column(
-          children: [
-            PageTitleBar(
-              title: l.notif_title,
-              onBack: () => context.pop(),
-              actions: [
-                GestureDetector(
-                  onTap: () =>
-                      setState(() => _read.addAll(items.map((i) => i.id))),
-                  child: Padding(
-                    padding: const EdgeInsets.all(6),
-                    child: Label(l.notif_mark_all_read),
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          child: Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: context.tokens.elev2,
+              border: Border.all(color: context.tokens.line),
+              borderRadius: BorderRadius.circular(context.tokens.r2),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _SubTab(
+                    label: l.notif_all,
+                    active: !_unreadOnly,
+                    onTap: () => setState(() => _unreadOnly = false),
+                  ),
+                ),
+                Expanded(
+                  child: _SubTab(
+                    label: l.notif_unread,
+                    active: _unreadOnly,
+                    onTap: () => setState(() => _unreadOnly = true),
                   ),
                 ),
               ],
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: context.tokens.elev2,
-                  border: Border.all(color: context.tokens.line),
-                  borderRadius: BorderRadius.circular(context.tokens.r2),
-                ),
-                child: Row(
+          ),
+        ),
+        Expanded(
+          child: list.isEmpty
+              ? _Empty(label: l.empty_no_notifications)
+              : ListView(
+                  padding: const EdgeInsets.only(bottom: 24),
                   children: [
-                    Expanded(
-                      child: _Tab(
-                        label: l.notif_all,
-                        active: !_unreadOnly,
-                        onTap: () => setState(() => _unreadOnly = false),
-                      ),
-                    ),
-                    Expanded(
-                      child: _Tab(
-                        label: l.notif_unread,
-                        active: _unreadOnly,
-                        onTap: () => setState(() => _unreadOnly = true),
-                      ),
-                    ),
+                    for (final group in _grouped(list).entries) ...[
+                      SectionHeader(title: _groupLabel(group.key)),
+                      for (final n in group.value)
+                        _NotifRow(
+                          item: n,
+                          read: _read.contains(n.id),
+                          onTap: () {
+                            setState(() => _read.add(n.id));
+                            final route = n.route;
+                            if (route == null) return;
+                            // Legacy notifications may still carry /messages.
+                            if (route == '/messages') {
+                              context.go('/inbox?tab=messages');
+                              return;
+                            }
+                            if (_branchRoots.contains(route)) {
+                              context.go(route);
+                            } else {
+                              context.push(route);
+                            }
+                          },
+                        ),
+                    ],
                   ],
                 ),
-              ),
-            ),
-            Expanded(
-              child: list.isEmpty
-                  ? _Empty(label: l.empty_no_notifications)
-                  : ListView(
-                      padding: const EdgeInsets.only(bottom: 40),
-                      children: [
-                        for (final group in _grouped(list).entries) ...[
-                          SectionHeader(title: _groupLabel(group.key)),
-                          for (final n in group.value)
-                            _NotifRow(
-                              item: n,
-                              read: _read.contains(n.id),
-                              onTap: () {
-                                setState(() => _read.add(n.id));
-                                final route = n.route;
-                                if (route == null) return;
-                                if (_branchRoots.contains(route)) {
-                                  context.go(route);
-                                } else {
-                                  context.push(route);
-                                }
-                              },
-                            ),
-                        ],
-                      ],
-                    ),
-            ),
-          ],
         ),
-      ),
+      ],
     );
   }
 
@@ -204,11 +198,11 @@ class _Notif {
   });
 }
 
-class _Tab extends StatelessWidget {
+class _SubTab extends StatelessWidget {
   final String label;
   final bool active;
   final VoidCallback onTap;
-  const _Tab({required this.label, required this.active, required this.onTap});
+  const _SubTab({required this.label, required this.active, required this.onTap});
 
   @override
   Widget build(BuildContext context) {

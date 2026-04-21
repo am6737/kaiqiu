@@ -1,4 +1,4 @@
-// routes.dart — go_router config with auth redirect + 5-tab shell
+// routes.dart — go_router config with auth redirect + 4-tab shell
 import 'package:go_router/go_router.dart';
 
 import 'features/auth/sign_in_screen.dart';
@@ -12,13 +12,12 @@ import 'features/events/wc_predict_screen.dart';
 import 'features/events/world_cup_screen.dart';
 import 'features/home/city_picker_screen.dart';
 import 'features/home/home_screen.dart';
+import 'features/inbox/inbox_screen.dart';
 import 'features/me/favorites_screen.dart';
 import 'features/me/my_events_screen.dart';
 import 'features/me/my_pickups_screen.dart';
 import 'features/me/my_teams_screen.dart';
 import 'features/messages/chat_screen.dart';
-import 'features/messages/messages_screen.dart';
-import 'features/notifications/notifications_screen.dart';
 import 'features/pickup/create_pickup_screen.dart';
 import 'features/pickup/pickup_detail_screen.dart';
 import 'features/pickup/pickup_map_screen.dart';
@@ -52,7 +51,7 @@ final router = GoRouter(
   },
   routes: [
     GoRoute(path: '/sign-in', builder: (_, s) => const SignInScreen()),
-    // Bottom-tab shell — 5 persistent tabs
+    // Bottom-tab shell — 4 persistent tabs
     StatefulShellRoute.indexedStack(
       builder: (context, state, shell) => BottomNavShell(shell: shell),
       branches: [
@@ -74,14 +73,6 @@ final router = GoRouter(
             GoRoute(
               path: '/events',
               builder: (_, s) => const EventsHubScreen(),
-            ),
-          ],
-        ),
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: '/messages',
-              builder: (_, s) => const MessagesScreen(),
             ),
           ],
         ),
@@ -150,8 +141,21 @@ final router = GoRouter(
     // Search / notifications / city
     GoRoute(path: '/search', builder: (_, s) => const SearchScreen()),
     GoRoute(
+      path: '/inbox',
+      builder: (_, s) => InboxScreen(
+        initialTab: switch (s.uri.queryParameters['tab']) {
+          'messages' => InboxTab.messages,
+          _ => InboxTab.notifications,
+        },
+      ),
+    ),
+    GoRoute(
+      path: '/messages',
+      redirect: (_, _) => '/inbox?tab=messages',
+    ),
+    GoRoute(
       path: '/notifications',
-      builder: (_, s) => const NotificationsScreen(),
+      redirect: (_, _) => '/inbox?tab=notifications',
     ),
     GoRoute(path: '/city-picker', builder: (_, s) => const CityPickerScreen()),
     // My content

@@ -1,4 +1,4 @@
-// bottom_nav_shell.dart — 5-tab bottom nav, wraps StatefulShellRoute children
+// bottom_nav_shell.dart — 4-tab bottom nav, wraps StatefulShellRoute children
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -16,7 +16,6 @@ class BottomNavShell extends StatelessWidget {
       (l.tab_home, Icons.home_outlined, Icons.home),
       (l.tab_pickup, Icons.map_outlined, Icons.map),
       (l.tab_events, Icons.emoji_events_outlined, Icons.emoji_events),
-      (l.tab_messages, Icons.chat_bubble_outline, Icons.chat_bubble),
       (l.tab_me, Icons.person_outline, Icons.person),
     ];
     return Scaffold(

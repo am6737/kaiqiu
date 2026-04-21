@@ -41,6 +41,7 @@
 - Modify: `lib/l10n/app_zh.arb`(模板,需放第一位)
 - Modify: `lib/l10n/app_en.arb`
 - Modify: `lib/widgets/bottom_nav_shell.dart`(先把 `l.tab_messages` 引用替换,避免 gen-l10n 后编译断)
+- Modify: `test/widget_test.dart`(移除过期的"消息"断言)
 
 - [ ] **Step 1: 打开 `lib/l10n/app_zh.arb`,定位第 9 行 `"tab_messages": "消息",`**
 
@@ -85,6 +86,14 @@
 
 **整行删除**(Task 7 会正式改 tabs 结构,这里先删引用,让编译能通过)。
 
+- [ ] **Step 3.5: 清理 `test/widget_test.dart` 里过期的"消息"断言**
+
+打开 `test/widget_test.dart`,定位到包含 `消息` 的行:
+```dart
+expect(find.text('消息'), findsOneWidget);
+```
+**整行删除**。该 smoke test 目前因 Supabase 未初始化已经失败(pre-existing),不在本次修复范围;但要同步删掉"消息 tab 存在"这个断言,避免将来 smoke test 被修后因为我们的改动再踩一次坑。
+
 - [ ] **Step 4: 运行 gen-l10n 重新生成本地化代码**
 
 Run: `flutter gen-l10n`
@@ -98,7 +107,7 @@ Expected: `clean`
 - [ ] **Step 6: 提交**
 
 ```bash
-git add lib/l10n/app_zh.arb lib/l10n/app_en.arb lib/l10n/generated lib/widgets/bottom_nav_shell.dart
+git add lib/l10n/app_zh.arb lib/l10n/app_en.arb lib/l10n/generated lib/widgets/bottom_nav_shell.dart test/widget_test.dart
 git commit -m "chore(l10n): add inbox_* keys, remove tab_messages"
 ```
 

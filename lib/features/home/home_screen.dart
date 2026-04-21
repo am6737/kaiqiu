@@ -169,15 +169,15 @@ class _TopBar extends ConsumerWidget {
           ),
           const SizedBox(width: 6),
           GestureDetector(
-            onTap: () => context.push('/notifications'),
+            onTap: () => context.push('/inbox'),
             child: Stack(
               clipBehavior: Clip.none,
               children: [
                 Padding(
                   padding: EdgeInsets.all(4),
-                  child: Icon(Icons.notifications_none, color: context.tokens.ink, size: 20),
+                  child: Icon(Icons.inbox_outlined, color: context.tokens.ink, size: 20),
                 ),
-                Positioned(right: 4, top: 4, child: _WarnDot()),
+                Positioned(right: 4, top: 4, child: _InboxUnreadDot()),
               ],
             ),
           ),
@@ -187,14 +187,24 @@ class _TopBar extends ConsumerWidget {
   }
 }
 
-class _WarnDot extends StatelessWidget {
-  const _WarnDot();
+// Notifications are still demo data, so we don't yet have a provider for
+// "any notification unread". Until notifications land real data, the dot
+// renders whenever there's an unread DM OR unconditionally (for demo).
+// The ref.watch() keeps the widget reactive so new DMs light it up.
+// TODO: once notifications has a real provider, gate the dot on
+// `hasUnread || hasNotifUnread` and return `SizedBox.shrink()` otherwise.
+class _InboxUnreadDot extends ConsumerWidget {
+  const _InboxUnreadDot();
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(messagesUnreadProvider);
     return Container(
       width: 6,
       height: 6,
-      decoration: BoxDecoration(color: context.tokens.warn, shape: BoxShape.circle),
+      decoration: BoxDecoration(
+        color: context.tokens.warn,
+        shape: BoxShape.circle,
+      ),
     );
   }
 }

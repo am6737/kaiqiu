@@ -7,7 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:kaiqiu_app/features/messages/messages_screen.dart';
+import 'package:kaiqiu_app/features/messages/messages_tab.dart';
 import 'package:kaiqiu_app/l10n/generated/app_localizations.dart';
 import 'package:kaiqiu_app/models/message.dart';
 import 'package:kaiqiu_app/providers.dart';
@@ -85,7 +85,7 @@ Widget _wrap({
       darkTheme: t.darkTheme,
       localizationsDelegates: AppL10n.localizationsDelegates,
       supportedLocales: AppL10n.supportedLocales,
-      home: const MessagesScreen(),
+      home: const Scaffold(body: SafeArea(child: MessagesTab())),
     ),
   );
 }
