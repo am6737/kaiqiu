@@ -21,10 +21,16 @@ class AppL10nEn extends AppL10n {
   String get tab_events => 'Events';
 
   @override
-  String get tab_messages => 'Messages';
+  String get tab_me => 'Me';
 
   @override
-  String get tab_me => 'Me';
+  String get inbox_title => 'Inbox';
+
+  @override
+  String get inbox_tab_messages => 'Messages';
+
+  @override
+  String get inbox_tab_notifications => 'Notifications';
 
   @override
   String get common_back => 'Back';

@@ -21,10 +21,16 @@ class AppL10nZh extends AppL10n {
   String get tab_events => '赛事';
 
   @override
-  String get tab_messages => '消息';
+  String get tab_me => '我的';
 
   @override
-  String get tab_me => '我的';
+  String get inbox_title => '收件箱';
+
+  @override
+  String get inbox_tab_messages => '消息';
+
+  @override
+  String get inbox_tab_notifications => '通知';
 
   @override
   String get common_back => '返回';

@@ -6,8 +6,11 @@
   "tab_home": "Home",
   "tab_pickup": "Pickup",
   "tab_events": "Events",
-  "tab_messages": "Messages",
   "tab_me": "Me",
+
+  "inbox_title": "Inbox",
+  "inbox_tab_messages": "Messages",
+  "inbox_tab_notifications": "Notifications",
 
   "common_back": "Back",
   "common_cancel": "Cancel",

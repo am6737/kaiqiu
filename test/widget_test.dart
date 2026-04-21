@@ -15,7 +15,6 @@ void main() {
     expect(find.text('首页'), findsOneWidget);
     expect(find.text('约球'), findsOneWidget);
     expect(find.text('赛事'), findsOneWidget);
-    expect(find.text('消息'), findsOneWidget);
     expect(find.text('我的'), findsOneWidget);
   });
 }

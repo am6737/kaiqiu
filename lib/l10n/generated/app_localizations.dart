@@ -121,17 +121,29 @@ abstract class AppL10n {
   /// **'赛事'**
   String get tab_events;
 
-  /// No description provided for @tab_messages.
-  ///
-  /// In zh, this message translates to:
-  /// **'消息'**
-  String get tab_messages;
-
   /// No description provided for @tab_me.
   ///
   /// In zh, this message translates to:
   /// **'我的'**
   String get tab_me;
+
+  /// No description provided for @inbox_title.
+  ///
+  /// In zh, this message translates to:
+  /// **'收件箱'**
+  String get inbox_title;
+
+  /// No description provided for @inbox_tab_messages.
+  ///
+  /// In zh, this message translates to:
+  /// **'消息'**
+  String get inbox_tab_messages;
+
+  /// No description provided for @inbox_tab_notifications.
+  ///
+  /// In zh, this message translates to:
+  /// **'通知'**
+  String get inbox_tab_notifications;
 
   /// No description provided for @common_back.
   ///
