@@ -3469,6 +3469,48 @@ abstract class AppL10n {
   /// **'状态'**
   String get event_row_status_label;
 
+  /// No description provided for @player_card_rating.
+  ///
+  /// In zh, this message translates to:
+  /// **'评分'**
+  String get player_card_rating;
+
+  /// No description provided for @player_card_mp.
+  ///
+  /// In zh, this message translates to:
+  /// **'出场'**
+  String get player_card_mp;
+
+  /// No description provided for @team_card_summary.
+  ///
+  /// In zh, this message translates to:
+  /// **'战绩'**
+  String get team_card_summary;
+
+  /// No description provided for @team_card_gf.
+  ///
+  /// In zh, this message translates to:
+  /// **'进球'**
+  String get team_card_gf;
+
+  /// No description provided for @team_card_ga.
+  ///
+  /// In zh, this message translates to:
+  /// **'失球'**
+  String get team_card_ga;
+
+  /// No description provided for @team_card_gd.
+  ///
+  /// In zh, this message translates to:
+  /// **'净胜'**
+  String get team_card_gd;
+
+  /// No description provided for @team_card_matches.
+  ///
+  /// In zh, this message translates to:
+  /// **'比赛'**
+  String get team_card_matches;
+
   /// No description provided for @wc_hero_title.
   ///
   /// In zh, this message translates to:

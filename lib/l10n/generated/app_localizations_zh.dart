@@ -1772,6 +1772,27 @@ class AppL10nZh extends AppL10n {
   String get event_row_status_label => '状态';
 
   @override
+  String get player_card_rating => '评分';
+
+  @override
+  String get player_card_mp => '出场';
+
+  @override
+  String get team_card_summary => '战绩';
+
+  @override
+  String get team_card_gf => '进球';
+
+  @override
+  String get team_card_ga => '失球';
+
+  @override
+  String get team_card_gd => '净胜';
+
+  @override
+  String get team_card_matches => '比赛';
+
+  @override
   String get wc_hero_title => '世界杯专区';
 
   @override

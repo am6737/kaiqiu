@@ -685,6 +685,13 @@
   "@event_deadline_md_suffix": { "placeholders": { "md": { "type": "String" } } },
   "event_row_teams_label": "报名队伍",
   "event_row_status_label": "状态",
+  "player_card_rating": "评分",
+  "player_card_mp": "出场",
+  "team_card_summary": "战绩",
+  "team_card_gf": "进球",
+  "team_card_ga": "失球",
+  "team_card_gd": "净胜",
+  "team_card_matches": "比赛",
 
   "wc_hero_title": "世界杯专区",
   "wc_hero_sub": "小组赛 · 第 2 轮 · 今晚 5 场直播",

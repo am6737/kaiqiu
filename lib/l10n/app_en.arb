@@ -685,6 +685,13 @@
   "@event_deadline_md_suffix": { "placeholders": { "md": { "type": "String" } } },
   "event_row_teams_label": "Teams registered",
   "event_row_status_label": "Status",
+  "player_card_rating": "Rating",
+  "player_card_mp": "MP",
+  "team_card_summary": "Record",
+  "team_card_gf": "GF",
+  "team_card_ga": "GA",
+  "team_card_gd": "GD",
+  "team_card_matches": "Matches",
 
   "wc_hero_title": "World Cup Hub",
   "wc_hero_sub": "Group · R2 · 5 matches live tonight",

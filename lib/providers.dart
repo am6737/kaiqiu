@@ -7,6 +7,7 @@ import 'data/mock.dart' as mock;
 import 'models/event.dart';
 import 'models/message.dart';
 import 'models/pickup.dart';
+import 'models/profile.dart';
 import 'repositories/events_repository.dart';
 import 'repositories/favorites_repository.dart';
 import 'repositories/feedback_repository.dart';
@@ -241,6 +242,12 @@ final myRemindersProvider = FutureProvider<List<MatchReminder>>((ref) async {
   ref.watch(localStoreProvider);
   return ref.read(remindersRepoProvider).listMine();
 });
+
+/// Fetch any profile by id (cached per id via autoDispose + family).
+final profileByIdProvider = FutureProvider.family
+    .autoDispose<Profile?, String>((ref, id) async {
+      return ref.read(profilesRepoProvider).fetch(id);
+    });
 
 /// Current user's profile — real fields from Supabase (name, handle, city,
 /// position, height, foot), plus mock fallbacks for fields the DB doesn't

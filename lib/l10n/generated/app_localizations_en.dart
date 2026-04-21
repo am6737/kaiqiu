@@ -1796,6 +1796,27 @@ class AppL10nEn extends AppL10n {
   String get event_row_status_label => 'Status';
 
   @override
+  String get player_card_rating => 'Rating';
+
+  @override
+  String get player_card_mp => 'MP';
+
+  @override
+  String get team_card_summary => 'Record';
+
+  @override
+  String get team_card_gf => 'GF';
+
+  @override
+  String get team_card_ga => 'GA';
+
+  @override
+  String get team_card_gd => 'GD';
+
+  @override
+  String get team_card_matches => 'Matches';
+
+  @override
   String get wc_hero_title => 'World Cup Hub';
 
   @override

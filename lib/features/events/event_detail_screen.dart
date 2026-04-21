@@ -14,6 +14,7 @@ import '../../l10n/generated/app_localizations.dart';
 import '../../l10n/l10n_extension.dart';
 import '../../models/event.dart';
 import '../../models/message.dart';
+import '../../models/profile.dart';
 import '../../providers.dart';
 import '../../repositories/favorites_repository.dart';
 import '../../repositories/goals_repository.dart';
@@ -872,7 +873,7 @@ class _StandingsPanel extends ConsumerWidget {
                 ),
               );
             }
-            return _StandingsTable(rows: rows);
+            return _StandingsTable(rows: rows, matches: matches);
           },
           loading: () => const _PanelLoading(),
           error: (e, _) => _PanelError(e),
@@ -882,7 +883,8 @@ class _StandingsPanel extends ConsumerWidget {
 
 class _StandingsTable extends StatelessWidget {
   final List<StandingRow> rows;
-  const _StandingsTable({required this.rows});
+  final List<Match> matches;
+  const _StandingsTable({required this.rows, required this.matches});
 
   @override
   Widget build(BuildContext context) {
@@ -921,13 +923,20 @@ class _StandingsTable extends StatelessWidget {
             ),
           ),
           for (final s in rows)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: s.rank <= 2 ? const Color(0x0800FF85) : null,
-                border: const Border(top: BorderSide(color: T.line, width: 1)),
-              ),
-              child: Row(
+            Material(
+              color: s.rank <= 2 ? const Color(0x0800FF85) : Colors.transparent,
+              child: InkWell(
+                onTap: () =>
+                    _showTeamSheet(context, standing: s, allMatches: matches),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  decoration: const BoxDecoration(
+                    border: Border(top: BorderSide(color: T.line, width: 1)),
+                  ),
+                  child: Row(
                 children: [
                   SizedBox(
                     width: 24,
@@ -997,7 +1006,307 @@ class _StandingsTable extends StatelessWidget {
                   ),
                 ],
               ),
+                ),
+              ),
             ),
+        ],
+      ),
+    );
+  }
+}
+
+Future<void> _showTeamSheet(
+  BuildContext context, {
+  required StandingRow standing,
+  required List<Match> allMatches,
+}) {
+  return showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: T.elev1,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (ctx) => _TeamSheet(standing: standing, allMatches: allMatches),
+  );
+}
+
+class _TeamSheet extends StatelessWidget {
+  final StandingRow standing;
+  final List<Match> allMatches;
+  const _TeamSheet({required this.standing, required this.allMatches});
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    final own = standing.team;
+    final teamMatches = allMatches
+        .where((m) => m.teamALabel == own || m.teamBLabel == own)
+        .toList()
+      ..sort((a, b) {
+        final at = a.playedAt, bt = b.playedAt;
+        if (at == null && bt == null) return 0;
+        if (at == null) return 1;
+        if (bt == null) return -1;
+        return bt.compareTo(at);
+      });
+    final gd = standing.gf - standing.ga;
+    final hue = (standing.rank * 50).toDouble() % 360;
+    final teamColor = HSLColor.fromAHSL(1, hue, 0.35, 0.3).toColor();
+
+    return DraggableScrollableSheet(
+      expand: false,
+      initialChildSize: 0.62,
+      minChildSize: 0.4,
+      maxChildSize: 0.92,
+      builder: (ctx, scroll) => Padding(
+        padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: T.inkMute,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Container(
+                  width: 28,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    color: teamColor,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        standing.team,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: T.ink,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '#${standing.rank}',
+                        style: const TextStyle(
+                          fontFamily: T.fontMono,
+                          fontFamilyFallback: T.monoFallbacks,
+                          fontSize: 12,
+                          color: T.inkSub,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Label(l.team_card_summary),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                color: T.elev2,
+                border: Border.all(color: T.line),
+                borderRadius: BorderRadius.circular(T.r2),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _StatCell(
+                      value: '${standing.pts}',
+                      label: l.event_standings_points,
+                      accent: T.live,
+                    ),
+                  ),
+                  Expanded(
+                    child: _StatCell(
+                      value: '${standing.w}',
+                      label: l.event_standings_wins,
+                    ),
+                  ),
+                  Expanded(
+                    child: _StatCell(
+                      value: '${standing.d}',
+                      label: l.event_standings_draws,
+                    ),
+                  ),
+                  Expanded(
+                    child: _StatCell(
+                      value: '${standing.l}',
+                      label: l.event_standings_losses,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              decoration: BoxDecoration(
+                color: T.elev2,
+                border: Border.all(color: T.line),
+                borderRadius: BorderRadius.circular(T.r2),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _StatCell(
+                      value: '${standing.gf}',
+                      label: l.team_card_gf,
+                    ),
+                  ),
+                  Expanded(
+                    child: _StatCell(
+                      value: '${standing.ga}',
+                      label: l.team_card_ga,
+                    ),
+                  ),
+                  Expanded(
+                    child: _StatCell(
+                      value: gd > 0 ? '+$gd' : '$gd',
+                      label: l.team_card_gd,
+                      accent: gd > 0
+                          ? T.live
+                          : gd < 0
+                              ? T.inkSub
+                              : null,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 18),
+            Label('${l.team_card_matches} · ${teamMatches.length}'),
+            const SizedBox(height: 8),
+            Expanded(
+              child: teamMatches.isEmpty
+                  ? Center(
+                      child: Label(l.event_standings_empty2),
+                    )
+                  : ListView.separated(
+                      controller: scroll,
+                      padding: EdgeInsets.zero,
+                      itemCount: teamMatches.length,
+                      separatorBuilder: (_, _) => const SizedBox(height: 6),
+                      itemBuilder: (_, i) => _TeamMatchRow(
+                        match: teamMatches[i],
+                        ownTeam: own,
+                      ),
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TeamMatchRow extends StatelessWidget {
+  final Match match;
+  final String ownTeam;
+  const _TeamMatchRow({required this.match, required this.ownTeam});
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    final isHome = match.teamALabel == ownTeam;
+    final opponent = (isHome ? match.teamBLabel : match.teamALabel) ?? '—';
+    final ownScore = isHome ? match.scoreA : match.scoreB;
+    final oppScore = isHome ? match.scoreB : match.scoreA;
+
+    String? resultLabel;
+    Color? resultColor;
+    if (match.done && ownScore != null && oppScore != null) {
+      if (ownScore > oppScore) {
+        resultLabel = l.event_standings_wins;
+        resultColor = T.live;
+      } else if (ownScore < oppScore) {
+        resultLabel = l.event_standings_losses;
+        resultColor = T.inkSub;
+      } else {
+        resultLabel = l.event_standings_draws;
+        resultColor = T.inkMute;
+      }
+    }
+
+    final dateStr = match.playedAt != null
+        ? '${match.playedAt!.month.toString().padLeft(2, '0')}/'
+              '${match.playedAt!.day.toString().padLeft(2, '0')}'
+        : '';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: T.elev2,
+        border: Border.all(color: T.line),
+        borderRadius: BorderRadius.circular(T.r2),
+      ),
+      child: Row(
+        children: [
+          if (resultLabel != null) ...[
+            Container(
+              width: 20,
+              height: 20,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: resultColor!.withValues(alpha: 0.16),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                resultLabel,
+                style: TextStyle(
+                  fontFamily: T.fontMono,
+                  fontFamilyFallback: T.monoFallbacks,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: resultColor,
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+          ],
+          Expanded(
+            child: Text(
+              opponent,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 13,
+                color: T.ink,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          if (match.done && ownScore != null && oppScore != null)
+            N(
+              '$ownScore - $oppScore',
+              size: 13,
+              weight: FontWeight.w700,
+              color: resultColor ?? T.ink,
+            )
+          else
+            const Text('-', style: TextStyle(color: T.inkDim, fontSize: 12)),
+          if (dateStr.isNotEmpty) ...[
+            const SizedBox(width: 10),
+            N(dateStr, size: 11, color: T.inkDim),
+          ],
         ],
       ),
     );
@@ -1050,7 +1359,16 @@ class _ScorersPanel extends ConsumerWidget {
           child: Column(
             children: [
               for (int i = 0; i < rows.length; i++)
-                _ScorerCard(rank: i + 1, row: rows[i], medal: _medal),
+                _ScorerCard(
+                  rank: i + 1,
+                  row: rows[i],
+                  medal: _medal,
+                  onTap: () => _showScorerSheet(
+                    context,
+                    eventId: eventId,
+                    row: rows[i],
+                  ),
+                ),
             ],
           ),
         );
@@ -1063,23 +1381,40 @@ class _ScorerCard extends StatelessWidget {
   final int rank;
   final ScorerRow row;
   final List<Color> medal;
+  final VoidCallback? onTap;
   const _ScorerCard({
     required this.rank,
     required this.row,
     required this.medal,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    final radius = BorderRadius.circular(T.r2);
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
+      child: Material(
         color: T.elev2,
-        border: Border.all(color: T.line),
-        borderRadius: BorderRadius.circular(T.r2),
+        borderRadius: radius,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: radius,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              border: Border.all(color: T.line),
+              borderRadius: radius,
+            ),
+            child: _buildRow(context),
+          ),
+        ),
       ),
-      child: Row(
+    );
+  }
+
+  Widget _buildRow(BuildContext context) {
+    return Row(
         children: [
           SizedBox(
             width: 28,
@@ -1144,7 +1479,258 @@ class _ScorerCard extends StatelessWidget {
             ],
           ),
         ],
+    );
+  }
+}
+
+Future<void> _showScorerSheet(
+  BuildContext context, {
+  required String eventId,
+  required ScorerRow row,
+}) {
+  return showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: T.elev1,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (ctx) => _ScorerSheet(eventId: eventId, row: row),
+  );
+}
+
+class _ScorerSheet extends ConsumerWidget {
+  final String eventId;
+  final ScorerRow row;
+  const _ScorerSheet({required this.eventId, required this.row});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = context.l10n;
+    final ratings = ref.watch(eventPlayerRatingsProvider(eventId));
+    final profileAsync = row.scorerId == null
+        ? const AsyncValue<Profile?>.data(null)
+        : ref.watch(profileByIdProvider(row.scorerId!));
+    final profile = profileAsync.valueOrNull;
+
+    PlayerRatingRow? rating;
+    final ratingList = ratings.valueOrNull;
+    if (ratingList != null && row.scorerId != null) {
+      for (final r in ratingList) {
+        if (r.rateeId == row.scorerId) {
+          rating = r;
+          break;
+        }
+      }
+    }
+
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 14, 20, 28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: T.inkMute,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 18),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Avatar(row.name, size: 56),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        row.name,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: T.ink,
+                        ),
+                      ),
+                      if (_metaLine(profile).isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          _metaLine(profile),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: T.inkSub,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 18),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: _StatCell(
+                    value: '${row.goals}',
+                    label: l.event_scorers_goals,
+                    accent: T.live,
+                  ),
+                ),
+                Expanded(
+                  child: _StatCell(
+                    value: '${row.matches}',
+                    label: l.player_card_mp,
+                  ),
+                ),
+                Expanded(
+                  child: _StatCell(
+                    value: rating != null
+                        ? rating.avgScore.toStringAsFixed(1)
+                        : '—',
+                    label: l.player_card_rating,
+                    sub: rating != null
+                        ? l.event_rating_n_voters_inline(rating.votes)
+                        : null,
+                  ),
+                ),
+              ],
+            ),
+            if (profile != null &&
+                (profile.height != null ||
+                    (profile.foot != null && profile.foot!.isNotEmpty))) ...[
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: T.elev2,
+                  border: Border.all(color: T.line),
+                  borderRadius: BorderRadius.circular(T.r2),
+                ),
+                child: Row(
+                  children: [
+                    if (profile.height != null)
+                      Expanded(
+                        child: _InlineStat(
+                          label: l.profile_edit_height,
+                          value: '${profile.height}',
+                        ),
+                      ),
+                    if (profile.foot != null && profile.foot!.isNotEmpty)
+                      Expanded(
+                        child: _InlineStat(
+                          label: l.profile_edit_foot,
+                          value: _footLabel(l, profile.foot!),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _metaLine(Profile? p) {
+    if (p == null) return '';
+    final parts = <String>[];
+    if (p.position != null && p.position!.isNotEmpty) parts.add(p.position!);
+    if (p.city != null && p.city!.isNotEmpty) {
+      if (p.district != null && p.district!.isNotEmpty) {
+        parts.add('${p.city} · ${p.district}');
+      } else {
+        parts.add(p.city!);
+      }
+    }
+    return parts.join(' · ');
+  }
+
+  String _footLabel(AppL10n l, String raw) {
+    switch (raw.toLowerCase()) {
+      case 'left':
+        return l.profile_edit_foot_left;
+      case 'right':
+        return l.profile_edit_foot_right;
+      case 'both':
+        return l.profile_edit_foot_both;
+      default:
+        return raw;
+    }
+  }
+}
+
+class _StatCell extends StatelessWidget {
+  final String value;
+  final String label;
+  final String? sub;
+  final Color? accent;
+  const _StatCell({
+    required this.value,
+    required this.label,
+    this.sub,
+    this.accent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        N(value, size: 22, weight: FontWeight.w700, color: accent ?? T.ink),
+        const SizedBox(height: 4),
+        Label(label),
+        if (sub != null) ...[
+          const SizedBox(height: 2),
+          Text(
+            sub!,
+            style: const TextStyle(fontSize: 10, color: T.inkDim),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _InlineStat extends StatelessWidget {
+  final String label;
+  final String value;
+  const _InlineStat({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Label(label),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: T.ink,
+          ),
+        ),
+      ],
     );
   }
 }
