@@ -296,38 +296,6 @@ class MessagesScreen extends ConsumerWidget {
             const SizedBox(height: 6),
             ListTile(
               leading: Icon(
-                LocalStore.isPinned(c.id)
-                    ? Icons.push_pin
-                    : Icons.push_pin_outlined,
-                color: context.tokens.accent,
-              ),
-              title: Text(
-                LocalStore.isPinned(c.id) ? l.common_unpin : l.common_pin,
-                style: TextStyle(color: context.tokens.ink),
-              ),
-              onTap: () async {
-                await LocalStore.togglePinned(c.id);
-                if (ctx.mounted) Navigator.of(ctx).pop();
-              },
-            ),
-            ListTile(
-              leading: Icon(
-                LocalStore.isMuted(c.id)
-                    ? Icons.notifications_off
-                    : Icons.notifications_off_outlined,
-                color: context.tokens.inkSub,
-              ),
-              title: Text(
-                LocalStore.isMuted(c.id) ? l.common_unmute : l.common_mute,
-                style: TextStyle(color: context.tokens.ink),
-              ),
-              onTap: () async {
-                await LocalStore.toggleMuted(c.id);
-                if (ctx.mounted) Navigator.of(ctx).pop();
-              },
-            ),
-            ListTile(
-              leading: Icon(
                 Icons.mark_email_read_outlined,
                 color: context.tokens.inkSub,
               ),
@@ -339,55 +307,6 @@ class MessagesScreen extends ConsumerWidget {
                 await ref.read(messagesRepoProvider).markRead(c.id);
                 ref.invalidate(conversationsProvider);
                 if (ctx.mounted) Navigator.of(ctx).pop();
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.delete_outline, color: context.tokens.danger),
-              title: Text(
-                l.messages_long_press_actions_delete,
-                style: TextStyle(color: context.tokens.danger),
-              ),
-              onTap: () async {
-                Navigator.of(ctx).pop();
-                if (!context.mounted) return;
-                final confirm = await showDialog<bool>(
-                  context: context,
-                  builder: (d) => AlertDialog(
-                    backgroundColor: context.tokens.elev2,
-                    content: Text(
-                      l.messages_delete_confirm,
-                      style: TextStyle(color: context.tokens.ink),
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.of(d).pop(false),
-                        child: Text(l.common_cancel),
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.of(d).pop(true),
-                        child: Text(
-                          l.common_delete,
-                          style: TextStyle(color: context.tokens.danger),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-                if (confirm == true) {
-                  try {
-                    await ref
-                        .read(messagesRepoProvider)
-                        .deleteConversation(c.id);
-                    ref.invalidate(conversationsProvider);
-                    if (context.mounted) {
-                      showToast(context, l.messages_deleted, success: true);
-                    }
-                  } catch (e) {
-                    if (context.mounted) {
-                      showToast(context, '$e', error: true);
-                    }
-                  }
-                }
               },
             ),
             const SizedBox(height: 10),
