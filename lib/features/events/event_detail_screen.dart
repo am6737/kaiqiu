@@ -104,41 +104,51 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
       ('scorers', l.event_tab_scorers),
       ('chat', l.event_tab_chat),
     ];
-    return Stack(
-      children: [
-        SingleChildScrollView(
-          padding: const EdgeInsets.only(bottom: 110),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _Header(event: event, onBack: () => context.pop()),
-              _KpiStrip(
-                eventId: event.id,
-                prizeCents: event.prizeCents,
-                teamsMax: event.teamsMax,
+    return LayoutBuilder(
+      builder: (ctx, constraints) {
+        // Cover 180 + KpiStrip ~62 + Tabs ~47 = ~289 above; reserve 110 for CTA.
+        final panelMinHeight = (constraints.maxHeight - 289 - 110)
+            .clamp(0.0, double.infinity);
+        return Stack(
+          children: [
+            SingleChildScrollView(
+              padding: const EdgeInsets.only(bottom: 110),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _Header(event: event, onBack: () => context.pop()),
+                  _KpiStrip(
+                    eventId: event.id,
+                    prizeCents: event.prizeCents,
+                    teamsMax: event.teamsMax,
+                  ),
+                  _Tabs(
+                    current: _tab,
+                    tabs: tabs,
+                    onChange: (v) => setState(() => _tab = v),
+                  ),
+                  ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: panelMinHeight),
+                    child: switch (_tab) {
+                      'overview' => _OverviewPanel(event: event),
+                      'bracket' => _BracketPanel(eventId: event.id),
+                      'standings' => _StandingsPanel(eventId: event.id),
+                      'scorers' => _ScorersPanel(eventId: event.id),
+                      _ => _ChatPanel(eventId: event.id),
+                    },
+                  ),
+                ],
               ),
-              _Tabs(
-                current: _tab,
-                tabs: tabs,
-                onChange: (v) => setState(() => _tab = v),
-              ),
-              switch (_tab) {
-                'overview' => _OverviewPanel(event: event),
-                'bracket' => _BracketPanel(eventId: event.id),
-                'standings' => _StandingsPanel(eventId: event.id),
-                'scorers' => _ScorersPanel(eventId: event.id),
-                _ => _ChatPanel(eventId: event.id),
-              },
-            ],
-          ),
-        ),
-        Positioned(
-          bottom: 0,
-          left: 0,
-          right: 0,
-          child: _BottomCta(event: event),
-        ),
-      ],
+            ),
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: _BottomCta(event: event),
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -421,8 +431,9 @@ class _OverviewPanel extends StatelessWidget {
     final body = event.sub?.isNotEmpty == true
         ? '${event.sub} — ${event.name}。'
         : '${event.name}。';
-    return Padding(
+    return Container(
       padding: const EdgeInsets.all(16),
+      color: context.tokens.elev1,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1779,7 +1790,6 @@ class _ChatPanelState extends ConsumerState<_ChatPanel> {
     return Container(
       padding: const EdgeInsets.all(14),
       color: context.tokens.elev1,
-      constraints: const BoxConstraints(minHeight: 320),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
