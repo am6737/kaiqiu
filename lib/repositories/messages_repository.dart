@@ -187,4 +187,33 @@ class MessagesRepository {
     );
     return convId as String;
   }
+
+  /// Idempotently find-or-create a 1v1 DM conversation with [otherUserId].
+  /// Returns the conversation id. Atomic on the server via RPC.
+  Future<String> ensureDmWith(String otherUserId) async {
+    if (currentUserId == null) {
+      throw StateError('not signed in');
+    }
+    final convId = await supabase.rpc(
+      'ensure_dm_conversation',
+      params: {'p_other_user_id': otherUserId},
+    );
+    return convId as String;
+  }
+
+  /// For a DM conversation, return the OTHER member's user_id
+  /// (the peer, i.e. not the current user). Returns null if convId
+  /// is not a DM or the current user is not signed in.
+  Future<String?> fetchDmPeerId(String convId) async {
+    final me = currentUserId;
+    if (me == null) return null;
+    final row = await supabase
+        .from('v_conversation_peers')
+        .select('peer_user_id')
+        .eq('conv_id', convId)
+        .neq('peer_user_id', me)
+        .maybeSingle();
+    if (row == null) return null;
+    return row['peer_user_id'] as String?;
+  }
 }
