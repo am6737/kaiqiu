@@ -590,5 +590,40 @@ Future<void> _confirmAndDelete(
   WidgetRef ref,
   ConversationRow c,
 ) async {
-  // Full implementation added in Task 4.
+  final l = context.l10n;
+  final confirm = await showDialog<bool>(
+    context: context,
+    builder: (d) => AlertDialog(
+      backgroundColor: context.tokens.elev2,
+      content: Text(
+        l.messages_delete_confirm,
+        style: TextStyle(color: context.tokens.ink),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(d).pop(false),
+          child: Text(l.common_cancel),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(d).pop(true),
+          child: Text(
+            l.common_delete,
+            style: TextStyle(color: context.tokens.danger),
+          ),
+        ),
+      ],
+    ),
+  );
+  if (confirm != true) return;
+  try {
+    await ref.read(messagesRepoProvider).deleteConversation(c.id);
+    ref.invalidate(conversationsProvider);
+    if (context.mounted) {
+      showToast(context, l.messages_deleted, success: true);
+    }
+  } catch (e) {
+    if (context.mounted) {
+      showToast(context, '$e', error: true);
+    }
+  }
 }

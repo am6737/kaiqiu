@@ -147,4 +147,37 @@ void main() {
     expect(find.byIcon(Icons.push_pin_outlined), findsNothing);
     expect(find.text('取消置顶'), findsOneWidget);
   });
+
+  testWidgets('tapping delete shows confirm dialog and calls repo on confirm',
+      (tester) async {
+    final repo = _FakeMessagesRepo();
+    await tester.pumpWidget(_wrap(
+      conversations: [_conv('c1', title: 'Alpha')],
+      repo: repo,
+    ));
+    await tester.pumpAndSettle();
+
+    // Swipe.
+    await tester.drag(find.text('Alpha'), const Offset(-400, 0));
+    await tester.pumpAndSettle();
+
+    // Tap the delete icon button.
+    await tester.tap(find.byIcon(Icons.delete_outline));
+    await tester.pumpAndSettle();
+
+    // AlertDialog with confirm copy appears.
+    expect(find.text('删除此对话？'), findsOneWidget);
+    expect(repo.deletedIds, isEmpty);
+
+    // Tap the "删除" button inside the dialog (the second "删除" text on screen —
+    // the first is the slidable action label still visible behind the dialog).
+    // We target by widget type + ancestor: TextButton whose label is "删除".
+    final deleteBtn = find.widgetWithText(TextButton, '删除');
+    expect(deleteBtn, findsOneWidget);
+    await tester.tap(deleteBtn);
+    await tester.pumpAndSettle();
+
+    // Repo was called with the right id.
+    expect(repo.deletedIds, ['c1']);
+  });
 }
