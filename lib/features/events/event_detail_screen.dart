@@ -24,6 +24,7 @@ import '../../theme/tokens.dart';
 import '../../utils/share_helper.dart';
 import '../../utils/toast.dart';
 import '../../widgets/avatar.dart';
+import '../../widgets/network_avatar.dart';
 import '../../widgets/photo_halftone.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/typography.dart';
@@ -952,8 +953,8 @@ class _StandingsTable extends StatelessWidget {
                     child: Row(
                       children: [
                         Container(
-                          width: 20,
-                          height: 20,
+                          width: 32,
+                          height: 32,
                           decoration: BoxDecoration(
                             color: HSLColor.fromAHSL(
                               1,
@@ -961,10 +962,10 @@ class _StandingsTable extends StatelessWidget {
                               0.35,
                               0.3,
                             ).toColor(),
-                            borderRadius: BorderRadius.circular(4),
+                            borderRadius: BorderRadius.circular(6),
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 10),
                         Expanded(
                           child: Text(
                             s.team,
@@ -1079,14 +1080,14 @@ class _TeamSheet extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  width: 28,
-                  height: 28,
+                  width: 76,
+                  height: 76,
                   decoration: BoxDecoration(
                     color: teamColor,
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(16),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1377,7 +1378,7 @@ class _ScorersPanel extends ConsumerWidget {
   }
 }
 
-class _ScorerCard extends StatelessWidget {
+class _ScorerCard extends ConsumerWidget {
   final int rank;
   final ScorerRow row;
   final List<Color> medal;
@@ -1390,8 +1391,12 @@ class _ScorerCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final radius = BorderRadius.circular(T.r2);
+    final profileAsync = row.scorerId == null
+        ? const AsyncValue<Profile?>.data(null)
+        : ref.watch(profileByIdProvider(row.scorerId!));
+    final avatarUrl = profileAsync.valueOrNull?.avatarUrl;
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       child: Material(
@@ -1406,14 +1411,14 @@ class _ScorerCard extends StatelessWidget {
               border: Border.all(color: T.line),
               borderRadius: radius,
             ),
-            child: _buildRow(context),
+            child: _buildRow(context, avatarUrl),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildRow(BuildContext context) {
+  Widget _buildRow(BuildContext context, String? avatarUrl) {
     return Row(
         children: [
           SizedBox(
@@ -1448,7 +1453,7 @@ class _ScorerCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          Avatar(row.name, size: 36),
+          NetworkAvatar(row.name, url: avatarUrl, size: 48),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -1548,8 +1553,8 @@ class _ScorerSheet extends ConsumerWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Avatar(row.name, size: 56),
-                const SizedBox(width: 14),
+                NetworkAvatar(row.name, url: profile?.avatarUrl, size: 96),
+                const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
