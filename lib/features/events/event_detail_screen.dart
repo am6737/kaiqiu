@@ -182,20 +182,22 @@ class _Header extends StatelessWidget {
         Positioned(
           top: 12,
           left: 12,
-          child: GestureDetector(
-            onTap: onBack,
-            child: Container(
-              width: 36,
-              height: 36,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: Color(0x80000000),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.arrow_back_ios_new,
-                size: 16,
-                color: context.tokens.ink,
+          child: SafeArea(
+            child: GestureDetector(
+              onTap: onBack,
+              child: Container(
+                width: 36,
+                height: 36,
+                alignment: Alignment.center,
+                decoration: const BoxDecoration(
+                  color: Color(0x66000000),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.arrow_back_ios_new,
+                  size: 16,
+                  color: Color(0xFFFFFFFF),
+                ),
               ),
             ),
           ),
@@ -203,17 +205,23 @@ class _Header extends StatelessWidget {
         Positioned(
           top: 12,
           right: 12,
-          child: GestureDetector(
-            onTap: () => shareEvent(event),
-            child: Container(
-              width: 36,
-              height: 36,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: Color(0x80000000),
-                shape: BoxShape.circle,
+          child: SafeArea(
+            child: GestureDetector(
+              onTap: () => shareEvent(event),
+              child: Container(
+                width: 36,
+                height: 36,
+                alignment: Alignment.center,
+                decoration: const BoxDecoration(
+                  color: Color(0x66000000),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.ios_share,
+                  size: 16,
+                  color: Color(0xFFFFFFFF),
+                ),
               ),
-              child: Icon(Icons.ios_share, size: 16, color: context.tokens.ink),
             ),
           ),
         ),
