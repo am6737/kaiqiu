@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:kaiqiu_app/features/messages/messages_screen.dart';
 import 'package:kaiqiu_app/l10n/generated/app_localizations.dart';
+import 'package:kaiqiu_app/models/message.dart';
 import 'package:kaiqiu_app/providers.dart';
 import 'package:kaiqiu_app/repositories/messages_repository.dart';
 import 'package:kaiqiu_app/services/local_storage.dart';
@@ -16,12 +17,46 @@ import 'package:kaiqiu_app/theme/theme_controller.dart';
 /// Fake repo — lets us avoid Supabase in tests and record deleteConversation.
 class _FakeMessagesRepo extends MessagesRepository {
   final List<String> deletedIds = [];
+
+  @override
+  Future<List<ConversationRow>> listConversations() =>
+      throw UnimplementedError('not used by messages_swipe_actions_test');
+
+  @override
+  Future<List<Message>> listMessages(String convId) =>
+      throw UnimplementedError('not used by messages_swipe_actions_test');
+
+  @override
+  Future<Message> send(String convId, String body) =>
+      throw UnimplementedError('not used by messages_swipe_actions_test');
+
+  @override
+  Stream<List<Message>> streamMessages(String convId) =>
+      throw UnimplementedError('not used by messages_swipe_actions_test');
+
+  @override
+  Future<String> createConversation({String? title, String kind = 'group'}) =>
+      throw UnimplementedError('not used by messages_swipe_actions_test');
+
   @override
   Future<void> deleteConversation(String convId) async {
     deletedIds.add(convId);
   }
+
+  @override
+  Future<void> clearMessages(String convId) =>
+      throw UnimplementedError('not used by messages_swipe_actions_test');
+
   @override
   Future<void> markRead(String convId) async {}
+
+  @override
+  Future<void> markUnread(String convId, {int count = 1}) =>
+      throw UnimplementedError('not used by messages_swipe_actions_test');
+
+  @override
+  Future<String> ensureEventConversation(String eventId) =>
+      throw UnimplementedError('not used by messages_swipe_actions_test');
 }
 
 ConversationRow _conv(String id, {String? title}) => ConversationRow(

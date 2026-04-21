@@ -416,7 +416,7 @@ class _ThreadRow extends ConsumerWidget {
     final title = thread.title ?? context.l10n.messages_thread_default_title;
     final time = DateFormat('HH:mm').format(thread.updatedAt.toLocal());
     final pinned = LocalStore.isPinned(thread.id);
-    final muted = LocalStore.isMuted(thread.id);   // ← new line
+    final muted = LocalStore.isMuted(thread.id);
     return Slidable(
       key: ValueKey(thread.id),
       groupTag: 'messages',
