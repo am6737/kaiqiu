@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:kaiqiu_app/features/messages/messages_screen.dart';
@@ -79,6 +80,7 @@ Widget _wrap({
       conversationsProvider.overrideWith((_) async => conversations),
     ],
     child: MaterialApp(
+      locale: const Locale('zh'),
       theme: t.lightTheme,
       darkTheme: t.darkTheme,
       localizationsDelegates: AppL10n.localizationsDelegates,
@@ -114,5 +116,35 @@ void main() {
     expect(find.byIcon(Icons.push_pin_outlined), findsOneWidget);
     expect(find.byIcon(Icons.notifications_off_outlined), findsOneWidget);
     expect(find.byIcon(Icons.delete_outline), findsOneWidget);
+  });
+
+  testWidgets('pinned conversation shows "unpin" label after swipe',
+      (tester) async {
+    // Arrange: pre-pin the conversation.
+    await LocalStore.togglePinned('c1');
+    expect(LocalStore.isPinned('c1'), isTrue);
+
+    final repo = _FakeMessagesRepo();
+    await tester.pumpWidget(_wrap(
+      conversations: [_conv('c1', title: 'Alpha')],
+      repo: repo,
+    ));
+    await tester.pumpAndSettle();
+
+    await tester.drag(find.text('Alpha'), const Offset(-400, 0));
+    await tester.pumpAndSettle();
+
+    // Filled pin icon inside the pin SlidableAction (the title row also
+    // shows a small push_pin icon when pinned — that's a pre-existing
+    // indicator, not part of the swipe UI, so we scope the query).
+    expect(
+      find.descendant(
+        of: find.byType(SlidableAction),
+        matching: find.byIcon(Icons.push_pin),
+      ),
+      findsOneWidget,
+    );
+    expect(find.byIcon(Icons.push_pin_outlined), findsNothing);
+    expect(find.text('取消置顶'), findsOneWidget);
   });
 }
