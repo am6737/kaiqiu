@@ -2,7 +2,10 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart' show ThemeMode;
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../theme/accent_seed.dart';
 
 late SharedPreferences _prefs;
 
@@ -29,6 +32,8 @@ const _kDraftEvent = 'draft_event';
 const _kRememberMe = 'remember_me';
 const _kRememberedEmail = 'remembered_email';
 const _kMutedConvs = 'muted_convs';
+const _kThemeMode = 'theme_mode';
+const _kThemeSeed = 'theme_seed';
 
 class LocalStoreNotifier extends ChangeNotifier {
   void bump() => notifyListeners();
@@ -264,6 +269,34 @@ class LocalStore {
     } else {
       await _prefs.remove(_kRememberedEmail);
     }
+    localStoreNotifier.bump();
+  }
+
+  // ─── theme
+  static ThemeMode get themeMode {
+    final raw = _prefs.getString(_kThemeMode) ?? 'system';
+    return switch (raw) {
+      'light' => ThemeMode.light,
+      'dark' => ThemeMode.dark,
+      _ => ThemeMode.system,
+    };
+  }
+
+  static Future<void> setThemeMode(ThemeMode m) async {
+    final raw = switch (m) {
+      ThemeMode.light => 'light',
+      ThemeMode.dark => 'dark',
+      ThemeMode.system => 'system',
+    };
+    await _prefs.setString(_kThemeMode, raw);
+    localStoreNotifier.bump();
+  }
+
+  static AccentSeed get themeSeed =>
+      AccentSeed.parse(_prefs.getString(_kThemeSeed));
+
+  static Future<void> setThemeSeed(AccentSeed s) async {
+    await _prefs.setString(_kThemeSeed, s.serialize());
     localStoreNotifier.bump();
   }
 }
