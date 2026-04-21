@@ -84,11 +84,9 @@ subprojects {
     // plugins (amap_flutter_map / amap_flutter_location @3.0.0) still rely
     // on the `package` attribute in AndroidManifest, which AGP no longer
     // accepts as a namespace source. React to the android-library plugin
-    // being applied and patch the namespace inline.
-    //
-    // This must happen BEFORE the evaluationDependsOn(":app") block below:
-    // that forces subprojects to evaluate immediately, after which
-    // afterEvaluate hooks would throw "project is already evaluated".
+    // being applied and patch the namespace inline; compileSdk has to wait
+    // for afterEvaluate because the plugin's own `android { ... }` block
+    // runs after this callback and would otherwise re-pin it to 29.
     plugins.withId("com.android.library") {
         if (project.name in setOf("amap_flutter_map", "amap_flutter_location")) {
             project.extensions.findByName("android")?.let { ext ->
@@ -107,25 +105,40 @@ subprojects {
                     // AGP < 7 doesn't expose get/setNamespace; ignore.
                 }
 
-                // 2. Bump compileSdk. The plugin pins 29 but its transitive
-                //    AndroidX deps reference API 31+ attributes (e.g.
-                //    android:attr/lStar) causing `verifyReleaseResources` to
-                //    fail with "resource android:attr/lStar not found".
-                //    Setting it to 34 matches what Flutter's stable channel
-                //    uses today and resolves all modern AndroidX attrs.
-                try {
-                    clazz
-                        .getMethod("setCompileSdk", Int::class.javaPrimitiveType)
-                        .invoke(ext, 34)
-                } catch (_: Throwable) {
-                    // Fall back to the string-based API on older AGP.
-                    try {
-                        clazz
-                            .getMethod("setCompileSdkVersion", String::class.java)
-                            .invoke(ext, "android-34")
-                    } catch (_: Throwable) {
-                        // Can't set compileSdk — let it fail loudly instead
-                        // of silently compiling against an old API.
+            }
+
+            // 2. Bump compileSdk. The plugin pins 29 but its transitive
+            //    AndroidX deps reference API 31+ attributes (e.g.
+            //    android:attr/lStar) causing `verifyReleaseResources` to
+            //    fail with "resource android:attr/lStar not found".
+            //
+            //    Must run in afterEvaluate: on AGP 8 the plugin's own
+            //    `android { compileSdkVersion 29 }` block executes AFTER
+            //    this plugins.withId callback returns and would clobber a
+            //    value set inline. The DSL setter is also `setCompileSdk(Integer)`
+            //    (Int? is nullable → boxed), so primitive-int reflection
+            //    misses it — look it up by name + arity instead.
+            project.afterEvaluate {
+                project.extensions.findByName("android")?.let { ext ->
+                    val clazz = ext::class.java
+                    val setter = clazz.methods.firstOrNull {
+                        it.name == "setCompileSdk" && it.parameterCount == 1
+                    }
+                    if (setter != null) {
+                        try {
+                            setter.invoke(ext, 34)
+                        } catch (_: Throwable) {
+                            // ignore — fall through to legacy string API
+                        }
+                    } else {
+                        try {
+                            clazz
+                                .getMethod("setCompileSdkVersion", String::class.java)
+                                .invoke(ext, "android-34")
+                        } catch (_: Throwable) {
+                            // Can't set compileSdk — let it fail loudly
+                            // instead of silently compiling against an old API.
+                        }
                     }
                 }
             }
