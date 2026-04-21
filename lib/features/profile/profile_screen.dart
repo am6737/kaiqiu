@@ -172,12 +172,19 @@ class ProfileScreen extends ConsumerWidget {
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: [
-                        HSLColor.fromAHSL(1, 150, 0.25, 0.20).toColor(),
-                        HSLColor.fromAHSL(1, 150, 0.10, 0.14).toColor(),
-                      ],
+                      colors: () {
+                        final isDark = Theme.of(context).brightness == Brightness.dark;
+                        final l1 = isDark ? 0.20 : 0.92;
+                        final l2 = isDark ? 0.14 : 0.86;
+                        final s1 = isDark ? 0.25 : 0.18;
+                        final s2 = isDark ? 0.10 : 0.10;
+                        return [
+                          HSLColor.fromAHSL(1, 150, s1, l1).toColor(),
+                          HSLColor.fromAHSL(1, 150, s2, l2).toColor(),
+                        ];
+                      }(),
                     ),
-                    border: Border.all(color: const Color(0x6600FF85)),
+                    border: Border.all(color: context.tokens.accent.withAlpha(0x66)),
                     borderRadius: BorderRadius.circular(context.tokens.r3),
                   ),
                   child: Row(
@@ -189,7 +196,7 @@ class ProfileScreen extends ConsumerWidget {
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
                           color: context.tokens.accentSubtle,
-                          border: Border.all(color: const Color(0x6600FF85)),
+                          border: Border.all(color: context.tokens.accent.withAlpha(0x66)),
                           borderRadius: BorderRadius.circular(context.tokens.r2),
                         ),
                         child: Text(
@@ -227,7 +234,7 @@ class ProfileScreen extends ConsumerWidget {
                                   decoration: BoxDecoration(
                                     color: context.tokens.accentSubtle,
                                     border: Border.all(
-                                      color: const Color(0x6600FF85),
+                                      color: context.tokens.accent.withAlpha(0x66),
                                     ),
                                     borderRadius: BorderRadius.circular(2),
                                   ),

@@ -522,7 +522,7 @@ class _MapListRow extends StatelessWidget {
               height: 52,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: HSLColor.fromAHSL(1, 140, 0.15, 0.22).toColor(),
+                color: context.tokens.elev3,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: SportIcon(Sport.football, size: 20, color: context.tokens.inkSub),

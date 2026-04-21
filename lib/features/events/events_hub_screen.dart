@@ -252,13 +252,18 @@ class _WcBanner extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
-                HSLColor.fromAHSL(1, 260, 0.5, 0.22).toColor(),
-                HSLColor.fromAHSL(1, 290, 0.5, 0.16).toColor(),
-              ],
+              colors: () {
+                final isDark = Theme.of(context).brightness == Brightness.dark;
+                final l1 = isDark ? 0.22 : 0.78;
+                final l2 = isDark ? 0.16 : 0.70;
+                return [
+                  HSLColor.fromAHSL(1, 260, 0.5, l1).toColor(),
+                  HSLColor.fromAHSL(1, 290, 0.5, l2).toColor(),
+                ];
+              }(),
             ),
             borderRadius: BorderRadius.circular(context.tokens.r3),
-            border: Border.all(color: const Color(0x14FFFFFF)),
+            border: Border.all(color: context.tokens.line),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -548,25 +553,29 @@ class _TeamRow extends StatelessWidget {
     return row;
   }
 
-  Widget _flag(BuildContext context) => Container(
-    width: 28,
-    height: 20,
-    alignment: Alignment.center,
-    decoration: BoxDecoration(
-      color: HSLColor.fromAHSL(1, hue, 0.4, 0.28).toColor(),
-      borderRadius: BorderRadius.circular(2),
-    ),
-    child: Text(
-      flag,
-      style: TextStyle(
-        fontFamily: context.tokens.fontMono,
-        fontFamilyFallback: context.tokens.monoFallbacks,
-        fontSize: 9,
-        fontWeight: FontWeight.w700,
-        color: context.tokens.ink,
+  Widget _flag(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final flagL = isDark ? 0.28 : 0.65;
+    return Container(
+      width: 28,
+      height: 20,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: HSLColor.fromAHSL(1, hue, 0.4, flagL).toColor(),
+        borderRadius: BorderRadius.circular(2),
       ),
-    ),
-  );
+      child: Text(
+        flag,
+        style: TextStyle(
+          fontFamily: context.tokens.fontMono,
+          fontFamilyFallback: context.tokens.monoFallbacks,
+          fontSize: 9,
+          fontWeight: FontWeight.w700,
+          color: context.tokens.ink,
+        ),
+      ),
+    );
+  }
 }
 
 class _EmptyEvents extends StatelessWidget {

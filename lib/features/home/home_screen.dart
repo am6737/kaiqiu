@@ -400,12 +400,12 @@ class _RateCtaBanner extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
+            gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [Color(0x1A00FF85), Color(0x0FFF6B35)],
+              colors: [context.tokens.accentSubtle, context.tokens.warnSubtle],
             ),
-            border: Border.all(color: const Color(0x6600FF85)),
+            border: Border.all(color: context.tokens.accent.withAlpha(0x66)),
             borderRadius: BorderRadius.circular(context.tokens.r3),
           ),
           child: Row(
@@ -416,7 +416,7 @@ class _RateCtaBanner extends StatelessWidget {
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: context.tokens.elev3,
-                  border: Border.all(color: const Color(0x9900FF85)),
+                  border: Border.all(color: context.tokens.accent.withAlpha(0x99)),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: N(
@@ -599,6 +599,8 @@ class _ResultCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final aWins = item.scoreA > item.scoreB;
     final bWins = item.scoreB > item.scoreA;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final flagL = isDark ? 0.28 : 0.65;
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
       decoration: BoxDecoration(
@@ -648,7 +650,7 @@ class _ResultCard extends StatelessWidget {
                         width: 28,
                         height: 28,
                         decoration: BoxDecoration(
-                          color: HSLColor.fromAHSL(1, 25, 0.4, 0.28).toColor(),
+                          color: HSLColor.fromAHSL(1, 25, 0.4, flagL).toColor(),
                           borderRadius: BorderRadius.circular(4),
                           border: Border.all(color: context.tokens.line),
                         ),
@@ -697,7 +699,7 @@ class _ResultCard extends StatelessWidget {
                         width: 28,
                         height: 28,
                         decoration: BoxDecoration(
-                          color: HSLColor.fromAHSL(1, 200, 0.4, 0.28).toColor(),
+                          color: HSLColor.fromAHSL(1, 200, 0.4, flagL).toColor(),
                           borderRadius: BorderRadius.circular(4),
                           border: Border.all(color: context.tokens.line),
                         ),

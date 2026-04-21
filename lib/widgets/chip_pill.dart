@@ -34,7 +34,7 @@ class ChipPill extends StatelessWidget {
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w500,
-            color: active ? Colors.black : context.tokens.inkSub,
+            color: active ? context.tokens.bg : context.tokens.inkSub,
           ),
         ),
       ),

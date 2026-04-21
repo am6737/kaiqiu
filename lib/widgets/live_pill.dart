@@ -39,8 +39,8 @@ class _LivePillState extends State<LivePill>
             child: Container(
               width: 5,
               height: 5,
-              decoration: const BoxDecoration(
-                color: Colors.black,
+              decoration: BoxDecoration(
+                color: context.tokens.accentInk,
                 shape: BoxShape.circle,
               ),
             ),
@@ -54,7 +54,7 @@ class _LivePillState extends State<LivePill>
               fontSize: widget.size,
               fontWeight: FontWeight.w700,
               letterSpacing: 0.8,
-              color: Colors.black,
+              color: context.tokens.accentInk,
               height: 1,
             ),
           ),
