@@ -2233,7 +2233,13 @@ class AppL10nEn extends AppL10n {
 
   @override
   String event_standings_points_diff(int n) {
-    return '$n points apart';
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n points apart',
+      one: '1 point apart',
+    );
+    return '$_temp0';
   }
 
   @override

@@ -67,7 +67,7 @@
   "event_standings_leaders_label": "League Leaders",
   "event_standings_leader_top": "1st",
   "event_standings_leader_runner": "2nd",
-  "event_standings_points_diff": "{n} points apart",
+  "event_standings_points_diff": "{n, plural, =1{1 point apart} other{{n} points apart}}",
   "@event_standings_points_diff": { "placeholders": { "n": { "type": "int" } } },
   "event_scorers_golden_boot": "Golden Boot",
   "event_scorers_per_match": "{avg} / match",
