@@ -1663,6 +1663,36 @@ abstract class AppL10n {
   /// **'赛况如何？发弹幕讨论'**
   String get wc_live_comment_ph;
 
+  /// No description provided for @wc_live_loading.
+  ///
+  /// In zh, this message translates to:
+  /// **'正在连接直播…'**
+  String get wc_live_loading;
+
+  /// No description provided for @wc_live_signal_weak.
+  ///
+  /// In zh, this message translates to:
+  /// **'直播信号弱'**
+  String get wc_live_signal_weak;
+
+  /// No description provided for @wc_live_tap_retry.
+  ///
+  /// In zh, this message translates to:
+  /// **'点击重试'**
+  String get wc_live_tap_retry;
+
+  /// No description provided for @wc_live_score_overlay.
+  ///
+  /// In zh, this message translates to:
+  /// **'{home} {sa} - {sb} {away} · {min}\''**
+  String wc_live_score_overlay(
+    String home,
+    String sa,
+    String sb,
+    String away,
+    String min,
+  );
+
   /// No description provided for @wc_predict_title.
   ///
   /// In zh, this message translates to:
@@ -2478,6 +2508,120 @@ abstract class AppL10n {
   /// In zh, this message translates to:
   /// **'比赛开始前 10 分钟提醒'**
   String get settings_notif_match_reminder_sub;
+
+  /// No description provided for @profile_menu_appearance.
+  ///
+  /// In zh, this message translates to:
+  /// **'外观'**
+  String get profile_menu_appearance;
+
+  /// No description provided for @settings_appearance_title.
+  ///
+  /// In zh, this message translates to:
+  /// **'外观'**
+  String get settings_appearance_title;
+
+  /// No description provided for @appearance_theme_mode_section.
+  ///
+  /// In zh, this message translates to:
+  /// **'主题模式'**
+  String get appearance_theme_mode_section;
+
+  /// No description provided for @appearance_theme_mode_system.
+  ///
+  /// In zh, this message translates to:
+  /// **'跟随系统'**
+  String get appearance_theme_mode_system;
+
+  /// No description provided for @appearance_theme_mode_light.
+  ///
+  /// In zh, this message translates to:
+  /// **'浅色'**
+  String get appearance_theme_mode_light;
+
+  /// No description provided for @appearance_theme_mode_dark.
+  ///
+  /// In zh, this message translates to:
+  /// **'深色'**
+  String get appearance_theme_mode_dark;
+
+  /// No description provided for @appearance_accent_section.
+  ///
+  /// In zh, this message translates to:
+  /// **'主题色'**
+  String get appearance_accent_section;
+
+  /// No description provided for @appearance_accent_green.
+  ///
+  /// In zh, this message translates to:
+  /// **'经典绿'**
+  String get appearance_accent_green;
+
+  /// No description provided for @appearance_accent_orange.
+  ///
+  /// In zh, this message translates to:
+  /// **'活力橙'**
+  String get appearance_accent_orange;
+
+  /// No description provided for @appearance_accent_cyan.
+  ///
+  /// In zh, this message translates to:
+  /// **'海洋青'**
+  String get appearance_accent_cyan;
+
+  /// No description provided for @appearance_accent_red.
+  ///
+  /// In zh, this message translates to:
+  /// **'热情红'**
+  String get appearance_accent_red;
+
+  /// No description provided for @appearance_accent_custom.
+  ///
+  /// In zh, this message translates to:
+  /// **'自定义'**
+  String get appearance_accent_custom;
+
+  /// No description provided for @appearance_preview_section.
+  ///
+  /// In zh, this message translates to:
+  /// **'预览'**
+  String get appearance_preview_section;
+
+  /// No description provided for @appearance_preview_card_title.
+  ///
+  /// In zh, this message translates to:
+  /// **'周三晚 7:30  五人足球'**
+  String get appearance_preview_card_title;
+
+  /// No description provided for @appearance_preview_card_meta.
+  ///
+  /// In zh, this message translates to:
+  /// **'深圳南山·星空足球公园'**
+  String get appearance_preview_card_meta;
+
+  /// No description provided for @appearance_preview_card_cta.
+  ///
+  /// In zh, this message translates to:
+  /// **'立即报名'**
+  String get appearance_preview_card_cta;
+
+  /// No description provided for @appearance_picker_title.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择主题色'**
+  String get appearance_picker_title;
+
+  /// No description provided for @appearance_picker_confirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确定'**
+  String get appearance_picker_confirm;
+
+  /// No description provided for @appearance_picker_cancel.
+  ///
+  /// In zh, this message translates to:
+  /// **'取消'**
+  String get appearance_picker_cancel;
 
   /// No description provided for @settings_help_title.
   ///

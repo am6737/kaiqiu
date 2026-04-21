@@ -827,6 +827,26 @@ class AppL10nZh extends AppL10n {
   String get wc_live_comment_ph => '赛况如何？发弹幕讨论';
 
   @override
+  String get wc_live_loading => '正在连接直播…';
+
+  @override
+  String get wc_live_signal_weak => '直播信号弱';
+
+  @override
+  String get wc_live_tap_retry => '点击重试';
+
+  @override
+  String wc_live_score_overlay(
+    String home,
+    String sa,
+    String sb,
+    String away,
+    String min,
+  ) {
+    return '$home $sa - $sb $away · $min\'';
+  }
+
+  @override
   String get wc_predict_title => '竞猜';
 
   @override
@@ -1245,6 +1265,63 @@ class AppL10nZh extends AppL10n {
 
   @override
   String get settings_notif_match_reminder_sub => '比赛开始前 10 分钟提醒';
+
+  @override
+  String get profile_menu_appearance => '外观';
+
+  @override
+  String get settings_appearance_title => '外观';
+
+  @override
+  String get appearance_theme_mode_section => '主题模式';
+
+  @override
+  String get appearance_theme_mode_system => '跟随系统';
+
+  @override
+  String get appearance_theme_mode_light => '浅色';
+
+  @override
+  String get appearance_theme_mode_dark => '深色';
+
+  @override
+  String get appearance_accent_section => '主题色';
+
+  @override
+  String get appearance_accent_green => '经典绿';
+
+  @override
+  String get appearance_accent_orange => '活力橙';
+
+  @override
+  String get appearance_accent_cyan => '海洋青';
+
+  @override
+  String get appearance_accent_red => '热情红';
+
+  @override
+  String get appearance_accent_custom => '自定义';
+
+  @override
+  String get appearance_preview_section => '预览';
+
+  @override
+  String get appearance_preview_card_title => '周三晚 7:30  五人足球';
+
+  @override
+  String get appearance_preview_card_meta => '深圳南山·星空足球公园';
+
+  @override
+  String get appearance_preview_card_cta => '立即报名';
+
+  @override
+  String get appearance_picker_title => '选择主题色';
+
+  @override
+  String get appearance_picker_confirm => '确定';
+
+  @override
+  String get appearance_picker_cancel => '取消';
 
   @override
   String get settings_help_title => '帮助与反馈';

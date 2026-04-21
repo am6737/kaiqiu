@@ -838,6 +838,26 @@ class AppL10nEn extends AppL10n {
   String get wc_live_comment_ph => 'What\'s happening? Join the chat';
 
   @override
+  String get wc_live_loading => 'Connecting to stream…';
+
+  @override
+  String get wc_live_signal_weak => 'Weak stream signal';
+
+  @override
+  String get wc_live_tap_retry => 'Tap to retry';
+
+  @override
+  String wc_live_score_overlay(
+    String home,
+    String sa,
+    String sb,
+    String away,
+    String min,
+  ) {
+    return '$home $sa - $sb $away · $min\'';
+  }
+
+  @override
   String get wc_predict_title => 'Predict';
 
   @override
@@ -1259,6 +1279,63 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get settings_notif_match_reminder_sub => '10 min before kickoff';
+
+  @override
+  String get profile_menu_appearance => 'Appearance';
+
+  @override
+  String get settings_appearance_title => 'Appearance';
+
+  @override
+  String get appearance_theme_mode_section => 'Theme Mode';
+
+  @override
+  String get appearance_theme_mode_system => 'Follow System';
+
+  @override
+  String get appearance_theme_mode_light => 'Light';
+
+  @override
+  String get appearance_theme_mode_dark => 'Dark';
+
+  @override
+  String get appearance_accent_section => 'Accent Color';
+
+  @override
+  String get appearance_accent_green => 'Classic Green';
+
+  @override
+  String get appearance_accent_orange => 'Vibrant Orange';
+
+  @override
+  String get appearance_accent_cyan => 'Ocean Cyan';
+
+  @override
+  String get appearance_accent_red => 'Passion Red';
+
+  @override
+  String get appearance_accent_custom => 'Custom';
+
+  @override
+  String get appearance_preview_section => 'Preview';
+
+  @override
+  String get appearance_preview_card_title => 'Wed 7:30 PM · 5-a-side Football';
+
+  @override
+  String get appearance_preview_card_meta => 'Nanshan, Shenzhen · Starry Park';
+
+  @override
+  String get appearance_preview_card_cta => 'Join Now';
+
+  @override
+  String get appearance_picker_title => 'Pick Accent Color';
+
+  @override
+  String get appearance_picker_confirm => 'Confirm';
+
+  @override
+  String get appearance_picker_cancel => 'Cancel';
 
   @override
   String get settings_help_title => 'Help & Feedback';
