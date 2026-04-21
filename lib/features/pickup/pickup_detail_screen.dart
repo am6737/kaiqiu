@@ -63,7 +63,12 @@ class PickupDetailScreen extends ConsumerWidget {
                   },
                   pickupId: id,
                 ),
-                _VenueInfo(),
+                _VenueInfo(
+                  venue: pickupAsync.valueOrNull?.venue ?? '',
+                  address: pickupAsync.valueOrNull?.address,
+                  lat: pickupAsync.valueOrNull?.lat,
+                  lng: pickupAsync.valueOrNull?.lng,
+                ),
                 _HostStrip(),
                 slotsAsync.when(
                   data: (slots) => _Formation(pickupId: id, slots: slots),
@@ -169,6 +174,29 @@ class _CircleBtn extends StatelessWidget {
 }
 
 class _VenueInfo extends StatelessWidget {
+  final String venue;
+  final String? address;
+  final double? lat;
+  final double? lng;
+  const _VenueInfo({
+    required this.venue,
+    this.address,
+    this.lat,
+    this.lng,
+  });
+
+  bool get _canNavigate => lat != null && lng != null;
+
+  void _openNav(BuildContext context) {
+    if (!_canNavigate) return;
+    MapLauncher.openNavigation(
+      context: context,
+      lat: lat!,
+      lng: lng!,
+      name: venue.isEmpty ? (address ?? '') : venue,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -184,14 +212,41 @@ class _VenueInfo extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          const Text(
-            '龙岗体育中心 3号场',
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-              color: T.ink,
-              letterSpacing: -0.4,
-            ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Expanded(
+                child: Text(
+                  '龙岗体育中心 3号场',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    color: T.ink,
+                    letterSpacing: -0.4,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              TextButton.icon(
+                onPressed: _canNavigate ? () => _openNav(context) : null,
+                icon: const Icon(Icons.near_me, size: 16),
+                label: Text(context.l10n.pickup_detail_navigate),
+                style: TextButton.styleFrom(
+                  foregroundColor: T.live,
+                  disabledForegroundColor: T.inkMute,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  minimumSize: const Size(0, 32),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  textStyle: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 6),
           Row(
@@ -234,19 +289,13 @@ class _HostStrip extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: const [
-                    Text(
-                      hostName,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: T.ink,
-                      ),
-                    ),
-                    SizedBox(width: 6),
-                    _CreditBadge(),
-                  ],
+                const Text(
+                  hostName,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: T.ink,
+                  ),
                 ),
                 const SizedBox(height: 2),
                 Label(l.pickup_detail_host_stats(28, 100)),
@@ -292,30 +341,6 @@ class _HostStrip extends ConsumerWidget {
   }
 }
 
-class _CreditBadge extends StatelessWidget {
-  const _CreditBadge();
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-      decoration: BoxDecoration(
-        color: T.liveDim,
-        borderRadius: BorderRadius.circular(3),
-      ),
-      child: Text(
-        context.l10n.pickup_detail_credit_n(98),
-        style: const TextStyle(
-          fontFamily: T.fontMono,
-          fontFamilyFallback: T.monoFallbacks,
-          fontSize: 9,
-          fontWeight: FontWeight.w600,
-          color: T.live,
-          letterSpacing: 0.5,
-        ),
-      ),
-    );
-  }
-}
 
 class _Formation extends ConsumerWidget {
   final String pickupId;
@@ -775,55 +800,23 @@ class _MiniMap extends StatelessWidget {
     final detailText = (address != null && address!.trim().isNotEmpty)
         ? address!
         : venue;
-    final navButton = TextButton.icon(
-      onPressed: _canNavigate ? () => _openNav(context) : null,
-      icon: const Icon(Icons.near_me, size: 16),
-      label: Text(l.pickup_detail_navigate),
-      style: TextButton.styleFrom(
-        foregroundColor: T.live,
-        disabledForegroundColor: T.inkMute,
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        minimumSize: const Size(0, 32),
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        textStyle: const TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-    final hasDetail = detailText.trim().isNotEmpty;
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(child: Label(l.pickup_detail_location_km('2.4'))),
-              if (!hasDetail) ...[const SizedBox(width: 8), navButton],
-            ],
-          ),
-          if (hasDetail) ...[
+          Label(l.pickup_detail_location_km('2.4')),
+          if (detailText.trim().isNotEmpty) ...[
             const SizedBox(height: 4),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: Text(
-                    detailText,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: T.inkSub,
-                      height: 1.35,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                navButton,
-              ],
+            Text(
+              detailText,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 13,
+                color: T.inkSub,
+                height: 1.35,
+              ),
             ),
           ],
           const SizedBox(height: 10),
