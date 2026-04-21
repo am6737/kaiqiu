@@ -10,6 +10,7 @@ import '../../l10n/l10n_extension.dart';
 import '../../providers.dart';
 import '../../services/local_storage.dart';
 import '../../utils/toast.dart';
+import '../../widgets/danmaku_overlay.dart';
 import '../../widgets/live_pill.dart';
 import '../../widgets/live_predict_strip.dart';
 import '../../widgets/live_stream_player.dart';
@@ -28,6 +29,9 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
   final _inputC = TextEditingController();
   final _danmus = <_Danmu>[];
   late Timer _tickTimer;
+  final StreamController<DanmakuItem> _danmuController =
+      StreamController<DanmakuItem>.broadcast();
+  bool _danmakuOn = LocalStore.danmakuEnabled;
   int _scoreA = 1;
   int _scoreB = 1;
   int _minute = 67;
@@ -76,19 +80,17 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
             _scoreB++;
           }
         }
-        if (r.nextInt(3) == 0) {
-          _danmus.insert(
-            0,
-            _Danmu(
-              user: _botNames[r.nextInt(_botNames.length)],
-              text: _botMessages[r.nextInt(_botMessages.length)],
-              at: DateTime.now(),
-              self: false,
-            ),
-          );
-          if (_danmus.length > 40) _danmus.removeLast();
-        }
       });
+      if (r.nextInt(3) == 0) {
+        _pushDanmu(
+          _Danmu(
+            user: _botNames[r.nextInt(_botNames.length)],
+            text: _botMessages[r.nextInt(_botMessages.length)],
+            at: DateTime.now(),
+            self: false,
+          ),
+        );
+      }
     });
   }
 
@@ -96,18 +98,24 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
   void dispose() {
     _tickTimer.cancel();
     _inputC.dispose();
+    _danmuController.close();
     super.dispose();
+  }
+
+  void _pushDanmu(_Danmu d) {
+    setState(() {
+      _danmus.insert(0, d);
+      if (_danmus.length > 40) _danmus.removeLast();
+    });
+    _danmuController.add(
+      DanmakuItem(user: d.user, text: d.text, self: d.self),
+    );
   }
 
   void _send() {
     final t = _inputC.text.trim();
     if (t.isEmpty) return;
-    setState(() {
-      _danmus.insert(
-        0,
-        _Danmu(user: 'You', text: t, at: DateTime.now(), self: true),
-      );
-    });
+    _pushDanmu(_Danmu(user: 'You', text: t, at: DateTime.now(), self: true));
     _inputC.clear();
   }
 
