@@ -52,7 +52,7 @@ lib/widgets/
 
 lib/routes.dart                          (改：删 /messages branch；/messages、/notifications 改为 redirect；新增 /inbox)
 
-lib/l10n/arb/app_en.arb, app_zh.arb      (新增：inbox_title / inbox_tab_messages / inbox_tab_notifications)
+lib/l10n/app_en.arb, app_zh.arb      (新增：inbox_title / inbox_tab_messages / inbox_tab_notifications)
 ```
 
 数据层、provider、消息 repository、SharedPreferences 本地存储均不改动。
@@ -263,7 +263,7 @@ Expanded(
 
 ## l10n
 
-新增 ARB 键（`lib/l10n/arb/app_en.arb`、`app_zh.arb`）：
+新增 ARB 键（`lib/l10n/app_en.arb`、`lib/l10n/app_zh.arb`）：
 
 ```json
 {
@@ -388,7 +388,7 @@ Widget 测试沿用项目已有的 `ProviderScope` override 风格（参考 `tes
 - `lib/features/messages/messages_screen.dart` — **删除**（路由 redirect 后已无消费者；业务逻辑全部迁入 `messages_tab.dart`）。
 - `lib/features/notifications/notifications_screen.dart` — **删除**（同上）。
 - `lib/providers.dart` — 新增 `messagesUnreadProvider`。
-- `lib/l10n/arb/app_en.arb` / `app_zh.arb` — 新增三个 key；`tab_messages` 按实际引用情况保留或删除。
+- `lib/l10n/app_en.arb` / `app_zh.arb` — 新增三个 key；`tab_messages` 仅 `bottom_nav_shell.dart` 引用,删除该 key 以保持 ARB 干净。
 
 **无改动**
 - `messagesRepository`、`conversationsProvider`、`new_dm_sheet.dart`、`chat_screen.dart`、`_ThreadRow` 内部逻辑。
