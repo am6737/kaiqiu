@@ -1,8 +1,10 @@
 // world_cup_screen.dart — 世界杯专区
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../data/demo_images.dart';
 import '../../l10n/l10n_extension.dart';
 import '../../providers.dart';
 import '../../services/local_storage.dart';
@@ -22,8 +24,13 @@ class WorldCupScreen extends ConsumerWidget {
     ref.watch(localStoreProvider);
     final l = context.l10n;
     final focusMatchId = 'wc-focus';
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final overlayColor = isDark ? const Color(0x80000000) : const Color(0x33000000);
+
+    // Hero uses a real photo backdrop (stadium night atmosphere) with a
+    // dark gradient scrim so the title is readable in both themes.
+    // All hero text is forced white because it sits over the photo.
+    const heroTitleColor = Color(0xFFFFFFFF);
+    const heroSubColor = Color(0xCCFFFFFF);
+    const heroBtnScrim = Color(0x66000000);
 
     return Scaffold(
       backgroundColor: context.tokens.bg,
@@ -31,99 +38,111 @@ class WorldCupScreen extends ConsumerWidget {
         padding: const EdgeInsets.only(bottom: 100),
         children: [
           // Hero
-          Stack(
-            children: [
-              Container(
-                height: 240,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      HSLColor.fromAHSL(1, 260, 0.5, isDark ? 0.18 : 0.78).toColor(),
-                      HSLColor.fromAHSL(1, 290, 0.5, isDark ? 0.12 : 0.72).toColor(),
+          SizedBox(
+            height: 240,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                CachedNetworkImage(
+                  imageUrl: DemoImages.eventCoverLonggang,
+                  fit: BoxFit.cover,
+                  fadeInDuration: const Duration(milliseconds: 160),
+                  placeholder: (_, _) => Container(color: const Color(0xFF1A1A20)),
+                  errorWidget: (_, _, _) => Container(color: const Color(0xFF1A1A20)),
+                ),
+                // Bottom-up dark scrim for title legibility.
+                const DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      stops: [0.0, 0.45, 1.0],
+                      colors: [
+                        Color(0x33000000),
+                        Color(0x66000000),
+                        Color(0xCC000000),
+                      ],
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: 12,
+                  left: 12,
+                  child: SafeArea(
+                    child: GestureDetector(
+                      onTap: () => context.pop(),
+                      child: Container(
+                        width: 36,
+                        height: 36,
+                        alignment: Alignment.center,
+                        decoration: const BoxDecoration(
+                          color: heroBtnScrim,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.arrow_back_ios_new,
+                          size: 16,
+                          color: heroTitleColor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: 12,
+                  right: 12,
+                  child: SafeArea(
+                    child: GestureDetector(
+                      onTap: () => shareText(
+                        '${l.events_wc_banner_title} · ${l.events_wc_banner_sub}',
+                        subject: l.wc_title,
+                      ),
+                      child: Container(
+                        width: 36,
+                        height: 36,
+                        alignment: Alignment.center,
+                        decoration: const BoxDecoration(
+                          color: heroBtnScrim,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.ios_share,
+                          size: 16,
+                          color: heroTitleColor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  left: 16,
+                  right: 16,
+                  bottom: 16,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Label('FIFA 2026', color: context.tokens.accent),
+                      const SizedBox(height: 6),
+                      Text(
+                        l.wc_hero_title,
+                        style: const TextStyle(
+                          fontSize: 30,
+                          fontWeight: FontWeight.w800,
+                          color: heroTitleColor,
+                          letterSpacing: -0.6,
+                          height: 1.1,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        l.wc_hero_sub,
+                        style: const TextStyle(fontSize: 13, color: heroSubColor),
+                      ),
                     ],
                   ),
                 ),
-                child: CustomPaint(painter: _HeroPainter()),
-              ),
-              Positioned(
-                top: 12,
-                left: 12,
-                child: SafeArea(
-                  child: GestureDetector(
-                    onTap: () => context.pop(),
-                    child: Container(
-                      width: 36,
-                      height: 36,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: overlayColor,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.arrow_back_ios_new,
-                        size: 16,
-                        color: context.tokens.ink,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                top: 12,
-                right: 12,
-                child: SafeArea(
-                  child: GestureDetector(
-                    onTap: () => shareText(
-                      '${l.events_wc_banner_title} · ${l.events_wc_banner_sub}',
-                      subject: l.wc_title,
-                    ),
-                    child: Container(
-                      width: 36,
-                      height: 36,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: overlayColor,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.ios_share,
-                        size: 16,
-                        color: context.tokens.ink,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 16,
-                right: 16,
-                bottom: 16,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Label('FIFA 2026', color: context.tokens.accent),
-                    const SizedBox(height: 6),
-                    Text(
-                      l.wc_hero_title,
-                      style: TextStyle(
-                        fontSize: 30,
-                        fontWeight: FontWeight.w800,
-                        color: context.tokens.ink,
-                        letterSpacing: -0.6,
-                        height: 1.1,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      l.wc_hero_sub,
-                      style: TextStyle(fontSize: 13, color: context.tokens.inkSub),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
           // Featured match
           Padding(
@@ -515,22 +534,3 @@ class WorldCupScreen extends ConsumerWidget {
   }
 }
 
-class _HeroPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final dot = Paint()..color = const Color(0x4DFFFFFF);
-    for (double y = 0; y < size.height; y += 20) {
-      for (double x = 0; x < size.width; x += 20) {
-        canvas.drawCircle(Offset(x + 10, y + 10), 1, dot);
-      }
-    }
-    canvas.drawCircle(
-      Offset(size.width - 70, 60),
-      70,
-      Paint()..color = const Color(0x2600FF85),
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _HeroPainter old) => false;
-}
