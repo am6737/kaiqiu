@@ -201,4 +201,28 @@ void main() {
 
     expect(LocalStore.isPinned('c1'), isTrue);
   });
+
+  testWidgets('opening another row auto-closes the first', (tester) async {
+    final repo = _FakeMessagesRepo();
+    await tester.pumpWidget(_wrap(
+      conversations: [
+        _conv('c1', title: 'Alpha'),
+        _conv('c2', title: 'Bravo'),
+      ],
+      repo: repo,
+    ));
+    await tester.pumpAndSettle();
+
+    // Open Alpha.
+    await tester.drag(find.text('Alpha'), const Offset(-400, 0));
+    await tester.pumpAndSettle();
+    expect(find.byIcon(Icons.delete_outline), findsOneWidget);
+
+    // Open Bravo.
+    await tester.drag(find.text('Bravo'), const Offset(-400, 0));
+    await tester.pumpAndSettle();
+
+    // Only one delete icon on screen (Bravo's) — Alpha's pane closed.
+    expect(find.byIcon(Icons.delete_outline), findsOneWidget);
+  });
 }
