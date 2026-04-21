@@ -80,17 +80,67 @@ class _DanmakuOverlayState extends State<DanmakuOverlay>
     super.dispose();
   }
 
+  /// Picks a track for a new danmu, or null if the overlay is congested.
+  ///
+  /// Strategy:
+  /// 1. Prefer any empty track (lowest index first).
+  /// 2. Otherwise pick the track whose latest entry's tail has moved
+  ///    furthest past the right edge of the overlay — i.e. the most
+  ///    space behind it.
+  /// 3. If even the best candidate's tail has not cleared the right
+  ///    edge (tail_position >= overlay_right), return null so the
+  ///    caller drops the incoming item instead of overlapping.
+  int? _pickTrack(double overlayWidth) {
+    // latestByTrack: for each occupied track, keep the entry with the
+    // smallest progress (= just entered = furthest right tail).
+    final latestByTrack = <int, _ActiveDanmu>{};
+    for (final d in _active) {
+      final prev = latestByTrack[d.track];
+      if (prev == null || d.controller.value < prev.controller.value) {
+        latestByTrack[d.track] = d;
+      }
+    }
+
+    // Empty tracks first.
+    for (var i = 0; i < widget.trackCount; i++) {
+      if (!latestByTrack.containsKey(i)) return i;
+    }
+
+    // All tracks occupied — pick by how far the latest entry's tail has
+    // moved past the right edge.
+    //   x(t) = overlayWidth - (overlayWidth + width) * t
+    //   tail position on screen = x + width
+    //   how far tail has cleared the right edge = overlayWidth - (x + width)
+    //                                           = (overlayWidth + width) * t - width
+    int? best;
+    double bestScore = -double.infinity;
+    latestByTrack.forEach((track, d) {
+      final tailLeftOfRight =
+          (overlayWidth + d.width) * d.controller.value - d.width;
+      if (tailLeftOfRight > bestScore) {
+        bestScore = tailLeftOfRight;
+        best = track;
+      }
+    });
+    // Best candidate's tail still on the right edge? Drop.
+    if (bestScore <= 0) return null;
+    return best;
+  }
+
   void _onItem(DanmakuItem item) {
     if (!widget.enabled) return;
     if (!mounted) return;
+    final rb = context.findRenderObject() as RenderBox?;
+    final overlayWidth = rb?.hasSize == true ? rb!.size.width : 400.0;
+    final track = _pickTrack(overlayWidth);
+    if (track == null) return; // all tracks busy — drop.
     final c = AnimationController(vsync: this, duration: widget.speed);
-    final active = _ActiveDanmu(item: item, track: 0, controller: c);
+    final active = _ActiveDanmu(item: item, track: track, controller: c);
     c.addStatusListener((s) {
       if (s == AnimationStatus.completed) {
         if (!mounted) {
           return; // State.dispose will handle the controller.
         }
-        // Remove from active list; controller can now be safely disposed.
         setState(() => _active.remove(active));
         c.dispose();
       }

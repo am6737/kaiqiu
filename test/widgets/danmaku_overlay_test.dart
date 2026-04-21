@@ -71,5 +71,51 @@ void main() {
 
       await tester.pump(const Duration(seconds: 10));
     });
+
+    testWidgets('4 danmus land on 4 distinct tracks', (tester) async {
+      final ctrl = StreamController<DanmakuItem>.broadcast();
+      addTearDown(ctrl.close);
+
+      await tester.pumpWidget(_wrap(DanmakuOverlay(stream: ctrl.stream)));
+      await tester.pump();
+
+      for (var i = 0; i < 4; i++) {
+        ctrl.add(DanmakuItem(user: 'U$i', text: 'msg$i', self: false));
+        await tester.pump();
+      }
+      await tester.pump(const Duration(milliseconds: 50));
+
+      final positions = <double>{};
+      for (var i = 0; i < 4; i++) {
+        final f = find.text('msg$i');
+        expect(f, findsOneWidget);
+        final rect = tester.getRect(f);
+        positions.add(rect.top.roundToDouble());
+      }
+      expect(positions.length, 4, reason: 'each danmu on its own track');
+
+      await tester.pump(const Duration(seconds: 10));
+    });
+
+    testWidgets('5th danmu is dropped when all tracks busy', (tester) async {
+      final ctrl = StreamController<DanmakuItem>.broadcast();
+      addTearDown(ctrl.close);
+
+      await tester.pumpWidget(_wrap(DanmakuOverlay(stream: ctrl.stream)));
+      await tester.pump();
+
+      for (var i = 0; i < 4; i++) {
+        ctrl.add(DanmakuItem(user: 'U$i', text: 'msg$i', self: false));
+        await tester.pump();
+      }
+      // Immediately push a 5th; no track has freed up yet.
+      ctrl.add(const DanmakuItem(user: 'X', text: 'dropped', self: false));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+
+      expect(find.text('dropped'), findsNothing);
+
+      await tester.pump(const Duration(seconds: 10));
+    });
   });
 }
