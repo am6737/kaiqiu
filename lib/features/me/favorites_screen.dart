@@ -104,7 +104,7 @@ class _Tab extends StatelessWidget {
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: active ? T.ink : T.inkSub,
+              color: active ? context.tokens.ink : context.tokens.inkSub,
             ),
           ),
         ),
@@ -141,10 +141,10 @@ class _PickupTab extends ConsumerWidget {
                   ),
                   child: Row(
                     children: [
-                      const SportIcon(
+                      SportIcon(
                         Sport.football,
                         size: 20,
-                        color: T.inkSub,
+                        color: context.tokens.inkSub,
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -153,13 +153,13 @@ class _PickupTab extends ConsumerWidget {
                           children: [
                             Text(
                               p.venue,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 14,
-                                color: T.ink,
+                                color: context.tokens.ink,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
-                            N(p.displayTime, size: 11, color: T.inkSub),
+                            N(p.displayTime, size: 11, color: context.tokens.inkSub),
                           ],
                         ),
                       ),
@@ -210,15 +210,15 @@ class _EventTab extends ConsumerWidget {
                 leading: const Icon(Icons.emoji_events, color: T.warn),
                 title: Text(
                   e.name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
-                    color: T.ink,
+                    color: context.tokens.ink,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 subtitle: Text(
                   e.sub ?? (e.city ?? ''),
-                  style: const TextStyle(fontSize: 12, color: T.inkSub),
+                  style: TextStyle(fontSize: 12, color: context.tokens.inkSub),
                 ),
                 trailing: IconButton(
                   icon: const Icon(Icons.favorite, size: 18, color: T.live),
@@ -260,9 +260,9 @@ class _PlayerTab extends ConsumerWidget {
             leading: Avatar(name, size: 36),
             title: Text(
               name,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
-                color: T.ink,
+                color: context.tokens.ink,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -274,7 +274,7 @@ class _PlayerTab extends ConsumerWidget {
               },
               child: Text(
                 l.common_unfollow,
-                style: const TextStyle(color: T.inkSub),
+                style: TextStyle(color: context.tokens.inkSub),
               ),
             ),
             onTap: () => context.push('/archive'),

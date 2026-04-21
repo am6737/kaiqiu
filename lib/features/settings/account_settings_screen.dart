@@ -41,24 +41,24 @@ class AccountSettingsScreen extends ConsumerWidget {
             _section(
               context,
               children: [
-                _row(
+                _row(context,
                   icon: Icons.language,
                   label: l.settings_account_language,
                   trailing: langLabel,
                   onTap: () => _pickLanguage(context),
                 ),
-                _row(
+                _row(context,
                   icon: Icons.edit_outlined,
                   label: l.settings_account_profile,
                   onTap: () => context.push('/profile/edit'),
                 ),
-                _row(
+                _row(context,
                   icon: Icons.mail_outline,
                   label: l.settings_account_email,
                   trailing: email,
                   onTap: null,
                 ),
-                _row(
+                _row(context,
                   icon: Icons.lock_outline,
                   label: l.settings_account_password,
                   onTap: () => _changePassword(context),
@@ -68,17 +68,17 @@ class AccountSettingsScreen extends ConsumerWidget {
             _section(
               context,
               children: [
-                _row(
+                _row(context,
                   icon: Icons.notifications_none,
                   label: l.profile_menu_notif,
                   onTap: () => context.push('/settings/notifications'),
                 ),
-                _row(
+                _row(context,
                   icon: Icons.help_outline,
                   label: l.profile_menu_help,
                   onTap: () => context.push('/settings/help'),
                 ),
-                _row(
+                _row(context,
                   icon: Icons.info_outline,
                   label: l.profile_menu_about,
                   onTap: () => context.push('/settings/about'),
@@ -116,9 +116,9 @@ class AccountSettingsScreen extends ConsumerWidget {
                 child: Center(
                   child: Text(
                     l.settings_account_delete,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: T.inkDim,
+                      color: context.tokens.inkDim,
                       height: 1.5,
                     ),
                   ),
@@ -152,7 +152,7 @@ class AccountSettingsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _row({
+  Widget _row(BuildContext context, {
     required IconData icon,
     required String label,
     String? trailing,
@@ -164,14 +164,14 @@ class AccountSettingsScreen extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         child: Row(
           children: [
-            Icon(icon, size: 18, color: T.inkSub),
+            Icon(icon, size: 18, color: context.tokens.inkSub),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 label,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
-                  color: T.ink,
+                  color: context.tokens.ink,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -181,15 +181,15 @@ class AccountSettingsScreen extends ConsumerWidget {
                 padding: const EdgeInsets.only(right: 6),
                 child: Text(
                   trailing,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
-                    color: T.inkSub,
+                    color: context.tokens.inkSub,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
             if (onTap != null)
-              const Icon(Icons.chevron_right, size: 16, color: T.inkDim),
+              Icon(Icons.chevron_right, size: 16, color: context.tokens.inkDim),
           ],
         ),
       ),
@@ -215,7 +215,7 @@ class AccountSettingsScreen extends ConsumerWidget {
                 width: 36,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: T.inkMute,
+                  color: context.tokens.inkMute,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -223,10 +223,10 @@ class AccountSettingsScreen extends ConsumerWidget {
             const SizedBox(height: 14),
             Text(
               l.settings_lang_title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w700,
-                color: T.ink,
+                color: context.tokens.ink,
               ),
             ),
             const SizedBox(height: 16),
@@ -236,7 +236,7 @@ class AccountSettingsScreen extends ConsumerWidget {
               ('en', l.settings_lang_en),
             ])
               ListTile(
-                title: Text(opt.$2, style: const TextStyle(color: T.ink)),
+                title: Text(opt.$2, style: TextStyle(color: context.tokens.ink)),
                 trailing: cur == opt.$1
                     ? const Icon(Icons.check, color: T.live, size: 18)
                     : null,
@@ -274,10 +274,10 @@ class AccountSettingsScreen extends ConsumerWidget {
             children: [
               Text(
                 l.settings_account_password,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 17,
                   fontWeight: FontWeight.w700,
-                  color: T.ink,
+                  color: context.tokens.ink,
                 ),
               ),
               const SizedBox(height: 16),
@@ -347,14 +347,14 @@ class AccountSettingsScreen extends ConsumerWidget {
             backgroundColor: context.tokens.elev2,
             content: Text(
               l.profile_logout_confirm,
-              style: const TextStyle(color: T.ink),
+              style: TextStyle(color: context.tokens.ink),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(ctx).pop(false),
                 child: Text(
                   l.common_cancel,
-                  style: const TextStyle(color: T.inkSub),
+                  style: TextStyle(color: context.tokens.inkSub),
                 ),
               ),
               TextButton(
@@ -382,14 +382,14 @@ class AccountSettingsScreen extends ConsumerWidget {
             backgroundColor: context.tokens.elev2,
             content: Text(
               l.settings_account_delete_confirm,
-              style: const TextStyle(color: T.ink),
+              style: TextStyle(color: context.tokens.ink),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(ctx).pop(false),
                 child: Text(
                   l.common_cancel,
-                  style: const TextStyle(color: T.inkSub),
+                  style: TextStyle(color: context.tokens.inkSub),
                 ),
               ),
               TextButton(
@@ -438,7 +438,7 @@ class _PwField extends StatelessWidget {
             child: TextField(
               controller: controller,
               obscureText: true,
-              style: const TextStyle(color: T.ink, fontSize: 14),
+              style: TextStyle(color: context.tokens.ink, fontSize: 14),
               decoration: const InputDecoration(
                 border: InputBorder.none,
                 isDense: true,

@@ -14,6 +14,7 @@ import '../l10n/generated/app_localizations.dart';
 import '../providers.dart';
 import '../services/local_storage.dart';
 import '../theme/tokens.dart';
+import '../theme/app_tokens.dart';
 import '../utils/toast.dart';
 import 'typography.dart';
 
@@ -155,9 +156,9 @@ class _UnvotedStrip extends StatelessWidget {
               Expanded(
                 child: Text(
                   l.wc_predict_pick_title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
-                    color: T.inkSub,
+                    color: context.tokens.inkSub,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -227,14 +228,14 @@ class _OutcomeBtn extends StatelessWidget {
               label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
-                color: T.ink,
+                color: context.tokens.ink,
                 fontWeight: FontWeight.w700,
               ),
             ),
             const SizedBox(height: 2),
-            N(sub, size: 10, weight: FontWeight.w600, color: T.inkDim),
+            N(sub, size: 10, weight: FontWeight.w600, color: context.tokens.inkDim),
           ],
         ),
       ),
@@ -283,16 +284,16 @@ class _VotedStrip extends StatelessWidget {
                   children: [
                     TextSpan(
                       text: '${l.wc_predict_you_picked}: ',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: T.inkDim,
+                        color: context.tokens.inkDim,
                       ),
                     ),
                     TextSpan(
                       text: choiceLabel,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
-                        color: T.ink,
+                        color: context.tokens.ink,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -324,7 +325,7 @@ class _VotedStrip extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 6),
-            const Icon(Icons.chevron_right, color: T.inkDim, size: 16),
+            Icon(Icons.chevron_right, color: context.tokens.inkDim, size: 16),
           ],
         ),
       ),
@@ -405,7 +406,7 @@ class _PredictSheetState extends ConsumerState<_PredictSheet> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: T.inkMute,
+                color: context.tokens.inkMute,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -415,8 +416,8 @@ class _PredictSheetState extends ConsumerState<_PredictSheet> {
             children: [
               Text(
                 l.wc_predict_title,
-                style: const TextStyle(
-                  color: T.ink,
+                style: TextStyle(
+                  color: context.tokens.ink,
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                 ),
@@ -424,9 +425,9 @@ class _PredictSheetState extends ConsumerState<_PredictSheet> {
               const SizedBox(width: 10),
               Text(
                 '${widget.homeLabel} vs ${widget.awayLabel}',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
-                  color: T.inkDim,
+                  color: context.tokens.inkDim,
                 ),
               ),
             ],
@@ -434,9 +435,9 @@ class _PredictSheetState extends ConsumerState<_PredictSheet> {
           const SizedBox(height: 16),
           Text(
             l.wc_predict_pick_title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
-              color: T.inkSub,
+              color: context.tokens.inkSub,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -474,9 +475,9 @@ class _PredictSheetState extends ConsumerState<_PredictSheet> {
           const SizedBox(height: 16),
           Text(
             l.wc_predict_stake,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
-              color: T.inkSub,
+              color: context.tokens.inkSub,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -498,9 +499,9 @@ class _PredictSheetState extends ConsumerState<_PredictSheet> {
           const SizedBox(height: 16),
           Text(
             l.wc_predict_distribution,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
-              color: T.inkSub,
+              color: context.tokens.inkSub,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -569,7 +570,7 @@ class _BigOption extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 fontSize: 14,
-                color: active ? T.live : T.ink,
+                color: active ? T.live : context.tokens.ink,
                 fontWeight: FontWeight.w800,
               ),
             ),
@@ -579,7 +580,7 @@ class _BigOption extends StatelessWidget {
                 sub,
                 style: TextStyle(
                   fontSize: 10,
-                  color: active ? T.live : T.inkDim,
+                  color: active ? T.live : context.tokens.inkDim,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -617,7 +618,7 @@ class _StakeChip extends StatelessWidget {
           '$value',
           size: 13,
           weight: FontWeight.w700,
-          color: active ? T.live : T.ink,
+          color: active ? T.live : context.tokens.ink,
         ),
       ),
     );
@@ -646,15 +647,15 @@ class _DistBars extends StatelessWidget {
               _Bar(
                 flex: dist.d,
                 label: '${dist.d}%',
-                color: T.inkMute,
-                fg: T.ink,
+                color: context.tokens.inkMute,
+                fg: context.tokens.ink,
               ),
               const SizedBox(width: 6),
               _Bar(
                 flex: dist.b,
                 label: '${dist.b}%',
                 color: T.elev3,
-                fg: T.ink,
+                fg: context.tokens.ink,
               ),
             ],
           ),

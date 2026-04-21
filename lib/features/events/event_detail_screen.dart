@@ -67,7 +67,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
             const SizedBox(height: 8),
             Text(
               '${l.error_load_failed}: $e',
-              style: const TextStyle(fontSize: 13, color: T.inkSub),
+              style: TextStyle(fontSize: 13, color: context.tokens.inkSub),
             ),
 
             const SizedBox(height: 12),
@@ -85,7 +85,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                 ),
                 child: Text(
                   l.common_retry,
-                  style: const TextStyle(color: T.ink, fontSize: 12),
+                  style: TextStyle(color: context.tokens.ink, fontSize: 12),
                 ),
               ),
             ),
@@ -157,7 +157,7 @@ class _Header extends StatelessWidget {
     final (dotColor, pillColor, pillText) = switch (event.status) {
       EventStatus.ongoing => (T.live, T.live, l.event_status_ongoing),
       EventStatus.registering => (T.warn, T.warn, l.event_status_registering),
-      EventStatus.done => (T.inkDim, T.inkSub, l.event_status_done),
+      EventStatus.done => (context.tokens.inkDim, context.tokens.inkSub, l.event_status_done),
     };
     return Stack(
       children: [
@@ -180,10 +180,10 @@ class _Header extends StatelessWidget {
                 color: Color(0x80000000),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.arrow_back_ios_new,
                 size: 16,
-                color: T.ink,
+                color: context.tokens.ink,
               ),
             ),
           ),
@@ -201,7 +201,7 @@ class _Header extends StatelessWidget {
                 color: Color(0x80000000),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.ios_share, size: 16, color: T.ink),
+              child: Icon(Icons.ios_share, size: 16, color: context.tokens.ink),
             ),
           ),
         ),
@@ -243,10 +243,10 @@ class _Header extends StatelessWidget {
                 const SizedBox(height: 6),
                 Text(
                   event.name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w800,
-                    color: T.ink,
+                    color: context.tokens.ink,
                     letterSpacing: -0.4,
                   ),
                 ),
@@ -313,7 +313,7 @@ class _KpiStrip extends ConsumerWidget {
                       items[i].$2,
                       size: 16,
                       weight: FontWeight.w700,
-                      color: T.ink,
+                      color: context.tokens.ink,
                     ),
                   ],
                 ),
@@ -369,7 +369,7 @@ class _Tabs extends StatelessWidget {
                         fontWeight: current == t.$1
                             ? FontWeight.w700
                             : FontWeight.w500,
-                        color: current == t.$1 ? T.ink : T.inkSub,
+                        color: current == t.$1 ? context.tokens.ink : context.tokens.inkSub,
                       ),
                     ),
                   ),
@@ -403,7 +403,7 @@ class _PanelError extends StatelessWidget {
     child: Center(
       child: Text(
         '${context.l10n.error_load_failed}: $error',
-        style: const TextStyle(fontSize: 12, color: T.inkSub),
+        style: TextStyle(fontSize: 12, color: context.tokens.inkSub),
       ),
     ),
   );
@@ -428,7 +428,7 @@ class _OverviewPanel extends StatelessWidget {
         children: [
           Text(
             body,
-            style: const TextStyle(fontSize: 14, color: T.ink, height: 1.6),
+            style: TextStyle(fontSize: 14, color: context.tokens.ink, height: 1.6),
           ),
           const SizedBox(height: 16),
           Label(context.l10n.event_overview_rules),
@@ -454,7 +454,7 @@ class _OverviewPanel extends StatelessWidget {
                   const SizedBox(width: 8),
                   Text(
                     r,
-                    style: const TextStyle(fontSize: 13, color: T.inkSub),
+                    style: TextStyle(fontSize: 13, color: context.tokens.inkSub),
                   ),
                 ],
               ),
@@ -485,10 +485,10 @@ class _OverviewPanel extends StatelessWidget {
                   children: [
                     Text(
                       event.city ?? '—',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: T.ink,
+                        color: context.tokens.ink,
                       ),
                     ),
                     Label(context.l10n.event_overview_organizer_label),
@@ -630,11 +630,11 @@ class _EmptyCell extends StatelessWidget {
     ),
     child: Text(
       text,
-      style: const TextStyle(
+      style: TextStyle(
         fontFamily: T.fontMono,
         fontFamilyFallback: T.monoFallbacks,
         fontSize: 11,
-        color: T.inkDim,
+        color: context.tokens.inkDim,
       ),
     ),
   );
@@ -710,6 +710,7 @@ class _MatchCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       _teamLine(
+                        context,
                         m.teamALabel ?? 'TBD',
                         sa,
                         won: aWins,
@@ -717,6 +718,7 @@ class _MatchCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       _teamLine(
+                        context,
                         m.teamBLabel ?? 'TBD',
                         sb,
                         won: bWins,
@@ -745,11 +747,11 @@ class _MatchCard extends StatelessWidget {
                           padding: const EdgeInsets.only(top: 4),
                           child: Text(
                             timeStr,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontFamily: T.fontMono,
                               fontFamilyFallback: T.monoFallbacks,
                               fontSize: 10,
-                              color: T.inkDim,
+                              color: context.tokens.inkDim,
                             ),
                           ),
                         ),
@@ -765,12 +767,13 @@ class _MatchCard extends StatelessWidget {
   }
 
   Widget _teamLine(
+    BuildContext context,
     String name,
     int? score, {
     required bool won,
     bool showWinnerIcon = false,
   }) {
-    final nameColor = m.done ? (won ? T.ink : T.inkSub) : T.inkSub;
+    final nameColor = m.done ? (won ? context.tokens.ink : context.tokens.inkSub) : context.tokens.inkSub;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -800,10 +803,10 @@ class _MatchCard extends StatelessWidget {
             '$score',
             size: 13,
             weight: FontWeight.w700,
-            color: won ? T.live : T.inkSub,
+            color: won ? T.live : context.tokens.inkSub,
           )
         else
-          const Text('-', style: TextStyle(color: T.inkDim, fontSize: 11)),
+          Text('-', style: TextStyle(color: context.tokens.inkDim, fontSize: 11)),
       ],
     );
   }
@@ -947,7 +950,7 @@ class _StandingsTable extends StatelessWidget {
                           '${s.rank}',
                           size: 13,
                           weight: FontWeight.w600,
-                          color: s.rank <= 2 ? T.live : T.inkSub,
+                          color: s.rank <= 2 ? T.live : context.tokens.inkSub,
                         ),
                       ),
                       const SizedBox(width: 10),
@@ -972,9 +975,9 @@ class _StandingsTable extends StatelessWidget {
                               child: Text(
                                 s.team,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 13,
-                                  color: T.ink,
+                                  color: context.tokens.ink,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -985,19 +988,19 @@ class _StandingsTable extends StatelessWidget {
                       SizedBox(
                         width: 32,
                         child: Center(
-                          child: N('${s.w}', size: 12, color: T.inkSub),
+                          child: N('${s.w}', size: 12, color: context.tokens.inkSub),
                         ),
                       ),
                       SizedBox(
                         width: 32,
                         child: Center(
-                          child: N('${s.d}', size: 12, color: T.inkSub),
+                          child: N('${s.d}', size: 12, color: context.tokens.inkSub),
                         ),
                       ),
                       SizedBox(
                         width: 32,
                         child: Center(
-                          child: N('${s.l}', size: 12, color: T.inkSub),
+                          child: N('${s.l}', size: 12, color: context.tokens.inkSub),
                         ),
                       ),
                       SizedBox(
@@ -1078,7 +1081,7 @@ class _TeamSheet extends StatelessWidget {
                 width: 36,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: T.inkMute,
+                  color: context.tokens.inkMute,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -1102,21 +1105,21 @@ class _TeamSheet extends StatelessWidget {
                     children: [
                       Text(
                         standing.team,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
-                          color: T.ink,
+                          color: context.tokens.ink,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 2),
                       Text(
                         '#${standing.rank}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: T.fontMono,
                           fontFamilyFallback: T.monoFallbacks,
                           fontSize: 12,
-                          color: T.inkSub,
+                          color: context.tokens.inkSub,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -1194,7 +1197,7 @@ class _TeamSheet extends StatelessWidget {
                       accent: gd > 0
                           ? T.live
                           : gd < 0
-                          ? T.inkSub
+                          ? context.tokens.inkSub
                           : null,
                     ),
                   ),
@@ -1244,10 +1247,10 @@ class _TeamMatchRow extends StatelessWidget {
         resultColor = T.live;
       } else if (ownScore < oppScore) {
         resultLabel = l.event_standings_losses;
-        resultColor = T.inkSub;
+        resultColor = context.tokens.inkSub;
       } else {
         resultLabel = l.event_standings_draws;
-        resultColor = T.inkMute;
+        resultColor = context.tokens.inkMute;
       }
     }
 
@@ -1291,9 +1294,9 @@ class _TeamMatchRow extends StatelessWidget {
             child: Text(
               opponent,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
-                color: T.ink,
+                color: context.tokens.ink,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -1303,13 +1306,13 @@ class _TeamMatchRow extends StatelessWidget {
               '$ownScore - $oppScore',
               size: 13,
               weight: FontWeight.w700,
-              color: resultColor ?? T.ink,
+              color: resultColor ?? context.tokens.ink,
             )
           else
-            const Text('-', style: TextStyle(color: T.inkDim, fontSize: 12)),
+            Text('-', style: TextStyle(color: context.tokens.inkDim, fontSize: 12)),
           if (dateStr.isNotEmpty) ...[
             const SizedBox(width: 10),
-            N(dateStr, size: 11, color: T.inkDim),
+            N(dateStr, size: 11, color: context.tokens.inkDim),
           ],
         ],
       ),
@@ -1342,7 +1345,7 @@ class _ScorersPanel extends ConsumerWidget {
         child: Center(
           child: Text(
             context.l10n.error_load_failed,
-            style: const TextStyle(color: T.inkSub, fontSize: 12),
+            style: TextStyle(color: context.tokens.inkSub, fontSize: 12),
           ),
         ),
       ),
@@ -1353,7 +1356,7 @@ class _ScorersPanel extends ConsumerWidget {
             child: Center(
               child: Text(
                 context.l10n.event_scorers_goals,
-                style: const TextStyle(color: T.inkSub, fontSize: 12),
+                style: TextStyle(color: context.tokens.inkSub, fontSize: 12),
               ),
             ),
           );
@@ -1448,7 +1451,7 @@ class _ScorerCard extends ConsumerWidget {
                     '$rank',
                     size: 14,
                     weight: FontWeight.w600,
-                    color: T.inkSub,
+                    color: context.tokens.inkSub,
                   ),
           ),
         ),
@@ -1461,10 +1464,10 @@ class _ScorerCard extends ConsumerWidget {
             children: [
               Text(
                 row.name,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: T.ink,
+                  color: context.tokens.ink,
                 ),
               ),
               Label(context.l10n.archive_teammates_matches(row.matches)),
@@ -1539,7 +1542,7 @@ class _ScorerSheet extends ConsumerWidget {
                 width: 36,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: T.inkMute,
+                  color: context.tokens.inkMute,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -1557,17 +1560,17 @@ class _ScorerSheet extends ConsumerWidget {
                     children: [
                       Text(
                         row.name,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
-                          color: T.ink,
+                          color: context.tokens.ink,
                         ),
                       ),
                       if (_metaLine(profile).isNotEmpty) ...[
                         const SizedBox(height: 4),
                         Text(
                           _metaLine(profile),
-                          style: const TextStyle(fontSize: 12, color: T.inkSub),
+                          style: TextStyle(fontSize: 12, color: context.tokens.inkSub),
                         ),
                       ],
                     ],
@@ -1691,12 +1694,12 @@ class _StatCell extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisSize: MainAxisSize.min,
       children: [
-        N(value, size: 22, weight: FontWeight.w700, color: accent ?? T.ink),
+        N(value, size: 22, weight: FontWeight.w700, color: accent ?? context.tokens.ink),
         const SizedBox(height: 4),
         Label(label),
         if (sub != null) ...[
           const SizedBox(height: 2),
-          Text(sub!, style: const TextStyle(fontSize: 10, color: T.inkDim)),
+          Text(sub!, style: TextStyle(fontSize: 10, color: context.tokens.inkDim)),
         ],
       ],
     );
@@ -1718,10 +1721,10 @@ class _InlineStat extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: T.ink,
+            color: context.tokens.ink,
           ),
         ),
       ],
@@ -1788,7 +1791,7 @@ class _ChatPanelState extends ConsumerState<_ChatPanel> {
                   child: Center(
                     child: Text(
                       l.empty_no_messages,
-                      style: const TextStyle(color: T.inkDim, fontSize: 13),
+                      style: TextStyle(color: context.tokens.inkDim, fontSize: 13),
                     ),
                   ),
                 );
@@ -1809,7 +1812,7 @@ class _ChatPanelState extends ConsumerState<_ChatPanel> {
               child: Center(
                 child: Text(
                   '${l.error_load_failed}: $e',
-                  style: const TextStyle(color: T.inkSub, fontSize: 12),
+                  style: TextStyle(color: context.tokens.inkSub, fontSize: 12),
                 ),
               ),
             ),
@@ -1827,10 +1830,10 @@ class _ChatPanelState extends ConsumerState<_ChatPanel> {
                   child: TextField(
                     controller: _inputC,
                     onSubmitted: (_) => _send(),
-                    style: const TextStyle(color: T.ink, fontSize: 14),
+                    style: TextStyle(color: context.tokens.ink, fontSize: 14),
                     decoration: InputDecoration(
                       hintText: l.event_chat_hint,
-                      hintStyle: const TextStyle(color: T.inkDim, fontSize: 13),
+                      hintStyle: TextStyle(color: context.tokens.inkDim, fontSize: 13),
                       border: InputBorder.none,
                       isDense: true,
                       contentPadding: const EdgeInsets.symmetric(vertical: 10),
@@ -1896,9 +1899,9 @@ class _Msg extends StatelessWidget {
                   children: [
                     Text(
                       sender,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: T.inkSub,
+                        color: context.tokens.inkSub,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -1908,9 +1911,9 @@ class _Msg extends StatelessWidget {
                 ),
                 Text(
                   msg.body ?? '',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
-                    color: T.ink,
+                    color: context.tokens.ink,
                     height: 1.5,
                   ),
                 ),
@@ -1953,14 +1956,14 @@ class _BottomCta extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.tv, size: 16, color: T.ink),
+                  Icon(Icons.tv, size: 16, color: context.tokens.ink),
                   const SizedBox(width: 6),
                   Text(
                     l.event_cta_watch_live,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: T.ink,
+                      color: context.tokens.ink,
                     ),
                   ),
                 ],
@@ -2009,7 +2012,7 @@ class _BottomCta extends ConsumerWidget {
                   width: 36,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: T.inkMute,
+                    color: context.tokens.inkMute,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -2017,10 +2020,10 @@ class _BottomCta extends ConsumerWidget {
               const SizedBox(height: 14),
               Text(
                 l.event_register_form_title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 17,
                   fontWeight: FontWeight.w700,
-                  color: T.ink,
+                  color: context.tokens.ink,
                 ),
               ),
               const SizedBox(height: 16),
@@ -2098,7 +2101,7 @@ class _RegField extends StatelessWidget {
             child: TextField(
               controller: controller,
               keyboardType: keyboardType,
-              style: const TextStyle(color: T.ink, fontSize: 14),
+              style: TextStyle(color: context.tokens.ink, fontSize: 14),
               decoration: const InputDecoration(
                 border: InputBorder.none,
                 isDense: true,
@@ -2234,7 +2237,7 @@ class _ViewToggle extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                     color: view == it.$1
                         ? T.live
-                        : (it.$3 ? T.inkSub : T.inkDim),
+                        : (it.$3 ? context.tokens.inkSub : context.tokens.inkDim),
                   ),
                 ),
               ),
@@ -2374,7 +2377,7 @@ class _MatchPicker extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    color: isPicked ? T.live : T.inkSub,
+                    color: isPicked ? T.live : context.tokens.inkSub,
                   ),
                 ),
               ],
@@ -2451,11 +2454,11 @@ class _ScoreStrip extends StatelessWidget {
               if (dateStr.isNotEmpty)
                 Text(
                   dateStr,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: T.fontMono,
                     fontFamilyFallback: T.monoFallbacks,
                     fontSize: 11,
-                    color: T.inkSub,
+                    color: context.tokens.inkSub,
                   ),
                 ),
             ],
@@ -2470,7 +2473,7 @@ class _ScoreStrip extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
-                    color: winA ? T.ink : T.inkSub,
+                    color: winA ? context.tokens.ink : context.tokens.inkSub,
                   ),
                 ),
               ),
@@ -2479,7 +2482,7 @@ class _ScoreStrip extends StatelessWidget {
                 '$sa',
                 size: 26,
                 weight: FontWeight.w800,
-                color: winA ? T.live : T.ink,
+                color: winA ? T.live : context.tokens.ink,
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 6),
@@ -2487,14 +2490,14 @@ class _ScoreStrip extends StatelessWidget {
                   '-',
                   size: 22,
                   weight: FontWeight.w800,
-                  color: T.inkSub,
+                  color: context.tokens.inkSub,
                 ),
               ),
               N(
                 '$sb',
                 size: 26,
                 weight: FontWeight.w800,
-                color: winB ? T.live : T.ink,
+                color: winB ? T.live : context.tokens.ink,
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -2504,7 +2507,7 @@ class _ScoreStrip extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
-                    color: winB ? T.ink : T.inkSub,
+                    color: winB ? context.tokens.ink : context.tokens.inkSub,
                   ),
                 ),
               ),
@@ -2538,8 +2541,8 @@ class _TeamFilterRow extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           decoration: BoxDecoration(
-            color: active ? T.ink : context.tokens.elev2,
-            border: Border.all(color: active ? T.ink : context.tokens.line),
+            color: active ? context.tokens.ink : context.tokens.elev2,
+            border: Border.all(color: active ? context.tokens.ink : context.tokens.line),
             borderRadius: BorderRadius.circular(999),
           ),
           child: Text(
@@ -2547,7 +2550,7 @@ class _TeamFilterRow extends StatelessWidget {
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w700,
-              color: active ? context.tokens.bg : T.inkSub,
+              color: active ? context.tokens.bg : context.tokens.inkSub,
             ),
           ),
         ),
@@ -2615,10 +2618,10 @@ class _EventWideSection extends ConsumerWidget {
                   children: [
                     Text(
                       event.name,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
-                        color: T.ink,
+                        color: context.tokens.ink,
                       ),
                     ),
                     const SizedBox(height: 6),
@@ -2681,7 +2684,7 @@ class _PlayerRow extends StatelessWidget {
     final you = p.rateeId == currentUserId;
     final scoreColor = p.avgScore >= 8
         ? T.live
-        : (p.avgScore >= 6 ? T.ink : T.danger);
+        : (p.avgScore >= 6 ? context.tokens.ink : T.danger);
     final hasMoment = showMomentBlock && (p.topComment?.isNotEmpty ?? false);
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
@@ -2713,7 +2716,7 @@ class _PlayerRow extends StatelessWidget {
                 fontFamilyFallback: T.monoFallbacks,
                 fontWeight: FontWeight.w800,
                 fontSize: 11,
-                color: rank == 1 ? Colors.black : T.ink,
+                color: rank == 1 ? Colors.black : context.tokens.ink,
               ),
             ),
           ),
@@ -2734,9 +2737,9 @@ class _PlayerRow extends StatelessWidget {
                   children: [
                     Text(
                       p.name,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
-                        color: T.ink,
+                        color: context.tokens.ink,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -2780,9 +2783,9 @@ class _PlayerRow extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 6),
-          const Padding(
+          Padding(
             padding: EdgeInsets.only(top: 6),
-            child: Icon(Icons.chevron_right, size: 12, color: T.inkDim),
+            child: Icon(Icons.chevron_right, size: 12, color: context.tokens.inkDim),
           ),
         ],
       ),
@@ -2843,14 +2846,14 @@ class _MomentQuote extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.format_quote, size: 12, color: T.inkSub),
+          Icon(Icons.format_quote, size: 12, color: context.tokens.inkSub),
           const SizedBox(width: 4),
           Flexible(
             child: Text(
               trimmed,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 12, color: T.inkSub),
+              style: TextStyle(fontSize: 12, color: context.tokens.inkSub),
             ),
           ),
         ],
@@ -2879,7 +2882,7 @@ class _PlayerRatingDetail extends ConsumerWidget {
     final you = p.rateeId == currentUserId;
     final scoreColor = p.avgScore >= 8
         ? T.live
-        : (p.avgScore >= 6 ? T.ink : T.danger);
+        : (p.avgScore >= 6 ? context.tokens.ink : T.danger);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2890,10 +2893,10 @@ class _PlayerRatingDetail extends ConsumerWidget {
             children: [
               GestureDetector(
                 onTap: onBack,
-                child: const Icon(
+                child: Icon(
                   Icons.arrow_back_ios_new,
                   size: 18,
-                  color: T.ink,
+                  color: context.tokens.ink,
                 ),
               ),
               const SizedBox(width: 8),
@@ -2928,10 +2931,10 @@ class _PlayerRatingDetail extends ConsumerWidget {
                       children: [
                         Text(
                           p.name,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.w700,
-                            color: T.ink,
+                            color: context.tokens.ink,
                           ),
                         ),
                         if (you) ...[
@@ -3027,9 +3030,9 @@ class _PlayerRatingDetail extends ConsumerWidget {
                                       color: i >= 8
                                           ? T.live
                                           : i >= 6
-                                          ? T.ink
+                                          ? context.tokens.ink
                                           : i >= 4
-                                          ? T.inkSub
+                                          ? context.tokens.inkSub
                                           : T.danger,
                                       borderRadius: const BorderRadius.only(
                                         topLeft: Radius.circular(2),
@@ -3051,11 +3054,11 @@ class _PlayerRatingDetail extends ConsumerWidget {
                             child: Center(
                               child: Text(
                                 '$i',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontFamily: T.fontMono,
                                   fontFamilyFallback: T.monoFallbacks,
                                   fontSize: 9,
-                                  color: T.inkDim,
+                                  color: context.tokens.inkDim,
                                 ),
                               ),
                             ),
@@ -3099,9 +3102,9 @@ class _PlayerRatingDetail extends ConsumerWidget {
                           const SizedBox(width: 8),
                           Text(
                             c.user,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
-                              color: T.inkSub,
+                              color: context.tokens.inkSub,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -3136,7 +3139,7 @@ class _PlayerRatingDetail extends ConsumerWidget {
                                 color: c.score >= 8
                                     ? T.live
                                     : c.score >= 6
-                                    ? T.ink
+                                    ? context.tokens.ink
                                     : T.danger,
                               ),
                             ),
@@ -3148,34 +3151,34 @@ class _PlayerRatingDetail extends ConsumerWidget {
                       const SizedBox(height: 6),
                       Text(
                         c.text,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
-                          color: T.ink,
+                          color: context.tokens.ink,
                           height: 1.5,
                         ),
                       ),
                       const SizedBox(height: 8),
                       Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.favorite_border,
                             size: 12,
-                            color: T.inkSub,
+                            color: context.tokens.inkSub,
                           ),
                           const SizedBox(width: 4),
-                          N('${c.likes}', size: 11, color: T.inkSub),
+                          N('${c.likes}', size: 11, color: context.tokens.inkSub),
                           const SizedBox(width: 14),
-                          const Icon(
+                          Icon(
                             Icons.chat_bubble_outline,
                             size: 12,
-                            color: T.inkSub,
+                            color: context.tokens.inkSub,
                           ),
                           const SizedBox(width: 4),
                           Text(
                             context.l10n.event_rating_reply,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 11,
-                              color: T.inkSub,
+                              color: context.tokens.inkSub,
                             ),
                           ),
                         ],

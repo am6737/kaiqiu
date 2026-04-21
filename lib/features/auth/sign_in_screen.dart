@@ -117,18 +117,18 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
             children: [
               Text(
                 l.auth_reset_title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 17,
                   fontWeight: FontWeight.w700,
-                  color: T.ink,
+                  color: context.tokens.ink,
                 ),
               ),
               const SizedBox(height: 6),
               Text(
                 l.auth_reset_sub,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
-                  color: T.inkSub,
+                  color: context.tokens.inkSub,
                   height: 1.5,
                 ),
               ),
@@ -143,11 +143,11 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                 child: TextField(
                   controller: c,
                   keyboardType: TextInputType.emailAddress,
-                  style: const TextStyle(color: T.ink, fontSize: 14),
+                  style: TextStyle(color: context.tokens.ink, fontSize: 14),
                   decoration: InputDecoration(
                     border: InputBorder.none,
                     hintText: l.auth_email,
-                    hintStyle: const TextStyle(color: T.inkDim),
+                    hintStyle: TextStyle(color: context.tokens.inkDim),
                     contentPadding: const EdgeInsets.symmetric(vertical: 14),
                   ),
                 ),
@@ -194,9 +194,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
               const SizedBox(height: 16),
               Text(
                 l.auth_login_sub,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
-                  color: T.inkSub,
+                  color: context.tokens.inkSub,
                   letterSpacing: 0.5,
                 ),
               ),
@@ -227,7 +227,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                     onTap: () => setState(() => _remember = !_remember),
                     child: Text(
                       l.auth_remember_me,
-                      style: const TextStyle(fontSize: 12, color: T.inkSub),
+                      style: TextStyle(fontSize: 12, color: context.tokens.inkSub),
                     ),
                   ),
                   const Spacer(),
@@ -312,7 +312,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
               const Spacer(flex: 2),
               Text(
                 l.auth_terms_notice,
-                style: const TextStyle(fontSize: 10, color: T.inkDim),
+                style: TextStyle(fontSize: 10, color: context.tokens.inkDim),
               ),
               const SizedBox(height: 12),
             ],
@@ -343,10 +343,10 @@ class _Logo extends StatelessWidget {
         ),
         Text(
           context.l10n.app_name,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 48,
             fontWeight: FontWeight.w800,
-            color: T.ink,
+            color: context.tokens.ink,
             letterSpacing: -2,
           ),
         ),
@@ -395,7 +395,7 @@ class _Field extends StatelessWidget {
                   autocorrect: false,
                   enableSuggestions: !obscure,
                   style: TextStyle(
-                    color: T.ink,
+                    color: context.tokens.ink,
                     fontSize: 15,
                     fontWeight: FontWeight.w500,
                     fontFamily: mono ? T.fontMono : null,

@@ -76,7 +76,7 @@ class _Pin extends StatelessWidget {
     final y = normY * (size.height * 0.7) + 120;
 
     final statusColor = switch (pickup.status) {
-      PickupStatus.full => T.inkMute,
+      PickupStatus.full => context.tokens.inkMute,
       PickupStatus.almost => T.warn,
       _ => T.live,
     };

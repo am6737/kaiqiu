@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/tokens.dart';
+import '../theme/app_tokens.dart';
 
 class EmptyState extends StatelessWidget {
   final IconData icon;
@@ -27,15 +28,15 @@ class EmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 44, color: T.inkDim),
+            Icon(icon, size: 44, color: context.tokens.inkDim),
             const SizedBox(height: 12),
             Text(
               title,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: T.ink,
+                color: context.tokens.ink,
               ),
             ),
             if (subtitle != null) ...[
@@ -43,9 +44,9 @@ class EmptyState extends StatelessWidget {
               Text(
                 subtitle!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
-                  color: T.inkSub,
+                  color: context.tokens.inkSub,
                   height: 1.5,
                 ),
               ),

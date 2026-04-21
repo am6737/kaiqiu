@@ -50,12 +50,12 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 children: [
                   GestureDetector(
                     onTap: () => context.pop(),
-                    child: const Padding(
+                    child: Padding(
                       padding: EdgeInsets.all(8),
                       child: Icon(
                         Icons.arrow_back_ios_new,
                         size: 20,
-                        color: T.ink,
+                        color: context.tokens.ink,
                       ),
                     ),
                   ),
@@ -71,21 +71,21 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.search, size: 16, color: T.inkSub),
+                          Icon(Icons.search, size: 16, color: context.tokens.inkSub),
                           const SizedBox(width: 8),
                           Expanded(
                             child: TextField(
                               controller: _controller,
                               autofocus: true,
-                              style: const TextStyle(
-                                color: T.ink,
+                              style: TextStyle(
+                                color: context.tokens.ink,
                                 fontSize: 14,
                               ),
                               decoration: InputDecoration(
                                 isDense: true,
                                 hintText: l.search_hint,
-                                hintStyle: const TextStyle(
-                                  color: T.inkDim,
+                                hintStyle: TextStyle(
+                                  color: context.tokens.inkDim,
                                   fontSize: 14,
                                 ),
                                 border: InputBorder.none,
@@ -104,10 +104,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                                 _controller.clear();
                                 setState(() => _query = '');
                               },
-                              child: const Icon(
+                              child: Icon(
                                 Icons.close,
                                 size: 16,
-                                color: T.inkSub,
+                                color: context.tokens.inkSub,
                               ),
                             ),
                         ],
@@ -217,16 +217,16 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               leading: const Icon(Icons.sports_soccer, color: T.live),
               title: Text(
                 p.venue,
-                style: const TextStyle(color: T.ink, fontSize: 14),
+                style: TextStyle(color: context.tokens.ink, fontSize: 14),
               ),
               subtitle: Text(
                 p.displayTime,
-                style: const TextStyle(color: T.inkSub, fontSize: 12),
+                style: TextStyle(color: context.tokens.inkSub, fontSize: 12),
               ),
-              trailing: const Icon(
+              trailing: Icon(
                 Icons.chevron_right,
                 size: 16,
-                color: T.inkDim,
+                color: context.tokens.inkDim,
               ),
               onTap: () async {
                 await LocalStore.pushSearch(q);
@@ -243,16 +243,16 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               leading: const Icon(Icons.emoji_events, color: T.warn),
               title: Text(
                 e.name,
-                style: const TextStyle(color: T.ink, fontSize: 14),
+                style: TextStyle(color: context.tokens.ink, fontSize: 14),
               ),
               subtitle: Text(
                 e.sub ?? (e.city ?? ''),
-                style: const TextStyle(color: T.inkSub, fontSize: 12),
+                style: TextStyle(color: context.tokens.inkSub, fontSize: 12),
               ),
-              trailing: const Icon(
+              trailing: Icon(
                 Icons.chevron_right,
                 size: 16,
-                color: T.inkDim,
+                color: context.tokens.inkDim,
               ),
               onTap: () async {
                 await LocalStore.pushSearch(q);
@@ -285,9 +285,9 @@ class _Chip extends StatelessWidget {
         ),
         child: Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
-            color: T.ink,
+            color: context.tokens.ink,
             fontWeight: FontWeight.w500,
           ),
         ),

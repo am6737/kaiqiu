@@ -101,7 +101,7 @@ class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
                 children: [
                   GestureDetector(
                     onTap: () => context.pop(),
-                    child: const Icon(Icons.close, size: 20, color: T.ink),
+                    child: Icon(Icons.close, size: 20, color: context.tokens.ink),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -113,9 +113,9 @@ class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
                         const SizedBox(height: 2),
                         Text(
                           info.event,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14,
-                            color: T.ink,
+                            color: context.tokens.ink,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -125,7 +125,7 @@ class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
                   Row(
                     children: [
                       N('${_idx + 1}', size: 13, weight: FontWeight.w700),
-                      N('/${_players.length}', size: 13, color: T.inkDim),
+                      N('/${_players.length}', size: 13, color: context.tokens.inkDim),
                     ],
                   ),
                 ],
@@ -146,7 +146,7 @@ class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
                         color: i < _idx
                             ? T.live
                             : i == _idx
-                            ? T.ink
+                            ? context.tokens.ink
                             : context.tokens.elev3,
                         borderRadius: BorderRadius.circular(1),
                       ),
@@ -177,9 +177,9 @@ class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
                           child: Text(
                             info.teamA,
                             textAlign: TextAlign.right,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 13,
-                              color: T.ink,
+                              color: context.tokens.ink,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -191,20 +191,20 @@ class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
                           weight: FontWeight.w700,
                           color: T.live,
                         ),
-                        const Text(' - ', style: TextStyle(color: T.inkDim)),
+                        Text(' - ', style: TextStyle(color: context.tokens.inkDim)),
                         N(
                           '${info.scoreB}',
                           size: 20,
                           weight: FontWeight.w700,
-                          color: T.ink,
+                          color: context.tokens.ink,
                         ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
                             info.teamB,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 13,
-                              color: T.ink,
+                              color: context.tokens.ink,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -236,10 +236,10 @@ class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
                                     children: [
                                       Text(
                                         p.name,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 17,
                                           fontWeight: FontWeight.w700,
-                                          color: T.ink,
+                                          color: context.tokens.ink,
                                         ),
                                       ),
                                       if (p.you) ...[
@@ -310,16 +310,16 @@ class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
                           minLines: 3,
                           maxLines: 4,
                           onChanged: (v) => _comments[p.name] = v,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 13,
-                            color: T.ink,
+                            color: context.tokens.ink,
                             height: 1.5,
                           ),
                           decoration: InputDecoration(
                             hintText: p.you
                                 ? context.l10n.rate_self_hint
                                 : context.l10n.rate_other_hint,
-                            hintStyle: const TextStyle(color: T.inkDim),
+                            hintStyle: TextStyle(color: context.tokens.inkDim),
                             filled: true,
                             fillColor: context.tokens.elev3,
                             contentPadding: const EdgeInsets.all(12),
@@ -349,10 +349,10 @@ class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
                       ),
                       child: Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.military_tech_outlined,
                             size: 14,
-                            color: T.inkSub,
+                            color: context.tokens.inkSub,
                           ),
                           const SizedBox(width: 10),
                           Expanded(
@@ -362,7 +362,7 @@ class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
                             p.avgScore.toStringAsFixed(1),
                             size: 15,
                             weight: FontWeight.w700,
-                            color: p.avgScore >= 8 ? T.live : T.ink,
+                            color: p.avgScore >= 8 ? T.live : context.tokens.ink,
                           ),
                         ],
                       ),
@@ -460,16 +460,16 @@ class _RatingSlider extends StatelessWidget {
   final ValueChanged<double> onChanged;
   const _RatingSlider({required this.value, required this.onChanged});
 
-  Color _colorFor(double v) {
+  Color _colorFor(BuildContext context, double v) {
     if (v >= 8) return T.live;
-    if (v >= 6) return T.ink;
+    if (v >= 6) return context.tokens.ink;
     if (v >= 4) return T.warn;
     return T.danger;
   }
 
   @override
   Widget build(BuildContext context) {
-    final color = _colorFor(value);
+    final color = _colorFor(context, value);
 
     return Column(
       children: [
@@ -486,7 +486,7 @@ class _RatingSlider extends StatelessWidget {
               color: color,
             ),
             const SizedBox(width: 4),
-            const N('/10', size: 18, color: T.inkDim),
+            N('/10', size: 18, color: context.tokens.inkDim),
           ],
         ),
         const SizedBox(height: 14),
@@ -546,7 +546,7 @@ class _RatingSlider extends StatelessWidget {
                                   fontFamilyFallback: T.monoFallbacks,
                                   fontSize: 10,
                                   fontWeight: FontWeight.w600,
-                                  color: n <= value ? T.ink : T.inkDim,
+                                  color: n <= value ? context.tokens.ink : context.tokens.inkDim,
                                 ),
                               ),
                           ],
@@ -643,10 +643,10 @@ class _DonePage extends StatelessWidget {
                 const SizedBox(height: 18),
                 Text(
                   context.l10n.rate_done_header,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w800,
-                    color: T.ink,
+                    color: context.tokens.ink,
                     letterSpacing: -0.3,
                   ),
                 ),
@@ -655,9 +655,9 @@ class _DonePage extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 40),
                   child: Text(
                     context.l10n.rate_done_thanks_body(count),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
-                      color: T.inkSub,
+                      color: context.tokens.inkSub,
                       height: 1.5,
                     ),
                     textAlign: TextAlign.center,

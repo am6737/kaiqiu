@@ -35,10 +35,10 @@ class MessagesScreen extends ConsumerWidget {
                 children: [
                   Text(
                     l.messages_title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 26,
                       fontWeight: FontWeight.w800,
-                      color: T.ink,
+                      color: context.tokens.ink,
                       letterSpacing: -0.5,
                     ),
                   ),
@@ -122,7 +122,7 @@ class MessagesScreen extends ConsumerWidget {
                         Text(
                           '${l.error_load_failed}：$e',
                           textAlign: TextAlign.center,
-                          style: const TextStyle(fontSize: 12, color: T.inkSub),
+                          style: TextStyle(fontSize: 12, color: context.tokens.inkSub),
                         ),
                         const SizedBox(height: 12),
                         PrimaryButton(
@@ -162,7 +162,7 @@ class MessagesScreen extends ConsumerWidget {
                 width: 36,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: T.inkMute,
+                  color: context.tokens.inkMute,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -170,10 +170,10 @@ class MessagesScreen extends ConsumerWidget {
             const SizedBox(height: 14),
             Text(
               l.messages_new_sheet_title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w700,
-                color: T.ink,
+                color: context.tokens.ink,
               ),
             ),
             const SizedBox(height: 12),
@@ -181,7 +181,7 @@ class MessagesScreen extends ConsumerWidget {
               leading: const Icon(Icons.groups_outlined, color: T.live),
               title: Text(
                 l.messages_new_group,
-                style: const TextStyle(color: T.ink),
+                style: TextStyle(color: context.tokens.ink),
               ),
               onTap: () async {
                 Navigator.of(ctx).pop();
@@ -189,10 +189,10 @@ class MessagesScreen extends ConsumerWidget {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.qr_code, color: T.inkSub),
+              leading: Icon(Icons.qr_code, color: context.tokens.inkSub),
               title: Text(
                 l.messages_new_scan,
-                style: const TextStyle(color: T.ink),
+                style: TextStyle(color: context.tokens.ink),
               ),
               onTap: () {
                 Navigator.of(ctx).pop();
@@ -200,10 +200,10 @@ class MessagesScreen extends ConsumerWidget {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.support_agent, color: T.inkSub),
+              leading: Icon(Icons.support_agent, color: context.tokens.inkSub),
               title: Text(
                 l.messages_new_contact_organizer,
-                style: const TextStyle(color: T.ink),
+                style: TextStyle(color: context.tokens.ink),
               ),
               onTap: () {
                 Navigator.of(ctx).pop();
@@ -224,13 +224,13 @@ class MessagesScreen extends ConsumerWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: context.tokens.elev2,
-        title: Text(l.messages_new_group, style: const TextStyle(color: T.ink)),
+        title: Text(l.messages_new_group, style: TextStyle(color: context.tokens.ink)),
         content: TextField(
           controller: titleC,
-          style: const TextStyle(color: T.ink),
+          style: TextStyle(color: context.tokens.ink),
           decoration: InputDecoration(
             hintText: l.messages_new_group_title_hint,
-            hintStyle: const TextStyle(color: T.inkDim),
+            hintStyle: TextStyle(color: context.tokens.inkDim),
           ),
         ),
         actions: [
@@ -286,7 +286,7 @@ class MessagesScreen extends ConsumerWidget {
                 width: 36,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: T.inkMute,
+                  color: context.tokens.inkMute,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -301,7 +301,7 @@ class MessagesScreen extends ConsumerWidget {
               ),
               title: Text(
                 LocalStore.isPinned(c.id) ? l.common_unpin : l.common_pin,
-                style: const TextStyle(color: T.ink),
+                style: TextStyle(color: context.tokens.ink),
               ),
               onTap: () async {
                 await LocalStore.togglePinned(c.id);
@@ -313,11 +313,11 @@ class MessagesScreen extends ConsumerWidget {
                 LocalStore.isMuted(c.id)
                     ? Icons.notifications_off
                     : Icons.notifications_off_outlined,
-                color: T.inkSub,
+                color: context.tokens.inkSub,
               ),
               title: Text(
                 LocalStore.isMuted(c.id) ? l.common_unmute : l.common_mute,
-                style: const TextStyle(color: T.ink),
+                style: TextStyle(color: context.tokens.ink),
               ),
               onTap: () async {
                 await LocalStore.toggleMuted(c.id);
@@ -325,13 +325,13 @@ class MessagesScreen extends ConsumerWidget {
               },
             ),
             ListTile(
-              leading: const Icon(
+              leading: Icon(
                 Icons.mark_email_read_outlined,
-                color: T.inkSub,
+                color: context.tokens.inkSub,
               ),
               title: Text(
                 l.messages_long_press_actions_mark_read,
-                style: const TextStyle(color: T.ink),
+                style: TextStyle(color: context.tokens.ink),
               ),
               onTap: () async {
                 await ref.read(messagesRepoProvider).markRead(c.id);
@@ -354,7 +354,7 @@ class MessagesScreen extends ConsumerWidget {
                     backgroundColor: context.tokens.elev2,
                     content: Text(
                       l.messages_delete_confirm,
-                      style: const TextStyle(color: T.ink),
+                      style: TextStyle(color: context.tokens.ink),
                     ),
                     actions: [
                       TextButton(
@@ -478,10 +478,10 @@ class _ThreadRow extends ConsumerWidget {
                         child: Text(
                           title,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: T.ink,
+                            color: context.tokens.ink,
                           ),
                         ),
                       ),
@@ -515,16 +515,16 @@ class _EmptyState extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.chat_bubble_outline, size: 40, color: T.inkMute),
+          Icon(Icons.chat_bubble_outline, size: 40, color: context.tokens.inkMute),
           const SizedBox(height: 10),
           Text(
             l.messages_empty_title,
-            style: const TextStyle(color: T.ink, fontSize: 14),
+            style: TextStyle(color: context.tokens.ink, fontSize: 14),
           ),
           const SizedBox(height: 4),
           Text(
             l.messages_empty_sub,
-            style: const TextStyle(color: T.inkSub, fontSize: 12),
+            style: TextStyle(color: context.tokens.inkSub, fontSize: 12),
           ),
         ],
       ),

@@ -73,10 +73,10 @@ class _WcPredictScreenState extends ConsumerState<WcPredictScreen> {
                   children: [
                     _TeamFlag(code: 'ARG', hue: 200, name: l.wc_team_argentina),
                     const Spacer(),
-                    const Text(
+                    Text(
                       'VS',
                       style: TextStyle(
-                        color: T.inkDim,
+                        color: context.tokens.inkDim,
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
                         letterSpacing: 1,
@@ -161,15 +161,15 @@ class _WcPredictScreenState extends ConsumerState<WcPredictScreen> {
                         _Bar(
                           flex: dPct,
                           label: '$dPct%',
-                          color: T.inkMute,
-                          fg: T.ink,
+                          color: context.tokens.inkMute,
+                          fg: context.tokens.ink,
                         ),
                         const SizedBox(width: 6),
                         _Bar(
                           flex: bPct,
                           label: '$bPct%',
                           color: context.tokens.elev3,
-                          fg: T.ink,
+                          fg: context.tokens.ink,
                         ),
                       ],
                     ),
@@ -203,9 +203,9 @@ class _WcPredictScreenState extends ConsumerState<WcPredictScreen> {
                       Expanded(
                         child: Text(
                           '${l.wc_predict_submitted} · ${l.wc_predict_change(_label(context, _choice ?? ''))}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 12,
-                            color: T.ink,
+                            color: context.tokens.ink,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -286,7 +286,7 @@ class _Option extends StatelessWidget {
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w700,
-            color: active ? T.live : T.ink,
+            color: active ? T.live : context.tokens.ink,
           ),
         ),
       ),
@@ -320,7 +320,7 @@ class _StakeBtn extends StatelessWidget {
           '$value',
           size: 13,
           weight: FontWeight.w700,
-          color: active ? T.live : T.ink,
+          color: active ? T.live : context.tokens.ink,
         ),
       ),
     );
@@ -376,21 +376,21 @@ class _TeamFlag extends StatelessWidget {
           ),
           child: Text(
             code,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: T.fontMono,
               fontFamilyFallback: T.monoFallbacks,
               fontSize: 13,
               fontWeight: FontWeight.w800,
-              color: T.ink,
+              color: context.tokens.ink,
             ),
           ),
         ),
         const SizedBox(height: 6),
         Text(
           name,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
-            color: T.ink,
+            color: context.tokens.ink,
             fontWeight: FontWeight.w500,
           ),
         ),

@@ -30,9 +30,9 @@ class LegalScreen extends StatelessWidget {
                 children: [
                   Text(
                     body,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
-                      color: T.inkSub,
+                      color: context.tokens.inkSub,
                       height: 1.8,
                     ),
                   ),

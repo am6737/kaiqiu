@@ -52,10 +52,10 @@ class AboutScreen extends StatelessWidget {
             Center(
               child: Text(
                 l.app_name,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.w800,
-                  color: T.ink,
+                  color: context.tokens.ink,
                   letterSpacing: -0.5,
                 ),
               ),
@@ -64,18 +64,18 @@ class AboutScreen extends StatelessWidget {
             Center(
               child: Text(
                 l.settings_about_tagline,
-                style: const TextStyle(fontSize: 13, color: T.inkSub),
+                style: TextStyle(fontSize: 13, color: context.tokens.inkSub),
               ),
             ),
             const SizedBox(height: 8),
             Center(
               child: Text(
                 '${l.settings_about_version_label} $_kVersion',
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: T.fontMono,
                   fontFamilyFallback: T.monoFallbacks,
                   fontSize: 11,
-                  color: T.inkDim,
+                  color: context.tokens.inkDim,
                   letterSpacing: 0.5,
                 ),
               ),
@@ -93,9 +93,9 @@ class AboutScreen extends StatelessWidget {
                 ),
                 child: Text(
                   l.settings_about_team_body,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
-                    color: T.inkSub,
+                    color: context.tokens.inkSub,
                     height: 1.7,
                   ),
                 ),
@@ -113,12 +113,14 @@ class AboutScreen extends StatelessWidget {
                 child: Column(
                   children: [
                     _menuRow(
+                      context,
                       Icons.description_outlined,
                       l.settings_about_terms,
                       () => context.push('/settings/legal/terms'),
                     ),
                     Divider(height: 1, color: context.tokens.line),
                     _menuRow(
+                      context,
                       Icons.shield_outlined,
                       l.settings_about_privacy,
                       () => context.push('/settings/legal/privacy'),
@@ -143,18 +145,18 @@ class AboutScreen extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.mail_outline, color: T.inkSub, size: 18),
+                      Icon(Icons.mail_outline, color: context.tokens.inkSub, size: 18),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
                           l.settings_about_email,
-                          style: const TextStyle(fontSize: 14, color: T.ink),
+                          style: TextStyle(fontSize: 14, color: context.tokens.ink),
                         ),
                       ),
-                      const Icon(
+                      Icon(
                         Icons.chevron_right,
                         size: 16,
-                        color: T.inkDim,
+                        color: context.tokens.inkDim,
                       ),
                     ],
                   ),
@@ -169,22 +171,22 @@ class AboutScreen extends StatelessWidget {
     );
   }
 
-  Widget _menuRow(IconData icon, String label, VoidCallback onTap) {
+  Widget _menuRow(BuildContext context, IconData icon, String label, VoidCallback onTap) {
     return InkWell(
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         child: Row(
           children: [
-            Icon(icon, size: 18, color: T.inkSub),
+            Icon(icon, size: 18, color: context.tokens.inkSub),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
                 label,
-                style: const TextStyle(fontSize: 14, color: T.ink),
+                style: TextStyle(fontSize: 14, color: context.tokens.ink),
               ),
             ),
-            const Icon(Icons.chevron_right, size: 16, color: T.inkDim),
+            Icon(Icons.chevron_right, size: 16, color: context.tokens.inkDim),
           ],
         ),
       ),

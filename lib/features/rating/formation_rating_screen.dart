@@ -175,15 +175,15 @@ class _FormationRatingScreenState
         backgroundColor: context.tokens.bg,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.close, size: 20, color: T.ink),
+          icon: Icon(Icons.close, size: 20, color: context.tokens.ink),
           onPressed: () => context.pop(),
         ),
         title: Text(
           l.rate_pitch_title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.w700,
-            color: T.ink,
+            color: context.tokens.ink,
           ),
         ),
         shape: Border(bottom: BorderSide(color: context.tokens.line, width: 1)),
@@ -202,7 +202,7 @@ class _FormationRatingScreenState
             child: Text(
               '${l.error_load_failed}\n$e',
               textAlign: TextAlign.center,
-              style: const TextStyle(color: T.inkSub),
+              style: TextStyle(color: context.tokens.inkSub),
             ),
           ),
         ),
@@ -277,7 +277,7 @@ class _ProgressHeader extends StatelessWidget {
                 context.l10n.rate_pitch_progress(rated, total),
                 size: 12,
                 weight: FontWeight.w700,
-                color: rated == total ? T.live : T.ink,
+                color: rated == total ? T.live : context.tokens.ink,
               ),
             ],
           ),
@@ -355,28 +355,28 @@ class _EmptyState extends StatelessWidget {
                 border: Border.all(color: context.tokens.line),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.groups_outlined,
                 size: 28,
-                color: T.inkSub,
+                color: context.tokens.inkSub,
               ),
             ),
             const SizedBox(height: 14),
             Text(
               l.rate_pitch_empty_title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
-                color: T.ink,
+                color: context.tokens.ink,
               ),
             ),
             const SizedBox(height: 6),
             Text(
               l.rate_pitch_empty_sub,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
-                color: T.inkSub,
+                color: context.tokens.inkSub,
                 height: 1.5,
               ),
             ),

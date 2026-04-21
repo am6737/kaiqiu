@@ -94,7 +94,7 @@ class _Tabs extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: current == i ? T.ink : T.inkSub,
+                        color: current == i ? context.tokens.ink : context.tokens.inkSub,
                       ),
                     ),
                   ),
@@ -244,10 +244,10 @@ class _EventCard extends StatelessWidget {
                 children: [
                   Text(
                     event.name,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
-                      color: T.ink,
+                      color: context.tokens.ink,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -256,7 +256,7 @@ class _EventCard extends StatelessWidget {
                       if (event.sub?.isNotEmpty ?? false) event.sub!,
                       if (event.city?.isNotEmpty ?? false) event.city!,
                     ].join(' · '),
-                    style: const TextStyle(fontSize: 12, color: T.inkSub),
+                    style: TextStyle(fontSize: 12, color: context.tokens.inkSub),
                   ),
                 ],
               ),

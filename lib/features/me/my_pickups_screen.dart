@@ -108,7 +108,7 @@ class _TabBtn extends StatelessWidget {
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: active ? T.ink : T.inkSub,
+            color: active ? context.tokens.ink : context.tokens.inkSub,
           ),
         ),
       ),
@@ -205,7 +205,7 @@ class _Row extends StatelessWidget {
                 border: Border.all(color: context.tokens.line),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const SportIcon(Sport.football, size: 20, color: T.inkSub),
+              child: SportIcon(Sport.football, size: 20, color: context.tokens.inkSub),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -216,23 +216,23 @@ class _Row extends StatelessWidget {
                     p.venue,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
-                      color: T.ink,
+                      color: context.tokens.ink,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Row(
                     children: [
-                      N(p.displayTime, size: 11, color: T.inkSub),
+                      N(p.displayTime, size: 11, color: context.tokens.inkSub),
                       const SizedBox(width: 10),
                       if (p.level != null) Label(p.level!),
                       const SizedBox(width: 10),
                       N(
                         '¥${p.feeYuan.toStringAsFixed(0)}',
                         size: 11,
-                        color: T.inkSub,
+                        color: context.tokens.inkSub,
                       ),
                     ],
                   ),

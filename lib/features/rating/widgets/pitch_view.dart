@@ -89,9 +89,9 @@ class _PlayerDot extends StatelessWidget {
     required this.onTap,
   });
 
-  Color _ratedColor(double v) {
+  Color _ratedColor(BuildContext context, double v) {
     if (v >= 8) return T.live;
-    if (v >= 6) return T.ink;
+    if (v >= 6) return context.tokens.ink;
     if (v >= 4) return T.warn;
     return T.danger;
   }
@@ -100,9 +100,9 @@ class _PlayerDot extends StatelessWidget {
   Widget build(BuildContext context) {
     final label = slot.initial(isSelf ? slot.userId : null);
     final dotColor = rated != null
-        ? _ratedColor(rated!)
-        : (isSelected ? T.ink : context.tokens.elev1);
-    final dotFg = rated != null || isSelected ? Colors.black : T.ink;
+        ? _ratedColor(context, rated!)
+        : (isSelected ? context.tokens.ink : context.tokens.elev1);
+    final dotFg = rated != null || isSelected ? Colors.black : context.tokens.ink;
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -132,7 +132,7 @@ class _PlayerDot extends StatelessWidget {
                   color: dotColor,
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: isSelected ? T.ink : context.tokens.line,
+                    color: isSelected ? context.tokens.ink : context.tokens.line,
                     width: isSelected ? 2 : 1,
                   ),
                   boxShadow: isSelected
@@ -166,7 +166,7 @@ class _PlayerDot extends StatelessWidget {
                       vertical: 1,
                     ),
                     decoration: BoxDecoration(
-                      color: _ratedColor(rated!),
+                      color: _ratedColor(context, rated!),
                       borderRadius: BorderRadius.circular(3),
                       border: Border.all(color: Colors.black, width: 1),
                     ),
@@ -198,7 +198,7 @@ class _PlayerDot extends StatelessWidget {
                 fontFamilyFallback: T.monoFallbacks,
                 fontSize: 8.5,
                 fontWeight: FontWeight.w600,
-                color: isSelf ? T.live : T.ink,
+                color: isSelf ? T.live : context.tokens.ink,
               ),
             ),
           ),

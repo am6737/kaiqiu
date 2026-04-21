@@ -26,16 +26,16 @@ class ChipPill extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 10),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: active ? T.ink : Colors.transparent,
+          color: active ? context.tokens.ink : Colors.transparent,
           borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: active ? T.ink : context.tokens.line),
+          border: Border.all(color: active ? context.tokens.ink : context.tokens.line),
         ),
         child: Text(
           label,
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w500,
-            color: active ? Colors.black : T.inkSub,
+            color: active ? Colors.black : context.tokens.inkSub,
           ),
         ),
       ),

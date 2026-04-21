@@ -85,9 +85,9 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
                     child: Text(
                       l.settings_help_feedback,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
-                        color: T.inkSub,
+                        color: context.tokens.inkSub,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -107,13 +107,13 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                       child: TextField(
                         controller: _fbC,
                         maxLines: 5,
-                        style: const TextStyle(color: T.ink, fontSize: 14),
+                        style: TextStyle(color: context.tokens.ink, fontSize: 14),
                         decoration: InputDecoration(
                           border: InputBorder.none,
                           isDense: true,
                           hintText: l.settings_help_feedback_hint,
-                          hintStyle: const TextStyle(
-                            color: T.inkDim,
+                          hintStyle: TextStyle(
+                            color: context.tokens.inkDim,
                             fontSize: 13,
                           ),
                         ),
@@ -177,16 +177,16 @@ class _FaqRow extends StatelessWidget {
                 Expanded(
                   child: Text(
                     q,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
-                      color: T.ink,
+                      color: context.tokens.ink,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
                 Icon(
                   open ? Icons.expand_less : Icons.expand_more,
-                  color: T.inkSub,
+                  color: context.tokens.inkSub,
                   size: 18,
                 ),
               ],
@@ -195,9 +195,9 @@ class _FaqRow extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 a,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
-                  color: T.inkSub,
+                  color: context.tokens.inkSub,
                   height: 1.6,
                 ),
               ),

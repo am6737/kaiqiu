@@ -30,7 +30,7 @@ class Avatar extends StatelessWidget {
           fontSize: size * 0.42,
           fontWeight: FontWeight.w600,
           letterSpacing: -0.5,
-          color: T.ink,
+          color: context.tokens.ink,
         ),
       ),
     );

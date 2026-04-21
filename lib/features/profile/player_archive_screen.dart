@@ -65,31 +65,31 @@ class _PlayerArchiveScreenState extends ConsumerState<PlayerArchiveScreen>
                 children: [
                   GestureDetector(
                     onTap: () => context.pop(),
-                    child: const Padding(
+                    child: Padding(
                       padding: EdgeInsets.all(4),
                       child: Icon(
                         Icons.arrow_back_ios_new,
                         size: 22,
-                        color: T.ink,
+                        color: context.tokens.ink,
                       ),
                     ),
                   ),
                   const SizedBox(width: 6),
                   Text(
                     context.l10n.profile_archive_title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.w800,
-                      color: T.ink,
+                      color: context.tokens.ink,
                       letterSpacing: -0.5,
                     ),
                   ),
                   const Spacer(),
                   GestureDetector(
                     onTap: () => shareProfile(u),
-                    child: const Padding(
+                    child: Padding(
                       padding: EdgeInsets.all(6),
-                      child: Icon(Icons.ios_share, size: 18, color: T.inkSub),
+                      child: Icon(Icons.ios_share, size: 18, color: context.tokens.inkSub),
                     ),
                   ),
                 ],
@@ -108,10 +108,10 @@ class _PlayerArchiveScreenState extends ConsumerState<PlayerArchiveScreen>
                       children: [
                         Text(
                           u.name,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.w700,
-                            color: T.ink,
+                            color: context.tokens.ink,
                           ),
                         ),
                         const SizedBox(height: 3),
@@ -314,9 +314,9 @@ class _PlayerArchiveScreenState extends ConsumerState<PlayerArchiveScreen>
                             const SizedBox(height: 5),
                             Text(
                               t.name,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 11,
-                                color: T.ink,
+                                color: context.tokens.ink,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -447,7 +447,7 @@ class _CardFront extends StatelessWidget {
                   Positioned.fill(
                     child: CustomPaint(painter: _ScanLinesPainter()),
                   ),
-                  const Center(
+                  Center(
                     child: Text(
                       'PLAYER\nPORTRAIT',
                       textAlign: TextAlign.center,
@@ -455,7 +455,7 @@ class _CardFront extends StatelessWidget {
                         fontFamily: T.fontMono,
                         fontFamilyFallback: T.monoFallbacks,
                         fontSize: 11,
-                        color: T.inkDim,
+                        color: context.tokens.inkDim,
                         letterSpacing: 1,
                       ),
                     ),
@@ -470,10 +470,10 @@ class _CardFront extends StatelessWidget {
             bottom: 84,
             child: Text(
               u.name.toUpperCase(),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.w800,
-                color: T.ink,
+                color: context.tokens.ink,
                 letterSpacing: -0.5,
               ),
             ),
@@ -577,7 +577,7 @@ class _CardBack extends StatelessWidget {
           SizedBox(
             height: 180,
             child: CustomPaint(
-              painter: _RadarPainter(u.attrs),
+              painter: _RadarPainter(u.attrs, labelColor: context.tokens.inkSub),
               size: Size.infinite,
             ),
           ),
@@ -619,8 +619,8 @@ class _CardBack extends StatelessWidget {
                               color: e.value >= 80
                                   ? T.live
                                   : e.value >= 60
-                                  ? T.ink
-                                  : T.inkSub,
+                                  ? context.tokens.ink
+                                  : context.tokens.inkSub,
                               borderRadius: BorderRadius.circular(2),
                             ),
                           ),
@@ -631,7 +631,7 @@ class _CardBack extends StatelessWidget {
                         '${e.value}',
                         size: 12,
                         weight: FontWeight.w700,
-                        color: e.value >= 80 ? T.live : T.ink,
+                        color: e.value >= 80 ? T.live : context.tokens.ink,
                       ),
                     ],
                   ),
@@ -676,7 +676,8 @@ class _ScanLinesPainter extends CustomPainter {
 
 class _RadarPainter extends CustomPainter {
   final Map<String, int> attrs;
-  _RadarPainter(this.attrs);
+  final Color labelColor;
+  _RadarPainter(this.attrs, {required this.labelColor});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -753,8 +754,8 @@ class _RadarPainter extends CustomPainter {
       final tp = TextPainter(
         text: TextSpan(
           text: keys[i],
-          style: const TextStyle(
-            color: T.inkSub,
+          style: TextStyle(
+            color: labelColor,
             fontSize: 10,
             fontWeight: FontWeight.w500,
           ),
@@ -766,7 +767,7 @@ class _RadarPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _RadarPainter old) => old.attrs != attrs;
+  bool shouldRepaint(covariant _RadarPainter old) => old.attrs != attrs || old.labelColor != labelColor;
 }
 
 class _TrendPainter extends CustomPainter {
@@ -852,7 +853,7 @@ class _RatingPanel extends StatelessWidget {
                     _StatMini(
                       label: context.l10n.archive_rating_rated,
                       value: '486',
-                      color: T.ink,
+                      color: context.tokens.ink,
                     ),
                     _StatMini(
                       label: context.l10n.archive_rating_rank,
@@ -891,7 +892,7 @@ class _RatingBadge extends StatelessWidget {
     final c = score >= 8
         ? T.live
         : score >= 6
-        ? T.ink
+        ? context.tokens.ink
         : T.danger;
     return Container(
       width: 64,
@@ -913,11 +914,11 @@ class _RatingBadge extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             context.l10n.event_tab_ratings,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: T.fontMono,
               fontFamilyFallback: T.monoFallbacks,
               fontSize: 10,
-              color: T.inkDim,
+              color: context.tokens.inkDim,
               letterSpacing: 1,
             ),
           ),
@@ -941,7 +942,7 @@ class _StatMini extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text('$label ', style: const TextStyle(fontSize: 12, color: T.inkSub)),
+        Text('$label ', style: TextStyle(fontSize: 12, color: context.tokens.inkSub)),
         N(value, size: 12, weight: FontWeight.w700, color: color),
       ],
     );
@@ -963,7 +964,7 @@ class _StatTile extends StatelessWidget {
         ),
         child: Column(
           children: [
-            N(value, size: 22, weight: FontWeight.w800, color: T.ink),
+            N(value, size: 22, weight: FontWeight.w800, color: context.tokens.ink),
             const SizedBox(height: 2),
             Label(label),
           ],
@@ -1009,7 +1010,7 @@ class _HonorTile extends StatelessWidget {
             child: Icon(
               Icons.emoji_events,
               size: 18,
-              color: isGold ? Colors.black : T.inkSub,
+              color: isGold ? Colors.black : context.tokens.inkSub,
             ),
           ),
           const SizedBox(width: 12),
@@ -1019,9 +1020,9 @@ class _HonorTile extends StatelessWidget {
               children: [
                 Text(
                   honor.title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
-                    color: T.ink,
+                    color: context.tokens.ink,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -1029,7 +1030,7 @@ class _HonorTile extends StatelessWidget {
               ],
             ),
           ),
-          const Icon(Icons.chevron_right, size: 14, color: T.inkDim),
+          Icon(Icons.chevron_right, size: 14, color: context.tokens.inkDim),
         ],
       ),
     );
@@ -1049,7 +1050,7 @@ class _HistoryRow extends StatelessWidget {
     } else if (match.score.contains('负')) {
       scoreColor = T.warn;
     } else {
-      scoreColor = T.inkSub;
+      scoreColor = context.tokens.inkSub;
     }
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
@@ -1061,7 +1062,7 @@ class _HistoryRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          SizedBox(width: 36, child: N(match.date, size: 11, color: T.inkSub)),
+          SizedBox(width: 36, child: N(match.date, size: 11, color: context.tokens.inkSub)),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
@@ -1071,9 +1072,9 @@ class _HistoryRow extends StatelessWidget {
                   children: [
                     Text(
                       match.opp,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
-                        color: T.ink,
+                        color: context.tokens.ink,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -1125,11 +1126,11 @@ class _HistoryRow extends StatelessWidget {
                       if (match.assists > 0)
                         context.l10n.archive_history_assists_n(match.assists),
                     ].join(' · '),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: T.fontMono,
                       fontFamilyFallback: T.monoFallbacks,
                       fontSize: 10,
-                      color: T.inkSub,
+                      color: context.tokens.inkSub,
                     ),
                   ),
                 ),

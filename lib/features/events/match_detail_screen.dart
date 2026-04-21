@@ -35,15 +35,15 @@ class MatchDetailScreen extends ConsumerWidget {
         backgroundColor: context.tokens.bg,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, size: 18, color: T.ink),
+          icon: Icon(Icons.arrow_back_ios_new, size: 18, color: context.tokens.ink),
           onPressed: () => context.pop(),
         ),
         title: Text(
           l.match_detail_title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.w700,
-            color: T.ink,
+            color: context.tokens.ink,
           ),
         ),
         shape: Border(bottom: BorderSide(color: context.tokens.line, width: 1)),
@@ -57,7 +57,7 @@ class MatchDetailScreen extends ConsumerWidget {
             return Center(
               child: Text(
                 l.match_not_found,
-                style: const TextStyle(color: T.inkSub, fontSize: 13),
+                style: TextStyle(color: context.tokens.inkSub, fontSize: 13),
               ),
             );
           }
@@ -182,11 +182,11 @@ class _HeaderCard extends StatelessWidget {
             const SizedBox(height: 10),
             Text(
               timeStr,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: T.fontMono,
                 fontFamilyFallback: T.monoFallbacks,
                 fontSize: 11,
-                color: T.inkDim,
+                color: context.tokens.inkDim,
               ),
             ),
           ],
@@ -210,7 +210,7 @@ class _TeamRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final nameColor = done ? (won ? T.ink : T.inkSub) : T.ink;
+    final nameColor = done ? (won ? context.tokens.ink : context.tokens.inkSub) : context.tokens.ink;
     return Row(
       children: [
         Expanded(
@@ -229,10 +229,10 @@ class _TeamRow extends StatelessWidget {
             '$score',
             size: 22,
             weight: FontWeight.w800,
-            color: won ? T.live : T.inkSub,
+            color: won ? T.live : context.tokens.inkSub,
           )
         else
-          const Text('-', style: TextStyle(color: T.inkDim, fontSize: 16)),
+          Text('-', style: TextStyle(color: context.tokens.inkDim, fontSize: 16)),
       ],
     );
   }
@@ -246,9 +246,9 @@ class _StatusChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = context.l10n;
     final (bg, fg, text) = switch (status) {
-      _MatchStatus.upcoming => (context.tokens.elev3, T.inkSub, l.match_status_upcoming),
+      _MatchStatus.upcoming => (context.tokens.elev3, context.tokens.inkSub, l.match_status_upcoming),
       _MatchStatus.live => (T.liveDim, T.live, l.match_status_live),
-      _MatchStatus.done => (context.tokens.elev3, T.inkDim, l.match_status_done),
+      _MatchStatus.done => (context.tokens.elev3, context.tokens.inkDim, l.match_status_done),
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -297,7 +297,7 @@ class _GoalsSection extends StatelessWidget {
               ),
               child: Text(
                 l.match_goals_empty,
-                style: const TextStyle(color: T.inkDim, fontSize: 12),
+                style: TextStyle(color: context.tokens.inkDim, fontSize: 12),
               ),
             )
           else
@@ -341,10 +341,10 @@ class _GoalRow extends StatelessWidget {
               children: [
                 Text(
                   goal.scorerName ?? '—',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: T.ink,
+                    color: context.tokens.ink,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -352,7 +352,7 @@ class _GoalRow extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     l.match_assist_by(goal.assistId!),
-                    style: const TextStyle(fontSize: 11, color: T.inkSub),
+                    style: TextStyle(fontSize: 11, color: context.tokens.inkSub),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
@@ -496,7 +496,7 @@ class _Error extends StatelessWidget {
       padding: const EdgeInsets.all(24),
       child: Text(
         '$error',
-        style: const TextStyle(color: T.inkDim, fontSize: 12),
+        style: TextStyle(color: context.tokens.inkDim, fontSize: 12),
         textAlign: TextAlign.center,
       ),
     ),
@@ -506,13 +506,13 @@ class _Error extends StatelessWidget {
 class _GoalsLoading extends StatelessWidget {
   const _GoalsLoading();
   @override
-  Widget build(BuildContext context) => const Padding(
+  Widget build(BuildContext context) => Padding(
     padding: EdgeInsets.symmetric(vertical: 24),
     child: Center(
       child: SizedBox(
         width: 18,
         height: 18,
-        child: CircularProgressIndicator(color: T.inkDim, strokeWidth: 2),
+        child: CircularProgressIndicator(color: context.tokens.inkDim, strokeWidth: 2),
       ),
     ),
   );
@@ -526,7 +526,7 @@ class _GoalsError extends StatelessWidget {
     padding: const EdgeInsets.all(16),
     child: Text(
       '$error',
-      style: const TextStyle(color: T.inkDim, fontSize: 11),
+      style: TextStyle(color: context.tokens.inkDim, fontSize: 11),
     ),
   );
 }

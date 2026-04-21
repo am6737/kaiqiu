@@ -71,7 +71,7 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                       width: 36,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: T.inkMute,
+                        color: context.tokens.inkMute,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -79,10 +79,10 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                   const SizedBox(height: 14),
                   Text(
                     l.pickup_filter_title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
-                      color: T.ink,
+                      color: context.tokens.ink,
                     ),
                   ),
                   const SizedBox(height: 14),
@@ -139,7 +139,7 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                               lv.$2,
                               style: TextStyle(
                                 fontSize: 12,
-                                color: localLevel == lv.$1 ? T.live : T.ink,
+                                color: localLevel == lv.$1 ? T.live : context.tokens.ink,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -215,7 +215,7 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                   const SizedBox(height: 8),
                   Text(
                     '${context.l10n.error_load_failed}: $e',
-                    style: const TextStyle(fontSize: 13, color: T.inkSub),
+                    style: TextStyle(fontSize: 13, color: context.tokens.inkSub),
                   ),
                   const SizedBox(height: 12),
                   GestureDetector(
@@ -232,7 +232,7 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                       ),
                       child: Text(
                         context.l10n.common_retry,
-                        style: const TextStyle(color: T.ink, fontSize: 12),
+                        style: TextStyle(color: context.tokens.ink, fontSize: 12),
                       ),
                     ),
                   ),
@@ -289,10 +289,10 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                       const SizedBox(width: 10),
                       Text(
                         context.l10n.pickup_map_title_city(LocalStore.city),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w700,
-                          color: T.ink,
+                          color: context.tokens.ink,
                         ),
                       ),
                       const Spacer(),
@@ -406,7 +406,7 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                               width: 36,
                               height: 4,
                               decoration: BoxDecoration(
-                                color: T.inkMute,
+                                color: context.tokens.inkMute,
                                 borderRadius: BorderRadius.circular(2),
                               ),
                             ),
@@ -420,10 +420,10 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                                 context.l10n.pickup_city_pickup_count(
                                   pickups.length,
                                 ),
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w600,
-                                  color: T.ink,
+                                  color: context.tokens.ink,
                                 ),
                               ),
                               const Spacer(),
@@ -471,7 +471,7 @@ class _CircleBtn extends StatelessWidget {
           shape: BoxShape.circle,
           border: Border.all(color: context.tokens.line),
         ),
-        child: Icon(icon, size: 16, color: T.ink),
+        child: Icon(icon, size: 16, color: context.tokens.ink),
       ),
     );
   }
@@ -526,7 +526,7 @@ class _MapListRow extends StatelessWidget {
                 color: HSLColor.fromAHSL(1, 140, 0.15, 0.22).toColor(),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const SportIcon(Sport.football, size: 20, color: T.inkSub),
+              child: SportIcon(Sport.football, size: 20, color: context.tokens.inkSub),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -537,23 +537,23 @@ class _MapListRow extends StatelessWidget {
                     item.venue,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: T.ink,
+                      color: context.tokens.ink,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Row(
                     children: [
-                      N(item.displayTime, size: 11, color: T.inkSub),
+                      N(item.displayTime, size: 11, color: context.tokens.inkSub),
                       const SizedBox(width: 10),
                       if (item.level != null) Label(item.level!),
                       const SizedBox(width: 10),
                       N(
                         '¥${item.feeYuan.toStringAsFixed(0)}',
                         size: 11,
-                        color: T.inkSub,
+                        color: context.tokens.inkSub,
                       ),
                     ],
                   ),
@@ -571,7 +571,7 @@ class _MapListRow extends StatelessWidget {
                       : context.l10n.pickup_map_full_short,
                   size: 12,
                   weight: FontWeight.w600,
-                  color: need > 0 ? T.live : T.inkDim,
+                  color: need > 0 ? T.live : context.tokens.inkDim,
                 ),
               ],
             ),

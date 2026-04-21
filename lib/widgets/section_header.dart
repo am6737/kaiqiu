@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/tokens.dart';
+import '../theme/app_tokens.dart';
 import 'typography.dart';
 
 class SectionHeader extends StatelessWidget {
@@ -50,9 +51,9 @@ class PageTitleBar extends StatelessWidget {
           if (onBack != null)
             GestureDetector(
               onTap: onBack,
-              child: const Padding(
+              child: Padding(
                 padding: EdgeInsets.all(8),
-                child: Icon(Icons.arrow_back_ios_new, size: 20, color: T.ink),
+                child: Icon(Icons.arrow_back_ios_new, size: 20, color: context.tokens.ink),
               ),
             )
           else
@@ -62,10 +63,10 @@ class PageTitleBar extends StatelessWidget {
               title,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w800,
-                color: T.ink,
+                color: context.tokens.ink,
                 letterSpacing: -0.5,
               ),
             ),

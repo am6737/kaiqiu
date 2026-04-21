@@ -102,7 +102,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                 children: [
                   GestureDetector(
                     onTap: () => context.pop(),
-                    child: const Icon(Icons.close, size: 20, color: T.ink),
+                    child: Icon(Icons.close, size: 20, color: context.tokens.ink),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -112,10 +112,10 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                       children: [
                         Text(
                           l.create_event_title,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
-                            color: T.ink,
+                            color: context.tokens.ink,
                           ),
                         ),
                         Label(l.create_event_step_n_of(_step, 4)),
@@ -155,8 +155,8 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                             color: i + 1 == _step
                                 ? T.live
                                 : i + 1 < _step
-                                ? T.ink
-                                : T.inkDim,
+                                ? context.tokens.ink
+                                : context.tokens.inkDim,
                             letterSpacing: 0.5,
                           ),
                         ),
@@ -315,17 +315,17 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         children: [
           Text(
             l.create_event_tpl_title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
-              color: T.ink,
+              color: context.tokens.ink,
               letterSpacing: -0.3,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             l.create_event_tpl_subtitle,
-            style: const TextStyle(fontSize: 13, color: T.inkSub),
+            style: TextStyle(fontSize: 13, color: context.tokens.inkSub),
           ),
           const SizedBox(height: 18),
           for (final t in tpls) ...[
@@ -344,7 +344,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                       width: 48,
                       height: 48,
                       child: CustomPaint(
-                        painter: _BracketMiniPainter(t.$1, _tpl == t.$1),
+                        painter: _BracketMiniPainter(t.$1, _tpl == t.$1, inkSub: context.tokens.inkSub, inkMute: context.tokens.inkMute),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -354,18 +354,18 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                         children: [
                           Text(
                             t.$2,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w700,
-                              color: T.ink,
+                              color: context.tokens.ink,
                             ),
                           ),
                           const SizedBox(height: 3),
                           Text(
                             t.$3,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
-                              color: T.inkSub,
+                              color: context.tokens.inkSub,
                             ),
                           ),
                         ],
@@ -411,10 +411,10 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         children: [
           Text(
             l.create_event_step_basic,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
-              color: T.ink,
+              color: context.tokens.ink,
               letterSpacing: -0.3,
             ),
           ),
@@ -475,10 +475,10 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         children: [
           Text(
             l.create_event_step_registration,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
-              color: T.ink,
+              color: context.tokens.ink,
               letterSpacing: -0.3,
             ),
           ),
@@ -516,7 +516,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: _review == opt.$1 ? T.live : T.ink,
+                          color: _review == opt.$1 ? T.live : context.tokens.ink,
                         ),
                       ),
                     ),
@@ -567,9 +567,9 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                 const SizedBox(height: 8),
                 Text(
                   l.create_event_organizer_tip_body,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
-                    color: T.inkSub,
+                    color: context.tokens.inkSub,
                     height: 1.5,
                   ),
                 ),
@@ -595,17 +595,17 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         children: [
           Text(
             l.create_event_step_preview,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
-              color: T.ink,
+              color: context.tokens.ink,
               letterSpacing: -0.3,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             l.create_event_preview_subtitle,
-            style: const TextStyle(fontSize: 13, color: T.inkSub),
+            style: TextStyle(fontSize: 13, color: context.tokens.inkSub),
           ),
           const SizedBox(height: 12),
           GestureDetector(
@@ -624,13 +624,13 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                         ? Icons.add_photo_alternate_outlined
                         : Icons.check_circle,
                     size: 18,
-                    color: _coverUrl == null ? T.inkSub : T.live,
+                    color: _coverUrl == null ? context.tokens.inkSub : T.live,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       _coverUrl == null ? '封面（可选）· 点击上传' : '封面已上传',
-                      style: const TextStyle(fontSize: 12, color: T.inkSub),
+                      style: TextStyle(fontSize: 12, color: context.tokens.inkSub),
                     ),
                   ),
                   if (_uploadingCover)
@@ -694,16 +694,16 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                     children: [
                       Text(
                         _name.text,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w700,
-                          color: T.ink,
+                          color: context.tokens.ink,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         '$tplName · ${_venue.text}',
-                        style: const TextStyle(fontSize: 12, color: T.inkSub),
+                        style: TextStyle(fontSize: 12, color: context.tokens.inkSub),
                       ),
                       const SizedBox(height: 12),
                       Row(
@@ -835,13 +835,13 @@ class _Field extends StatelessWidget {
                 if (prefix != null)
                   Padding(
                     padding: const EdgeInsets.only(right: 6),
-                    child: N(prefix!, size: 15, color: T.inkDim),
+                    child: N(prefix!, size: 15, color: context.tokens.inkDim),
                   ),
                 Expanded(
                   child: TextField(
                     controller: controller,
                     style: TextStyle(
-                      color: T.ink,
+                      color: context.tokens.ink,
                       fontSize: 15,
                       fontWeight: FontWeight.w500,
                       fontFamily: mono ? T.fontMono : null,
@@ -866,12 +866,14 @@ class _Field extends StatelessWidget {
 class _BracketMiniPainter extends CustomPainter {
   final String variant;
   final bool active;
-  _BracketMiniPainter(this.variant, this.active);
+  final Color inkSub;
+  final Color inkMute;
+  _BracketMiniPainter(this.variant, this.active, {required this.inkSub, required this.inkMute});
 
   @override
   void paint(Canvas canvas, Size size) {
-    final c = active ? T.live : T.inkSub;
-    final cDim = active ? T.live : T.inkMute;
+    final c = active ? T.live : inkSub;
+    final cDim = active ? T.live : inkMute;
     final scale = size.width / 48;
     canvas.save();
     canvas.scale(scale);

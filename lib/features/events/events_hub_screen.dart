@@ -53,10 +53,10 @@ class _EventsHubScreenState extends ConsumerState<EventsHubScreen> {
                 children: [
                   Text(
                     l.events_title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 26,
                       fontWeight: FontWeight.w800,
-                      color: T.ink,
+                      color: context.tokens.ink,
                       letterSpacing: -0.5,
                     ),
                   ),
@@ -125,7 +125,7 @@ class _EventsHubScreenState extends ConsumerState<EventsHubScreen> {
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
-                                color: _tab == t.$1 ? T.ink : T.inkSub,
+                                color: _tab == t.$1 ? context.tokens.ink : context.tokens.inkSub,
                               ),
                             ),
                           ),
@@ -204,7 +204,7 @@ class _EventsHubScreenState extends ConsumerState<EventsHubScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           N('${m.scoreA}', size: 18, weight: FontWeight.w700),
-                          const Text(' - ', style: TextStyle(color: T.inkDim)),
+                          Text(' - ', style: TextStyle(color: context.tokens.inkDim)),
                           N('${m.scoreB}', size: 18, weight: FontWeight.w700),
                         ],
                       ),
@@ -268,23 +268,23 @@ class _WcBanner extends StatelessWidget {
                 children: [
                   const LivePill(),
                   const SizedBox(width: 6),
-                  Label(l.events_pro, color: T.ink),
+                  Label(l.events_pro, color: context.tokens.ink),
                 ],
               ),
               const SizedBox(height: 10),
               Text(
                 l.events_wc_banner_title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
-                  color: T.ink,
+                  color: context.tokens.ink,
                   letterSpacing: -0.5,
                 ),
               ),
               const SizedBox(height: 4),
               Text(
                 l.events_wc_banner_sub,
-                style: const TextStyle(fontSize: 13, color: T.inkSub),
+                style: TextStyle(fontSize: 13, color: context.tokens.inkSub),
               ),
               const SizedBox(height: 14),
               Row(
@@ -317,7 +317,7 @@ class _WcBanner extends StatelessWidget {
                     ],
                   ),
                   const Spacer(),
-                  const Icon(Icons.arrow_forward, size: 20, color: T.ink),
+                  Icon(Icons.arrow_forward, size: 20, color: context.tokens.ink),
                 ],
               ),
             ],
@@ -398,7 +398,7 @@ class _LiveEventRow extends StatelessWidget {
                         isReg
                             ? context.l10n.events_tab_registering
                             : context.l10n.events_tab_ongoing,
-                        color: isReg ? T.live : T.ink,
+                        color: isReg ? T.live : context.tokens.ink,
                       ),
                     ),
                   ),
@@ -427,7 +427,7 @@ class _LiveEventRow extends StatelessWidget {
                             prizeLabel,
                             size: 11,
                             weight: FontWeight.w600,
-                            color: T.ink,
+                            color: context.tokens.ink,
                           ),
                         ],
                       ),
@@ -443,17 +443,17 @@ class _LiveEventRow extends StatelessWidget {
                 children: [
                   Text(
                     event.name,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      color: T.ink,
+                      color: context.tokens.ink,
                       letterSpacing: -0.3,
                     ),
                   ),
                   const SizedBox(height: 3),
                   Text(
                     subtitle.isEmpty ? '—' : subtitle,
-                    style: const TextStyle(fontSize: 12, color: T.inkSub),
+                    style: TextStyle(fontSize: 12, color: context.tokens.inkSub),
                   ),
                   const SizedBox(height: 10),
                   Row(
@@ -468,7 +468,7 @@ class _LiveEventRow extends StatelessWidget {
                             textBaseline: TextBaseline.alphabetic,
                             children: [
                               N('$teams', size: 16, weight: FontWeight.w700),
-                              N('/$teamsMax', size: 12, color: T.inkDim),
+                              N('/$teamsMax', size: 12, color: context.tokens.inkDim),
                             ],
                           ),
                         ],
@@ -483,7 +483,7 @@ class _LiveEventRow extends StatelessWidget {
                               minHeight: 3,
                               backgroundColor: context.tokens.elev3,
                               valueColor: AlwaysStoppedAnimation(
-                                isReg ? T.live : T.inkSub,
+                                isReg ? T.live : context.tokens.inkSub,
                               ),
                             ),
                           ),
@@ -498,7 +498,7 @@ class _LiveEventRow extends StatelessWidget {
                             deadlineLabel,
                             size: 11,
                             weight: FontWeight.w600,
-                            color: isReg ? T.warn : T.inkSub,
+                            color: isReg ? T.warn : context.tokens.inkSub,
                           ),
                         ],
                       ),
@@ -532,24 +532,24 @@ class _TeamRow extends StatelessWidget {
           ? MainAxisAlignment.end
           : MainAxisAlignment.start,
       children: [
-        if (!rightAlign) _flag(),
+        if (!rightAlign) _flag(context),
         if (!rightAlign) const SizedBox(width: 8),
         Text(
           name,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w500,
-            color: T.ink,
+            color: context.tokens.ink,
           ),
         ),
         if (rightAlign) const SizedBox(width: 8),
-        if (rightAlign) _flag(),
+        if (rightAlign) _flag(context),
       ],
     );
     return row;
   }
 
-  Widget _flag() => Container(
+  Widget _flag(BuildContext context) => Container(
     width: 28,
     height: 20,
     alignment: Alignment.center,
@@ -559,12 +559,12 @@ class _TeamRow extends StatelessWidget {
     ),
     child: Text(
       flag,
-      style: const TextStyle(
+      style: TextStyle(
         fontFamily: T.fontMono,
         fontFamilyFallback: T.monoFallbacks,
         fontSize: 9,
         fontWeight: FontWeight.w700,
-        color: T.ink,
+        color: context.tokens.ink,
       ),
     ),
   );
@@ -587,14 +587,14 @@ class _EmptyEvents extends StatelessWidget {
         ),
         child: Column(
           children: [
-            const Icon(Icons.inbox_outlined, size: 32, color: T.inkDim),
+            Icon(Icons.inbox_outlined, size: 32, color: context.tokens.inkDim),
             const SizedBox(height: 10),
             Text(
               l.empty_no_events,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: T.ink,
+                color: context.tokens.ink,
               ),
             ),
             const SizedBox(height: 4),
@@ -629,7 +629,7 @@ class _EventsError extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               '$error',
-              style: const TextStyle(fontSize: 12, color: T.inkSub),
+              style: TextStyle(fontSize: 12, color: context.tokens.inkSub),
             ),
             const SizedBox(height: 10),
             GestureDetector(
@@ -646,10 +646,10 @@ class _EventsError extends StatelessWidget {
                 ),
                 child: Text(
                   context.l10n.common_retry,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: T.ink,
+                    color: context.tokens.ink,
                   ),
                 ),
               ),

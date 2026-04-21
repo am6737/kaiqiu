@@ -79,7 +79,7 @@ class _Tab extends StatelessWidget {
             Icon(
               active ? iconActive : icon,
               size: 22,
-              color: active ? T.ink : T.inkDim,
+              color: active ? context.tokens.ink : context.tokens.inkDim,
             ),
             const SizedBox(height: 3),
             Text(
@@ -87,7 +87,7 @@ class _Tab extends StatelessWidget {
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w500,
-                color: active ? T.ink : T.inkDim,
+                color: active ? context.tokens.ink : context.tokens.inkDim,
                 letterSpacing: 0.5,
               ),
             ),

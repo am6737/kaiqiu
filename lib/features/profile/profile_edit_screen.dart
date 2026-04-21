@@ -302,18 +302,18 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                 children: [
                   Text(
                     l.profile_edit_avatar,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
-                      color: T.inkSub,
+                      color: context.tokens.inkSub,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                   const SizedBox(height: 3),
                   Text(
                     l.profile_edit_avatar_hint,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
-                      color: T.inkDim,
+                      color: context.tokens.inkDim,
                       height: 1.5,
                     ),
                   ),
@@ -355,7 +355,7 @@ class _ChoiceBtn extends StatelessWidget {
           label,
           style: TextStyle(
             fontSize: 12,
-            color: active ? T.live : T.ink,
+            color: active ? T.live : context.tokens.ink,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -393,7 +393,7 @@ class _Field extends StatelessWidget {
             child: TextField(
               controller: controller,
               keyboardType: keyboardType,
-              style: const TextStyle(color: T.ink, fontSize: 14),
+              style: TextStyle(color: context.tokens.ink, fontSize: 14),
               decoration: const InputDecoration(
                 border: InputBorder.none,
                 isDense: true,

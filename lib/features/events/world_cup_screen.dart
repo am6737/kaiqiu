@@ -60,10 +60,10 @@ class WorldCupScreen extends ConsumerWidget {
                         color: Color(0x80000000),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.arrow_back_ios_new,
                         size: 16,
-                        color: T.ink,
+                        color: context.tokens.ink,
                       ),
                     ),
                   ),
@@ -86,10 +86,10 @@ class WorldCupScreen extends ConsumerWidget {
                         color: Color(0x80000000),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.ios_share,
                         size: 16,
-                        color: T.ink,
+                        color: context.tokens.ink,
                       ),
                     ),
                   ),
@@ -106,10 +106,10 @@ class WorldCupScreen extends ConsumerWidget {
                     const SizedBox(height: 6),
                     Text(
                       l.wc_hero_title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 30,
                         fontWeight: FontWeight.w800,
-                        color: T.ink,
+                        color: context.tokens.ink,
                         letterSpacing: -0.6,
                         height: 1.1,
                       ),
@@ -117,7 +117,7 @@ class WorldCupScreen extends ConsumerWidget {
                     const SizedBox(height: 6),
                     Text(
                       l.wc_hero_sub,
-                      style: const TextStyle(fontSize: 13, color: T.inkSub),
+                      style: TextStyle(fontSize: 13, color: context.tokens.inkSub),
                     ),
                   ],
                 ),
@@ -154,14 +154,14 @@ class WorldCupScreen extends ConsumerWidget {
                     Expanded(
                       child: Column(
                         children: [
-                          _flag('AR', 200),
+                          _flag(context, 'AR', 200),
                           const SizedBox(height: 8),
                           Text(
                             l.wc_team_argentina,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
-                              color: T.ink,
+                              color: context.tokens.ink,
                             ),
                           ),
                         ],
@@ -178,30 +178,30 @@ class WorldCupScreen extends ConsumerWidget {
                           color: T.live,
                         ),
                         const SizedBox(width: 8),
-                        const Text(
+                        Text(
                           '-',
-                          style: TextStyle(color: T.inkDim, fontSize: 18),
+                          style: TextStyle(color: context.tokens.inkDim, fontSize: 18),
                         ),
                         const SizedBox(width: 8),
                         N(
                           '${wcs[0].scoreB ?? 0}',
                           size: 40,
                           weight: FontWeight.w800,
-                          color: T.ink,
+                          color: context.tokens.ink,
                         ),
                       ],
                     ),
                     Expanded(
                       child: Column(
                         children: [
-                          _flag('BR', 140),
+                          _flag(context, 'BR', 140),
                           const SizedBox(height: 8),
                           Text(
                             l.wc_team_brazil,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
-                              color: T.ink,
+                              color: context.tokens.ink,
                             ),
                           ),
                         ],
@@ -250,14 +250,14 @@ class WorldCupScreen extends ConsumerWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.gps_fixed, size: 14, color: T.ink),
+                          Icon(Icons.gps_fixed, size: 14, color: context.tokens.ink),
                           const SizedBox(width: 6),
                           Text(
                             l.wc_btn_predict,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w600,
-                              color: T.ink,
+                              color: context.tokens.ink,
                             ),
                           ),
                         ],
@@ -287,9 +287,9 @@ class WorldCupScreen extends ConsumerWidget {
                   children: [
                     _predBar(62, l.wc_team_argentina_win, T.live, Colors.black),
                     const SizedBox(width: 8),
-                    _predBar(14, l.wc_team_draw, T.inkMute, T.ink),
+                    _predBar(14, l.wc_team_draw, context.tokens.inkMute, context.tokens.ink),
                     const SizedBox(width: 8),
-                    _predBar(24, l.wc_team_brazil_win, context.tokens.elev3, T.ink),
+                    _predBar(24, l.wc_team_brazil_win, context.tokens.elev3, context.tokens.ink),
                   ],
                 ),
                 const SizedBox(height: 10),
@@ -359,13 +359,13 @@ class WorldCupScreen extends ConsumerWidget {
                             children: [
                               Row(
                                 children: [
-                                  _miniFlag(m.flagA, 220),
+                                  _miniFlag(context, m.flagA, 220),
                                   const SizedBox(width: 8),
                                   Text(
                                     m.teamA,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 13,
-                                      color: T.ink,
+                                      color: context.tokens.ink,
                                     ),
                                   ),
                                 ],
@@ -373,13 +373,13 @@ class WorldCupScreen extends ConsumerWidget {
                               const SizedBox(height: 6),
                               Row(
                                 children: [
-                                  _miniFlag(m.flagB, 25),
+                                  _miniFlag(context, m.flagB, 25),
                                   const SizedBox(width: 8),
                                   Text(
                                     m.teamB,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 13,
-                                      color: T.ink,
+                                      color: context.tokens.ink,
                                     ),
                                   ),
                                 ],
@@ -426,7 +426,7 @@ class WorldCupScreen extends ConsumerWidget {
                               l.wc_btn_remind,
                               style: TextStyle(
                                 fontSize: 11,
-                                color: reminded ? T.live : T.inkSub,
+                                color: reminded ? T.live : context.tokens.inkSub,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -443,7 +443,7 @@ class WorldCupScreen extends ConsumerWidget {
     );
   }
 
-  Widget _flag(String code, double hue) => Container(
+  Widget _flag(BuildContext context, String code, double hue) => Container(
     width: 44,
     height: 30,
     alignment: Alignment.center,
@@ -453,17 +453,17 @@ class WorldCupScreen extends ConsumerWidget {
     ),
     child: Text(
       code,
-      style: const TextStyle(
+      style: TextStyle(
         fontFamily: T.fontMono,
         fontFamilyFallback: T.monoFallbacks,
         fontSize: 13,
         fontWeight: FontWeight.w700,
-        color: T.ink,
+        color: context.tokens.ink,
       ),
     ),
   );
 
-  Widget _miniFlag(String code, double hue) => Container(
+  Widget _miniFlag(BuildContext context, String code, double hue) => Container(
     width: 22,
     height: 16,
     alignment: Alignment.center,
@@ -473,12 +473,12 @@ class WorldCupScreen extends ConsumerWidget {
     ),
     child: Text(
       code,
-      style: const TextStyle(
+      style: TextStyle(
         fontFamily: T.fontMono,
         fontFamilyFallback: T.monoFallbacks,
         fontSize: 8,
         fontWeight: FontWeight.w700,
-        color: T.ink,
+        color: context.tokens.ink,
       ),
     ),
   );

@@ -67,16 +67,16 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 width: 36,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: T.inkMute,
+                  color: context.tokens.inkMute,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
             ),
             ListTile(
-              leading: const Icon(Icons.people_outline, color: T.inkSub),
+              leading: Icon(Icons.people_outline, color: context.tokens.inkSub),
               title: Text(
                 l.chat_more_members,
-                style: const TextStyle(color: T.ink),
+                style: TextStyle(color: context.tokens.ink),
               ),
               onTap: () {
                 Navigator.of(ctx).pop();
@@ -88,13 +88,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 LocalStore.isMuted(widget.convId)
                     ? Icons.notifications_off
                     : Icons.notifications_off_outlined,
-                color: T.inkSub,
+                color: context.tokens.inkSub,
               ),
               title: Text(
                 LocalStore.isMuted(widget.convId)
                     ? l.chat_more_unmute
                     : l.chat_more_mute,
-                style: const TextStyle(color: T.ink),
+                style: TextStyle(color: context.tokens.ink),
               ),
               onTap: () async {
                 await LocalStore.toggleMuted(widget.convId);
@@ -116,7 +116,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     backgroundColor: context.tokens.elev2,
                     content: Text(
                       l.chat_clear_confirm,
-                      style: const TextStyle(color: T.ink),
+                      style: TextStyle(color: context.tokens.ink),
                     ),
                     actions: [
                       TextButton(
@@ -149,10 +149,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.flag_outlined, color: T.inkSub),
+              leading: Icon(Icons.flag_outlined, color: context.tokens.inkSub),
               title: Text(
                 l.chat_more_report,
-                style: const TextStyle(color: T.ink),
+                style: TextStyle(color: context.tokens.ink),
               ),
               onTap: () {
                 Navigator.of(ctx).pop();
@@ -184,7 +184,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 width: 36,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: T.inkMute,
+                  color: context.tokens.inkMute,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -270,28 +270,28 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 children: [
                   GestureDetector(
                     onTap: () => context.pop(),
-                    child: const Icon(
+                    child: Icon(
                       Icons.arrow_back_ios_new,
                       size: 20,
-                      color: T.ink,
+                      color: context.tokens.ink,
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       context.l10n.chat_default_group_title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: T.ink,
+                        color: context.tokens.ink,
                       ),
                     ),
                   ),
                   GestureDetector(
                     onTap: _showMoreMenu,
-                    child: const Padding(
+                    child: Padding(
                       padding: EdgeInsets.all(6),
-                      child: Icon(Icons.more_horiz, size: 20, color: T.inkSub),
+                      child: Icon(Icons.more_horiz, size: 20, color: context.tokens.inkSub),
                     ),
                   ),
                 ],
@@ -318,7 +318,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 error: (e, _) => Center(
                   child: Text(
                     '${context.l10n.error_load_failed}: $e',
-                    style: const TextStyle(color: T.inkSub),
+                    style: TextStyle(color: context.tokens.inkSub),
                   ),
                 ),
               ),
@@ -343,7 +343,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         border: Border.all(color: context.tokens.line),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.add, size: 18, color: T.inkSub),
+                      child: Icon(Icons.add, size: 18, color: context.tokens.inkSub),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -356,9 +356,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       ),
                       child: TextField(
                         controller: _input,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
-                          color: T.ink,
+                          color: context.tokens.ink,
                           height: 1.4,
                         ),
                         minLines: 1,
@@ -366,7 +366,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         onSubmitted: (_) => _send(),
                         decoration: InputDecoration(
                           hintText: context.l10n.chat_hint,
-                          hintStyle: const TextStyle(color: T.inkDim),
+                          hintStyle: TextStyle(color: context.tokens.inkDim),
                           border: InputBorder.none,
                           isDense: true,
                         ),
@@ -385,11 +385,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         shape: BoxShape.circle,
                       ),
                       child: _sending
-                          ? const SizedBox(
+                          ? SizedBox(
                               width: 14,
                               height: 14,
                               child: CircularProgressIndicator(
-                                color: T.inkSub,
+                                color: context.tokens.inkSub,
                                 strokeWidth: 2,
                               ),
                             )
@@ -432,10 +432,10 @@ class _AttBtn extends StatelessWidget {
               border: Border.all(color: context.tokens.line),
               borderRadius: BorderRadius.circular(14),
             ),
-            child: Icon(icon, size: 22, color: T.ink),
+            child: Icon(icon, size: 22, color: context.tokens.ink),
           ),
           const SizedBox(height: 6),
-          Text(label, style: const TextStyle(fontSize: 11, color: T.inkSub)),
+          Text(label, style: TextStyle(fontSize: 11, color: context.tokens.inkSub)),
         ],
       ),
     );
@@ -461,7 +461,7 @@ class _Bubble extends StatelessWidget {
             ),
             child: Text(
               msg.body ?? '',
-              style: const TextStyle(fontSize: 11, color: T.inkSub),
+              style: TextStyle(fontSize: 11, color: context.tokens.inkSub),
             ),
           ),
         ),
@@ -484,7 +484,7 @@ class _Bubble extends StatelessWidget {
         msg.body ?? '',
         style: TextStyle(
           fontSize: 14,
-          color: isMe ? Colors.black : T.ink,
+          color: isMe ? Colors.black : context.tokens.ink,
           height: 1.4,
         ),
       ),
@@ -508,11 +508,11 @@ class _Bubble extends StatelessWidget {
               const SizedBox(height: 2),
               Text(
                 time,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: T.fontMono,
                   fontFamilyFallback: T.monoFallbacks,
                   fontSize: 9,
-                  color: T.inkDim,
+                  color: context.tokens.inkDim,
                 ),
               ),
             ],

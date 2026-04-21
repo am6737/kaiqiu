@@ -142,18 +142,18 @@ class _TopBar extends ConsumerWidget {
               children: [
                 Text(
                   city,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.w700,
-                    color: T.ink,
+                    color: context.tokens.ink,
                     letterSpacing: -0.3,
                   ),
                 ),
                 const SizedBox(width: 3),
-                const Icon(
+                Icon(
                   Icons.keyboard_arrow_down,
                   size: 14,
-                  color: T.inkSub,
+                  color: context.tokens.inkSub,
                 ),
               ],
             ),
@@ -163,9 +163,9 @@ class _TopBar extends ConsumerWidget {
           const Spacer(),
           GestureDetector(
             onTap: () => context.push('/search'),
-            child: const Padding(
+            child: Padding(
               padding: EdgeInsets.all(4),
-              child: Icon(Icons.search, color: T.ink, size: 20),
+              child: Icon(Icons.search, color: context.tokens.ink, size: 20),
             ),
           ),
           const SizedBox(width: 6),
@@ -173,10 +173,10 @@ class _TopBar extends ConsumerWidget {
             onTap: () => context.push('/notifications'),
             child: Stack(
               clipBehavior: Clip.none,
-              children: const [
+              children: [
                 Padding(
                   padding: EdgeInsets.all(4),
-                  child: Icon(Icons.notifications_none, color: T.ink, size: 20),
+                  child: Icon(Icons.notifications_none, color: context.tokens.ink, size: 20),
                 ),
                 Positioned(right: 4, top: 4, child: _WarnDot()),
               ],
@@ -230,14 +230,14 @@ class _SportPicker extends ConsumerWidget {
                 SportIcon(
                   _parseSport(e.key),
                   size: 14,
-                  color: e.key == sport ? T.live : T.inkSub,
+                  color: e.key == sport ? T.live : context.tokens.inkSub,
                 ),
                 const SizedBox(width: 8),
                 Text(
                   e.value,
                   style: TextStyle(
                     fontSize: 13,
-                    color: e.key == sport ? T.live : T.ink,
+                    color: e.key == sport ? T.live : context.tokens.ink,
                   ),
                 ),
               ],
@@ -258,10 +258,10 @@ class _SportPicker extends ConsumerWidget {
             const SizedBox(width: 5),
             Text(
               labels[sport] ?? l.sport_football,
-              style: const TextStyle(fontSize: 12, color: T.ink),
+              style: TextStyle(fontSize: 12, color: context.tokens.ink),
             ),
             const SizedBox(width: 4),
-            const Icon(Icons.keyboard_arrow_down, size: 11, color: T.inkDim),
+            Icon(Icons.keyboard_arrow_down, size: 11, color: context.tokens.inkDim),
           ],
         ),
       ),
@@ -317,11 +317,11 @@ class _LiveStrip extends StatelessWidget {
                     const Spacer(),
                     Text(
                       '${m.viewers} · ${m.minute}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: T.fontMono,
                         fontFamilyFallback: T.monoFallbacks,
                         fontSize: 10,
-                        color: T.inkDim,
+                        color: context.tokens.inkDim,
                         letterSpacing: 0.5,
                       ),
                     ),
@@ -337,9 +337,9 @@ class _LiveStrip extends StatelessWidget {
                           Text(
                             m.teamA,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
-                              color: T.ink,
+                              color: context.tokens.ink,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -347,9 +347,9 @@ class _LiveStrip extends StatelessWidget {
                           Text(
                             m.teamB,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
-                              color: T.ink,
+                              color: context.tokens.ink,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -363,14 +363,14 @@ class _LiveStrip extends StatelessWidget {
                           '${m.scoreA}',
                           size: 18,
                           weight: FontWeight.w600,
-                          color: aWins ? T.live : T.ink,
+                          color: aWins ? T.live : context.tokens.ink,
                         ),
                         const SizedBox(height: 1),
                         N(
                           '${m.scoreB}',
                           size: 18,
                           weight: FontWeight.w600,
-                          color: bWins ? T.live : T.ink,
+                          color: bWins ? T.live : context.tokens.ink,
                         ),
                       ],
                     ),
@@ -435,10 +435,10 @@ class _RateCtaBanner extends StatelessWidget {
                   children: [
                     Text(
                       context.l10n.home_rate_banner_title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
-                        color: T.ink,
+                        color: context.tokens.ink,
                       ),
                     ),
                     const SizedBox(height: 3),
@@ -481,7 +481,7 @@ class _PickupCard extends StatelessWidget {
         ? T.live
         : state == 'almost'
         ? T.warn
-        : T.inkDim;
+        : context.tokens.inkDim;
 
     return GestureDetector(
       onTap: onTap,
@@ -502,9 +502,9 @@ class _PickupCard extends StatelessWidget {
                 const SizedBox(width: 8),
                 Text(
                   item.host,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
-                    color: T.ink,
+                    color: context.tokens.ink,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -519,22 +519,22 @@ class _PickupCard extends StatelessWidget {
             const SizedBox(height: 10),
             Text(
               item.venue,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: T.ink,
+                color: context.tokens.ink,
                 letterSpacing: -0.2,
               ),
             ),
             const SizedBox(height: 4),
             Row(
               children: [
-                const Icon(Icons.schedule, size: 12, color: T.inkSub),
+                Icon(Icons.schedule, size: 12, color: context.tokens.inkSub),
                 const SizedBox(width: 4),
-                N(item.when, size: 12, color: T.inkSub),
+                N(item.when, size: 12, color: context.tokens.inkSub),
                 const SizedBox(width: 10),
-                const Icon(Icons.currency_yen, size: 12, color: T.inkSub),
-                N('${item.fee}', size: 12, color: T.inkSub),
+                Icon(Icons.currency_yen, size: 12, color: context.tokens.inkSub),
+                N('${item.fee}', size: 12, color: context.tokens.inkSub),
                 const SizedBox(width: 10),
                 Label(item.level),
               ],
@@ -567,20 +567,20 @@ class _PickupCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                N('$filled', size: 12, weight: FontWeight.w600, color: T.ink),
-                N('/${item.total}', size: 12, color: T.inkDim),
+                N('$filled', size: 12, weight: FontWeight.w600, color: context.tokens.ink),
+                N('/${item.total}', size: 12, color: context.tokens.inkDim),
                 const SizedBox(width: 6),
                 if (item.need > 0)
                   N(l.home_need_n(item.need), size: 12, color: T.live)
                 else
-                  N(l.home_full, size: 12, color: T.inkDim),
+                  N(l.home_full, size: 12, color: context.tokens.inkDim),
                 const Spacer(),
                 Text(
                   item.need > 0 ? l.home_join_cta : l.home_status_full,
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: item.need > 0 ? T.live : T.inkDim,
+                    color: item.need > 0 ? T.live : context.tokens.inkDim,
                   ),
                 ),
               ],
@@ -616,10 +616,10 @@ class _ResultCard extends StatelessWidget {
             ),
             child: Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.emoji_events_outlined,
                   size: 12,
-                  color: T.inkSub,
+                  color: context.tokens.inkSub,
                 ),
                 const SizedBox(width: 6),
                 Label(item.event),
@@ -638,10 +638,10 @@ class _ResultCard extends StatelessWidget {
                     children: [
                       Text(
                         item.teamA,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color: T.ink,
+                          color: context.tokens.ink,
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -662,13 +662,13 @@ class _ResultCard extends StatelessWidget {
                   '${item.scoreA}',
                   size: 34,
                   weight: FontWeight.w700,
-                  color: aWins ? T.live : T.ink,
+                  color: aWins ? T.live : context.tokens.ink,
                 ),
                 const SizedBox(width: 8),
-                const Text(
+                Text(
                   '-',
                   style: TextStyle(
-                    color: T.inkDim,
+                    color: context.tokens.inkDim,
                     fontFamily: T.fontMono,
                     fontSize: 16,
                   ),
@@ -678,7 +678,7 @@ class _ResultCard extends StatelessWidget {
                   '${item.scoreB}',
                   size: 34,
                   weight: FontWeight.w700,
-                  color: bWins ? T.live : T.ink,
+                  color: bWins ? T.live : context.tokens.ink,
                 ),
                 const SizedBox(width: 14),
                 Expanded(
@@ -687,10 +687,10 @@ class _ResultCard extends StatelessWidget {
                     children: [
                       Text(
                         item.teamB,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color: T.ink,
+                          color: context.tokens.ink,
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -717,12 +717,12 @@ class _ResultCard extends StatelessWidget {
             ),
             child: Row(
               children: [
-                const Icon(Icons.my_location, size: 12, color: T.inkDim),
+                Icon(Icons.my_location, size: 12, color: context.tokens.inkDim),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     item.scorers.join(' · '),
-                    style: const TextStyle(fontSize: 12, color: T.inkSub),
+                    style: TextStyle(fontSize: 12, color: context.tokens.inkSub),
                   ),
                 ),
               ],
@@ -760,9 +760,9 @@ class _PostCard extends StatelessWidget {
                 children: [
                   Text(
                     item.author,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
-                      color: T.ink,
+                      color: context.tokens.ink,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -774,7 +774,7 @@ class _PostCard extends StatelessWidget {
           const SizedBox(height: 10),
           Text(
             item.text,
-            style: const TextStyle(fontSize: 14, color: T.ink, height: 1.55),
+            style: TextStyle(fontSize: 14, color: context.tokens.ink, height: 1.55),
           ),
           const SizedBox(height: 10),
           Wrap(
@@ -792,11 +792,11 @@ class _PostCard extends StatelessWidget {
                   ),
                   child: Text(
                     '#$t',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: T.fontMono,
                       fontFamilyFallback: T.monoFallbacks,
                       fontSize: 10,
-                      color: T.inkSub,
+                      color: context.tokens.inkSub,
                     ),
                   ),
                 ),
@@ -828,9 +828,9 @@ class _InteractStat extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 14, color: T.inkSub),
+        Icon(icon, size: 14, color: context.tokens.inkSub),
         const SizedBox(width: 5),
-        N('$count', size: 12, color: T.inkSub),
+        N('$count', size: 12, color: context.tokens.inkSub),
       ],
     );
   }
@@ -869,10 +869,10 @@ class _EventTeaserCard extends StatelessWidget {
             const SizedBox(height: 10),
             Text(
               item.event,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: T.ink,
+                color: context.tokens.ink,
                 letterSpacing: -0.3,
               ),
             ),
@@ -965,7 +965,7 @@ class _LivePickupCard extends StatelessWidget {
         ? T.live
         : stateKey == 'almost'
         ? T.warn
-        : T.inkDim;
+        : context.tokens.inkDim;
 
     return GestureDetector(
       onTap: onTap,
@@ -986,9 +986,9 @@ class _LivePickupCard extends StatelessWidget {
                 const SizedBox(width: 8),
                 Text(
                   p.displayHost,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
-                    color: T.ink,
+                    color: context.tokens.ink,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -1003,22 +1003,22 @@ class _LivePickupCard extends StatelessWidget {
             const SizedBox(height: 10),
             Text(
               p.venue,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: T.ink,
+                color: context.tokens.ink,
                 letterSpacing: -0.2,
               ),
             ),
             const SizedBox(height: 4),
             Row(
               children: [
-                const Icon(Icons.schedule, size: 12, color: T.inkSub),
+                Icon(Icons.schedule, size: 12, color: context.tokens.inkSub),
                 const SizedBox(width: 4),
-                N(p.displayTime, size: 12, color: T.inkSub),
+                N(p.displayTime, size: 12, color: context.tokens.inkSub),
                 const SizedBox(width: 10),
-                const Icon(Icons.currency_yen, size: 12, color: T.inkSub),
-                N(p.feeYuan.toStringAsFixed(0), size: 12, color: T.inkSub),
+                Icon(Icons.currency_yen, size: 12, color: context.tokens.inkSub),
+                N(p.feeYuan.toStringAsFixed(0), size: 12, color: context.tokens.inkSub),
                 const SizedBox(width: 10),
                 if (p.level != null) Label(p.level!),
               ],
@@ -1050,20 +1050,20 @@ class _LivePickupCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                N('$filled', size: 12, weight: FontWeight.w600, color: T.ink),
-                N('/${p.total}', size: 12, color: T.inkDim),
+                N('$filled', size: 12, weight: FontWeight.w600, color: context.tokens.ink),
+                N('/${p.total}', size: 12, color: context.tokens.inkDim),
                 const SizedBox(width: 6),
                 if (needed > 0)
                   N(l.home_need_n(needed), size: 12, color: T.live)
                 else
-                  N(l.home_full, size: 12, color: T.inkDim),
+                  N(l.home_full, size: 12, color: context.tokens.inkDim),
                 const Spacer(),
                 Text(
                   needed > 0 ? l.home_join_cta : l.home_status_full,
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: needed > 0 ? T.live : T.inkDim,
+                    color: needed > 0 ? T.live : context.tokens.inkDim,
                   ),
                 ),
               ],
@@ -1125,7 +1125,7 @@ class _PickupError extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 6),
-          Text('$error', style: const TextStyle(fontSize: 11, color: T.inkDim)),
+          Text('$error', style: TextStyle(fontSize: 11, color: context.tokens.inkDim)),
           const SizedBox(height: 10),
           GestureDetector(
             onTap: onRetry,
@@ -1138,7 +1138,7 @@ class _PickupError extends StatelessWidget {
               ),
               child: Text(
                 context.l10n.common_retry,
-                style: const TextStyle(fontSize: 12, color: T.ink),
+                style: TextStyle(fontSize: 12, color: context.tokens.ink),
               ),
             ),
           ),

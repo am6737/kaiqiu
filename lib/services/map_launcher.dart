@@ -109,7 +109,7 @@ class MapLauncher {
                   width: 36,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: T.inkMute,
+                    color: context.tokens.inkMute,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -117,10 +117,10 @@ class MapLauncher {
               const SizedBox(height: 14),
               Text(
                 l.pickup_detail_nav_chooser_title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 17,
                   fontWeight: FontWeight.w700,
-                  color: T.ink,
+                  color: context.tokens.ink,
                 ),
               ),
               const SizedBox(height: 12),
@@ -130,8 +130,8 @@ class MapLauncher {
                   leading: Icon(opt.icon, color: T.live),
                   title: Text(
                     opt.label,
-                    style: const TextStyle(
-                      color: T.ink,
+                    style: TextStyle(
+                      color: context.tokens.ink,
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
                     ),

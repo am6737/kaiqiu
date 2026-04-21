@@ -144,7 +144,7 @@ class _Header extends ConsumerWidget {
                       .read(favoritesRepoProvider)
                       .toggle(FavoriteEntity.pickup, pickupId);
                 },
-                color: faved ? T.live : T.ink,
+                color: faved ? T.live : context.tokens.ink,
               ),
               const SizedBox(width: 8),
               _CircleBtn(icon: Icons.ios_share, onTap: onShare),
@@ -225,13 +225,13 @@ class _VenueInfo extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const Expanded(
+              Expanded(
                 child: Text(
                   '龙岗体育中心 3号场',
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w700,
-                    color: T.ink,
+                    color: context.tokens.ink,
                     letterSpacing: -0.4,
                   ),
                 ),
@@ -243,7 +243,7 @@ class _VenueInfo extends StatelessWidget {
                 label: Text(context.l10n.pickup_detail_navigate),
                 style: TextButton.styleFrom(
                   foregroundColor: T.live,
-                  disabledForegroundColor: T.inkMute,
+                  disabledForegroundColor: context.tokens.inkMute,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 10,
                     vertical: 6,
@@ -260,14 +260,14 @@ class _VenueInfo extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Row(
-            children: const [
-              Icon(Icons.calendar_today, size: 13, color: T.inkSub),
+            children: [
+              Icon(Icons.calendar_today, size: 13, color: context.tokens.inkSub),
               SizedBox(width: 5),
-              N('今晚 19:30 · 2小时', size: 13, color: T.inkSub),
+              N('今晚 19:30 · 2小时', size: 13, color: context.tokens.inkSub),
               SizedBox(width: 14),
-              Icon(Icons.currency_yen, size: 13, color: T.inkSub),
+              Icon(Icons.currency_yen, size: 13, color: context.tokens.inkSub),
               SizedBox(width: 2),
-              N('50 AA', size: 13, color: T.inkSub),
+              N('50 AA', size: 13, color: context.tokens.inkSub),
             ],
           ),
         ],
@@ -299,12 +299,12 @@ class _HostStrip extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   hostName,
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: T.ink,
+                    color: context.tokens.ink,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -324,10 +324,10 @@ class _HostStrip extends ConsumerWidget {
                 border: Border.all(color: context.tokens.line),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.chat_bubble_outline,
                 size: 14,
-                color: T.ink,
+                color: context.tokens.ink,
               ),
             ),
           ),
@@ -465,7 +465,7 @@ class _Formation extends ConsumerWidget {
                       _formation.length,
                     ),
                     size: 12,
-                    color: T.inkSub,
+                    color: context.tokens.inkSub,
                   ),
                 ],
               ),
@@ -475,7 +475,7 @@ class _Formation extends ConsumerWidget {
           LayoutBuilder(
             builder: (_, c) {
               final w = c.maxWidth;
-              const h = 340.0;
+              final h = 340.0;
               return Container(
                 width: w,
                 height: h,
@@ -614,7 +614,7 @@ class _PlayerDot extends StatelessWidget {
                 fontFamilyFallback: T.monoFallbacks,
                 fontSize: label.length > 1 ? 9 : 10,
                 fontWeight: FontWeight.w600,
-                color: filled ? T.ink : T.live,
+                color: filled ? context.tokens.ink : T.live,
               ),
             ),
           ),
@@ -632,7 +632,7 @@ class _PlayerDot extends StatelessWidget {
                 fontFamilyFallback: T.monoFallbacks,
                 fontSize: 8.5,
                 fontWeight: FontWeight.w600,
-                color: filled ? T.ink : T.live,
+                color: filled ? context.tokens.ink : T.live,
               ),
             ),
           ),
@@ -692,13 +692,13 @@ class _FormationError extends StatelessWidget {
             const SizedBox(height: 10),
             Text(
               context.l10n.pickup_detail_formation_load_failed,
-              style: const TextStyle(color: T.inkSub, fontSize: 14),
+              style: TextStyle(color: context.tokens.inkSub, fontSize: 14),
             ),
             const SizedBox(height: 6),
             Text(
               '$error',
               textAlign: TextAlign.center,
-              style: const TextStyle(color: T.inkDim, fontSize: 11),
+              style: TextStyle(color: context.tokens.inkDim, fontSize: 11),
             ),
             const SizedBox(height: 12),
             GestureDetector(
@@ -715,7 +715,7 @@ class _FormationError extends StatelessWidget {
                 ),
                 child: Text(
                   context.l10n.common_retry,
-                  style: const TextStyle(color: T.ink, fontSize: 13),
+                  style: TextStyle(color: context.tokens.ink, fontSize: 13),
                 ),
               ),
             ),
@@ -767,10 +767,10 @@ class _Details extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         v,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
-                          color: T.ink,
+                          color: context.tokens.ink,
                         ),
                       ),
                     ],
@@ -826,9 +826,9 @@ class _MiniMap extends StatelessWidget {
               detailText,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
-                color: T.inkSub,
+                color: context.tokens.inkSub,
                 height: 1.35,
               ),
             ),
@@ -874,9 +874,9 @@ class _BottomCta extends ConsumerWidget {
             children: [
               Text(
                 context.l10n.pickup_detail_aa_fee,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
-                  color: T.inkDim,
+                  color: context.tokens.inkDim,
                   letterSpacing: 0.5,
                 ),
               ),
@@ -904,14 +904,14 @@ class _BottomCta extends ConsumerWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.check, size: 16, color: T.ink),
+                        Icon(Icons.check, size: 16, color: context.tokens.ink),
                         const SizedBox(width: 6),
                         Text(
                           context.l10n.pickup_detail_already_joined,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
-                            color: T.ink,
+                            color: context.tokens.ink,
                           ),
                         ),
                       ],

@@ -1,6 +1,7 @@
 // typography.dart — N (mono number), Label (small caps uppercase)
 import 'package:flutter/material.dart';
 import '../theme/tokens.dart';
+import '../theme/app_tokens.dart';
 
 /// Mono number — for scores/stats/ratings. Uses JetBrainsMono with tabular digits.
 class N extends StatelessWidget {
@@ -29,7 +30,7 @@ class N extends StatelessWidget {
         fontFamilyFallback: T.monoFallbacks,
         fontSize: size,
         fontWeight: weight,
-        color: color ?? T.ink,
+        color: color ?? context.tokens.ink,
         letterSpacing: -0.02,
         fontFeatures: const [FontFeature.tabularFigures()],
         height: 1.1,
@@ -56,7 +57,7 @@ class Label extends StatelessWidget {
         fontSize: size,
         fontWeight: FontWeight.w500,
         letterSpacing: 1.2,
-        color: color ?? T.inkDim,
+        color: color ?? context.tokens.inkDim,
       ),
     );
   }

@@ -97,21 +97,21 @@ class ProfileScreen extends ConsumerWidget {
                 children: [
                   Text(
                     l.profile_title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 26,
                       fontWeight: FontWeight.w800,
-                      color: T.ink,
+                      color: context.tokens.ink,
                       letterSpacing: -0.5,
                     ),
                   ),
                   const Spacer(),
                   GestureDetector(
                     onTap: () => context.push('/settings/account'),
-                    child: const Padding(
+                    child: Padding(
                       padding: EdgeInsets.all(6),
                       child: Icon(
                         Icons.settings_outlined,
-                        color: T.ink,
+                        color: context.tokens.ink,
                         size: 20,
                       ),
                     ),
@@ -132,21 +132,21 @@ class ProfileScreen extends ConsumerWidget {
                       children: [
                         Text(
                           u.name,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
-                            color: T.ink,
+                            color: context.tokens.ink,
                             letterSpacing: -0.3,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           u.handle,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: T.fontMono,
                             fontFamilyFallback: T.monoFallbacks,
                             fontSize: 12,
-                            color: T.inkSub,
+                            color: context.tokens.inkSub,
                             letterSpacing: 0.2,
                           ),
                         ),
@@ -213,10 +213,10 @@ class ProfileScreen extends ConsumerWidget {
                               children: [
                                 Text(
                                   l.profile_archive_title,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w700,
-                                    color: T.ink,
+                                    color: context.tokens.ink,
                                   ),
                                 ),
                                 const SizedBox(width: 6),
@@ -248,9 +248,9 @@ class ProfileScreen extends ConsumerWidget {
                             const SizedBox(height: 4),
                             Text(
                               '${u.positionFull} · ${u.city} ${u.district}',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 11,
-                                color: T.inkSub,
+                                color: context.tokens.inkSub,
                               ),
                             ),
                             const SizedBox(height: 6),
@@ -266,12 +266,12 @@ class ProfileScreen extends ConsumerWidget {
                                 _MiniStat(
                                   label: l.profile_mini_matches,
                                   value: '${u.stats.matches}',
-                                  color: T.ink,
+                                  color: context.tokens.ink,
                                 ),
                                 _MiniStat(
                                   label: l.profile_mini_goals,
                                   value: '${u.stats.goals}',
-                                  color: T.ink,
+                                  color: context.tokens.ink,
                                 ),
                                 _MiniStat(
                                   label: l.profile_mini_mvp,
@@ -284,10 +284,10 @@ class ProfileScreen extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(width: 6),
-                      const Icon(
+                      Icon(
                         Icons.chevron_right,
                         size: 14,
-                        color: T.inkDim,
+                        color: context.tokens.inkDim,
                       ),
                     ],
                   ),
@@ -308,14 +308,14 @@ class ProfileScreen extends ConsumerWidget {
                           backgroundColor: context.tokens.elev2,
                           content: Text(
                             l.profile_logout_confirm,
-                            style: const TextStyle(color: T.ink),
+                            style: TextStyle(color: context.tokens.ink),
                           ),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.of(ctx).pop(false),
                               child: Text(
                                 l.common_cancel,
-                                style: const TextStyle(color: T.inkSub),
+                                style: TextStyle(color: context.tokens.inkSub),
                               ),
                             ),
                             TextButton(
@@ -389,7 +389,7 @@ class _MiniStat extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text('$label ', style: const TextStyle(fontSize: 11, color: T.inkSub)),
+        Text('$label ', style: TextStyle(fontSize: 11, color: context.tokens.inkSub)),
         N(value, size: 11, weight: FontWeight.w700, color: color),
       ],
     );
@@ -448,15 +448,15 @@ class _EntrySection extends StatelessWidget {
                 border: Border.all(color: context.tokens.line),
                 borderRadius: BorderRadius.circular(6),
               ),
-              child: Icon(item.icon, size: 14, color: T.inkSub),
+              child: Icon(item.icon, size: 14, color: context.tokens.inkSub),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 item.label,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
-                  color: T.ink,
+                  color: context.tokens.ink,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -471,11 +471,11 @@ class _EntrySection extends StatelessWidget {
                 ),
                 child: Text(
                   item.badge!,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: T.fontMono,
                     fontFamilyFallback: T.monoFallbacks,
                     fontSize: 10,
-                    color: T.inkSub,
+                    color: context.tokens.inkSub,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -486,7 +486,7 @@ class _EntrySection extends StatelessWidget {
               Label(item.trailing!),
               const SizedBox(width: 8),
             ],
-            const Icon(Icons.chevron_right, size: 14, color: T.inkDim),
+            Icon(Icons.chevron_right, size: 14, color: context.tokens.inkDim),
           ],
         ),
       ),

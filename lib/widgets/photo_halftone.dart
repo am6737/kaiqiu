@@ -2,6 +2,7 @@
 // Matches the React PhotoHalftone component.
 import 'package:flutter/material.dart';
 import '../theme/tokens.dart';
+import '../theme/app_tokens.dart';
 
 enum HalftoneVariant { dots, lines }
 
@@ -38,11 +39,11 @@ class PhotoHalftone extends StatelessWidget {
               bottom: 10,
               child: Text(
                 label.toUpperCase(),
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: T.fontMono,
                   fontFamilyFallback: T.monoFallbacks,
                   fontSize: 10,
-                  color: T.inkDim,
+                  color: context.tokens.inkDim,
                   letterSpacing: 1,
                 ),
               ),

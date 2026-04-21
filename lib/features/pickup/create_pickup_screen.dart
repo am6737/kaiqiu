@@ -297,7 +297,7 @@ class _CreatePickupScreenState extends ConsumerState<CreatePickupScreen> {
                                   ? Icons.add_photo_alternate_outlined
                                   : Icons.check_circle,
                               size: 18,
-                              color: _venuePhotoUrl == null ? T.inkSub : T.live,
+                              color: _venuePhotoUrl == null ? context.tokens.inkSub : T.live,
                             ),
                             const SizedBox(width: 10),
                             Expanded(
@@ -305,9 +305,9 @@ class _CreatePickupScreenState extends ConsumerState<CreatePickupScreen> {
                                 _venuePhotoUrl == null
                                     ? '场地照片（可选）· 点击上传'
                                     : '已上传场地照片',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 13,
-                                  color: T.inkSub,
+                                  color: context.tokens.inkSub,
                                 ),
                               ),
                             ),
@@ -407,7 +407,7 @@ class _Field extends StatelessWidget {
                 if (prefix != null)
                   Padding(
                     padding: const EdgeInsets.only(right: 6),
-                    child: N(prefix!, size: 15, color: T.inkDim),
+                    child: N(prefix!, size: 15, color: context.tokens.inkDim),
                   ),
                 Expanded(
                   child: TextField(
@@ -415,7 +415,7 @@ class _Field extends StatelessWidget {
                     keyboardType: keyboardType,
                     readOnly: readOnly,
                     onTap: onTap,
-                    style: const TextStyle(color: T.ink, fontSize: 14),
+                    style: TextStyle(color: context.tokens.ink, fontSize: 14),
                     decoration: InputDecoration(
                       border: InputBorder.none,
                       isDense: true,
@@ -423,7 +423,7 @@ class _Field extends StatelessWidget {
                           const EdgeInsets.symmetric(vertical: 12),
                       hintText: hint,
                       hintStyle:
-                          const TextStyle(color: T.inkDim, fontSize: 13),
+                          TextStyle(color: context.tokens.inkDim, fontSize: 13),
                     ),
                   ),
                 ),
@@ -457,7 +457,7 @@ class _Chip extends StatelessWidget {
           label,
           style: TextStyle(
             fontSize: 12,
-            color: active ? T.live : T.ink,
+            color: active ? T.live : context.tokens.ink,
             fontWeight: FontWeight.w600,
           ),
         ),

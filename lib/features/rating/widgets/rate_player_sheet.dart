@@ -56,7 +56,7 @@ class _RatePlayerSheetState extends State<RatePlayerSheet> {
 
   Color _colorFor(double v) {
     if (v >= 8) return T.live;
-    if (v >= 6) return T.ink;
+    if (v >= 6) return context.tokens.ink;
     if (v >= 4) return T.warn;
     return T.danger;
   }
@@ -100,7 +100,7 @@ class _RatePlayerSheetState extends State<RatePlayerSheet> {
                   width: 36,
                   height: 3,
                   decoration: BoxDecoration(
-                    color: T.inkMute,
+                    color: context.tokens.inkMute,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -117,10 +117,10 @@ class _RatePlayerSheetState extends State<RatePlayerSheet> {
                       children: [
                         Text(
                           displayName,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
-                            color: T.ink,
+                            color: context.tokens.ink,
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -179,7 +179,7 @@ class _RatePlayerSheetState extends State<RatePlayerSheet> {
                         color: scoreColor,
                       ),
                       const SizedBox(width: 2),
-                      const N('/10', size: 12, color: T.inkDim),
+                      N('/10', size: 12, color: context.tokens.inkDim),
                     ],
                   ),
                 ],
@@ -193,14 +193,14 @@ class _RatePlayerSheetState extends State<RatePlayerSheet> {
                 controller: _commentCtrl,
                 minLines: 2,
                 maxLines: 3,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
-                  color: T.ink,
+                  color: context.tokens.ink,
                   height: 1.5,
                 ),
                 decoration: InputDecoration(
                   hintText: l.rate_other_hint,
-                  hintStyle: const TextStyle(color: T.inkDim),
+                  hintStyle: TextStyle(color: context.tokens.inkDim),
                   filled: true,
                   fillColor: context.tokens.elev3,
                   contentPadding: const EdgeInsets.all(12),
@@ -267,9 +267,9 @@ class _Slider extends StatelessWidget {
   final ValueChanged<double> onChanged;
   const _Slider({required this.value, required this.onChanged});
 
-  Color _colorFor(double v) {
+  Color _colorFor(BuildContext context, double v) {
     if (v >= 8) return T.live;
-    if (v >= 6) return T.ink;
+    if (v >= 6) return context.tokens.ink;
     if (v >= 4) return T.warn;
     return T.danger;
   }
@@ -282,7 +282,7 @@ class _Slider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = _colorFor(value);
+    final color = _colorFor(context, value);
     return LayoutBuilder(
       builder: (_, c) {
         return GestureDetector(
@@ -335,7 +335,7 @@ class _Slider extends StatelessWidget {
                               fontFamilyFallback: T.monoFallbacks,
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
-                              color: n <= value ? T.ink : T.inkDim,
+                              color: n <= value ? context.tokens.ink : context.tokens.inkDim,
                             ),
                           ),
                       ],

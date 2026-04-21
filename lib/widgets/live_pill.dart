@@ -1,6 +1,7 @@
 // live_pill.dart — pulsing LIVE pill (neon green bg + blinking dot)
 import 'package:flutter/material.dart';
 import '../theme/tokens.dart';
+import '../theme/app_tokens.dart';
 
 class LivePill extends StatefulWidget {
   final double size;
@@ -74,7 +75,7 @@ class StatusDot extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = switch (state) {
       'almost' => T.warn,
-      'full' => T.inkMute,
+      'full' => context.tokens.inkMute,
       _ => T.live, // open / live
     };
     final glow = state == 'open' || state == 'live';

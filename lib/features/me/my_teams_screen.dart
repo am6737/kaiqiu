@@ -127,9 +127,9 @@ class MyTeamsScreen extends ConsumerWidget {
                                 children: [
                                   Text(
                                     tm.name,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 13,
-                                      color: T.ink,
+                                      color: context.tokens.ink,
                                       fontWeight: FontWeight.w500,
                                     ),
                                   ),
@@ -184,7 +184,7 @@ class MyTeamsScreen extends ConsumerWidget {
                     width: 36,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: T.inkMute,
+                      color: context.tokens.inkMute,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -192,10 +192,10 @@ class MyTeamsScreen extends ConsumerWidget {
                 const SizedBox(height: 16),
                 Text(
                   l.me_teams_create,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.w700,
-                    color: T.ink,
+                    color: context.tokens.ink,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -243,13 +243,13 @@ class MyTeamsScreen extends ConsumerWidget {
           context: context,
           builder: (ctx) => AlertDialog(
             backgroundColor: context.tokens.elev2,
-            content: Text(msg, style: const TextStyle(color: T.ink)),
+            content: Text(msg, style: TextStyle(color: context.tokens.ink)),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(ctx).pop(false),
                 child: Text(
                   l.common_cancel,
-                  style: const TextStyle(color: T.inkSub),
+                  style: TextStyle(color: context.tokens.inkSub),
                 ),
               ),
               TextButton(
@@ -310,10 +310,10 @@ class _TeamCard extends StatelessWidget {
                   children: [
                     Text(
                       team.name,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
-                        color: T.ink,
+                        color: context.tokens.ink,
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -337,9 +337,9 @@ class _TeamCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               sub,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
-                color: T.inkSub,
+                color: context.tokens.inkSub,
                 height: 1.5,
               ),
             ),
@@ -379,7 +379,7 @@ class _Field extends StatelessWidget {
             child: TextField(
               controller: controller,
               maxLines: maxLines,
-              style: const TextStyle(color: T.ink, fontSize: 14),
+              style: TextStyle(color: context.tokens.ink, fontSize: 14),
               decoration: const InputDecoration(
                 border: InputBorder.none,
                 isDense: true,

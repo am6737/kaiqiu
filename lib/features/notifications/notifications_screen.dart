@@ -215,7 +215,7 @@ class _Tab extends StatelessWidget {
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: active ? T.ink : T.inkSub,
+            color: active ? context.tokens.ink : context.tokens.inkSub,
           ),
         ),
       ),
@@ -269,7 +269,7 @@ class _NotifRow extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
-                            color: read ? T.inkSub : T.ink,
+                            color: read ? context.tokens.inkSub : context.tokens.ink,
                           ),
                         ),
                       ),
@@ -288,9 +288,9 @@ class _NotifRow extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     item.body,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: T.inkSub,
+                      color: context.tokens.inkSub,
                       height: 1.5,
                     ),
                   ),
@@ -318,7 +318,7 @@ class _Empty extends StatelessWidget {
         children: [
           const Avatar('📭', size: 40),
           const SizedBox(height: 12),
-          Text(label, style: const TextStyle(color: T.inkSub, fontSize: 13)),
+          Text(label, style: TextStyle(color: context.tokens.inkSub, fontSize: 13)),
         ],
       ),
     );

@@ -214,18 +214,18 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
                         weight: FontWeight.w800,
                         color: T.live,
                       ),
-                      const Padding(
+                      Padding(
                         padding: EdgeInsets.symmetric(horizontal: 10),
                         child: Text(
                           '-',
-                          style: TextStyle(color: T.inkDim, fontSize: 16),
+                          style: TextStyle(color: context.tokens.inkDim, fontSize: 16),
                         ),
                       ),
                       N(
                         '$_scoreB',
                         size: 32,
                         weight: FontWeight.w800,
-                        color: T.ink,
+                        color: context.tokens.ink,
                       ),
                     ],
                   ),
@@ -254,7 +254,7 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
                     ? Center(
                         child: Text(
                           l.wc_live_comment_ph,
-                          style: const TextStyle(color: T.inkDim, fontSize: 13),
+                          style: TextStyle(color: context.tokens.inkDim, fontSize: 13),
                         ),
                       )
                     : ListView.builder(
@@ -286,15 +286,15 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
                                           text: '${d.user}: ',
                                           style: TextStyle(
                                             fontSize: 12,
-                                            color: d.self ? T.live : T.inkSub,
+                                            color: d.self ? T.live : context.tokens.inkSub,
                                             fontWeight: FontWeight.w700,
                                           ),
                                         ),
                                         TextSpan(
                                           text: d.text,
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontSize: 13,
-                                            color: T.ink,
+                                            color: context.tokens.ink,
                                           ),
                                         ),
                                       ],
@@ -326,11 +326,11 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
                       child: TextField(
                         controller: _inputC,
                         onSubmitted: (_) => _send(),
-                        style: const TextStyle(color: T.ink, fontSize: 14),
+                        style: TextStyle(color: context.tokens.ink, fontSize: 14),
                         decoration: InputDecoration(
                           hintText: l.wc_live_input_hint,
-                          hintStyle: const TextStyle(
-                            color: T.inkDim,
+                          hintStyle: TextStyle(
+                            color: context.tokens.inkDim,
                             fontSize: 13,
                           ),
                           border: InputBorder.none,
@@ -463,12 +463,12 @@ class _TeamBadge extends StatelessWidget {
       ),
       child: Text(
         name,
-        style: const TextStyle(
+        style: TextStyle(
           fontFamily: T.fontMono,
           fontFamilyFallback: T.monoFallbacks,
           fontSize: 11,
           fontWeight: FontWeight.w800,
-          color: T.ink,
+          color: context.tokens.ink,
         ),
       ),
     );
@@ -481,9 +481,9 @@ class _TeamBadge extends StatelessWidget {
         if (!alignEnd) const SizedBox(width: 8),
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 13,
-            color: T.ink,
+            color: context.tokens.ink,
             fontWeight: FontWeight.w600,
           ),
         ),

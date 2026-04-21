@@ -103,17 +103,17 @@ class CityPickerScreen extends ConsumerWidget {
                         children: [
                           Text(
                             l.city_picker_current,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 11,
-                              color: T.inkSub,
+                              color: context.tokens.inkSub,
                             ),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             current,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 14,
-                              color: T.ink,
+                              color: context.tokens.ink,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
@@ -187,7 +187,7 @@ class _CityChip extends StatelessWidget {
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: active ? T.live : T.ink,
+            color: active ? T.live : context.tokens.ink,
           ),
         ),
       ),
@@ -221,7 +221,7 @@ class _CityRow extends StatelessWidget {
                 city,
                 style: TextStyle(
                   fontSize: 15,
-                  color: active ? T.live : T.ink,
+                  color: active ? T.live : context.tokens.ink,
                   fontWeight: active ? FontWeight.w700 : FontWeight.w500,
                 ),
               ),

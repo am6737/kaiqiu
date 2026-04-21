@@ -84,18 +84,18 @@ class NotifSettingsScreen extends ConsumerWidget {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
-                    color: T.ink,
+                    color: context.tokens.ink,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   sub,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
-                    color: T.inkSub,
+                    color: context.tokens.inkSub,
                     height: 1.4,
                   ),
                 ),
