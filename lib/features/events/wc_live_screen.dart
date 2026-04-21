@@ -168,38 +168,53 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
         top: false,
         child: Column(
           children: [
-            LiveStreamPlayer(
+            SizedBox(
               height: 240,
-              scoreOverlay: scoreOverlay,
-              topLeft: _BackButton(onTap: () => context.pop()),
-              topRight: _ReminderButton(
-                hasReminder: hasReminder,
-                label: l.wc_btn_remind,
-                onTap: () => _showReminderSheet(context),
-              ),
-              bottomLeftOverlay: Row(
-                mainAxisSize: MainAxisSize.min,
+              child: Stack(
                 children: [
-                  const LivePill(),
-                  const SizedBox(width: 6),
-                  Label('$_minute\'', color: Colors.white),
-                ],
-              ),
-              bottomRightOverlay: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.remove_red_eye,
-                    size: 14,
-                    color: Colors.white.withValues(alpha: 0.85),
+                  LiveStreamPlayer(
+                    height: 240,
+                    scoreOverlay: scoreOverlay,
+                    topLeft: _BackButton(onTap: () => context.pop()),
+                    topRight: _ReminderButton(
+                      hasReminder: hasReminder,
+                      label: l.wc_btn_remind,
+                      onTap: () => _showReminderSheet(context),
+                    ),
+                    bottomLeftOverlay: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const LivePill(),
+                        const SizedBox(width: 6),
+                        Label('$_minute\'', color: Colors.white),
+                      ],
+                    ),
+                    bottomRightOverlay: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.remove_red_eye,
+                          size: 14,
+                          color: Colors.white.withValues(alpha: 0.85),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          l.wc_live_viewer_count(viewerStr),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(width: 4),
-                  Text(
-                    l.wc_live_viewer_count(viewerStr),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: DanmakuOverlay(
+                        stream: _danmuController.stream,
+                        enabled: _danmakuOn,
+                      ),
                     ),
                   ),
                 ],
