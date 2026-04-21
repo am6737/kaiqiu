@@ -1,6 +1,6 @@
 # 赛事直播弹幕叠层 设计文档
 
-**Status:** Draft
+**Status:** Implemented
 **Date:** 2026-04-21
 **Owner:** am6737
 

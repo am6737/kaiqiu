@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kaiqiu_app/theme/app_tokens.dart';
 import 'package:kaiqiu_app/theme/theme_controller.dart';
 import 'package:kaiqiu_app/widgets/danmaku_overlay.dart';
 
