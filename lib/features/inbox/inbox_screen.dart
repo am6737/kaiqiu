@@ -9,7 +9,6 @@ import '../../l10n/l10n_extension.dart';
 import '../../providers.dart';
 import '../../theme/app_tokens.dart';
 import '../../widgets/section_header.dart';
-import '../../widgets/typography.dart';
 import '../messages/messages_tab.dart';
 import '../notifications/notifications_tab.dart';
 
@@ -25,19 +24,6 @@ class InboxScreen extends ConsumerStatefulWidget {
 
 class _InboxScreenState extends ConsumerState<InboxScreen> {
   late InboxTab _current = widget.initialTab;
-  final _notifsKey = GlobalKey<NotificationsTabState>();
-
-  @override
-  void initState() {
-    super.initState();
-    // The notification tab dot reads _notifsKey.currentState?.unreadCount,
-    // which is null during the first build. Re-evaluate once the subtree is
-    // mounted. Remove together with the GlobalKey when notifications get a
-    // real provider.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) setState(() {});
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,22 +36,36 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
             PageTitleBar(
               title: l.inbox_title,
               onBack: () => context.pop(),
-              actions: [_buildAction(context)],
+              actions: [
+                if (_current == InboxTab.messages)
+                  GestureDetector(
+                    onTap: () => showMessagesNewSheet(context, ref),
+                    child: Container(
+                      width: 34,
+                      height: 34,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: context.tokens.accentSubtle,
+                        border: Border.all(color: const Color(0x6600FF85)),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Icon(Icons.add, size: 18, color: context.tokens.accent),
+                    ),
+                  ),
+              ],
             ),
             _TopTabs(
               current: _current,
               messagesUnread: ref.watch(messagesUnreadProvider),
-              notificationsUnread:
-                  (_notifsKey.currentState?.unreadCount ?? 0) > 0,
               onSelect: (t) => setState(() => _current = t),
             ),
             const SizedBox(height: 12),
             Expanded(
               child: IndexedStack(
                 index: _current.index,
-                children: [
-                  const MessagesTab(),
-                  NotificationsTab(key: _notifsKey),
+                children: const [
+                  MessagesTab(),
+                  NotificationsTab(),
                 ],
               ),
             ),
@@ -74,48 +74,15 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
       ),
     );
   }
-
-  Widget _buildAction(BuildContext context) {
-    final l = context.l10n;
-    return switch (_current) {
-      InboxTab.messages => GestureDetector(
-          onTap: () => showMessagesNewSheet(context, ref),
-          child: Container(
-            width: 34,
-            height: 34,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: context.tokens.accentSubtle,
-              border: Border.all(color: const Color(0x6600FF85)),
-              borderRadius: BorderRadius.circular(999),
-            ),
-            child: Icon(Icons.add, size: 18, color: context.tokens.accent),
-          ),
-        ),
-      InboxTab.notifications => GestureDetector(
-          onTap: () {
-            _notifsKey.currentState?.markAllRead();
-            // Force the dot on the notifications tab label to disappear.
-            setState(() {});
-          },
-          child: Padding(
-            padding: const EdgeInsets.all(6),
-            child: Label(l.notif_mark_all_read),
-          ),
-        ),
-    };
-  }
 }
 
 class _TopTabs extends StatelessWidget {
   final InboxTab current;
   final bool messagesUnread;
-  final bool notificationsUnread;
   final ValueChanged<InboxTab> onSelect;
   const _TopTabs({
     required this.current,
     required this.messagesUnread,
-    required this.notificationsUnread,
     required this.onSelect,
   });
 
@@ -145,7 +112,6 @@ class _TopTabs extends StatelessWidget {
               child: _InboxTabButton(
                 label: l.inbox_tab_notifications,
                 active: current == InboxTab.notifications,
-                showDot: notificationsUnread,
                 onTap: () => onSelect(InboxTab.notifications),
               ),
             ),
@@ -164,7 +130,7 @@ class _InboxTabButton extends StatelessWidget {
   const _InboxTabButton({
     required this.label,
     required this.active,
-    required this.showDot,
+    this.showDot = false,
     required this.onTap,
   });
 

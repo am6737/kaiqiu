@@ -23,92 +23,38 @@ class NotificationsTab extends ConsumerStatefulWidget {
 }
 
 class NotificationsTabState extends ConsumerState<NotificationsTab> {
-  bool _unreadOnly = false;
-  final Set<String> _read = {};
-
-  /// Total count of unread items. Callers (InboxScreen) read this via GlobalKey
-  /// to decide whether to draw a red dot on the notification tab label.
-  int get unreadCount =>
-      _demoItems(context.l10n).where((n) => !_read.contains(n.id)).length;
-
-  /// Invoked by the "Mark all read" header action.
-  void markAllRead() {
-    setState(() => _read.addAll(_demoItems(context.l10n).map((i) => i.id)));
-  }
-
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
     final items = _demoItems(l);
-    final list = _unreadOnly
-        ? items.where((n) => !_read.contains(n.id)).toList()
-        : items;
 
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-          child: Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: context.tokens.elev2,
-              border: Border.all(color: context.tokens.line),
-              borderRadius: BorderRadius.circular(context.tokens.r2),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _SubTab(
-                    label: l.notif_all,
-                    active: !_unreadOnly,
-                    onTap: () => setState(() => _unreadOnly = false),
+    return items.isEmpty
+        ? _Empty(label: l.empty_no_notifications)
+        : ListView(
+            padding: const EdgeInsets.only(bottom: 24),
+            children: [
+              for (final group in _grouped(items).entries) ...[
+                SectionHeader(title: _groupLabel(group.key)),
+                for (final n in group.value)
+                  _NotifRow(
+                    item: n,
+                    onTap: () {
+                      final route = n.route;
+                      if (route == null) return;
+                      if (route == '/messages') {
+                        context.go('/inbox?tab=messages');
+                        return;
+                      }
+                      if (_branchRoots.contains(route)) {
+                        context.go(route);
+                      } else {
+                        context.push(route);
+                      }
+                    },
                   ),
-                ),
-                Expanded(
-                  child: _SubTab(
-                    label: l.notif_unread,
-                    active: _unreadOnly,
-                    onTap: () => setState(() => _unreadOnly = true),
-                  ),
-                ),
               ],
-            ),
-          ),
-        ),
-        Expanded(
-          child: list.isEmpty
-              ? _Empty(label: l.empty_no_notifications)
-              : ListView(
-                  padding: const EdgeInsets.only(bottom: 24),
-                  children: [
-                    for (final group in _grouped(list).entries) ...[
-                      SectionHeader(title: _groupLabel(group.key)),
-                      for (final n in group.value)
-                        _NotifRow(
-                          item: n,
-                          read: _read.contains(n.id),
-                          onTap: () {
-                            setState(() => _read.add(n.id));
-                            final route = n.route;
-                            if (route == null) return;
-                            // Legacy notifications may still carry /messages.
-                            if (route == '/messages') {
-                              context.go('/inbox?tab=messages');
-                              return;
-                            }
-                            if (_branchRoots.contains(route)) {
-                              context.go(route);
-                            } else {
-                              context.push(route);
-                            }
-                          },
-                        ),
-                    ],
-                  ],
-                ),
-        ),
-      ],
-    );
+            ],
+          );
   }
 
   Map<String, List<_Notif>> _grouped(List<_Notif> items) {
@@ -198,43 +144,11 @@ class _Notif {
   });
 }
 
-class _SubTab extends StatelessWidget {
-  final String label;
-  final bool active;
-  final VoidCallback onTap;
-  const _SubTab({required this.label, required this.active, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 9),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: active ? context.tokens.elev3 : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: active ? context.tokens.ink : context.tokens.inkSub,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _NotifRow extends StatelessWidget {
   final _Notif item;
-  final bool read;
   final VoidCallback onTap;
   const _NotifRow({
     required this.item,
-    required this.read,
     required this.onTap,
   });
 
@@ -266,29 +180,13 @@ class _NotifRow extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          item.title,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: read ? context.tokens.inkSub : context.tokens.ink,
-                          ),
-                        ),
-                      ),
-                      if (!read)
-                        Container(
-                          width: 6,
-                          height: 6,
-                          margin: const EdgeInsets.only(left: 6),
-                          decoration: BoxDecoration(
-                            color: context.tokens.accent,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                    ],
+                  Text(
+                    item.title,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: context.tokens.ink,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
