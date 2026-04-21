@@ -117,5 +117,44 @@ void main() {
 
       await tester.pump(const Duration(seconds: 10));
     });
+
+    testWidgets('enabled: false drops incoming danmus', (tester) async {
+      final ctrl = StreamController<DanmakuItem>.broadcast();
+      addTearDown(ctrl.close);
+
+      await tester.pumpWidget(_wrap(
+        DanmakuOverlay(stream: ctrl.stream, enabled: false),
+      ));
+      await tester.pump();
+
+      ctrl.add(const DanmakuItem(user: 'A', text: 'silenced', self: false));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+
+      expect(find.text('silenced'), findsNothing);
+    });
+
+    testWidgets('danmus render inside [80, height-40] region', (tester) async {
+      final ctrl = StreamController<DanmakuItem>.broadcast();
+      addTearDown(ctrl.close);
+
+      await tester.pumpWidget(_wrap(DanmakuOverlay(stream: ctrl.stream)));
+      await tester.pump();
+
+      for (var i = 0; i < 4; i++) {
+        ctrl.add(DanmakuItem(user: 'U$i', text: 'msg$i', self: false));
+        await tester.pump();
+      }
+      await tester.pump(const Duration(milliseconds: 50));
+
+      for (var i = 0; i < 4; i++) {
+        final r = tester.getRect(find.text('msg$i'));
+        // Overlay is 240 tall; effective region [80, 200].
+        expect(r.top, greaterThanOrEqualTo(80.0 - 0.5));
+        expect(r.bottom, lessThanOrEqualTo(200.0 + 0.5));
+      }
+
+      await tester.pump(const Duration(seconds: 10));
+    });
   });
 }

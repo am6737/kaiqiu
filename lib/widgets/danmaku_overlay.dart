@@ -165,6 +165,17 @@ class _DanmakuOverlayState extends State<DanmakuOverlay>
       builder: (context, constraints) {
         _layoutWidth = constraints.maxWidth;
         final w = constraints.maxWidth;
+        final h = constraints.maxHeight;
+        const topInset = 80.0;
+        const bottomInset = 40.0;
+        const trackHeight = 28.0;
+        final usable = (h - topInset - bottomInset).clamp(
+          trackHeight,
+          double.infinity,
+        );
+        final trackGap = widget.trackCount <= 1
+            ? 0.0
+            : (usable - trackHeight) / (widget.trackCount - 1);
         return Stack(
           clipBehavior: Clip.hardEdge,
           children: [
@@ -174,9 +185,10 @@ class _DanmakuOverlayState extends State<DanmakuOverlay>
                 builder: (context, child) {
                   // x goes from w (off-screen right) to -d.width (off-screen left).
                   final x = w - (w + d.width) * d.controller.value;
+                  final y = topInset + d.track * trackGap;
                   return Positioned(
                     left: x,
-                    top: 12.0 + d.track * 28.0,
+                    top: y,
                     child: child!,
                   );
                 },
