@@ -11,6 +11,7 @@ class DemoImages {
 
   static const _landscape =
       '?auto=format&fit=crop&w=1200&h=600&q=70';
+  // ignore: unused_field
   static const _square = '?auto=format&fit=crop&w=400&h=400&q=70';
 
   // ── 赛事海报（events.cover_url）─────────────────────────────
@@ -62,26 +63,34 @@ class DemoImages {
   };
 
   // ── 球员头像（profiles.avatar_url）─────────────────────────
-  /// demo 名字 → 头像 URL。与 seed.sql 里 auth.users 插入的 9 位 demo 球员一致。
+  /// demo 名字 → 真实球星头像 URL（Wikipedia Commons）。与 seed.sql 里
+  /// auth.users 插入的 9 位 demo 球员一致。
+  ///
+  /// 说明：球员名字保留（"陈子睿"/"老王"等），但头像借用真实球星的
+  /// 公开照片，让 demo 射手榜 / 评分榜有可看性。名字与头像不匹配是已
+  /// 知取舍，仅为 demo 展示用。真实球员注册后走 profiles.avatar_url。
+  ///
+  /// 版权：Wikipedia Commons 大多 CC BY-SA / 公共领域，demo 可用；
+  /// 若要用于正式产品需单独核查 license。
   static const Map<String, String> playerAvatarByName = {
-    '陈子睿':
-        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d$_square',
-    '老王':
-        'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e$_square',
-    '徐铮':
-        'https://images.unsplash.com/photo-1544005313-94ddf0286df2$_square',
-    '林帅':
-        'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6$_square',
-    '江北':
-        'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7$_square',
-    'Kevin':
-        'https://images.unsplash.com/photo-1552058544-f2b08422138a$_square',
-    '张教练':
-        'https://images.unsplash.com/photo-1531123897727-8f129e1688ce$_square',
-    '小赵':
-        'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce$_square',
-    '阿泽':
-        'https://images.unsplash.com/photo-1500648767791-00dcc994a43e$_square',
+    '陈子睿': // Lionel Messi
+        'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Lionel_Messi_20180626.jpg/400px-Lionel_Messi_20180626.jpg',
+    '老王': // Cristiano Ronaldo
+        'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Cristiano_Ronaldo_2018.jpg/400px-Cristiano_Ronaldo_2018.jpg',
+    '徐铮': // Kylian Mbappé
+        'https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Picture_with_Mbapp%C3%A9_%28cropped_and_rotated%29.jpg/400px-Picture_with_Mbapp%C3%A9_%28cropped_and_rotated%29.jpg',
+    '林帅': // Erling Haaland
+        'https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Erling_Haaland_June_2025.jpg/400px-Erling_Haaland_June_2025.jpg',
+    '江北': // Vinícius Júnior
+        'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c6/2023_05_06_Final_de_la_Copa_del_Rey_-_52879242230_%28cropped%29.jpg/400px-2023_05_06_Final_de_la_Copa_del_Rey_-_52879242230_%28cropped%29.jpg',
+    'Kevin': // Jude Bellingham
+        'https://upload.wikimedia.org/wikipedia/commons/thumb/5/56/Jude_Bellingham_2020_%28cropped2%29.jpg/400px-Jude_Bellingham_2020_%28cropped2%29.jpg',
+    '张教练': // Pep Guardiola
+        'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/2023-10-04_Fu%C3%9Fball%2C_M%C3%A4nner%2C_UEFA_Champions_League%2C_RB_Leipzig_-_Manchester_City_FC_1DX_2797_%28cropped%29.jpg/400px-2023-10-04_Fu%C3%9Fball%2C_M%C3%A4nner%2C_UEFA_Champions_League%2C_RB_Leipzig_-_Manchester_City_FC_1DX_2797_%28cropped%29.jpg',
+    '小赵': // Kevin De Bruyne
+        'https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/Kevin_De_Bruyne_USMNT_v_Belgium_Mar_28_2026-64_%28cropped%29.jpg/400px-Kevin_De_Bruyne_USMNT_v_Belgium_Mar_28_2026-64_%28cropped%29.jpg',
+    '阿泽': // Mohamed Salah
+        'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Mohamed_Salah_2018.jpg/400px-Mohamed_Salah_2018.jpg',
   };
 
   // ── 队徽 ────────────────────────────────────────────────
