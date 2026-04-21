@@ -35,6 +35,9 @@ dependencies:
   flutter_image_compress: ^2.3.0
   cached_network_image: ^3.4.1
 
+  # Swipeable list actions (messages screen).
+  flutter_slidable: ^3.1.2
+
   # Push notifications (S4). Only initialises when Env.isFirebaseConfigured.
   firebase_core: ^3.8.1
   firebase_messaging: ^15.1.6
