@@ -394,7 +394,11 @@ class _LiveEventRow extends StatelessWidget {
                         vertical: 3,
                       ),
                       decoration: BoxDecoration(
-                        color: isReg ? context.tokens.accentSubtle : const Color(0x80000000),
+                        color: isReg
+                            ? context.tokens.accentSubtle
+                            : (Theme.of(context).brightness == Brightness.dark
+                                ? const Color(0x80000000)
+                                : const Color(0xCCFFFFFF)),
                         border: Border.all(color: isReg ? context.tokens.accent : context.tokens.line),
                         borderRadius: BorderRadius.circular(3),
                       ),
@@ -415,7 +419,9 @@ class _LiveEventRow extends StatelessWidget {
                         vertical: 3,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0x80000000),
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? const Color(0x80000000)
+                            : const Color(0xCCFFFFFF),
                         borderRadius: BorderRadius.circular(3),
                       ),
                       child: Row(
