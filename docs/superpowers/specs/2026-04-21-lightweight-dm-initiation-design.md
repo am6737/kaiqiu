@@ -66,25 +66,25 @@ UI 调用关系：
    - `p_other_user_id is null` → `raise exception 'other_required'`；
    - `p_other_user_id = v_me` → `raise exception 'cannot_dm_self'`；
    - 在 `profiles` 里不存在该 id → `raise exception 'user_not_found'`。
-3. **查**：查找满足"`kind='dm'` 且成员集合恰等于 `{v_me, p_other_user_id}`"的会话：
+3. **查**：查找满足"`kind='dm'` 且成员集合恰等于 `{v_me, p_other_user_id}`"的会话。注意项目中外键列名是 `conv_id`（见 `conversation_members`）：
 
    ```sql
    select c.id into v_id
    from conversations c
    where c.kind = 'dm'
      and exists (select 1 from conversation_members m
-                 where m.conversation_id = c.id and m.user_id = v_me)
+                 where m.conv_id = c.id and m.user_id = v_me)
      and exists (select 1 from conversation_members m
-                 where m.conversation_id = c.id and m.user_id = p_other_user_id)
+                 where m.conv_id = c.id and m.user_id = p_other_user_id)
      and (select count(*) from conversation_members m
-          where m.conversation_id = c.id) = 2
+          where m.conv_id = c.id) = 2
    limit 1;
    ```
 
    找到就 `return v_id`。
-4. **建**：
-   - `insert into conversations(kind, created_by) values ('dm', v_me) returning id into v_id;`
-   - `insert into conversation_members(conversation_id, user_id) values (v_id, v_me), (v_id, p_other_user_id);`
+4. **建**（`conversations` 表只有 `kind/title/updated_at` 列，无 `created_by`）：
+   - `insert into conversations(kind) values ('dm') returning id into v_id;`
+   - `insert into conversation_members(conv_id, user_id, unread) values (v_id, v_me, 0), (v_id, p_other_user_id, 0);`
    - `return v_id;`
 5. **并发防护**：插入逻辑包一层 `begin ... exception when unique_violation then <重走查询分支> end;`。并发极低的情况下若两侧同时插入，返回其中任意一条（读方以 RPC 返回的 id 为准，不阻塞用户）。
 
@@ -98,14 +98,14 @@ UI 调用关系：
 
 ```sql
 create or replace view public.v_conversation_peers as
-select c.id as conversation_id,
+select m.conv_id as conv_id,
        m.user_id as peer_user_id
-from conversations c
-join conversation_members m on m.conversation_id = c.id
+from conversation_members m
+join conversations c on c.id = m.conv_id
 where c.kind = 'dm';
 ```
 
-客户端按需：`select peer_user_id from v_conversation_peers where conversation_id=$1 and peer_user_id <> auth.uid()` 取得对端 id。
+输出列名沿用项目约定的 `conv_id`。客户端按需：`select peer_user_id from v_conversation_peers where conv_id=$1 and peer_user_id <> auth.uid()` 取得对端 id。
 
 **优化（可选，作为后续优化点，不在本设计强制范围内）**：`listConversations()` 的 SQL 可一次性 JOIN 出 DM 对端的 `name / avatar_url / handle`，避免 N+1。初版可以先按"每个 DM 行发一次 `profileByIdProvider`"的方式工作，客户端侧的 provider 会对同一 id 去重。
 
@@ -117,17 +117,18 @@ where c.kind = 'dm';
 
 ```dart
 Future<String> ensureDmWith(String otherUserId) async {
-  final res = await _sb.rpc('ensure_dm_conversation',
+  if (currentUserId == null) throw StateError('not signed in');
+  final res = await supabase.rpc('ensure_dm_conversation',
       params: {'p_other_user_id': otherUserId});
   return res as String;
 }
 
-Future<String?> fetchDmPeerId(String conversationId) async {
-  final me = _sb.auth.currentUser?.id;
+Future<String?> fetchDmPeerId(String convId) async {
+  final me = currentUserId;
   if (me == null) return null;
-  final row = await _sb.from('v_conversation_peers')
+  final row = await supabase.from('v_conversation_peers')
       .select('peer_user_id')
-      .eq('conversation_id', conversationId)
+      .eq('conv_id', convId)
       .neq('peer_user_id', me)
       .maybeSingle();
   return row == null ? null : row['peer_user_id'] as String;
@@ -140,7 +141,8 @@ Future<String?> fetchDmPeerId(String conversationId) async {
 
 ```dart
 Future<Profile?> fetchByHandle(String handle) async {
-  final row = await _sb.from('profiles')
+  final row = await supabase
+      .from('profiles')
       .select()
       .eq('handle', handle)
       .maybeSingle();
@@ -235,7 +237,7 @@ final dmPeerProfileProvider =
 });
 ```
 
-**聊天页 `chat_screen.dart`**：AppBar 标题：DM 用对端 name（走同一 provider），group 用 conversation title。
+**聊天页 `chat_screen.dart`**：`chat_screen.dart` 不使用 `AppBar`，而是自绘 header（约 line 263-298）。目前标题硬编码为 `l.chat_default_group_title`。改为：DM 用对端 name（走同一 provider），group 用 conversation title，缺省回退到 `chat_default_group_title`。由于 chat_screen 只持有 `convId`，需要新增派生 provider `conversationByIdProvider(convId)`（内部从 `conversationsProvider` 的列表里 `firstWhereOrNull`）来获取 `kind`/`title`。
 
 ### 场景入口改造
 
