@@ -1604,7 +1604,7 @@ class _GoldenBootHero extends ConsumerWidget {
               children: [
                 Container(
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(18),
                     border: Border.all(color: _gold, width: 2),
                   ),
                   padding: const EdgeInsets.all(2),
