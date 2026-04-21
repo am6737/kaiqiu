@@ -462,12 +462,14 @@ class _TeamBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final flagL = isDark ? 0.3 : 0.65;
     final flag = Container(
       width: 40,
       height: 28,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: HSLColor.fromAHSL(1, hue, 0.4, 0.3).toColor(),
+        color: HSLColor.fromAHSL(1, hue, 0.4, flagL).toColor(),
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(
@@ -668,8 +670,8 @@ class _ReminderOption extends StatelessWidget {
                   ),
                   child: Text(
                     l.wc_remind_default_badge,
-                    style: const TextStyle(
-                      color: Colors.black,
+                    style: TextStyle(
+                      color: context.tokens.accentInk,
                       fontSize: 10,
                       fontWeight: FontWeight.w800,
                     ),
