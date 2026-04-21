@@ -1,4 +1,4 @@
-// routes.dart — go_router config with auth redirect + 5-tab shell
+// routes.dart — go_router config with auth redirect + 4-tab shell
 import 'package:go_router/go_router.dart';
 
 import 'features/auth/sign_in_screen.dart';
@@ -51,7 +51,7 @@ final router = GoRouter(
   },
   routes: [
     GoRoute(path: '/sign-in', builder: (_, s) => const SignInScreen()),
-    // Bottom-tab shell — 5 persistent tabs
+    // Bottom-tab shell — 4 persistent tabs
     StatefulShellRoute.indexedStack(
       builder: (context, state, shell) => BottomNavShell(shell: shell),
       branches: [
