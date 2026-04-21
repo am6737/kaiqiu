@@ -242,6 +242,12 @@ class _WcBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
+    // Feature banner: keep the purple identity vivid in both themes,
+    // override text to white so the card always reads as "premium / live".
+    const titleColor = Color(0xFFFFFFFF);
+    const subColor = Color(0xCCFFFFFF);
+    const labelColor = Color(0x99FFFFFF);
+    const dividerColor = Color(0x33FFFFFF);
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 14),
       child: GestureDetector(
@@ -249,21 +255,15 @@ class _WcBanner extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
+            gradient: const LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: () {
-                final isDark = Theme.of(context).brightness == Brightness.dark;
-                final l1 = isDark ? 0.22 : 0.78;
-                final l2 = isDark ? 0.16 : 0.70;
-                return [
-                  HSLColor.fromAHSL(1, 260, 0.5, l1).toColor(),
-                  HSLColor.fromAHSL(1, 290, 0.5, l2).toColor(),
-                ];
-              }(),
+              colors: [
+                Color(0xFF4A2380), // rich royal purple
+                Color(0xFF7A2A8A), // magenta-purple
+              ],
             ),
             borderRadius: BorderRadius.circular(context.tokens.r3),
-            border: Border.all(color: context.tokens.line),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -272,23 +272,23 @@ class _WcBanner extends StatelessWidget {
                 children: [
                   const LivePill(),
                   const SizedBox(width: 6),
-                  Label(l.events_pro, color: context.tokens.ink),
+                  Label(l.events_pro, color: titleColor),
                 ],
               ),
               const SizedBox(height: 10),
               Text(
                 l.events_wc_banner_title,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
-                  color: context.tokens.ink,
+                  color: titleColor,
                   letterSpacing: -0.5,
                 ),
               ),
               const SizedBox(height: 4),
               Text(
                 l.events_wc_banner_sub,
-                style: TextStyle(fontSize: 13, color: context.tokens.inkSub),
+                style: const TextStyle(fontSize: 13, color: subColor),
               ),
               const SizedBox(height: 14),
               Row(
@@ -296,32 +296,32 @@ class _WcBanner extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Label(l.events_wc_live_now),
+                      Label(l.events_wc_live_now, color: labelColor),
                       const SizedBox(height: 2),
-                      N(
+                      const N(
                         '3',
                         size: 20,
                         weight: FontWeight.w700,
-                        color: context.tokens.accent,
+                        color: Color(0xFF00FF85), // brand accent green pops on purple
                       ),
                     ],
                   ),
                   Container(
                     width: 1,
                     height: 28,
-                    color: context.tokens.line,
+                    color: dividerColor,
                     margin: const EdgeInsets.symmetric(horizontal: 14),
                   ),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Label(l.events_wc_predicts),
+                      Label(l.events_wc_predicts, color: labelColor),
                       const SizedBox(height: 2),
-                      const N('2.4K', size: 20, weight: FontWeight.w700),
+                      const N('2.4K', size: 20, weight: FontWeight.w700, color: titleColor),
                     ],
                   ),
                   const Spacer(),
-                  Icon(Icons.arrow_forward, size: 20, color: context.tokens.ink),
+                  const Icon(Icons.arrow_forward, size: 20, color: titleColor),
                 ],
               ),
             ],
