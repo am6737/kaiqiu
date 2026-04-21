@@ -18,9 +18,8 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../l10n/l10n_extension.dart';
-import '../theme/tokens.dart';
-import '../theme/app_tokens.dart';
 import '../utils/toast.dart';
+import '../theme/app_tokens.dart';
 
 enum _MapApp { amap, baidu, system }
 

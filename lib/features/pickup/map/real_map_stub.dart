@@ -8,9 +8,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../models/pickup.dart';
-import '../../../theme/tokens.dart';
-import '../../../theme/app_tokens.dart';
 import '../../../widgets/sport_icon.dart';
+import '../../../theme/app_tokens.dart';
 
 /// Shenzhen default center — used by the mobile map, surfaced here so the
 /// web stub can fake-scale pins around the same reference point.

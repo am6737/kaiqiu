@@ -7,13 +7,12 @@ import '../../data/mock.dart';
 import '../../l10n/l10n_extension.dart';
 import '../../models/pickup.dart' as live;
 import '../../providers.dart';
-import '../../theme/tokens.dart';
-import '../../theme/app_tokens.dart';
 import '../../widgets/avatar.dart';
 import '../../widgets/chip_pill.dart';
 import '../../widgets/live_pill.dart';
 import '../../widgets/sport_icon.dart';
 import '../../widgets/typography.dart';
+import '../../theme/app_tokens.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});

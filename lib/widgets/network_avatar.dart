@@ -3,7 +3,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
-import '../theme/tokens.dart';
 import '../theme/app_tokens.dart';
 import 'avatar.dart';
 
@@ -53,25 +52,26 @@ class NetworkAvatar extends StatelessWidget {
 class CircleNetworkImage extends StatelessWidget {
   final String url;
   final double size;
-  final Color borderColor;
+  final Color? borderColor;
   final String fallbackName;
 
   const CircleNetworkImage({
     super.key,
     required this.url,
     this.size = 32,
-    this.borderColor = T.line,
+    this.borderColor,
     this.fallbackName = '',
   });
 
   @override
   Widget build(BuildContext context) {
+    final c = borderColor ?? context.tokens.line;
     return Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        border: Border.all(color: borderColor, width: 1),
+        border: Border.all(color: c, width: 1),
       ),
       clipBehavior: Clip.antiAlias,
       child: CachedNetworkImage(

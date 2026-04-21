@@ -1,7 +1,6 @@
 // photo_halftone.dart — halftone / scan-line photo placeholder
 // Matches the React PhotoHalftone component.
 import 'package:flutter/material.dart';
-import '../theme/tokens.dart';
 import '../theme/app_tokens.dart';
 
 enum HalftoneVariant { dots, lines }

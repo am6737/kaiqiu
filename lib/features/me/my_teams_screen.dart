@@ -7,8 +7,6 @@ import '../../l10n/l10n_extension.dart';
 import '../../providers.dart';
 import '../../repositories/user_teams_repository.dart';
 import '../../services/local_storage.dart';
-import '../../theme/tokens.dart';
-import '../../theme/app_tokens.dart';
 import '../../utils/toast.dart';
 import '../../utils/validators.dart';
 import '../../widgets/avatar.dart';
@@ -16,6 +14,7 @@ import '../../widgets/empty_state.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/section_header.dart';
 import '../../widgets/typography.dart';
+import '../../theme/app_tokens.dart';
 
 class MyTeamsScreen extends ConsumerWidget {
   const MyTeamsScreen({super.key});

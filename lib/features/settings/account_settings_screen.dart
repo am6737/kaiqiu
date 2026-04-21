@@ -8,13 +8,12 @@ import '../../l10n/l10n_extension.dart';
 import '../../l10n/locale_controller.dart';
 import '../../services/local_storage.dart';
 import '../../services/supabase.dart';
-import '../../theme/tokens.dart';
-import '../../theme/app_tokens.dart';
 import '../../utils/toast.dart';
 import '../../utils/validators.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/section_header.dart';
 import '../../widgets/typography.dart';
+import '../../theme/app_tokens.dart';
 
 class AccountSettingsScreen extends ConsumerWidget {
   const AccountSettingsScreen({super.key});

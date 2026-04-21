@@ -6,11 +6,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../l10n/l10n_extension.dart';
 import '../../services/local_storage.dart';
 import '../../services/supabase.dart';
-import '../../theme/tokens.dart';
-import '../../theme/app_tokens.dart';
 import '../../utils/toast.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/typography.dart';
+import '../../theme/app_tokens.dart';
 
 class SignInScreen extends ConsumerStatefulWidget {
   const SignInScreen({super.key});

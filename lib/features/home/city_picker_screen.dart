@@ -5,9 +5,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../l10n/l10n_extension.dart';
 import '../../services/local_storage.dart';
-import '../../theme/tokens.dart';
-import '../../theme/app_tokens.dart';
 import '../../widgets/section_header.dart';
+import '../../theme/app_tokens.dart';
 
 class CityPickerScreen extends ConsumerWidget {
   const CityPickerScreen({super.key});

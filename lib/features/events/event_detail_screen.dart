@@ -20,8 +20,6 @@ import '../../repositories/favorites_repository.dart';
 import '../../repositories/goals_repository.dart';
 import '../../services/local_storage.dart';
 import '../../services/supabase.dart';
-import '../../theme/tokens.dart';
-import '../../theme/app_tokens.dart';
 import '../../utils/share_helper.dart';
 import '../../utils/toast.dart';
 import '../../widgets/avatar.dart';
@@ -29,6 +27,7 @@ import '../../widgets/network_avatar.dart';
 import '../../widgets/network_cover.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/typography.dart';
+import '../../theme/app_tokens.dart';
 
 class EventDetailScreen extends ConsumerStatefulWidget {
   final String id;

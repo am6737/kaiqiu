@@ -8,12 +8,11 @@ import '../../l10n/l10n_extension.dart';
 import '../../providers.dart';
 import '../../repositories/messages_repository.dart';
 import '../../services/local_storage.dart';
-import '../../theme/tokens.dart';
-import '../../theme/app_tokens.dart';
 import '../../utils/toast.dart';
 import '../../widgets/avatar.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/typography.dart';
+import '../../theme/app_tokens.dart';
 
 class MessagesScreen extends ConsumerWidget {
   const MessagesScreen({super.key});

@@ -1,6 +1,5 @@
 // primary_button.dart — matches React Button (primary/secondary/ghost/warn)
 import 'package:flutter/material.dart';
-import '../theme/tokens.dart';
 import '../theme/app_tokens.dart';
 
 enum BtnVariant { primary, secondary, ghost, warn }

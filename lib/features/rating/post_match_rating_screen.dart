@@ -6,12 +6,11 @@ import 'package:go_router/go_router.dart';
 import '../../data/mock.dart' as mock;
 import '../../l10n/l10n_extension.dart';
 import '../../services/supabase.dart' as svc;
-import '../../theme/tokens.dart';
-import '../../theme/app_tokens.dart';
 import '../../utils/toast.dart';
 import '../../widgets/avatar.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/typography.dart';
+import '../../theme/app_tokens.dart';
 
 class PostMatchRatingScreen extends ConsumerStatefulWidget {
   final String matchId;

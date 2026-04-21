@@ -9,11 +9,10 @@ import '../../l10n/l10n_extension.dart';
 import '../../providers.dart';
 import '../../services/local_storage.dart';
 import '../../services/supabase.dart';
-import '../../theme/tokens.dart';
-import '../../theme/app_tokens.dart';
 import '../../widgets/avatar.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/typography.dart';
+import '../../theme/app_tokens.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});

@@ -9,10 +9,9 @@ import '../../models/message.dart';
 import '../../providers.dart';
 import '../../services/local_storage.dart';
 import '../../services/supabase.dart' as svc;
-import '../../theme/tokens.dart';
-import '../../theme/app_tokens.dart';
 import '../../utils/toast.dart';
 import '../../widgets/avatar.dart';
+import '../../theme/app_tokens.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   final String convId;

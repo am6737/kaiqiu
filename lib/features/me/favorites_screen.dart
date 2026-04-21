@@ -7,13 +7,12 @@ import '../../l10n/l10n_extension.dart';
 import '../../providers.dart';
 import '../../repositories/favorites_repository.dart';
 import '../../services/local_storage.dart';
-import '../../theme/tokens.dart';
-import '../../theme/app_tokens.dart';
 import '../../widgets/avatar.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/section_header.dart';
 import '../../widgets/sport_icon.dart';
 import '../../widgets/typography.dart';
+import '../../theme/app_tokens.dart';
 
 class FavoritesScreen extends ConsumerStatefulWidget {
   const FavoritesScreen({super.key});

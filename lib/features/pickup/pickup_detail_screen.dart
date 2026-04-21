@@ -10,7 +10,6 @@ import '../../repositories/favorites_repository.dart';
 import '../../services/local_storage.dart';
 import '../../services/map_launcher.dart';
 import '../../services/supabase.dart' as svc;
-import '../../theme/tokens.dart';
 import '../../theme/app_tokens.dart';
 import 'map/mini_map.dart';
 import '../../utils/share_helper.dart';
@@ -159,14 +158,15 @@ class _Header extends ConsumerWidget {
 class _CircleBtn extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
-  final Color color;
+  final Color? color;
   const _CircleBtn({
     required this.icon,
     required this.onTap,
-    this.color = T.ink,
+    this.color,
   });
   @override
   Widget build(BuildContext context) {
+    final c = color ?? context.tokens.ink;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -177,7 +177,7 @@ class _CircleBtn extends StatelessWidget {
           color: Color(0x80000000),
           shape: BoxShape.circle,
         ),
-        child: Icon(icon, size: 16, color: color),
+        child: Icon(icon, size: 16, color: c),
       ),
     );
   }

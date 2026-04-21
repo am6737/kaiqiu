@@ -9,11 +9,10 @@ import '../../models/event.dart';
 import '../../providers.dart';
 import '../../repositories/goals_repository.dart';
 import '../../services/local_storage.dart';
-import '../../theme/tokens.dart';
-import '../../theme/app_tokens.dart';
 import '../../utils/toast.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/typography.dart';
+import '../../theme/app_tokens.dart';
 
 class MatchDetailScreen extends ConsumerWidget {
   final String eventId;

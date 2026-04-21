@@ -11,9 +11,8 @@ import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
 
 import '../l10n/l10n_extension.dart';
-import '../theme/tokens.dart';
-import '../theme/app_tokens.dart';
 import 'live_pill.dart';
+import '../theme/app_tokens.dart';
 
 /// Public HLS test streams (reliable CDNs, always-on).
 /// Tried in order — the first one that initializes wins.

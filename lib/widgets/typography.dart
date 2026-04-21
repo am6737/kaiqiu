@@ -1,6 +1,5 @@
 // typography.dart — N (mono number), Label (small caps uppercase)
 import 'package:flutter/material.dart';
-import '../theme/tokens.dart';
 import '../theme/app_tokens.dart';
 
 /// Mono number — for scores/stats/ratings. Uses JetBrainsMono with tabular digits.

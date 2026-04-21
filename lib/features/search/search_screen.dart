@@ -7,11 +7,10 @@ import '../../l10n/l10n_extension.dart';
 import '../../models/event.dart';
 import '../../providers.dart';
 import '../../services/local_storage.dart';
-import '../../theme/tokens.dart';
-import '../../theme/app_tokens.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/section_header.dart';
 import '../../widgets/typography.dart';
+import '../../theme/app_tokens.dart';
 
 class SearchScreen extends ConsumerStatefulWidget {
   const SearchScreen({super.key});

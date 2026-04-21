@@ -7,12 +7,11 @@ import 'package:go_router/go_router.dart';
 import '../../data/mock.dart';
 import '../../l10n/l10n_extension.dart';
 import '../../providers.dart';
-import '../../theme/tokens.dart';
-import '../../theme/app_tokens.dart';
 import '../../utils/share_helper.dart';
 import '../../widgets/avatar.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/typography.dart';
+import '../../theme/app_tokens.dart';
 
 class PlayerArchiveScreen extends ConsumerStatefulWidget {
   const PlayerArchiveScreen({super.key});

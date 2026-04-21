@@ -1,6 +1,5 @@
 // live_pill.dart — pulsing LIVE pill (neon green bg + blinking dot)
 import 'package:flutter/material.dart';
-import '../theme/tokens.dart';
 import '../theme/app_tokens.dart';
 
 class LivePill extends StatefulWidget {

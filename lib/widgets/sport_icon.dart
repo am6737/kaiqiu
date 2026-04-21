@@ -1,6 +1,5 @@
 // sport_icon.dart — minimalist geometric sport marks (no "people")
 import 'package:flutter/material.dart';
-import '../theme/tokens.dart';
 import '../theme/app_tokens.dart';
 
 enum Sport { football, basketball, badminton, pingpong, cycling }

@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../models/pickup.dart';
-import '../../../theme/tokens.dart';
 import '../../../theme/app_tokens.dart';
 
 class PitchView extends StatelessWidget {

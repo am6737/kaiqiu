@@ -1,8 +1,7 @@
 // mini_map_stub.dart — web placeholder. Keeps the existing dark-grid look.
 import 'package:flutter/material.dart';
-
-import '../../../theme/tokens.dart';
 import '../../../theme/app_tokens.dart';
+
 
 class PickupMiniMap extends StatelessWidget {
   final double? lat;

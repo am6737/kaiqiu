@@ -3,9 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../l10n/l10n_extension.dart';
-import '../../theme/tokens.dart';
-import '../../theme/app_tokens.dart';
 import '../../widgets/section_header.dart';
+import '../../theme/app_tokens.dart';
 
 class LegalScreen extends StatelessWidget {
   final String kind; // 'terms' | 'privacy'

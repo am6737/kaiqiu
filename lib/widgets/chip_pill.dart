@@ -1,6 +1,5 @@
 // chip_pill.dart — filter / pill chip
 import 'package:flutter/material.dart';
-import '../theme/tokens.dart';
 import '../theme/app_tokens.dart';
 
 class ChipPill extends StatelessWidget {

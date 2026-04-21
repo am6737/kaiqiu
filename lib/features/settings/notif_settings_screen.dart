@@ -6,9 +6,8 @@ import 'package:go_router/go_router.dart';
 import '../../l10n/l10n_extension.dart';
 import '../../providers.dart';
 import '../../services/local_storage.dart';
-import '../../theme/tokens.dart';
-import '../../theme/app_tokens.dart';
 import '../../widgets/section_header.dart';
+import '../../theme/app_tokens.dart';
 
 class NotifSettingsScreen extends ConsumerWidget {
   const NotifSettingsScreen({super.key});

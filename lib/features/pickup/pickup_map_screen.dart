@@ -7,14 +7,13 @@ import '../../l10n/l10n_extension.dart';
 import '../../models/pickup.dart';
 import '../../providers.dart';
 import '../../services/local_storage.dart';
-import '../../theme/tokens.dart';
-import '../../theme/app_tokens.dart';
 import '../../widgets/chip_pill.dart';
 import '../../widgets/live_pill.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/sport_icon.dart';
 import '../../widgets/typography.dart';
 import 'map/real_map.dart';
+import '../../theme/app_tokens.dart';
 
 class PickupMapScreen extends ConsumerStatefulWidget {
   const PickupMapScreen({super.key});

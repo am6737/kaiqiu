@@ -1,6 +1,5 @@
 // avatar.dart — monogram-on-tinted-bg avatar
 import 'package:flutter/material.dart';
-import '../theme/tokens.dart';
 import '../theme/app_tokens.dart';
 
 class Avatar extends StatelessWidget {

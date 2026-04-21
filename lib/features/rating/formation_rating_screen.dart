@@ -8,13 +8,12 @@ import '../../models/pickup.dart';
 import '../../providers.dart';
 import '../../repositories/goals_repository.dart';
 import '../../services/supabase.dart' as svc;
-import '../../theme/tokens.dart';
-import '../../theme/app_tokens.dart';
 import '../../utils/toast.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/typography.dart';
 import 'widgets/pitch_view.dart';
 import 'widgets/rate_player_sheet.dart';
+import '../../theme/app_tokens.dart';
 
 class FormationRatingScreen extends ConsumerStatefulWidget {
   final String pickupId;

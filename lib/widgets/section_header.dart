@@ -1,9 +1,8 @@
 // section_header.dart — 通用 section 标题
 import 'package:flutter/material.dart';
 
-import '../theme/tokens.dart';
-import '../theme/app_tokens.dart';
 import 'typography.dart';
+import '../theme/app_tokens.dart';
 
 class SectionHeader extends StatelessWidget {
   final String title;
