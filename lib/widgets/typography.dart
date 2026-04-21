@@ -26,8 +26,8 @@ class N extends StatelessWidget {
       text,
       textAlign: textAlign,
       style: TextStyle(
-        fontFamily: T.fontMono,
-        fontFamilyFallback: T.monoFallbacks,
+        fontFamily: context.tokens.fontMono,
+        fontFamilyFallback: context.tokens.monoFallbacks,
         fontSize: size,
         fontWeight: weight,
         color: color ?? context.tokens.ink,
@@ -52,8 +52,8 @@ class Label extends StatelessWidget {
     return Text(
       text.toUpperCase(),
       style: TextStyle(
-        fontFamily: T.fontMono,
-        fontFamilyFallback: T.monoFallbacks,
+        fontFamily: context.tokens.fontMono,
+        fontFamilyFallback: context.tokens.monoFallbacks,
         fontSize: size,
         fontWeight: FontWeight.w500,
         letterSpacing: 1.2,

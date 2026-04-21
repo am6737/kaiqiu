@@ -138,7 +138,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                 decoration: BoxDecoration(
                   color: context.tokens.elev2,
                   border: Border.all(color: context.tokens.line),
-                  borderRadius: BorderRadius.circular(T.r2),
+                  borderRadius: BorderRadius.circular(context.tokens.r2),
                 ),
                 child: TextField(
                   controller: c,
@@ -253,7 +253,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     color: context.tokens.warnSubtle,
-                    borderRadius: BorderRadius.circular(T.r2),
+                    borderRadius: BorderRadius.circular(context.tokens.r2),
                     border: Border.all(color: const Color(0x55FF6B35)),
                   ),
                   child: Text(
@@ -383,7 +383,7 @@ class _Field extends StatelessWidget {
           decoration: BoxDecoration(
             color: context.tokens.elev2,
             border: Border.all(color: context.tokens.line),
-            borderRadius: BorderRadius.circular(T.r2),
+            borderRadius: BorderRadius.circular(context.tokens.r2),
           ),
           child: Row(
             children: [
@@ -398,8 +398,8 @@ class _Field extends StatelessWidget {
                     color: context.tokens.ink,
                     fontSize: 15,
                     fontWeight: FontWeight.w500,
-                    fontFamily: mono ? T.fontMono : null,
-                    fontFamilyFallback: mono ? T.monoFallbacks : null,
+                    fontFamily: mono ? context.tokens.fontMono : null,
+                    fontFamilyFallback: mono ? context.tokens.monoFallbacks : null,
                   ),
                   decoration: const InputDecoration(
                     border: InputBorder.none,

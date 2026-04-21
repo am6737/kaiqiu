@@ -25,8 +25,8 @@ class Avatar extends StatelessWidget {
       child: Text(
         initial,
         style: TextStyle(
-          fontFamily: T.fontMono,
-          fontFamilyFallback: T.monoFallbacks,
+          fontFamily: context.tokens.fontMono,
+          fontFamilyFallback: context.tokens.monoFallbacks,
           fontSize: size * 0.42,
           fontWeight: FontWeight.w600,
           letterSpacing: -0.5,

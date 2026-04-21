@@ -169,7 +169,7 @@ class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
                     decoration: BoxDecoration(
                       color: context.tokens.elev2,
                       border: Border.all(color: context.tokens.line),
-                      borderRadius: BorderRadius.circular(T.r3),
+                      borderRadius: BorderRadius.circular(context.tokens.r3),
                     ),
                     child: Row(
                       children: [
@@ -219,7 +219,7 @@ class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
                     decoration: BoxDecoration(
                       color: context.tokens.elev2,
                       border: Border.all(color: context.tokens.line),
-                      borderRadius: BorderRadius.circular(T.r3),
+                      borderRadius: BorderRadius.circular(context.tokens.r3),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -261,9 +261,9 @@ class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
                                           child: Text(
                                             context.l10n.rate_short_you,
                                             style: TextStyle(
-                                              fontFamily: T.fontMono,
+                                              fontFamily: context.tokens.fontMono,
                                               fontFamilyFallback:
-                                                  T.monoFallbacks,
+                                                  context.tokens.monoFallbacks,
                                               fontSize: 9,
                                               fontWeight: FontWeight.w700,
                                               color: context.tokens.accent,
@@ -325,11 +325,11 @@ class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
                             contentPadding: const EdgeInsets.all(12),
                             border: OutlineInputBorder(
                               borderSide: BorderSide(color: context.tokens.line),
-                              borderRadius: BorderRadius.circular(T.r2),
+                              borderRadius: BorderRadius.circular(context.tokens.r2),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderSide: BorderSide(color: context.tokens.line),
-                              borderRadius: BorderRadius.circular(T.r2),
+                              borderRadius: BorderRadius.circular(context.tokens.r2),
                             ),
                           ),
                         ),
@@ -345,7 +345,7 @@ class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
                       decoration: BoxDecoration(
                         color: context.tokens.elev1,
                         border: Border.all(color: context.tokens.line),
-                        borderRadius: BorderRadius.circular(T.r2),
+                        borderRadius: BorderRadius.circular(context.tokens.r2),
                       ),
                       child: Row(
                         children: [
@@ -542,8 +542,8 @@ class _RatingSlider extends StatelessWidget {
                               Text(
                                 '$n',
                                 style: TextStyle(
-                                  fontFamily: T.fontMono,
-                                  fontFamilyFallback: T.monoFallbacks,
+                                  fontFamily: context.tokens.fontMono,
+                                  fontFamilyFallback: context.tokens.monoFallbacks,
                                   fontSize: 10,
                                   fontWeight: FontWeight.w600,
                                   color: n <= value ? context.tokens.ink : context.tokens.inkDim,
@@ -575,9 +575,9 @@ class _RatingSlider extends StatelessWidget {
                         ),
                         child: Text(
                           value.toStringAsFixed(1),
-                          style: const TextStyle(
-                            fontFamily: T.fontMono,
-                            fontFamilyFallback: T.monoFallbacks,
+                          style: TextStyle(
+                            fontFamily: context.tokens.fontMono,
+                            fontFamilyFallback: context.tokens.monoFallbacks,
                             fontSize: 10,
                             fontWeight: FontWeight.w800,
                             color: Colors.black,

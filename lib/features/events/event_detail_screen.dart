@@ -467,7 +467,7 @@ class _OverviewPanel extends StatelessWidget {
             decoration: BoxDecoration(
               color: context.tokens.elev2,
               border: Border.all(color: context.tokens.line),
-              borderRadius: BorderRadius.circular(T.r2),
+              borderRadius: BorderRadius.circular(context.tokens.r2),
             ),
             child: Row(
               children: [
@@ -626,13 +626,13 @@ class _EmptyCell extends StatelessWidget {
     decoration: BoxDecoration(
       color: context.tokens.elev2,
       border: Border.all(color: context.tokens.line, style: BorderStyle.solid),
-      borderRadius: BorderRadius.circular(T.r2),
+      borderRadius: BorderRadius.circular(context.tokens.r2),
     ),
     child: Text(
       text,
       style: TextStyle(
-        fontFamily: T.fontMono,
-        fontFamilyFallback: T.monoFallbacks,
+        fontFamily: context.tokens.fontMono,
+        fontFamilyFallback: context.tokens.monoFallbacks,
         fontSize: 11,
         color: context.tokens.inkDim,
       ),
@@ -667,7 +667,7 @@ class _MatchCard extends StatelessWidget {
           color: isFinal ? context.tokens.accent : context.tokens.line,
           width: isFinal ? 1.2 : 1,
         ),
-        borderRadius: BorderRadius.circular(T.r2),
+        borderRadius: BorderRadius.circular(context.tokens.r2),
       ),
       clipBehavior: Clip.antiAlias,
       child: Material(
@@ -733,8 +733,8 @@ class _MatchCard extends StatelessWidget {
                               Text(
                                 'PK ${m.pkScore}',
                                 style: TextStyle(
-                                  fontFamily: T.fontMono,
-                                  fontFamilyFallback: T.monoFallbacks,
+                                  fontFamily: context.tokens.fontMono,
+                                  fontFamilyFallback: context.tokens.monoFallbacks,
                                   fontSize: 9,
                                   color: context.tokens.warn,
                                 ),
@@ -748,8 +748,8 @@ class _MatchCard extends StatelessWidget {
                           child: Text(
                             timeStr,
                             style: TextStyle(
-                              fontFamily: T.fontMono,
-                              fontFamilyFallback: T.monoFallbacks,
+                              fontFamily: context.tokens.fontMono,
+                              fontFamilyFallback: context.tokens.monoFallbacks,
                               fontSize: 10,
                               color: context.tokens.inkDim,
                             ),
@@ -1116,8 +1116,8 @@ class _TeamSheet extends StatelessWidget {
                       Text(
                         '#${standing.rank}',
                         style: TextStyle(
-                          fontFamily: T.fontMono,
-                          fontFamilyFallback: T.monoFallbacks,
+                          fontFamily: context.tokens.fontMono,
+                          fontFamilyFallback: context.tokens.monoFallbacks,
                           fontSize: 12,
                           color: context.tokens.inkSub,
                           fontWeight: FontWeight.w600,
@@ -1136,7 +1136,7 @@ class _TeamSheet extends StatelessWidget {
               decoration: BoxDecoration(
                 color: context.tokens.elev2,
                 border: Border.all(color: context.tokens.line),
-                borderRadius: BorderRadius.circular(T.r2),
+                borderRadius: BorderRadius.circular(context.tokens.r2),
               ),
               child: Row(
                 children: [
@@ -1174,7 +1174,7 @@ class _TeamSheet extends StatelessWidget {
               decoration: BoxDecoration(
                 color: context.tokens.elev2,
                 border: Border.all(color: context.tokens.line),
-                borderRadius: BorderRadius.circular(T.r2),
+                borderRadius: BorderRadius.circular(context.tokens.r2),
               ),
               child: Row(
                 children: [
@@ -1264,7 +1264,7 @@ class _TeamMatchRow extends StatelessWidget {
       decoration: BoxDecoration(
         color: context.tokens.elev2,
         border: Border.all(color: context.tokens.line),
-        borderRadius: BorderRadius.circular(T.r2),
+        borderRadius: BorderRadius.circular(context.tokens.r2),
       ),
       child: Row(
         children: [
@@ -1280,8 +1280,8 @@ class _TeamMatchRow extends StatelessWidget {
               child: Text(
                 resultLabel,
                 style: TextStyle(
-                  fontFamily: T.fontMono,
-                  fontFamilyFallback: T.monoFallbacks,
+                  fontFamily: context.tokens.fontMono,
+                  fontFamilyFallback: context.tokens.monoFallbacks,
                   fontSize: 10,
                   fontWeight: FontWeight.w700,
                   color: resultColor,
@@ -1395,7 +1395,7 @@ class _ScorerCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final radius = BorderRadius.circular(T.r2);
+    final radius = BorderRadius.circular(context.tokens.r2);
     final profileAsync = row.scorerId == null
         ? const AsyncValue<Profile?>.data(null)
         : ref.watch(profileByIdProvider(row.scorerId!));
@@ -1438,9 +1438,9 @@ class _ScorerCard extends ConsumerWidget {
                     ),
                     child: Text(
                       '$rank',
-                      style: const TextStyle(
-                        fontFamily: T.fontMono,
-                        fontFamilyFallback: T.monoFallbacks,
+                      style: TextStyle(
+                        fontFamily: context.tokens.fontMono,
+                        fontFamilyFallback: context.tokens.monoFallbacks,
                         fontWeight: FontWeight.w800,
                         fontSize: 11,
                         color: Colors.black,
@@ -1620,7 +1620,7 @@ class _ScorerSheet extends ConsumerWidget {
                 decoration: BoxDecoration(
                   color: context.tokens.elev2,
                   border: Border.all(color: context.tokens.line),
-                  borderRadius: BorderRadius.circular(T.r2),
+                  borderRadius: BorderRadius.circular(context.tokens.r2),
                 ),
                 child: Row(
                   children: [
@@ -2096,7 +2096,7 @@ class _RegField extends StatelessWidget {
             decoration: BoxDecoration(
               color: context.tokens.elev2,
               border: Border.all(color: context.tokens.line),
-              borderRadius: BorderRadius.circular(T.r2),
+              borderRadius: BorderRadius.circular(context.tokens.r2),
             ),
             child: TextField(
               controller: controller,
@@ -2228,7 +2228,7 @@ class _ViewToggle extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: view == it.$1 ? context.tokens.accentSubtle : Colors.transparent,
                   border: Border.all(color: view == it.$1 ? context.tokens.accent : context.tokens.line),
-                  borderRadius: BorderRadius.circular(T.r2),
+                  borderRadius: BorderRadius.circular(context.tokens.r2),
                 ),
                 child: Text(
                   it.$2,
@@ -2368,7 +2368,7 @@ class _MatchPicker extends StatelessWidget {
             decoration: BoxDecoration(
               color: isPicked ? context.tokens.accentSubtle : context.tokens.elev2,
               border: Border.all(color: isPicked ? context.tokens.accent : context.tokens.line),
-              borderRadius: BorderRadius.circular(T.r2),
+              borderRadius: BorderRadius.circular(context.tokens.r2),
             ),
             child: Row(
               children: [
@@ -2421,7 +2421,7 @@ class _ScoreStrip extends StatelessWidget {
           ],
         ),
         border: Border.all(color: context.tokens.line),
-        borderRadius: BorderRadius.circular(T.r3),
+        borderRadius: BorderRadius.circular(context.tokens.r3),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2438,8 +2438,8 @@ class _ScoreStrip extends StatelessWidget {
                 child: Text(
                   event.name,
                   style: TextStyle(
-                    fontFamily: T.fontMono,
-                    fontFamilyFallback: T.monoFallbacks,
+                    fontFamily: context.tokens.fontMono,
+                    fontFamilyFallback: context.tokens.monoFallbacks,
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
                     color: context.tokens.accent,
@@ -2455,8 +2455,8 @@ class _ScoreStrip extends StatelessWidget {
                 Text(
                   dateStr,
                   style: TextStyle(
-                    fontFamily: T.fontMono,
-                    fontFamilyFallback: T.monoFallbacks,
+                    fontFamily: context.tokens.fontMono,
+                    fontFamilyFallback: context.tokens.monoFallbacks,
                     fontSize: 11,
                     color: context.tokens.inkSub,
                   ),
@@ -2611,7 +2611,7 @@ class _EventWideSection extends ConsumerWidget {
                     ],
                   ),
                   border: Border.all(color: context.tokens.line),
-                  borderRadius: BorderRadius.circular(T.r3),
+                  borderRadius: BorderRadius.circular(context.tokens.r3),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -2692,7 +2692,7 @@ class _PlayerRow extends StatelessWidget {
       decoration: BoxDecoration(
         color: context.tokens.elev2,
         border: Border.all(color: rank == 1 ? context.tokens.accent : context.tokens.line),
-        borderRadius: BorderRadius.circular(T.r3),
+        borderRadius: BorderRadius.circular(context.tokens.r3),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2712,8 +2712,8 @@ class _PlayerRow extends StatelessWidget {
             child: Text(
               '$rank',
               style: TextStyle(
-                fontFamily: T.fontMono,
-                fontFamilyFallback: T.monoFallbacks,
+                fontFamily: context.tokens.fontMono,
+                fontFamilyFallback: context.tokens.monoFallbacks,
                 fontWeight: FontWeight.w800,
                 fontSize: 11,
                 color: rank == 1 ? Colors.black : context.tokens.ink,
@@ -2743,11 +2743,11 @@ class _PlayerRow extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    if (you) _tinyBadge(l.rate_short_you, context.tokens.accentSubtle, context.tokens.accent),
+                    if (you) _tinyBadge(context, l.rate_short_you, context.tokens.accentSubtle, context.tokens.accent),
                     if (rank == 1)
-                      _tinyBadge(l.event_rating_mvp, context.tokens.accentSubtle, context.tokens.accent),
+                      _tinyBadge(context, l.event_rating_mvp, context.tokens.accentSubtle, context.tokens.accent),
                     if (p.topHighlight != null && p.topHighlight!.isNotEmpty)
-                      _statChip(p.topHighlight!),
+                      _statChip(context, p.topHighlight!),
                   ],
                 ),
                 const SizedBox(height: 3),
@@ -2792,7 +2792,7 @@ class _PlayerRow extends StatelessWidget {
     );
   }
 
-  Widget _tinyBadge(String text, Color bg, Color fg) => Container(
+  Widget _tinyBadge(BuildContext context, String text, Color bg, Color fg) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
     decoration: BoxDecoration(
       color: bg,
@@ -2802,8 +2802,8 @@ class _PlayerRow extends StatelessWidget {
     child: Text(
       text,
       style: TextStyle(
-        fontFamily: T.fontMono,
-        fontFamilyFallback: T.monoFallbacks,
+        fontFamily: context.tokens.fontMono,
+        fontFamilyFallback: context.tokens.monoFallbacks,
         fontSize: 9,
         fontWeight: FontWeight.w700,
         color: fg,
@@ -2811,7 +2811,7 @@ class _PlayerRow extends StatelessWidget {
     ),
   );
 
-  Widget _statChip(String text) => Container(
+  Widget _statChip(BuildContext context, String text) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
     decoration: BoxDecoration(
       color: const Color(0x22FF6D3B),
@@ -2820,9 +2820,9 @@ class _PlayerRow extends StatelessWidget {
     ),
     child: Text(
       text,
-      style: const TextStyle(
-        fontFamily: T.fontMono,
-        fontFamilyFallback: T.monoFallbacks,
+      style: TextStyle(
+        fontFamily: context.tokens.fontMono,
+        fontFamilyFallback: context.tokens.monoFallbacks,
         fontSize: 10,
         fontWeight: FontWeight.w700,
         color: Color(0xFFFFB38A),
@@ -2842,7 +2842,7 @@ class _MomentQuote extends StatelessWidget {
       decoration: BoxDecoration(
         color: context.tokens.elev3,
         border: Border.all(color: context.tokens.line),
-        borderRadius: BorderRadius.circular(T.r2),
+        borderRadius: BorderRadius.circular(context.tokens.r2),
       ),
       child: Row(
         children: [
@@ -2917,7 +2917,7 @@ class _PlayerRatingDetail extends ConsumerWidget {
               ],
             ),
             border: Border.all(color: context.tokens.line),
-            borderRadius: BorderRadius.circular(T.r3),
+            borderRadius: BorderRadius.circular(context.tokens.r3),
           ),
           child: Row(
             children: [
@@ -2954,8 +2954,8 @@ class _PlayerRatingDetail extends ConsumerWidget {
                             child: Text(
                               context.l10n.rate_short_you,
                               style: TextStyle(
-                                fontFamily: T.fontMono,
-                                fontFamilyFallback: T.monoFallbacks,
+                                fontFamily: context.tokens.fontMono,
+                                fontFamilyFallback: context.tokens.monoFallbacks,
                                 fontSize: 9,
                                 fontWeight: FontWeight.w700,
                                 color: context.tokens.accent,
@@ -3007,7 +3007,7 @@ class _PlayerRatingDetail extends ConsumerWidget {
                 decoration: BoxDecoration(
                   color: context.tokens.elev2,
                   border: Border.all(color: context.tokens.line),
-                  borderRadius: BorderRadius.circular(T.r2),
+                  borderRadius: BorderRadius.circular(context.tokens.r2),
                 ),
                 child: Column(
                   children: [
@@ -3055,8 +3055,8 @@ class _PlayerRatingDetail extends ConsumerWidget {
                               child: Text(
                                 '$i',
                                 style: TextStyle(
-                                  fontFamily: T.fontMono,
-                                  fontFamilyFallback: T.monoFallbacks,
+                                  fontFamily: context.tokens.fontMono,
+                                  fontFamilyFallback: context.tokens.monoFallbacks,
                                   fontSize: 9,
                                   color: context.tokens.inkDim,
                                 ),
@@ -3091,7 +3091,7 @@ class _PlayerRatingDetail extends ConsumerWidget {
                   decoration: BoxDecoration(
                     color: context.tokens.elev2,
                     border: Border.all(color: context.tokens.line),
-                    borderRadius: BorderRadius.circular(T.r2),
+                    borderRadius: BorderRadius.circular(context.tokens.r2),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -3132,8 +3132,8 @@ class _PlayerRatingDetail extends ConsumerWidget {
                             child: Text(
                               '${c.score}.0',
                               style: TextStyle(
-                                fontFamily: T.fontMono,
-                                fontFamilyFallback: T.monoFallbacks,
+                                fontFamily: context.tokens.fontMono,
+                                fontFamilyFallback: context.tokens.monoFallbacks,
                                 fontSize: 10,
                                 fontWeight: FontWeight.w800,
                                 color: c.score >= 8

@@ -509,8 +509,8 @@ class _Bubble extends StatelessWidget {
               Text(
                 time,
                 style: TextStyle(
-                  fontFamily: T.fontMono,
-                  fontFamilyFallback: T.monoFallbacks,
+                  fontFamily: context.tokens.fontMono,
+                  fontFamilyFallback: context.tokens.monoFallbacks,
                   fontSize: 9,
                   color: context.tokens.inkDim,
                 ),

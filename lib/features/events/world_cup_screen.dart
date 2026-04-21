@@ -135,7 +135,7 @@ class WorldCupScreen extends ConsumerWidget {
             decoration: BoxDecoration(
               color: context.tokens.elev2,
               border: Border.all(color: const Color(0x4D00FF85)),
-              borderRadius: BorderRadius.circular(T.r3),
+              borderRadius: BorderRadius.circular(context.tokens.r3),
             ),
             child: Column(
               children: [
@@ -279,17 +279,17 @@ class WorldCupScreen extends ConsumerWidget {
             decoration: BoxDecoration(
               color: context.tokens.elev2,
               border: Border.all(color: context.tokens.line),
-              borderRadius: BorderRadius.circular(T.r3),
+              borderRadius: BorderRadius.circular(context.tokens.r3),
             ),
             child: Column(
               children: [
                 Row(
                   children: [
-                    _predBar(62, l.wc_team_argentina_win, context.tokens.accent, Colors.black),
+                    _predBar(context, 62, l.wc_team_argentina_win, context.tokens.accent, Colors.black),
                     const SizedBox(width: 8),
-                    _predBar(14, l.wc_team_draw, context.tokens.inkMute, context.tokens.ink),
+                    _predBar(context, 14, l.wc_team_draw, context.tokens.inkMute, context.tokens.ink),
                     const SizedBox(width: 8),
-                    _predBar(24, l.wc_team_brazil_win, context.tokens.elev3, context.tokens.ink),
+                    _predBar(context, 24, l.wc_team_brazil_win, context.tokens.elev3, context.tokens.ink),
                   ],
                 ),
                 const SizedBox(height: 10),
@@ -323,7 +323,7 @@ class WorldCupScreen extends ConsumerWidget {
                     decoration: BoxDecoration(
                       color: context.tokens.elev2,
                       border: Border.all(color: context.tokens.line),
-                      borderRadius: BorderRadius.circular(T.r2),
+                      borderRadius: BorderRadius.circular(context.tokens.r2),
                     ),
                     child: Row(
                       children: [
@@ -454,8 +454,8 @@ class WorldCupScreen extends ConsumerWidget {
     child: Text(
       code,
       style: TextStyle(
-        fontFamily: T.fontMono,
-        fontFamilyFallback: T.monoFallbacks,
+        fontFamily: context.tokens.fontMono,
+        fontFamilyFallback: context.tokens.monoFallbacks,
         fontSize: 13,
         fontWeight: FontWeight.w700,
         color: context.tokens.ink,
@@ -474,8 +474,8 @@ class WorldCupScreen extends ConsumerWidget {
     child: Text(
       code,
       style: TextStyle(
-        fontFamily: T.fontMono,
-        fontFamilyFallback: T.monoFallbacks,
+        fontFamily: context.tokens.fontMono,
+        fontFamilyFallback: context.tokens.monoFallbacks,
         fontSize: 8,
         fontWeight: FontWeight.w700,
         color: context.tokens.ink,
@@ -483,7 +483,7 @@ class WorldCupScreen extends ConsumerWidget {
     ),
   );
 
-  Widget _predBar(int pct, String label, Color bg, Color fg) {
+  Widget _predBar(BuildContext context, int pct, String label, Color bg, Color fg) {
     return Expanded(
       flex: pct,
       child: Container(
@@ -496,8 +496,8 @@ class WorldCupScreen extends ConsumerWidget {
         child: Text(
           '$pct%',
           style: TextStyle(
-            fontFamily: T.fontMono,
-            fontFamilyFallback: T.monoFallbacks,
+            fontFamily: context.tokens.fontMono,
+            fontFamilyFallback: context.tokens.monoFallbacks,
             fontSize: 11,
             fontWeight: FontWeight.w700,
             color: fg,

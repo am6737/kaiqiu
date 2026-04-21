@@ -67,7 +67,7 @@ class _WcPredictScreenState extends ConsumerState<WcPredictScreen> {
                 decoration: BoxDecoration(
                   color: context.tokens.elev2,
                   border: Border.all(color: context.tokens.line),
-                  borderRadius: BorderRadius.circular(T.r3),
+                  borderRadius: BorderRadius.circular(context.tokens.r3),
                 ),
                 child: Row(
                   children: [
@@ -145,7 +145,7 @@ class _WcPredictScreenState extends ConsumerState<WcPredictScreen> {
                 decoration: BoxDecoration(
                   color: context.tokens.elev2,
                   border: Border.all(color: context.tokens.line),
-                  borderRadius: BorderRadius.circular(T.r2),
+                  borderRadius: BorderRadius.circular(context.tokens.r2),
                 ),
                 child: Column(
                   children: [
@@ -194,7 +194,7 @@ class _WcPredictScreenState extends ConsumerState<WcPredictScreen> {
                   decoration: BoxDecoration(
                     color: context.tokens.accentSubtle,
                     border: Border.all(color: const Color(0x6600FF85)),
-                    borderRadius: BorderRadius.circular(T.r2),
+                    borderRadius: BorderRadius.circular(context.tokens.r2),
                   ),
                   child: Row(
                     children: [
@@ -279,7 +279,7 @@ class _Option extends StatelessWidget {
         decoration: BoxDecoration(
           color: active ? context.tokens.accentSubtle : context.tokens.elev2,
           border: Border.all(color: active ? context.tokens.accent : context.tokens.line),
-          borderRadius: BorderRadius.circular(T.r2),
+          borderRadius: BorderRadius.circular(context.tokens.r2),
         ),
         child: Text(
           label,
@@ -314,7 +314,7 @@ class _StakeBtn extends StatelessWidget {
         decoration: BoxDecoration(
           color: active ? context.tokens.accentSubtle : context.tokens.elev2,
           border: Border.all(color: active ? context.tokens.accent : context.tokens.line),
-          borderRadius: BorderRadius.circular(T.r2),
+          borderRadius: BorderRadius.circular(context.tokens.r2),
         ),
         child: N(
           '$value',
@@ -377,8 +377,8 @@ class _TeamFlag extends StatelessWidget {
           child: Text(
             code,
             style: TextStyle(
-              fontFamily: T.fontMono,
-              fontFamilyFallback: T.monoFallbacks,
+              fontFamily: context.tokens.fontMono,
+              fontFamilyFallback: context.tokens.monoFallbacks,
               fontSize: 13,
               fontWeight: FontWeight.w800,
               color: context.tokens.ink,

@@ -392,9 +392,9 @@ class _ScoreboardChip extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             text,
-            style: const TextStyle(
-              fontFamily: T.fontMono,
-              fontFamilyFallback: T.monoFallbacks,
+            style: TextStyle(
+              fontFamily: context.tokens.fontMono,
+              fontFamilyFallback: context.tokens.monoFallbacks,
               fontSize: 11,
               fontWeight: FontWeight.w700,
               color: Colors.white,

@@ -38,7 +38,7 @@ class PitchView extends StatelessWidget {
               ],
             ),
             border: Border.all(color: context.tokens.line),
-            borderRadius: BorderRadius.circular(T.r3),
+            borderRadius: BorderRadius.circular(context.tokens.r3),
           ),
           child: Stack(
             children: [
@@ -148,8 +148,8 @@ class _PlayerDot extends StatelessWidget {
                 child: Text(
                   label,
                   style: TextStyle(
-                    fontFamily: T.fontMono,
-                    fontFamilyFallback: T.monoFallbacks,
+                    fontFamily: context.tokens.fontMono,
+                    fontFamilyFallback: context.tokens.monoFallbacks,
                     fontSize: label.runes.length > 1 ? 9 : 11,
                     fontWeight: FontWeight.w700,
                     color: dotFg,
@@ -172,9 +172,9 @@ class _PlayerDot extends StatelessWidget {
                     ),
                     child: Text(
                       rated!.toStringAsFixed(1),
-                      style: const TextStyle(
-                        fontFamily: T.fontMono,
-                        fontFamilyFallback: T.monoFallbacks,
+                      style: TextStyle(
+                        fontFamily: context.tokens.fontMono,
+                        fontFamilyFallback: context.tokens.monoFallbacks,
                         fontSize: 9,
                         fontWeight: FontWeight.w800,
                         color: Colors.black,
@@ -194,8 +194,8 @@ class _PlayerDot extends StatelessWidget {
             child: Text(
               slot.position,
               style: TextStyle(
-                fontFamily: T.fontMono,
-                fontFamilyFallback: T.monoFallbacks,
+                fontFamily: context.tokens.fontMono,
+                fontFamilyFallback: context.tokens.monoFallbacks,
                 fontSize: 8.5,
                 fontWeight: FontWeight.w600,
                 color: isSelf ? context.tokens.accent : context.tokens.ink,

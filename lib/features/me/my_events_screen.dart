@@ -74,7 +74,7 @@ class _Tabs extends StatelessWidget {
         decoration: BoxDecoration(
           color: context.tokens.elev2,
           border: Border.all(color: context.tokens.line),
-          borderRadius: BorderRadius.circular(T.r2),
+          borderRadius: BorderRadius.circular(context.tokens.r2),
         ),
         child: Row(
           children: [
@@ -219,15 +219,15 @@ class _EventCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: context.tokens.elev2,
           border: Border.all(color: context.tokens.line),
-          borderRadius: BorderRadius.circular(T.r3),
+          borderRadius: BorderRadius.circular(context.tokens.r3),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(T.r3),
-                topRight: Radius.circular(T.r3),
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(context.tokens.r3),
+                topRight: Radius.circular(context.tokens.r3),
               ),
               child: NetworkCover(
                 url: event.coverUrl,

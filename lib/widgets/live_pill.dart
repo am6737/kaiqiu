@@ -50,8 +50,8 @@ class _LivePillState extends State<LivePill>
           Text(
             'LIVE',
             style: TextStyle(
-              fontFamily: T.fontMono,
-              fontFamilyFallback: T.monoFallbacks,
+              fontFamily: context.tokens.fontMono,
+              fontFamilyFallback: context.tokens.monoFallbacks,
               fontSize: widget.size,
               fontWeight: FontWeight.w700,
               letterSpacing: 0.8,

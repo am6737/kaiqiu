@@ -349,7 +349,7 @@ class _ChoiceBtn extends StatelessWidget {
         decoration: BoxDecoration(
           color: active ? context.tokens.accentSubtle : context.tokens.elev2,
           border: Border.all(color: active ? context.tokens.accent : context.tokens.line),
-          borderRadius: BorderRadius.circular(T.r2),
+          borderRadius: BorderRadius.circular(context.tokens.r2),
         ),
         child: Text(
           label,
@@ -388,7 +388,7 @@ class _Field extends StatelessWidget {
             decoration: BoxDecoration(
               color: context.tokens.elev2,
               border: Border.all(color: context.tokens.line),
-              borderRadius: BorderRadius.circular(T.r2),
+              borderRadius: BorderRadius.circular(context.tokens.r2),
             ),
             child: TextField(
               controller: controller,

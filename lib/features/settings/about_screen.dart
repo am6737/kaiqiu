@@ -72,8 +72,8 @@ class AboutScreen extends StatelessWidget {
               child: Text(
                 '${l.settings_about_version_label} $_kVersion',
                 style: TextStyle(
-                  fontFamily: T.fontMono,
-                  fontFamilyFallback: T.monoFallbacks,
+                  fontFamily: context.tokens.fontMono,
+                  fontFamilyFallback: context.tokens.monoFallbacks,
                   fontSize: 11,
                   color: context.tokens.inkDim,
                   letterSpacing: 0.5,
@@ -89,7 +89,7 @@ class AboutScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: context.tokens.elev2,
                   border: Border.all(color: context.tokens.line),
-                  borderRadius: BorderRadius.circular(T.r2),
+                  borderRadius: BorderRadius.circular(context.tokens.r2),
                 ),
                 child: Text(
                   l.settings_about_team_body,
@@ -108,7 +108,7 @@ class AboutScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: context.tokens.elev2,
                   border: Border.all(color: context.tokens.line),
-                  borderRadius: BorderRadius.circular(T.r2),
+                  borderRadius: BorderRadius.circular(context.tokens.r2),
                 ),
                 child: Column(
                   children: [
@@ -141,7 +141,7 @@ class AboutScreen extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: context.tokens.elev2,
                     border: Border.all(color: context.tokens.line),
-                    borderRadius: BorderRadius.circular(T.r2),
+                    borderRadius: BorderRadius.circular(context.tokens.r2),
                   ),
                   child: Row(
                     children: [

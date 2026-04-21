@@ -464,8 +464,8 @@ class _TeamBadge extends StatelessWidget {
       child: Text(
         name,
         style: TextStyle(
-          fontFamily: T.fontMono,
-          fontFamilyFallback: T.monoFallbacks,
+          fontFamily: context.tokens.fontMono,
+          fontFamilyFallback: context.tokens.monoFallbacks,
           fontSize: 11,
           fontWeight: FontWeight.w800,
           color: context.tokens.ink,

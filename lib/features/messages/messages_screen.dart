@@ -450,9 +450,9 @@ class _ThreadRow extends ConsumerWidget {
                       ),
                       child: Text(
                         '${thread.unread}',
-                        style: const TextStyle(
-                          fontFamily: T.fontMono,
-                          fontFamilyFallback: T.monoFallbacks,
+                        style: TextStyle(
+                          fontFamily: context.tokens.fontMono,
+                          fontFamilyFallback: context.tokens.monoFallbacks,
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
                           color: Colors.black,

@@ -289,7 +289,7 @@ class _HostStrip extends ConsumerWidget {
       decoration: BoxDecoration(
         color: context.tokens.elev2,
         border: Border.all(color: context.tokens.line),
-        borderRadius: BorderRadius.circular(T.r3),
+        borderRadius: BorderRadius.circular(context.tokens.r3),
       ),
       child: Row(
         children: [
@@ -431,7 +431,7 @@ class _Formation extends ConsumerWidget {
                     decoration: BoxDecoration(
                       color: context.tokens.accentSubtle,
                       border: Border.all(color: const Color(0x6600FF85)),
-                      borderRadius: BorderRadius.circular(T.r1),
+                      borderRadius: BorderRadius.circular(context.tokens.r1),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -489,7 +489,7 @@ class _Formation extends ConsumerWidget {
                     ],
                   ),
                   border: Border.all(color: context.tokens.line),
-                  borderRadius: BorderRadius.circular(T.r3),
+                  borderRadius: BorderRadius.circular(context.tokens.r3),
                 ),
                 child: Stack(
                   children: [
@@ -610,8 +610,8 @@ class _PlayerDot extends StatelessWidget {
             child: Text(
               label,
               style: TextStyle(
-                fontFamily: T.fontMono,
-                fontFamilyFallback: T.monoFallbacks,
+                fontFamily: context.tokens.fontMono,
+                fontFamilyFallback: context.tokens.monoFallbacks,
                 fontSize: label.length > 1 ? 9 : 10,
                 fontWeight: FontWeight.w600,
                 color: filled ? context.tokens.ink : context.tokens.accent,
@@ -628,8 +628,8 @@ class _PlayerDot extends StatelessWidget {
             child: Text(
               pos,
               style: TextStyle(
-                fontFamily: T.fontMono,
-                fontFamilyFallback: T.monoFallbacks,
+                fontFamily: context.tokens.fontMono,
+                fontFamilyFallback: context.tokens.monoFallbacks,
                 fontSize: 8.5,
                 fontWeight: FontWeight.w600,
                 color: filled ? context.tokens.ink : context.tokens.accent,
@@ -654,7 +654,7 @@ class _FormationLoading extends StatelessWidget {
         decoration: BoxDecoration(
           color: context.tokens.elev2,
           border: Border.all(color: context.tokens.line),
-          borderRadius: BorderRadius.circular(T.r3),
+          borderRadius: BorderRadius.circular(context.tokens.r3),
         ),
         child: Center(
           child: SizedBox(
@@ -683,7 +683,7 @@ class _FormationError extends StatelessWidget {
         decoration: BoxDecoration(
           color: context.tokens.elev2,
           border: Border.all(color: context.tokens.line),
-          borderRadius: BorderRadius.circular(T.r3),
+          borderRadius: BorderRadius.circular(context.tokens.r3),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -711,7 +711,7 @@ class _FormationError extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: context.tokens.elev3,
                   border: Border.all(color: context.tokens.line),
-                  borderRadius: BorderRadius.circular(T.r2),
+                  borderRadius: BorderRadius.circular(context.tokens.r2),
                 ),
                 child: Text(
                   context.l10n.common_retry,
@@ -757,7 +757,7 @@ class _Details extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: context.tokens.elev2,
                     border: Border.all(color: context.tokens.line),
-                    borderRadius: BorderRadius.circular(T.r2),
+                    borderRadius: BorderRadius.circular(context.tokens.r2),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -837,7 +837,7 @@ class _MiniMap extends StatelessWidget {
           GestureDetector(
             onTap: _canNavigate ? () => _openNav(context) : null,
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(T.r2),
+              borderRadius: BorderRadius.circular(context.tokens.r2),
               child: PickupMiniMap(lat: lat, lng: lng),
             ),
           ),

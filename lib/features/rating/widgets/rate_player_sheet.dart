@@ -84,7 +84,7 @@ class _RatePlayerSheetState extends State<RatePlayerSheet> {
         decoration: BoxDecoration(
           color: context.tokens.elev1,
           border: Border(top: BorderSide(color: context.tokens.line)),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(T.r4)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(context.tokens.r4)),
         ),
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
         child: SafeArea(
@@ -141,7 +141,7 @@ class _RatePlayerSheetState extends State<RatePlayerSheet> {
                 decoration: BoxDecoration(
                   color: context.tokens.elev2,
                   border: Border.all(color: context.tokens.line),
-                  borderRadius: BorderRadius.circular(T.r2),
+                  borderRadius: BorderRadius.circular(context.tokens.r2),
                 ),
                 child: Row(
                   children: [
@@ -206,15 +206,15 @@ class _RatePlayerSheetState extends State<RatePlayerSheet> {
                   contentPadding: const EdgeInsets.all(12),
                   border: OutlineInputBorder(
                     borderSide: BorderSide(color: context.tokens.line),
-                    borderRadius: BorderRadius.circular(T.r2),
+                    borderRadius: BorderRadius.circular(context.tokens.r2),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderSide: BorderSide(color: context.tokens.line),
-                    borderRadius: BorderRadius.circular(T.r2),
+                    borderRadius: BorderRadius.circular(context.tokens.r2),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderSide: BorderSide(color: context.tokens.accent),
-                    borderRadius: BorderRadius.circular(T.r2),
+                    borderRadius: BorderRadius.circular(context.tokens.r2),
                   ),
                 ),
               ),
@@ -331,8 +331,8 @@ class _Slider extends StatelessWidget {
                           Text(
                             '$n',
                             style: TextStyle(
-                              fontFamily: T.fontMono,
-                              fontFamilyFallback: T.monoFallbacks,
+                              fontFamily: context.tokens.fontMono,
+                              fontFamilyFallback: context.tokens.monoFallbacks,
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
                               color: n <= value ? context.tokens.ink : context.tokens.inkDim,
@@ -363,9 +363,9 @@ class _Slider extends StatelessWidget {
                     ),
                     child: Text(
                       value.toStringAsFixed(1),
-                      style: const TextStyle(
-                        fontFamily: T.fontMono,
-                        fontFamilyFallback: T.monoFallbacks,
+                      style: TextStyle(
+                        fontFamily: context.tokens.fontMono,
+                        fontFamilyFallback: context.tokens.monoFallbacks,
                         fontSize: 10,
                         fontWeight: FontWeight.w800,
                         color: Colors.black,

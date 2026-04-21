@@ -148,8 +148,8 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                         Text(
                           '${(i + 1).toString().padLeft(2, '0')} ${steps[i]}',
                           style: TextStyle(
-                            fontFamily: T.fontMono,
-                            fontFamilyFallback: T.monoFallbacks,
+                            fontFamily: context.tokens.fontMono,
+                            fontFamilyFallback: context.tokens.monoFallbacks,
                             fontSize: 9,
                             fontWeight: FontWeight.w600,
                             color: i + 1 == _step
@@ -336,7 +336,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                 decoration: BoxDecoration(
                   color: _tpl == t.$1 ? context.tokens.elev3 : context.tokens.elev2,
                   border: Border.all(color: _tpl == t.$1 ? context.tokens.accent : context.tokens.line),
-                  borderRadius: BorderRadius.circular(T.r3),
+                  borderRadius: BorderRadius.circular(context.tokens.r3),
                 ),
                 child: Row(
                   children: [
@@ -509,7 +509,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                         border: Border.all(
                           color: _review == opt.$1 ? context.tokens.accent : context.tokens.line,
                         ),
-                        borderRadius: BorderRadius.circular(T.r2),
+                        borderRadius: BorderRadius.circular(context.tokens.r2),
                       ),
                       child: Text(
                         opt.$2,
@@ -552,7 +552,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
             decoration: BoxDecoration(
               color: context.tokens.elev2,
               border: Border.all(color: context.tokens.line),
-              borderRadius: BorderRadius.circular(T.r2),
+              borderRadius: BorderRadius.circular(context.tokens.r2),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -615,7 +615,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
               decoration: BoxDecoration(
                 color: context.tokens.elev2,
                 border: Border.all(color: context.tokens.line),
-                borderRadius: BorderRadius.circular(T.r2),
+                borderRadius: BorderRadius.circular(context.tokens.r2),
               ),
               child: Row(
                 children: [
@@ -651,15 +651,15 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
             decoration: BoxDecoration(
               color: context.tokens.elev2,
               border: Border.all(color: context.tokens.line),
-              borderRadius: BorderRadius.circular(T.r3),
+              borderRadius: BorderRadius.circular(context.tokens.r3),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 ClipRRect(
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(T.r3),
-                    topRight: Radius.circular(T.r3),
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(context.tokens.r3),
+                    topRight: Radius.circular(context.tokens.r3),
                   ),
                   child: _coverUrl != null
                       ? CachedNetworkImage(
@@ -757,7 +757,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
             decoration: BoxDecoration(
               color: context.tokens.accentSubtle,
               border: Border.all(color: const Color(0x6600FF85)),
-              borderRadius: BorderRadius.circular(T.r2),
+              borderRadius: BorderRadius.circular(context.tokens.r2),
             ),
             child: Row(
               children: [
@@ -828,7 +828,7 @@ class _Field extends StatelessWidget {
             decoration: BoxDecoration(
               color: context.tokens.elev2,
               border: Border.all(color: context.tokens.line),
-              borderRadius: BorderRadius.circular(T.r2),
+              borderRadius: BorderRadius.circular(context.tokens.r2),
             ),
             child: Row(
               children: [
@@ -844,8 +844,8 @@ class _Field extends StatelessWidget {
                       color: context.tokens.ink,
                       fontSize: 15,
                       fontWeight: FontWeight.w500,
-                      fontFamily: mono ? T.fontMono : null,
-                      fontFamilyFallback: mono ? T.monoFallbacks : null,
+                      fontFamily: mono ? context.tokens.fontMono : null,
+                      fontFamilyFallback: mono ? context.tokens.monoFallbacks : null,
                     ),
                     decoration: const InputDecoration(
                       border: InputBorder.none,

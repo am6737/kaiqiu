@@ -103,7 +103,7 @@ class _EventsHubScreenState extends ConsumerState<EventsHubScreen> {
                 decoration: BoxDecoration(
                   color: context.tokens.elev2,
                   border: Border.all(color: context.tokens.line),
-                  borderRadius: BorderRadius.circular(T.r2),
+                  borderRadius: BorderRadius.circular(context.tokens.r2),
                 ),
                 child: Row(
                   children: [
@@ -189,7 +189,7 @@ class _EventsHubScreenState extends ConsumerState<EventsHubScreen> {
             decoration: BoxDecoration(
               color: context.tokens.elev2,
               border: Border.all(color: context.tokens.line),
-              borderRadius: BorderRadius.circular(T.r3),
+              borderRadius: BorderRadius.circular(context.tokens.r3),
             ),
             child: Row(
               children: [
@@ -258,7 +258,7 @@ class _WcBanner extends StatelessWidget {
                 HSLColor.fromAHSL(1, 290, 0.5, 0.16).toColor(),
               ],
             ),
-            borderRadius: BorderRadius.circular(T.r3),
+            borderRadius: BorderRadius.circular(context.tokens.r3),
             border: Border.all(color: const Color(0x14FFFFFF)),
           ),
           child: Column(
@@ -362,15 +362,15 @@ class _LiveEventRow extends StatelessWidget {
         decoration: BoxDecoration(
           color: context.tokens.elev2,
           border: Border.all(color: context.tokens.line),
-          borderRadius: BorderRadius.circular(T.r3),
+          borderRadius: BorderRadius.circular(context.tokens.r3),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(T.r3),
-                topRight: Radius.circular(T.r3),
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(context.tokens.r3),
+                topRight: Radius.circular(context.tokens.r3),
               ),
               child: Stack(
                 children: [
@@ -560,8 +560,8 @@ class _TeamRow extends StatelessWidget {
     child: Text(
       flag,
       style: TextStyle(
-        fontFamily: T.fontMono,
-        fontFamilyFallback: T.monoFallbacks,
+        fontFamily: context.tokens.fontMono,
+        fontFamilyFallback: context.tokens.monoFallbacks,
         fontSize: 9,
         fontWeight: FontWeight.w700,
         color: context.tokens.ink,
@@ -583,7 +583,7 @@ class _EmptyEvents extends StatelessWidget {
         decoration: BoxDecoration(
           color: context.tokens.elev2,
           border: Border.all(color: context.tokens.line),
-          borderRadius: BorderRadius.circular(T.r3),
+          borderRadius: BorderRadius.circular(context.tokens.r3),
         ),
         child: Column(
           children: [
@@ -620,7 +620,7 @@ class _EventsError extends StatelessWidget {
         decoration: BoxDecoration(
           color: context.tokens.elev2,
           border: Border.all(color: context.tokens.line),
-          borderRadius: BorderRadius.circular(T.r3),
+          borderRadius: BorderRadius.circular(context.tokens.r3),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

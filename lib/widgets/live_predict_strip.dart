@@ -124,9 +124,9 @@ class _UnvotedStrip extends StatelessWidget {
     final l = context.l10n;
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-      decoration: const BoxDecoration(
-        color: T.elev1,
-        border: Border(bottom: BorderSide(color: T.line, width: 1)),
+      decoration: BoxDecoration(
+        color: context.tokens.elev1,
+        border: Border(bottom: BorderSide(color: context.tokens.line, width: 1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -143,8 +143,8 @@ class _UnvotedStrip extends StatelessWidget {
                 child: Text(
                   'PREDICT',
                   style: TextStyle(
-                    fontFamily: T.fontMono,
-                    fontFamilyFallback: T.monoFallbacks,
+                    fontFamily: context.tokens.fontMono,
+                    fontFamilyFallback: context.tokens.monoFallbacks,
                     fontSize: 9,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 1,
@@ -217,9 +217,9 @@ class _OutcomeBtn extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 9),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: T.elev2,
-          border: Border.all(color: T.line),
-          borderRadius: BorderRadius.circular(T.r2),
+          color: context.tokens.elev2,
+          border: Border.all(color: context.tokens.line),
+          borderRadius: BorderRadius.circular(context.tokens.r2),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -270,9 +270,9 @@ class _VotedStrip extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       child: Container(
         padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
-        decoration: const BoxDecoration(
-          color: T.elev1,
-          border: Border(bottom: BorderSide(color: T.line, width: 1)),
+        decoration: BoxDecoration(
+          color: context.tokens.elev1,
+          border: Border(bottom: BorderSide(color: context.tokens.line, width: 1)),
         ),
         child: Row(
           children: [
@@ -313,9 +313,9 @@ class _VotedStrip extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
-                color: T.elev2,
+                color: context.tokens.elev2,
                 borderRadius: BorderRadius.circular(999),
-                border: Border.all(color: T.line),
+                border: Border.all(color: context.tokens.line),
               ),
               child: N(
                 '$myPct%',
@@ -386,10 +386,10 @@ class _PredictSheetState extends ConsumerState<_PredictSheet> {
     final l = context.l10n;
     final alreadySubmitted = LocalStore.getPrediction(widget.matchId) != null;
     return Container(
-      decoration: const BoxDecoration(
-        color: T.elev1,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(T.r4)),
-        border: Border(top: BorderSide(color: T.line, width: 1)),
+      decoration: BoxDecoration(
+        color: context.tokens.elev1,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(context.tokens.r4)),
+        border: Border(top: BorderSide(color: context.tokens.line, width: 1)),
       ),
       padding: EdgeInsets.only(
         left: 16,
@@ -515,7 +515,7 @@ class _PredictSheetState extends ConsumerState<_PredictSheet> {
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: _submitting ? context.tokens.accentSubtle : context.tokens.accent,
-                borderRadius: BorderRadius.circular(T.r3),
+                borderRadius: BorderRadius.circular(context.tokens.r3),
               ),
               child: Text(
                 _submitting
@@ -557,9 +557,9 @@ class _BigOption extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 14),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: active ? context.tokens.accentSubtle : T.elev2,
-          border: Border.all(color: active ? context.tokens.accent : T.line),
-          borderRadius: BorderRadius.circular(T.r2),
+          color: active ? context.tokens.accentSubtle : context.tokens.elev2,
+          border: Border.all(color: active ? context.tokens.accent : context.tokens.line),
+          borderRadius: BorderRadius.circular(context.tokens.r2),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -610,9 +610,9 @@ class _StakeChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 11),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: active ? context.tokens.accentSubtle : T.elev2,
-          border: Border.all(color: active ? context.tokens.accent : T.line),
-          borderRadius: BorderRadius.circular(T.r2),
+          color: active ? context.tokens.accentSubtle : context.tokens.elev2,
+          border: Border.all(color: active ? context.tokens.accent : context.tokens.line),
+          borderRadius: BorderRadius.circular(context.tokens.r2),
         ),
         child: N(
           '$value',
@@ -634,9 +634,9 @@ class _DistBars extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: T.elev2,
-        border: Border.all(color: T.line),
-        borderRadius: BorderRadius.circular(T.r2),
+        color: context.tokens.elev2,
+        border: Border.all(color: context.tokens.line),
+        borderRadius: BorderRadius.circular(context.tokens.r2),
       ),
       child: Column(
         children: [
@@ -654,7 +654,7 @@ class _DistBars extends StatelessWidget {
               _Bar(
                 flex: dist.b,
                 label: '${dist.b}%',
-                color: T.elev3,
+                color: context.tokens.elev3,
                 fg: context.tokens.ink,
               ),
             ],

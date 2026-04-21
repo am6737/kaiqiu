@@ -163,13 +163,13 @@ class _HeaderCard extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: context.tokens.warnSubtle,
-                  borderRadius: BorderRadius.circular(T.r1),
+                  borderRadius: BorderRadius.circular(context.tokens.r1),
                 ),
                 child: Text(
                   'PK ${match.pkScore}',
                   style: TextStyle(
-                    fontFamily: T.fontMono,
-                    fontFamilyFallback: T.monoFallbacks,
+                    fontFamily: context.tokens.fontMono,
+                    fontFamilyFallback: context.tokens.monoFallbacks,
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
                     color: context.tokens.warn,
@@ -183,8 +183,8 @@ class _HeaderCard extends StatelessWidget {
             Text(
               timeStr,
               style: TextStyle(
-                fontFamily: T.fontMono,
-                fontFamilyFallback: T.monoFallbacks,
+                fontFamily: context.tokens.fontMono,
+                fontFamilyFallback: context.tokens.monoFallbacks,
                 fontSize: 11,
                 color: context.tokens.inkDim,
               ),
@@ -254,7 +254,7 @@ class _StatusChip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: bg,
-        borderRadius: BorderRadius.circular(T.r1),
+        borderRadius: BorderRadius.circular(context.tokens.r1),
       ),
       child: Text(
         text,
@@ -293,7 +293,7 @@ class _GoalsSection extends StatelessWidget {
               decoration: BoxDecoration(
                 color: context.tokens.elev2,
                 border: Border.all(color: context.tokens.line),
-                borderRadius: BorderRadius.circular(T.r2),
+                borderRadius: BorderRadius.circular(context.tokens.r2),
               ),
               child: Text(
                 l.match_goals_empty,
@@ -321,7 +321,7 @@ class _GoalRow extends StatelessWidget {
       decoration: BoxDecoration(
         color: context.tokens.elev2,
         border: Border.all(color: context.tokens.line),
-        borderRadius: BorderRadius.circular(T.r2),
+        borderRadius: BorderRadius.circular(context.tokens.r2),
       ),
       child: Row(
         children: [
@@ -381,7 +381,7 @@ class _GoalTag extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
         border: Border.all(color: color),
-        borderRadius: BorderRadius.circular(T.r1),
+        borderRadius: BorderRadius.circular(context.tokens.r1),
       ),
       child: Text(
         text,

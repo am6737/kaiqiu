@@ -26,7 +26,7 @@ void showToast(
       behavior: SnackBarBehavior.floating,
       duration: const Duration(seconds: 2),
       margin: const EdgeInsets.all(16),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(T.r2)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(context.tokens.r2)),
     ),
   );
 }

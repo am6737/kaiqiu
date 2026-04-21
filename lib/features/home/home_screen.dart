@@ -306,7 +306,7 @@ class _LiveStrip extends StatelessWidget {
             decoration: BoxDecoration(
               color: context.tokens.elev2,
               border: Border.all(color: context.tokens.line),
-              borderRadius: BorderRadius.circular(T.r2),
+              borderRadius: BorderRadius.circular(context.tokens.r2),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -318,8 +318,8 @@ class _LiveStrip extends StatelessWidget {
                     Text(
                       '${m.viewers} · ${m.minute}',
                       style: TextStyle(
-                        fontFamily: T.fontMono,
-                        fontFamilyFallback: T.monoFallbacks,
+                        fontFamily: context.tokens.fontMono,
+                        fontFamilyFallback: context.tokens.monoFallbacks,
                         fontSize: 10,
                         color: context.tokens.inkDim,
                         letterSpacing: 0.5,
@@ -407,7 +407,7 @@ class _RateCtaBanner extends StatelessWidget {
               colors: [Color(0x1A00FF85), Color(0x0FFF6B35)],
             ),
             border: Border.all(color: const Color(0x6600FF85)),
-            borderRadius: BorderRadius.circular(T.r3),
+            borderRadius: BorderRadius.circular(context.tokens.r3),
           ),
           child: Row(
             children: [
@@ -491,7 +491,7 @@ class _PickupCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: context.tokens.elev2,
           border: Border.all(color: context.tokens.line),
-          borderRadius: BorderRadius.circular(T.r3),
+          borderRadius: BorderRadius.circular(context.tokens.r3),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -605,7 +605,7 @@ class _ResultCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: context.tokens.elev2,
         border: Border.all(color: context.tokens.line),
-        borderRadius: BorderRadius.circular(T.r3),
+        borderRadius: BorderRadius.circular(context.tokens.r3),
       ),
       child: Column(
         children: [
@@ -669,7 +669,7 @@ class _ResultCard extends StatelessWidget {
                   '-',
                   style: TextStyle(
                     color: context.tokens.inkDim,
-                    fontFamily: T.fontMono,
+                    fontFamily: context.tokens.fontMono,
                     fontSize: 16,
                   ),
                 ),
@@ -746,7 +746,7 @@ class _PostCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: context.tokens.elev2,
         border: Border.all(color: context.tokens.line),
-        borderRadius: BorderRadius.circular(T.r3),
+        borderRadius: BorderRadius.circular(context.tokens.r3),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -793,8 +793,8 @@ class _PostCard extends StatelessWidget {
                   child: Text(
                     '#$t',
                     style: TextStyle(
-                      fontFamily: T.fontMono,
-                      fontFamilyFallback: T.monoFallbacks,
+                      fontFamily: context.tokens.fontMono,
+                      fontFamilyFallback: context.tokens.monoFallbacks,
                       fontSize: 10,
                       color: context.tokens.inkSub,
                     ),
@@ -852,7 +852,7 @@ class _EventTeaserCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: context.tokens.elev2,
           border: Border.all(color: context.tokens.line),
-          borderRadius: BorderRadius.circular(T.r3),
+          borderRadius: BorderRadius.circular(context.tokens.r3),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -975,7 +975,7 @@ class _LivePickupCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: context.tokens.elev2,
           border: Border.all(color: context.tokens.line),
-          borderRadius: BorderRadius.circular(T.r3),
+          borderRadius: BorderRadius.circular(context.tokens.r3),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1086,7 +1086,7 @@ class _PickupLoading extends StatelessWidget {
       decoration: BoxDecoration(
         color: context.tokens.elev2,
         border: Border.all(color: context.tokens.line),
-        borderRadius: BorderRadius.circular(T.r3),
+        borderRadius: BorderRadius.circular(context.tokens.r3),
       ),
       child: Center(
         child: SizedBox(
@@ -1112,7 +1112,7 @@ class _PickupError extends StatelessWidget {
       decoration: BoxDecoration(
         color: context.tokens.elev2,
         border: Border.all(color: context.tokens.line),
-        borderRadius: BorderRadius.circular(T.r3),
+        borderRadius: BorderRadius.circular(context.tokens.r3),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1134,7 +1134,7 @@ class _PickupError extends StatelessWidget {
               decoration: BoxDecoration(
                 color: context.tokens.elev3,
                 border: Border.all(color: context.tokens.line),
-                borderRadius: BorderRadius.circular(T.r2),
+                borderRadius: BorderRadius.circular(context.tokens.r2),
               ),
               child: Text(
                 context.l10n.common_retry,

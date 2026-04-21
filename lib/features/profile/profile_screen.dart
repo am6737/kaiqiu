@@ -143,8 +143,8 @@ class ProfileScreen extends ConsumerWidget {
                         Text(
                           u.handle,
                           style: TextStyle(
-                            fontFamily: T.fontMono,
-                            fontFamilyFallback: T.monoFallbacks,
+                            fontFamily: context.tokens.fontMono,
+                            fontFamilyFallback: context.tokens.monoFallbacks,
                             fontSize: 12,
                             color: context.tokens.inkSub,
                             letterSpacing: 0.2,
@@ -179,7 +179,7 @@ class ProfileScreen extends ConsumerWidget {
                       ],
                     ),
                     border: Border.all(color: const Color(0x6600FF85)),
-                    borderRadius: BorderRadius.circular(T.r3),
+                    borderRadius: BorderRadius.circular(context.tokens.r3),
                   ),
                   child: Row(
                     children: [
@@ -191,13 +191,13 @@ class ProfileScreen extends ConsumerWidget {
                         decoration: BoxDecoration(
                           color: context.tokens.accentSubtle,
                           border: Border.all(color: const Color(0x6600FF85)),
-                          borderRadius: BorderRadius.circular(T.r2),
+                          borderRadius: BorderRadius.circular(context.tokens.r2),
                         ),
                         child: Text(
                           u.position,
                           style: TextStyle(
-                            fontFamily: T.fontMono,
-                            fontFamilyFallback: T.monoFallbacks,
+                            fontFamily: context.tokens.fontMono,
+                            fontFamilyFallback: context.tokens.monoFallbacks,
                             fontSize: 13,
                             fontWeight: FontWeight.w800,
                             color: context.tokens.accent,
@@ -235,8 +235,8 @@ class ProfileScreen extends ConsumerWidget {
                                   child: Text(
                                     l.profile_archive_new_badge,
                                     style: TextStyle(
-                                      fontFamily: T.fontMono,
-                                      fontFamilyFallback: T.monoFallbacks,
+                                      fontFamily: context.tokens.fontMono,
+                                      fontFamilyFallback: context.tokens.monoFallbacks,
                                       fontSize: 9,
                                       fontWeight: FontWeight.w700,
                                       color: context.tokens.accent,
@@ -340,7 +340,7 @@ class ProfileScreen extends ConsumerWidget {
                   decoration: BoxDecoration(
                     color: context.tokens.elev2,
                     border: Border.all(color: context.tokens.line),
-                    borderRadius: BorderRadius.circular(T.r2),
+                    borderRadius: BorderRadius.circular(context.tokens.r2),
                   ),
                   child: Text(
                     l.profile_logout,
@@ -414,7 +414,7 @@ class _EntrySection extends StatelessWidget {
             decoration: BoxDecoration(
               color: context.tokens.elev2,
               border: Border.all(color: context.tokens.line),
-              borderRadius: BorderRadius.circular(T.r2),
+              borderRadius: BorderRadius.circular(context.tokens.r2),
             ),
             child: Column(
               children: [
@@ -472,8 +472,8 @@ class _EntrySection extends StatelessWidget {
                 child: Text(
                   item.badge!,
                   style: TextStyle(
-                    fontFamily: T.fontMono,
-                    fontFamilyFallback: T.monoFallbacks,
+                    fontFamily: context.tokens.fontMono,
+                    fontFamilyFallback: context.tokens.monoFallbacks,
                     fontSize: 10,
                     color: context.tokens.inkSub,
                     fontWeight: FontWeight.w700,

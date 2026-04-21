@@ -132,8 +132,8 @@ class _PlayerArchiveScreenState extends ConsumerState<PlayerArchiveScreen>
                               child: Text(
                                 u.position,
                                 style: TextStyle(
-                                  fontFamily: T.fontMono,
-                                  fontFamilyFallback: T.monoFallbacks,
+                                  fontFamily: context.tokens.fontMono,
+                                  fontFamilyFallback: context.tokens.monoFallbacks,
                                   fontSize: 10,
                                   fontWeight: FontWeight.w700,
                                   color: context.tokens.accent,
@@ -234,7 +234,7 @@ class _PlayerArchiveScreenState extends ConsumerState<PlayerArchiveScreen>
                     decoration: BoxDecoration(
                       color: context.tokens.elev2,
                       border: Border.all(color: context.tokens.line),
-                      borderRadius: BorderRadius.circular(T.r2),
+                      borderRadius: BorderRadius.circular(context.tokens.r2),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -342,7 +342,7 @@ class _PlayerArchiveScreenState extends ConsumerState<PlayerArchiveScreen>
                     decoration: BoxDecoration(
                       color: context.tokens.elev2,
                       border: Border.all(color: context.tokens.line),
-                      borderRadius: BorderRadius.circular(T.r2),
+                      borderRadius: BorderRadius.circular(context.tokens.r2),
                     ),
                     child: Column(
                       children: [
@@ -383,7 +383,7 @@ class _CardFront extends StatelessWidget {
           stops: const [0, 0.6, 1],
         ),
         border: Border.all(color: context.tokens.line),
-        borderRadius: BorderRadius.circular(T.r4),
+        borderRadius: BorderRadius.circular(context.tokens.r4),
       ),
       child: Stack(
         children: [
@@ -440,7 +440,7 @@ class _CardFront extends StatelessWidget {
                   ],
                 ),
                 border: Border.all(color: context.tokens.lineStrong),
-                borderRadius: BorderRadius.circular(T.r2),
+                borderRadius: BorderRadius.circular(context.tokens.r2),
               ),
               child: Stack(
                 children: [
@@ -452,8 +452,8 @@ class _CardFront extends StatelessWidget {
                       'PLAYER\nPORTRAIT',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontFamily: T.fontMono,
-                        fontFamilyFallback: T.monoFallbacks,
+                        fontFamily: context.tokens.fontMono,
+                        fontFamilyFallback: context.tokens.monoFallbacks,
                         fontSize: 11,
                         color: context.tokens.inkDim,
                         letterSpacing: 1,
@@ -559,7 +559,7 @@ class _CardBack extends StatelessWidget {
           ],
         ),
         border: Border.all(color: context.tokens.line),
-        borderRadius: BorderRadius.circular(T.r4),
+        borderRadius: BorderRadius.circular(context.tokens.r4),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -838,7 +838,7 @@ class _RatingPanel extends StatelessWidget {
           ],
         ),
         border: Border.all(color: const Color(0x6600FF85)),
-        borderRadius: BorderRadius.circular(T.r3),
+        borderRadius: BorderRadius.circular(context.tokens.r3),
       ),
       child: Row(
         children: [
@@ -918,8 +918,8 @@ class _RatingBadge extends StatelessWidget {
           Text(
             context.l10n.event_tab_ratings,
             style: TextStyle(
-              fontFamily: T.fontMono,
-              fontFamilyFallback: T.monoFallbacks,
+              fontFamily: context.tokens.fontMono,
+              fontFamilyFallback: context.tokens.monoFallbacks,
               fontSize: 10,
               color: context.tokens.inkDim,
               letterSpacing: 1,
@@ -963,7 +963,7 @@ class _StatTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: context.tokens.elev2,
           border: Border.all(color: context.tokens.line),
-          borderRadius: BorderRadius.circular(T.r2),
+          borderRadius: BorderRadius.circular(context.tokens.r2),
         ),
         child: Column(
           children: [
@@ -990,7 +990,7 @@ class _HonorTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: context.tokens.elev2,
         border: Border.all(color: context.tokens.line),
-        borderRadius: BorderRadius.circular(T.r2),
+        borderRadius: BorderRadius.circular(context.tokens.r2),
       ),
       child: Row(
         children: [
@@ -1095,8 +1095,8 @@ class _HistoryRow extends StatelessWidget {
                         child: Text(
                           'MVP',
                           style: TextStyle(
-                            fontFamily: T.fontMono,
-                            fontFamilyFallback: T.monoFallbacks,
+                            fontFamily: context.tokens.fontMono,
+                            fontFamilyFallback: context.tokens.monoFallbacks,
                             fontSize: 9,
                             fontWeight: FontWeight.w700,
                             color: context.tokens.warn,
@@ -1130,8 +1130,8 @@ class _HistoryRow extends StatelessWidget {
                         context.l10n.archive_history_assists_n(match.assists),
                     ].join(' · '),
                     style: TextStyle(
-                      fontFamily: T.fontMono,
-                      fontFamilyFallback: T.monoFallbacks,
+                      fontFamily: context.tokens.fontMono,
+                      fontFamilyFallback: context.tokens.monoFallbacks,
                       fontSize: 10,
                       color: context.tokens.inkSub,
                     ),

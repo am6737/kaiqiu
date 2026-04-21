@@ -40,8 +40,8 @@ class PhotoHalftone extends StatelessWidget {
               child: Text(
                 label.toUpperCase(),
                 style: TextStyle(
-                  fontFamily: T.fontMono,
-                  fontFamilyFallback: T.monoFallbacks,
+                  fontFamily: context.tokens.fontMono,
+                  fontFamilyFallback: context.tokens.monoFallbacks,
                   fontSize: 10,
                   color: context.tokens.inkDim,
                   letterSpacing: 1,
