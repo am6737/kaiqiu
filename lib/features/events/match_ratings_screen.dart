@@ -20,6 +20,7 @@ import '../../theme/app_tokens.dart';
 import '../../widgets/avatar.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/typography.dart';
+import '../../widgets/user_card_sheet.dart';
 
 class MatchRatingsScreen extends ConsumerStatefulWidget {
   final String eventId;
@@ -166,6 +167,7 @@ class _Body extends ConsumerWidget {
                         for (int i = 0; i < visible.length; i++)
                           GestureDetector(
                             onTap: () => onSelect(visible[i]),
+                            onLongPress: () => showUserCardSheet(context, ref, userId: visible[i].rateeId),
                             child: _PlayerRow(
                               p: visible[i],
                               rank: i + 1,
