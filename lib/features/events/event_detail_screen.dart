@@ -511,7 +511,7 @@ class _BracketPanel extends ConsumerWidget {
     return ref
         .watch(eventMatchesProvider(eventId))
         .when(
-          data: (matches) => _BracketLayout(matches: matches),
+          data: (matches) => _BracketLayout(eventId: eventId, matches: matches),
           loading: () => const _PanelLoading(),
           error: (e, _) => _PanelError(e),
         );
@@ -519,8 +519,9 @@ class _BracketPanel extends ConsumerWidget {
 }
 
 class _BracketLayout extends StatelessWidget {
+  final String eventId;
   final List<Match> matches;
-  const _BracketLayout({required this.matches});
+  const _BracketLayout({required this.eventId, required this.matches});
 
   @override
   Widget build(BuildContext context) {
@@ -555,7 +556,7 @@ class _BracketLayout extends StatelessWidget {
                     if (qf.isEmpty)
                       const _EmptyCell(text: 'TBD')
                     else
-                      for (final m in qf) _MatchCard(m: m),
+                      for (final m in qf) _MatchCard(eventId: eventId, m: m),
                   ],
                 ),
               ),
@@ -571,10 +572,10 @@ class _BracketLayout extends StatelessWidget {
                       if (sf.isEmpty)
                         const _EmptyCell(text: 'TBD')
                       else ...[
-                        _MatchCard(m: sf[0]),
+                        _MatchCard(eventId: eventId, m: sf[0]),
                         if (sf.length > 1) ...[
                           const SizedBox(height: 60),
-                          _MatchCard(m: sf[1]),
+                          _MatchCard(eventId: eventId, m: sf[1]),
                         ],
                       ],
                     ],
@@ -593,37 +594,11 @@ class _BracketLayout extends StatelessWidget {
                       if (finalMatch == null)
                         const _EmptyCell(text: 'TBD')
                       else
-                        _MatchCard(m: finalMatch),
-                      const SizedBox(height: 10),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
+                        _MatchCard(
+                          eventId: eventId,
+                          m: finalMatch,
+                          isFinal: true,
                         ),
-                        decoration: BoxDecoration(
-                          color: T.liveDim,
-                          border: Border.all(color: T.live),
-                          borderRadius: BorderRadius.circular(T.r2),
-                        ),
-                        child: Column(
-                          children: [
-                            const Icon(
-                              Icons.emoji_events,
-                              size: 18,
-                              color: T.live,
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              context.l10n.event_bracket_champion,
-                              style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: T.live,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
                     ],
                   ),
                 ),
@@ -662,8 +637,14 @@ class _EmptyCell extends StatelessWidget {
 }
 
 class _MatchCard extends StatelessWidget {
+  final String eventId;
   final Match m;
-  const _MatchCard({required this.m});
+  final bool isFinal;
+  const _MatchCard({
+    required this.eventId,
+    required this.m,
+    this.isFinal = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -676,68 +657,138 @@ class _MatchCard extends StatelessWidget {
         : null;
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: T.elev2,
-        border: Border.all(color: T.line),
+        color: isFinal ? T.liveDim : T.elev2,
+        border: Border.all(
+          color: isFinal ? T.live : T.line,
+          width: isFinal ? 1.2 : 1,
+        ),
         borderRadius: BorderRadius.circular(T.r2),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _teamLine(m.teamALabel ?? 'TBD', sa, won: aWins),
-          const SizedBox(height: 4),
-          _teamLine(m.teamBLabel ?? 'TBD', sb, won: bWins),
-          if (m.pkScore != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Text(
-                    'PK ${m.pkScore}',
-                    style: const TextStyle(
-                      fontFamily: T.fontMono,
-                      fontFamilyFallback: T.monoFallbacks,
-                      fontSize: 9,
-                      color: T.warn,
+      clipBehavior: Clip.antiAlias,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => context.push('/event/$eventId/match/${m.id}'),
+          child: Padding(
+            padding: EdgeInsets.all(isFinal ? 0 : 10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (isFinal)
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    decoration: const BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(color: T.live, width: 0.6),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.emoji_events, size: 14, color: T.live),
+                        const SizedBox(width: 4),
+                        Text(
+                          context.l10n.event_bracket_champion,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: T.live,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
-            ),
-          if (timeStr != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Text(
-                timeStr,
-                style: const TextStyle(
-                  fontFamily: T.fontMono,
-                  fontFamilyFallback: T.monoFallbacks,
-                  fontSize: 10,
-                  color: T.inkDim,
+                Padding(
+                  padding: EdgeInsets.all(isFinal ? 10 : 0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _teamLine(
+                        m.teamALabel ?? 'TBD',
+                        sa,
+                        won: aWins,
+                        showWinnerIcon: isFinal,
+                      ),
+                      const SizedBox(height: 4),
+                      _teamLine(
+                        m.teamBLabel ?? 'TBD',
+                        sb,
+                        won: bWins,
+                        showWinnerIcon: isFinal,
+                      ),
+                      if (m.pkScore != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Text(
+                                'PK ${m.pkScore}',
+                                style: const TextStyle(
+                                  fontFamily: T.fontMono,
+                                  fontFamilyFallback: T.monoFallbacks,
+                                  fontSize: 9,
+                                  color: T.warn,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      if (timeStr != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Text(
+                            timeStr,
+                            style: const TextStyle(
+                              fontFamily: T.fontMono,
+                              fontFamilyFallback: T.monoFallbacks,
+                              fontSize: 10,
+                              color: T.inkDim,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
-              ),
+              ],
             ),
-        ],
+          ),
+        ),
       ),
     );
   }
 
-  Widget _teamLine(String name, int? score, {required bool won}) {
+  Widget _teamLine(
+    String name,
+    int? score, {
+    required bool won,
+    bool showWinnerIcon = false,
+  }) {
     final nameColor = m.done ? (won ? T.ink : T.inkSub) : T.inkSub;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Expanded(
-          child: Text(
-            name,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 12,
-              color: nameColor,
-              fontWeight: won ? FontWeight.w700 : FontWeight.w400,
-            ),
+          child: Row(
+            children: [
+              if (showWinnerIcon && won) ...[
+                const Icon(Icons.emoji_events, size: 12, color: T.live),
+                const SizedBox(width: 4),
+              ],
+              Expanded(
+                child: Text(
+                  name,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: nameColor,
+                    fontWeight: won ? FontWeight.w700 : FontWeight.w400,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
         if (m.done && score != null)
