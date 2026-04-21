@@ -176,10 +176,27 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
                     height: 240,
                     scoreOverlay: scoreOverlay,
                     topLeft: _BackButton(onTap: () => context.pop()),
-                    topRight: _ReminderButton(
-                      hasReminder: hasReminder,
-                      label: l.wc_btn_remind,
-                      onTap: () => _showReminderSheet(context),
+                    topRight: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _DanmakuToggleButton(
+                          on: _danmakuOn,
+                          label: _danmakuOn
+                              ? l.wc_btn_danmaku_on
+                              : l.wc_btn_danmaku_off,
+                          onTap: () async {
+                            final next = !_danmakuOn;
+                            setState(() => _danmakuOn = next);
+                            await LocalStore.setDanmakuEnabled(next);
+                          },
+                        ),
+                        const SizedBox(width: 8),
+                        _ReminderButton(
+                          hasReminder: hasReminder,
+                          label: l.wc_btn_remind,
+                          onTap: () => _showReminderSheet(context),
+                        ),
+                      ],
                     ),
                     bottomLeftOverlay: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -455,6 +472,50 @@ class _ReminderButton extends StatelessWidget {
               hasReminder ? Icons.notifications_active : Icons.notifications_none,
               size: 14,
               color: hasReminder ? context.tokens.accent : Colors.white,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DanmakuToggleButton extends StatelessWidget {
+  final bool on;
+  final String label;
+  final VoidCallback onTap;
+  const _DanmakuToggleButton({
+    required this.on,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: const Color(0x80000000),
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              on ? Icons.subtitles : Icons.subtitles_off,
+              size: 14,
+              color: on ? context.tokens.accent : Colors.white,
             ),
             const SizedBox(width: 4),
             Text(
