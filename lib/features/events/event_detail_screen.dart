@@ -1529,7 +1529,28 @@ class _ScorersPanel extends ConsumerWidget {
           padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
           child: Column(
             children: [
-              for (int i = 0; i < rows.length; i++)
+              _GoldenBootHero(
+                row: rows[0],
+                onTap: () =>
+                    _showScorerSheet(context, eventId: eventId, row: rows[0]),
+              ),
+              if (rows.length >= 2)
+                _MedalCard(
+                  rank: 2,
+                  row: rows[1],
+                  kind: _MedalKind.silver,
+                  onTap: () =>
+                      _showScorerSheet(context, eventId: eventId, row: rows[1]),
+                ),
+              if (rows.length >= 3)
+                _MedalCard(
+                  rank: 3,
+                  row: rows[2],
+                  kind: _MedalKind.bronze,
+                  onTap: () =>
+                      _showScorerSheet(context, eventId: eventId, row: rows[2]),
+                ),
+              for (int i = 3; i < rows.length; i++)
                 _ScorerCard(
                   rank: i + 1,
                   row: rows[i],
