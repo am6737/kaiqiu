@@ -51,6 +51,8 @@ class MessagesScreen extends ConsumerWidget {
                 ],
               ),
             ),
+            // Transient: bottom padding shrank from 100 to 24 for /inbox. Until Task 6 redirects
+            // /messages, the last row can be partially obscured by the bottom nav here.
             const Expanded(child: MessagesTab()),
           ],
         ),
