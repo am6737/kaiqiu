@@ -1,5 +1,6 @@
 // messages_screen.dart — 消息列表 (real Supabase data)
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -87,15 +88,17 @@ class MessagesScreen extends ConsumerWidget {
                     backgroundColor: context.tokens.elev1,
                     onRefresh: () async =>
                         ref.invalidate(conversationsProvider),
-                    child: ListView.builder(
-                      padding: const EdgeInsets.only(bottom: 100),
-                      itemCount: sorted.length,
-                      itemBuilder: (_, i) => _ThreadRow(
-                        thread: sorted[i],
-                        isFirst: i == 0,
-                        onTap: () => context.push('/chat/${sorted[i].id}'),
-                        onLongPress: () =>
-                            _showLongPressMenu(context, ref, sorted[i]),
+                    child: SlidableAutoCloseBehavior(
+                      child: ListView.builder(
+                        padding: const EdgeInsets.only(bottom: 100),
+                        itemCount: sorted.length,
+                        itemBuilder: (_, i) => _ThreadRow(
+                          thread: sorted[i],
+                          isFirst: i == 0,
+                          onTap: () => context.push('/chat/${sorted[i].id}'),
+                          onLongPress: () =>
+                              _showLongPressMenu(context, ref, sorted[i]),
+                        ),
                       ),
                     ),
                   );
@@ -413,90 +416,141 @@ class _ThreadRow extends ConsumerWidget {
     final title = thread.title ?? context.l10n.messages_thread_default_title;
     final time = DateFormat('HH:mm').format(thread.updatedAt.toLocal());
     final pinned = LocalStore.isPinned(thread.id);
-    return GestureDetector(
-      onTap: onTap,
-      onLongPress: onLongPress,
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          color: pinned ? const Color(0x0800FF85) : null,
-          border: isFirst
-              ? null
-              : Border(top: BorderSide(color: context.tokens.line, width: 1)),
-        ),
-        child: Row(
-          children: [
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Avatar(title, size: 44),
-                if (thread.unread > 0)
-                  Positioned(
-                    top: -2,
-                    right: -2,
-                    child: Container(
-                      constraints: const BoxConstraints(
-                        minWidth: 16,
-                        minHeight: 16,
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 5),
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: context.tokens.warn,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: context.tokens.bg, width: 2),
-                      ),
-                      child: Text(
-                        '${thread.unread}',
-                        style: TextStyle(
-                          fontFamily: context.tokens.fontMono,
-                          fontFamilyFallback: context.tokens.monoFallbacks,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.black,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+    final muted = LocalStore.isMuted(thread.id);   // ← new line
+    return Slidable(
+      key: ValueKey(thread.id),
+      groupTag: 'messages',
+      endActionPane: ActionPane(
+        motion: const BehindMotion(),
+        extentRatio: 0.75,
+        children: [
+          SlidableAction(
+            onPressed: (_) async {
+              await LocalStore.togglePinned(thread.id);
+            },
+            backgroundColor: pinned
+                ? context.tokens.accent
+                : context.tokens.elev2,
+            foregroundColor: pinned
+                ? context.tokens.accentInk
+                : context.tokens.ink,
+            icon: pinned ? Icons.push_pin : Icons.push_pin_outlined,
+            label: pinned
+                ? context.l10n.common_unpin
+                : context.l10n.common_pin,
+          ),
+          SlidableAction(
+            onPressed: (_) async {
+              await LocalStore.toggleMuted(thread.id);
+            },
+            backgroundColor: muted
+                ? context.tokens.inkSub
+                : context.tokens.elev2,
+            foregroundColor: muted
+                ? context.tokens.bg
+                : context.tokens.ink,
+            icon: muted
+                ? Icons.notifications_off
+                : Icons.notifications_off_outlined,
+            label: muted
+                ? context.l10n.common_unmute
+                : context.l10n.common_mute,
+          ),
+          SlidableAction(
+            onPressed: (slidableCtx) =>
+                _confirmAndDelete(slidableCtx, ref, thread),
+            backgroundColor: context.tokens.danger,
+            foregroundColor: Colors.white,
+            icon: Icons.delete_outline,
+            label: context.l10n.common_delete,
+          ),
+        ],
+      ),
+      child: GestureDetector(
+        onTap: onTap,
+        onLongPress: onLongPress,
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: pinned ? const Color(0x0800FF85) : null,
+            border: isFirst
+                ? null
+                : Border(top: BorderSide(color: context.tokens.line, width: 1)),
+          ),
+          child: Row(
+            children: [
+              Stack(
+                clipBehavior: Clip.none,
                 children: [
-                  Row(
-                    children: [
-                      if (pinned)
-                        Padding(
-                          padding: EdgeInsets.only(right: 4),
-                          child: Icon(Icons.push_pin, size: 11, color: context.tokens.accent),
+                  Avatar(title, size: 44),
+                  if (thread.unread > 0)
+                    Positioned(
+                      top: -2,
+                      right: -2,
+                      child: Container(
+                        constraints: const BoxConstraints(
+                          minWidth: 16,
+                          minHeight: 16,
                         ),
-                      Expanded(
+                        padding: const EdgeInsets.symmetric(horizontal: 5),
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: context.tokens.warn,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: context.tokens.bg, width: 2),
+                        ),
                         child: Text(
-                          title,
-                          overflow: TextOverflow.ellipsis,
+                          '${thread.unread}',
                           style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: context.tokens.ink,
+                            fontFamily: context.tokens.fontMono,
+                            fontFamilyFallback: context.tokens.monoFallbacks,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.black,
                           ),
                         ),
                       ),
-                      Label(time),
-                    ],
-                  ),
-                  const SizedBox(height: 3),
-                  Label(
-                    thread.kind == 'group'
-                        ? context.l10n.messages_kind_group
-                        : context.l10n.messages_kind_dm,
-                  ),
+                    ),
                 ],
               ),
-            ),
-          ],
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        if (pinned)
+                          Padding(
+                            padding: EdgeInsets.only(right: 4),
+                            child: Icon(Icons.push_pin, size: 11, color: context.tokens.accent),
+                          ),
+                        Expanded(
+                          child: Text(
+                            title,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: context.tokens.ink,
+                            ),
+                          ),
+                        ),
+                        Label(time),
+                      ],
+                    ),
+                    const SizedBox(height: 3),
+                    Label(
+                      thread.kind == 'group'
+                          ? context.l10n.messages_kind_group
+                          : context.l10n.messages_kind_dm,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -529,4 +583,12 @@ class _EmptyState extends StatelessWidget {
       ),
     );
   }
+}
+
+Future<void> _confirmAndDelete(
+  BuildContext context,
+  WidgetRef ref,
+  ConversationRow c,
+) async {
+  // Full implementation added in Task 4.
 }
