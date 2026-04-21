@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../data/demo_images.dart';
 import '../../data/mock.dart' as mock;
 import '../../l10n/generated/app_localizations.dart';
 import '../../l10n/l10n_extension.dart';
@@ -161,7 +162,9 @@ class _Header extends StatelessWidget {
     return Stack(
       children: [
         NetworkCover(
-          url: event.coverUrl,
+          url: (event.coverUrl?.isNotEmpty ?? false)
+              ? event.coverUrl
+              : DemoImages.pickCoverFor(event.id),
           fallbackLabel: context.l10n.event_overview_main_visual(event.name),
           height: 180,
           hue: hue,

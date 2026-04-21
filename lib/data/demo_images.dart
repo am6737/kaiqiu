@@ -18,6 +18,24 @@ class DemoImages {
   static const eventCoverLonggang =
       'https://images.unsplash.com/photo-1508098682722-e99c43a406b2$_landscape';
 
+  /// 通用赛事备选海报池（无 cover_url 时按 id 哈希挑选,确保每个赛事都有海报）。
+  /// 全部是真实绿茵场/球场氛围照,跟 World Cup hero 风格保持一致。
+  static const eventCoverPool = <String>[
+    eventCoverLonggang, // 夜场看台
+    venueLonggang,
+    venueDayun,
+    venueBantian,
+    venueHuanancheng,
+    venueDapeng,
+  ];
+
+  /// 根据稳定的字符串 (event id) 从 [eventCoverPool] 里挑一张图。
+  static String pickCoverFor(String stableKey) {
+    if (stableKey.isEmpty) return eventCoverPool.first;
+    final h = stableKey.codeUnits.fold<int>(0, (a, b) => (a + b) & 0xFFFF);
+    return eventCoverPool[h % eventCoverPool.length];
+  }
+
   // ── 场地照片（pickups.venue_photo_url）──────────────────────
   static const venueLonggang =
       'https://images.unsplash.com/photo-1529900748604-07564a03e7a6$_landscape';

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../data/demo_images.dart';
 import '../../data/mock.dart' show WcMatch;
 import '../../l10n/l10n_extension.dart';
 import '../../models/event.dart';
@@ -379,7 +380,9 @@ class _LiveEventRow extends StatelessWidget {
               child: Stack(
                 children: [
                   NetworkCover(
-                    url: event.coverUrl,
+                    url: (event.coverUrl?.isNotEmpty ?? false)
+                        ? event.coverUrl
+                        : DemoImages.pickCoverFor(event.id),
                     fallbackLabel: event.name,
                     height: 110,
                     hue: hue,
