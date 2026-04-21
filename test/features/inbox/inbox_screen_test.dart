@@ -114,16 +114,34 @@ void main() {
       _wrap(conversations: [_conv('c1', unread: 2)]),
     );
     await tester.pumpAndSettle();
-    // Unread dot: find the 6x6 accent-colored circle next to "消息" label.
-    // Heuristic: assert at least one Container with shape: BoxShape.circle
-    // within the _InboxTabButton row labeled "消息".
-    final messagesLabel = find.text('消息');
-    expect(messagesLabel, findsOneWidget);
-    final dots = find.descendant(
-      of: find.ancestor(of: messagesLabel, matching: find.byType(Row)),
-      matching: find.byType(Container),
+    // Tab dots are 6×6 circle-shaped Containers. With both tabs showing a
+    // dot (messages: DM unread, notifications: demo always-unread), we
+    // expect exactly 2 such containers in the tab strip.
+    expect(find.text('消息'), findsOneWidget);
+    expect(_tabDotFinder, findsNWidgets(2));
+  });
+
+  testWidgets('no unread messages → no red dot on messages tab label',
+      (tester) async {
+    await tester.pumpWidget(
+      _wrap(conversations: [_conv('c1', unread: 0)]),
     );
-    // Row contains label container + dot container when showDot is true.
-    expect(dots.evaluate().length, greaterThanOrEqualTo(1));
+    await tester.pumpAndSettle();
+    // Messages tab has no dot; notifications tab still has one (demo data).
+    expect(find.text('消息'), findsOneWidget);
+    expect(_tabDotFinder, findsOneWidget);
   });
 }
+
+/// Finds 6×6 circle-shaped Containers used specifically for the tab-label
+/// unread dots. The _NotifRow's own unread dot has `margin: EdgeInsets.only(
+/// left: 6)`; the tab-label dot has no margin — that's how we filter.
+final _tabDotFinder = find.byWidgetPredicate((w) {
+  if (w is! Container) return false;
+  if (w.margin != null) return false;
+  final d = w.decoration;
+  if (d is! BoxDecoration) return false;
+  if (d.shape != BoxShape.circle) return false;
+  return w.constraints?.maxWidth == 6.0 &&
+      w.constraints?.maxHeight == 6.0;
+});

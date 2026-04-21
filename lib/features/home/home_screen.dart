@@ -191,6 +191,8 @@ class _TopBar extends ConsumerWidget {
 // "any notification unread". Until notifications land real data, the dot
 // renders whenever there's an unread DM OR unconditionally (for demo).
 // The ref.watch() keeps the widget reactive so new DMs light it up.
+// TODO: once notifications has a real provider, gate the dot on
+// `hasUnread || hasNotifUnread` and return `SizedBox.shrink()` otherwise.
 class _InboxUnreadDot extends ConsumerWidget {
   const _InboxUnreadDot();
   @override
