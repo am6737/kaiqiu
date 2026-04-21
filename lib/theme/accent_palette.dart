@@ -1,6 +1,8 @@
 // accent_palette.dart — resolves an AccentSeed to (accent, accentInk, accentSubtle)
 // per Brightness. Preset values are hand-tuned; custom values run the
 // derivation algorithm in Task 3.
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import 'accent_seed.dart';
@@ -59,10 +61,64 @@ class AccentPaletteResolver {
           accentInk: ink,
           accentSubtle: accent.withAlpha(0x1F),
         );
-      case CustomAccentSeed():
-        // Implemented in Task 3.
-        throw UnimplementedError('custom seed handled in deriveCustom');
+      case CustomAccentSeed(:final color):
+        return _deriveCustom(color, brightness);
     }
+  }
+
+  static ResolvedAccent _deriveCustom(Color base, Brightness brightness) {
+    final hsl = HSLColor.fromColor(base);
+    double l;
+    double s;
+    if (brightness == Brightness.dark) {
+      l = hsl.lightness < 0.60 ? 0.60 : hsl.lightness;
+      s = hsl.saturation < 0.70 ? 0.70 : hsl.saturation;
+    } else {
+      l = hsl.lightness > 0.45 ? 0.45 : hsl.lightness;
+      s = hsl.saturation > 0.80 ? 0.80 : hsl.saturation;
+    }
+
+    final bgRef = brightness == Brightness.dark
+        ? const Color(0xFF0A0A0A)
+        : const Color(0xFFFAF8F5);
+
+    Color derived = HSLColor.fromAHSL(1.0, hsl.hue, s, l).toColor();
+    var iters = 0;
+    while (_contrast(derived, bgRef) < 3.0 && iters < 8) {
+      l += brightness == Brightness.dark ? 0.05 : -0.05;
+      l = l.clamp(0.0, 1.0);
+      derived = HSLColor.fromAHSL(1.0, hsl.hue, s, l).toColor();
+      if (l == 0.0 || l == 1.0) break;
+      iters++;
+    }
+
+    // Choose ink with better contrast against derived accent.
+    final contrastBlack = _contrast(derived, const Color(0xFF000000));
+    final contrastWhite = _contrast(derived, const Color(0xFFFFFFFF));
+    final ink = contrastBlack >= contrastWhite
+        ? const Color(0xFF000000)
+        : const Color(0xFFFFFFFF);
+
+    return ResolvedAccent(
+      accent: derived,
+      accentInk: ink,
+      accentSubtle: derived.withAlpha(0x1F),
+    );
+  }
+
+  static double _relativeLuminance(Color c) {
+    double channel(double v) {
+      return v <= 0.03928 ? v / 12.92 : math.pow((v + 0.055) / 1.055, 2.4).toDouble();
+    }
+    return 0.2126 * channel(c.r) + 0.7152 * channel(c.g) + 0.0722 * channel(c.b);
+  }
+
+  static double _contrast(Color a, Color b) {
+    final l1 = _relativeLuminance(a);
+    final l2 = _relativeLuminance(b);
+    final hi = l1 > l2 ? l1 : l2;
+    final lo = l1 > l2 ? l2 : l1;
+    return (hi + 0.05) / (lo + 0.05);
   }
 }
 
