@@ -65,6 +65,11 @@ class ProfileScreen extends ConsumerWidget {
         onTap: () => context.push('/settings/notifications'),
       ),
       _MenuItem(
+        icon: Icons.palette_outlined,
+        label: l.profile_menu_appearance,
+        onTap: () => context.push('/settings/appearance'),
+      ),
+      _MenuItem(
         icon: Icons.chat_bubble_outline,
         label: l.profile_menu_help,
         onTap: () => context.push('/settings/help'),

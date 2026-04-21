@@ -29,6 +29,7 @@ import 'features/rating/post_match_rating_screen.dart';
 import 'features/search/search_screen.dart';
 import 'features/settings/about_screen.dart';
 import 'features/settings/account_settings_screen.dart';
+import 'features/settings/appearance_settings_screen.dart';
 import 'features/settings/help_screen.dart';
 import 'features/settings/legal_screen.dart';
 import 'features/settings/notif_settings_screen.dart';
@@ -159,6 +160,10 @@ final router = GoRouter(
     GoRoute(
       path: '/settings/account',
       builder: (_, s) => const AccountSettingsScreen(),
+    ),
+    GoRoute(
+      path: '/settings/appearance',
+      builder: (_, s) => const AppearanceSettingsScreen(),
     ),
     GoRoute(
       path: '/settings/notifications',
