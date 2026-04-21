@@ -320,8 +320,34 @@ create table public.conversation_members (
   primary key (conv_id, user_id)
 );
 
+alter table public.conversations enable row level security;
+
+create policy "conversations member read" on public.conversations for select using (
+  exists (
+    select 1 from public.conversation_members m
+    where m.conv_id = conversations.id and m.user_id = auth.uid()
+  )
+);
+create policy "conversations authenticated insert" on public.conversations
+  for insert with check (auth.uid() is not null);
+create policy "conversations member update" on public.conversations for update using (
+  exists (
+    select 1 from public.conversation_members m
+    where m.conv_id = conversations.id and m.user_id = auth.uid()
+  )
+);
+create policy "conversations member delete" on public.conversations for delete using (
+  exists (
+    select 1 from public.conversation_members m
+    where m.conv_id = conversations.id and m.user_id = auth.uid()
+  )
+);
+
 alter table public.conversation_members enable row level security;
 create policy "members self read" on public.conversation_members for select using (user_id = auth.uid());
+create policy "members self insert" on public.conversation_members for insert with check (user_id = auth.uid());
+create policy "members self update" on public.conversation_members for update using (user_id = auth.uid());
+create policy "members self delete" on public.conversation_members for delete using (user_id = auth.uid());
 
 create table public.messages (
   id uuid primary key default gen_random_uuid(),
@@ -408,6 +434,41 @@ end;
 $$;
 
 grant execute on function public.ensure_demo_conversation() to authenticated, anon;
+
+-- ensure_event_conversation: 打开赛事讨论 tab 时调用；
+-- 原子地查找或创建 title='event:{id}' 的群组会话，并保证当前用户是成员。
+create function public.ensure_event_conversation(p_event_id text)
+  returns uuid
+  language plpgsql
+  security definer
+  set search_path = public
+as $$
+declare
+  v_user uuid := auth.uid();
+  v_title text := 'event:' || p_event_id;
+  v_conv uuid;
+begin
+  if v_user is null then
+    raise exception 'Not authenticated';
+  end if;
+
+  select id into v_conv from conversations where title = v_title limit 1;
+
+  if v_conv is null then
+    insert into conversations (kind, title)
+    values ('group', v_title)
+    returning id into v_conv;
+  end if;
+
+  insert into conversation_members (conv_id, user_id, unread)
+  values (v_conv, v_user, 0)
+  on conflict (conv_id, user_id) do nothing;
+
+  return v_conv;
+end;
+$$;
+
+grant execute on function public.ensure_event_conversation(text) to authenticated;
 
 
 -- ═══════════════════════════════════════════════════════════════

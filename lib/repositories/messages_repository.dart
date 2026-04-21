@@ -175,42 +175,16 @@ class MessagesRepository {
 
   /// Returns (or creates) a conversation keyed by an event id so multiple
   /// users can join the event discussion. Title format: `event:{id}`.
+  /// Delegates to the `ensure_event_conversation` RPC which handles the
+  /// find-or-create + membership atomically under SECURITY DEFINER.
   Future<String> ensureEventConversation(String eventId) async {
-    final uid = currentUserId;
-    if (uid == null) {
+    if (currentUserId == null) {
       throw StateError('not signed in');
     }
-    final title = 'event:$eventId';
-    final existing = await supabase
-        .from('conversations')
-        .select('id')
-        .eq('title', title)
-        .maybeSingle();
-    String convId;
-    if (existing != null) {
-      convId = existing['id'] as String;
-    } else {
-      final row = await supabase
-          .from('conversations')
-          .insert({'title': title, 'kind': 'group'})
-          .select()
-          .single();
-      convId = row['id'] as String;
-    }
-    // Ensure membership (upsert-like)
-    final member = await supabase
-        .from('conversation_members')
-        .select('id')
-        .eq('conv_id', convId)
-        .eq('user_id', uid)
-        .maybeSingle();
-    if (member == null) {
-      await supabase.from('conversation_members').insert({
-        'conv_id': convId,
-        'user_id': uid,
-        'unread': 0,
-      });
-    }
-    return convId;
+    final convId = await supabase.rpc(
+      'ensure_event_conversation',
+      params: {'p_event_id': eventId},
+    );
+    return convId as String;
   }
 }
