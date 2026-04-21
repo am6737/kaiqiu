@@ -4,8 +4,7 @@ import 'package:flutter/material.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'l10n/locale_controller.dart';
 import 'routes.dart';
-import 'theme/accent_seed.dart';
-import 'theme/theme.dart';
+import 'theme/theme_controller.dart';
 
 class KaiqiuApp extends StatelessWidget {
   const KaiqiuApp({super.key});
@@ -13,12 +12,18 @@ class KaiqiuApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: LocaleController.instance,
+      animation: Listenable.merge([
+        LocaleController.instance,
+        ThemeController.instance,
+      ]),
       builder: (_, _) {
+        final tc = ThemeController.instance;
         return MaterialApp.router(
           onGenerateTitle: (ctx) => AppL10n.of(ctx).app_name,
           debugShowCheckedModeBanner: false,
-          theme: buildAppTheme(Brightness.dark, AccentSeed.defaultSeed),
+          theme: tc.lightTheme,
+          darkTheme: tc.darkTheme,
+          themeMode: tc.mode,
           routerConfig: router,
           locale: LocaleController.instance.current,
           supportedLocales: AppL10n.supportedLocales,

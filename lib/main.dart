@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'app.dart';
 import 'config/env.dart';
 import 'services/local_storage.dart';
+import 'theme/theme_controller.dart';
 import 'services/push.dart';
 import 'services/supabase.dart';
 
@@ -12,6 +13,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await initLocalStorage();
+  await ThemeController.instance.load();
 
   // Initialize Supabase only if env is configured. This lets the scaffold
   // run without credentials; once you plug them in via --dart-define, it boots fully.
