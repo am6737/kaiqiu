@@ -40,4 +40,15 @@ class ProfilesRepository {
       'handle': ?handle,
     });
   }
+
+  /// Look up a profile by its unique `handle`. Returns null if not found.
+  Future<Profile?> fetchByHandle(String handle) async {
+    final row = await supabase
+        .from('profiles')
+        .select()
+        .eq('handle', handle)
+        .maybeSingle();
+    if (row == null) return null;
+    return Profile.fromMap(row);
+  }
 }
