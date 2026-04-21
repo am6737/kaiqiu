@@ -108,6 +108,15 @@ final conversationsProvider = FutureProvider<List<ConversationRow>>((
   return ref.read(messagesRepoProvider).listConversations();
 });
 
+/// `true` if any conversation has `unread > 0`. Used for inbox unread dot.
+final messagesUnreadProvider = Provider<bool>((ref) {
+  final async = ref.watch(conversationsProvider);
+  return async.maybeWhen(
+    data: (list) => list.any((c) => c.unread > 0),
+    orElse: () => false,
+  );
+});
+
 /// Live stream of messages in a conversation (Realtime).
 final chatMessagesProvider = StreamProvider.family<List<Message>, String>((
   ref,
