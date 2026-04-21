@@ -22,6 +22,8 @@ class WorldCupScreen extends ConsumerWidget {
     ref.watch(localStoreProvider);
     final l = context.l10n;
     final focusMatchId = 'wc-focus';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final overlayColor = isDark ? const Color(0x80000000) : const Color(0x33000000);
 
     return Scaffold(
       backgroundColor: context.tokens.bg,
@@ -38,8 +40,8 @@ class WorldCupScreen extends ConsumerWidget {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      HSLColor.fromAHSL(1, 260, 0.5, 0.18).toColor(),
-                      HSLColor.fromAHSL(1, 290, 0.5, 0.12).toColor(),
+                      HSLColor.fromAHSL(1, 260, 0.5, isDark ? 0.18 : 0.78).toColor(),
+                      HSLColor.fromAHSL(1, 290, 0.5, isDark ? 0.12 : 0.72).toColor(),
                     ],
                   ),
                 ),
@@ -55,8 +57,8 @@ class WorldCupScreen extends ConsumerWidget {
                       width: 36,
                       height: 36,
                       alignment: Alignment.center,
-                      decoration: const BoxDecoration(
-                        color: Color(0x80000000),
+                      decoration: BoxDecoration(
+                        color: overlayColor,
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
@@ -81,8 +83,8 @@ class WorldCupScreen extends ConsumerWidget {
                       width: 36,
                       height: 36,
                       alignment: Alignment.center,
-                      decoration: const BoxDecoration(
-                        color: Color(0x80000000),
+                      decoration: BoxDecoration(
+                        color: overlayColor,
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
@@ -222,18 +224,18 @@ class WorldCupScreen extends ConsumerWidget {
                           mainAxisSize: MainAxisSize.min,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.play_arrow,
                               size: 14,
-                              color: Colors.black,
+                              color: context.tokens.accentInk,
                             ),
                             const SizedBox(width: 6),
                             Text(
                               l.wc_btn_watch_live,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w600,
-                                color: Colors.black,
+                                color: context.tokens.accentInk,
                               ),
                             ),
                           ],
@@ -284,7 +286,7 @@ class WorldCupScreen extends ConsumerWidget {
               children: [
                 Row(
                   children: [
-                    _predBar(context, 62, l.wc_team_argentina_win, context.tokens.accent, Colors.black),
+                    _predBar(context, 62, l.wc_team_argentina_win, context.tokens.accent, context.tokens.accentInk),
                     const SizedBox(width: 8),
                     _predBar(context, 14, l.wc_team_draw, context.tokens.inkMute, context.tokens.ink),
                     const SizedBox(width: 8),
@@ -442,12 +444,14 @@ class WorldCupScreen extends ConsumerWidget {
     );
   }
 
-  Widget _flag(BuildContext context, String code, double hue) => Container(
+  Widget _flag(BuildContext context, String code, double hue) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
     width: 44,
     height: 30,
     alignment: Alignment.center,
     decoration: BoxDecoration(
-      color: HSLColor.fromAHSL(1, hue, 0.4, 0.3).toColor(),
+      color: HSLColor.fromAHSL(1, hue, 0.4, isDark ? 0.3 : 0.65).toColor(),
       borderRadius: BorderRadius.circular(4),
     ),
     child: Text(
@@ -461,13 +465,16 @@ class WorldCupScreen extends ConsumerWidget {
       ),
     ),
   );
+  }
 
-  Widget _miniFlag(BuildContext context, String code, double hue) => Container(
+  Widget _miniFlag(BuildContext context, String code, double hue) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
     width: 22,
     height: 16,
     alignment: Alignment.center,
     decoration: BoxDecoration(
-      color: HSLColor.fromAHSL(1, hue, 0.4, 0.3).toColor(),
+      color: HSLColor.fromAHSL(1, hue, 0.4, isDark ? 0.3 : 0.65).toColor(),
       borderRadius: BorderRadius.circular(2),
     ),
     child: Text(
@@ -481,6 +488,7 @@ class WorldCupScreen extends ConsumerWidget {
       ),
     ),
   );
+  }
 
   Widget _predBar(BuildContext context, int pct, String label, Color bg, Color fg) {
     return Expanded(

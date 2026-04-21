@@ -33,12 +33,24 @@ class RealPickupMap extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final mapBg     = isDark ? const Color(0xFF0E1310) : const Color(0xFFE8EDE9);
+    final mapPark   = isDark ? const Color(0xFF142219) : const Color(0xFFC8E0D0);
+    final mapStreet = isDark ? const Color(0xFF1D2A24) : const Color(0xFFD8DCD9);
+    final mapRiver  = isDark ? const Color(0xFF13212B) : const Color(0xFFB8D4E2);
     return Stack(
       fit: StackFit.expand,
       children: [
         Container(
-          color: const Color(0xFF0E1310),
-          child: CustomPaint(painter: _MapStubPainter()),
+          color: mapBg,
+          child: CustomPaint(
+            painter: _MapStubPainter(
+              parkColor:   mapPark,
+              streetColor: mapStreet,
+              riverColor:  mapRiver,
+              bgColor:     mapBg,
+            ),
+          ),
         ),
         for (final p in pickups)
           _Pin(
@@ -140,16 +152,28 @@ class _Pin extends StatelessWidget {
 }
 
 class _MapStubPainter extends CustomPainter {
+  final Color bgColor;
+  final Color parkColor;
+  final Color streetColor;
+  final Color riverColor;
+
+  const _MapStubPainter({
+    required this.bgColor,
+    required this.parkColor,
+    required this.streetColor,
+    required this.riverColor,
+  });
+
   @override
   void paint(Canvas canvas, Size size) {
     final w = size.width;
     final h = size.height;
 
-    final bg = Paint()..color = const Color(0xFF0E1310);
+    final bg = Paint()..color = bgColor;
     canvas.drawRect(Rect.fromLTWH(0, 0, w, h), bg);
 
     // Soft green tint for "parks".
-    final park = Paint()..color = const Color(0xFF142219);
+    final park = Paint()..color = parkColor;
     canvas.drawPath(
       Path()
         ..moveTo(w * 0.08, h * 0.62)
@@ -162,7 +186,7 @@ class _MapStubPainter extends CustomPainter {
 
     // Streets grid.
     final street = Paint()
-      ..color = const Color(0xFF1D2A24)
+      ..color = streetColor
       ..strokeWidth = 1.2;
     for (int i = 0; i < 12; i++) {
       final y = h * (0.12 + i * 0.07);
@@ -175,7 +199,7 @@ class _MapStubPainter extends CustomPainter {
 
     // River.
     final river = Paint()
-      ..color = const Color(0xFF13212B)
+      ..color = riverColor
       ..strokeWidth = 12
       ..style = PaintingStyle.stroke;
     canvas.drawPath(
@@ -188,5 +212,9 @@ class _MapStubPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _MapStubPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _MapStubPainter oldDelegate) =>
+      oldDelegate.bgColor != bgColor ||
+      oldDelegate.parkColor != parkColor ||
+      oldDelegate.streetColor != streetColor ||
+      oldDelegate.riverColor != riverColor;
 }
