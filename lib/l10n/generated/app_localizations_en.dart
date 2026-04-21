@@ -1989,4 +1989,55 @@ class AppL10nEn extends AppL10n {
   String create_event_preview_prize_wan(String amount) {
     return '¥${amount}0k';
   }
+
+  @override
+  String get rate_pitch_title => 'Rate this match';
+
+  @override
+  String rate_pitch_progress(int done, int total) {
+    return '$done/$total rated';
+  }
+
+  @override
+  String get rate_pitch_tap_hint => 'Tap a player to rate';
+
+  @override
+  String get rate_pitch_save_next => 'Save · Next';
+
+  @override
+  String rate_pitch_submit_n(int n) {
+    return 'Submit ($n)';
+  }
+
+  @override
+  String get rate_pitch_cannot_self => 'You can\'t rate yourself';
+
+  @override
+  String get rate_pitch_empty_title => 'No teammates yet';
+
+  @override
+  String get rate_pitch_empty_sub => 'Come back when others have joined';
+
+  @override
+  String get rate_pitch_empty_back => 'Back to match';
+
+  @override
+  String get rate_pitch_goals_label => 'Goals';
+
+  @override
+  String get rate_pitch_assists_label => 'Assists';
+
+  @override
+  String get rate_pitch_pos_label => 'Position';
+
+  @override
+  String get rate_pitch_not_registered => 'Guest player';
+
+  @override
+  String rate_pitch_submitted_n(int n) {
+    return '$n ratings submitted';
+  }
+
+  @override
+  String get rate_pitch_rate_teammates_cta => 'Rate this match';
 }

@@ -3810,6 +3810,96 @@ abstract class AppL10n {
   /// In zh, this message translates to:
   /// **'¥{amount}万'**
   String create_event_preview_prize_wan(String amount);
+
+  /// No description provided for @rate_pitch_title.
+  ///
+  /// In zh, this message translates to:
+  /// **'给本局打分'**
+  String get rate_pitch_title;
+
+  /// No description provided for @rate_pitch_progress.
+  ///
+  /// In zh, this message translates to:
+  /// **'{done}/{total} 已评'**
+  String rate_pitch_progress(int done, int total);
+
+  /// No description provided for @rate_pitch_tap_hint.
+  ///
+  /// In zh, this message translates to:
+  /// **'点球员打分'**
+  String get rate_pitch_tap_hint;
+
+  /// No description provided for @rate_pitch_save_next.
+  ///
+  /// In zh, this message translates to:
+  /// **'保存 · 下一个'**
+  String get rate_pitch_save_next;
+
+  /// No description provided for @rate_pitch_submit_n.
+  ///
+  /// In zh, this message translates to:
+  /// **'提交 ({n})'**
+  String rate_pitch_submit_n(int n);
+
+  /// No description provided for @rate_pitch_cannot_self.
+  ///
+  /// In zh, this message translates to:
+  /// **'不能给自己打分'**
+  String get rate_pitch_cannot_self;
+
+  /// No description provided for @rate_pitch_empty_title.
+  ///
+  /// In zh, this message translates to:
+  /// **'还没有队友加入'**
+  String get rate_pitch_empty_title;
+
+  /// No description provided for @rate_pitch_empty_sub.
+  ///
+  /// In zh, this message translates to:
+  /// **'等其他人报名后再来打分'**
+  String get rate_pitch_empty_sub;
+
+  /// No description provided for @rate_pitch_empty_back.
+  ///
+  /// In zh, this message translates to:
+  /// **'返回球局'**
+  String get rate_pitch_empty_back;
+
+  /// No description provided for @rate_pitch_goals_label.
+  ///
+  /// In zh, this message translates to:
+  /// **'进球'**
+  String get rate_pitch_goals_label;
+
+  /// No description provided for @rate_pitch_assists_label.
+  ///
+  /// In zh, this message translates to:
+  /// **'助攻'**
+  String get rate_pitch_assists_label;
+
+  /// No description provided for @rate_pitch_pos_label.
+  ///
+  /// In zh, this message translates to:
+  /// **'位置'**
+  String get rate_pitch_pos_label;
+
+  /// No description provided for @rate_pitch_not_registered.
+  ///
+  /// In zh, this message translates to:
+  /// **'未注册球友'**
+  String get rate_pitch_not_registered;
+
+  /// No description provided for @rate_pitch_submitted_n.
+  ///
+  /// In zh, this message translates to:
+  /// **'已提交 {n} 条评分'**
+  String rate_pitch_submitted_n(int n);
+
+  /// No description provided for @rate_pitch_rate_teammates_cta.
+  ///
+  /// In zh, this message translates to:
+  /// **'给本局打分'**
+  String get rate_pitch_rate_teammates_cta;
 }
 
 class _AppL10nDelegate extends LocalizationsDelegate<AppL10n> {

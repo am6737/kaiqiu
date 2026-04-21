@@ -1965,4 +1965,55 @@ class AppL10nZh extends AppL10n {
   String create_event_preview_prize_wan(String amount) {
     return '¥$amount万';
   }
+
+  @override
+  String get rate_pitch_title => '给本局打分';
+
+  @override
+  String rate_pitch_progress(int done, int total) {
+    return '$done/$total 已评';
+  }
+
+  @override
+  String get rate_pitch_tap_hint => '点球员打分';
+
+  @override
+  String get rate_pitch_save_next => '保存 · 下一个';
+
+  @override
+  String rate_pitch_submit_n(int n) {
+    return '提交 ($n)';
+  }
+
+  @override
+  String get rate_pitch_cannot_self => '不能给自己打分';
+
+  @override
+  String get rate_pitch_empty_title => '还没有队友加入';
+
+  @override
+  String get rate_pitch_empty_sub => '等其他人报名后再来打分';
+
+  @override
+  String get rate_pitch_empty_back => '返回球局';
+
+  @override
+  String get rate_pitch_goals_label => '进球';
+
+  @override
+  String get rate_pitch_assists_label => '助攻';
+
+  @override
+  String get rate_pitch_pos_label => '位置';
+
+  @override
+  String get rate_pitch_not_registered => '未注册球友';
+
+  @override
+  String rate_pitch_submitted_n(int n) {
+    return '已提交 $n 条评分';
+  }
+
+  @override
+  String get rate_pitch_rate_teammates_cta => '给本局打分';
 }

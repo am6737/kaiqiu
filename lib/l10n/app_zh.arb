@@ -765,5 +765,29 @@
   "create_event_tpl_group8_desc_inline": "2组4队 单循环 + 交叉淘汰",
   "create_event_hint_not_logged": "请先登录",
   "create_event_preview_prize_wan": "¥{amount}万",
-  "@create_event_preview_prize_wan": { "placeholders": { "amount": { "type": "String" } } }
+  "@create_event_preview_prize_wan": { "placeholders": { "amount": { "type": "String" } } },
+
+  "rate_pitch_title": "给本局打分",
+  "rate_pitch_progress": "{done}/{total} 已评",
+  "@rate_pitch_progress": {
+    "placeholders": {
+      "done": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "rate_pitch_tap_hint": "点球员打分",
+  "rate_pitch_save_next": "保存 · 下一个",
+  "rate_pitch_submit_n": "提交 ({n})",
+  "@rate_pitch_submit_n": { "placeholders": { "n": { "type": "int" } } },
+  "rate_pitch_cannot_self": "不能给自己打分",
+  "rate_pitch_empty_title": "还没有队友加入",
+  "rate_pitch_empty_sub": "等其他人报名后再来打分",
+  "rate_pitch_empty_back": "返回球局",
+  "rate_pitch_goals_label": "进球",
+  "rate_pitch_assists_label": "助攻",
+  "rate_pitch_pos_label": "位置",
+  "rate_pitch_not_registered": "未注册球友",
+  "rate_pitch_submitted_n": "已提交 {n} 条评分",
+  "@rate_pitch_submitted_n": { "placeholders": { "n": { "type": "int" } } },
+  "rate_pitch_rate_teammates_cta": "给本局打分"
 }

@@ -23,6 +23,7 @@ import 'features/pickup/pickup_map_screen.dart';
 import 'features/profile/player_archive_screen.dart';
 import 'features/profile/profile_edit_screen.dart';
 import 'features/profile/profile_screen.dart';
+import 'features/rating/formation_rating_screen.dart';
 import 'features/rating/post_match_rating_screen.dart';
 import 'features/search/search_screen.dart';
 import 'features/settings/about_screen.dart';
@@ -118,6 +119,11 @@ final router = GoRouter(
       path: '/rate/:matchId',
       builder: (_, s) =>
           PostMatchRatingScreen(matchId: s.pathParameters['matchId']!),
+    ),
+    GoRoute(
+      path: '/rate-pitch/:pickupId',
+      builder: (_, s) =>
+          FormationRatingScreen(pickupId: s.pathParameters['pickupId']!),
     ),
     GoRoute(path: '/archive', builder: (_, s) => const PlayerArchiveScreen()),
     GoRoute(

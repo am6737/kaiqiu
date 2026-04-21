@@ -765,5 +765,29 @@
   "create_event_tpl_group8_desc_inline": "2 groups × 4 + knockout",
   "create_event_hint_not_logged": "Please sign in first",
   "create_event_preview_prize_wan": "¥{amount}0k",
-  "@create_event_preview_prize_wan": { "placeholders": { "amount": { "type": "String" } } }
+  "@create_event_preview_prize_wan": { "placeholders": { "amount": { "type": "String" } } },
+
+  "rate_pitch_title": "Rate this match",
+  "rate_pitch_progress": "{done}/{total} rated",
+  "@rate_pitch_progress": {
+    "placeholders": {
+      "done": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "rate_pitch_tap_hint": "Tap a player to rate",
+  "rate_pitch_save_next": "Save · Next",
+  "rate_pitch_submit_n": "Submit ({n})",
+  "@rate_pitch_submit_n": { "placeholders": { "n": { "type": "int" } } },
+  "rate_pitch_cannot_self": "You can't rate yourself",
+  "rate_pitch_empty_title": "No teammates yet",
+  "rate_pitch_empty_sub": "Come back when others have joined",
+  "rate_pitch_empty_back": "Back to match",
+  "rate_pitch_goals_label": "Goals",
+  "rate_pitch_assists_label": "Assists",
+  "rate_pitch_pos_label": "Position",
+  "rate_pitch_not_registered": "Guest player",
+  "rate_pitch_submitted_n": "{n} ratings submitted",
+  "@rate_pitch_submitted_n": { "placeholders": { "n": { "type": "int" } } },
+  "rate_pitch_rate_teammates_cta": "Rate this match"
 }

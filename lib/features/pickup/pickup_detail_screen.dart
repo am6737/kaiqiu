@@ -373,6 +373,46 @@ class _Formation extends ConsumerWidget {
             children: [
               Label(context.l10n.pickup_detail_formation_title('4-3-3')),
               const Spacer(),
+              if (filledCount >= 2) ...[
+                GestureDetector(
+                  onTap: () {
+                    final sport = ref.read(sportProvider);
+                    if (sport == 'football') {
+                      context.push('/rate-pitch/$pickupId');
+                    } else {
+                      context.push('/rate/$pickupId');
+                    }
+                  },
+                  behavior: HitTestBehavior.opaque,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: T.liveDim,
+                      border: Border.all(color: const Color(0x6600FF85)),
+                      borderRadius: BorderRadius.circular(T.r1),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.star_rate, size: 12, color: T.live),
+                        const SizedBox(width: 4),
+                        Text(
+                          context.l10n.rate_pitch_rate_teammates_cta,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: T.live,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+              ],
               Row(
                 children: [
                   N(
@@ -735,57 +775,57 @@ class _MiniMap extends StatelessWidget {
     final detailText = (address != null && address!.trim().isNotEmpty)
         ? address!
         : venue;
+    final navButton = TextButton.icon(
+      onPressed: _canNavigate ? () => _openNav(context) : null,
+      icon: const Icon(Icons.near_me, size: 16),
+      label: Text(l.pickup_detail_navigate),
+      style: TextButton.styleFrom(
+        foregroundColor: T.live,
+        disabledForegroundColor: T.inkMute,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        minimumSize: const Size(0, 32),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        textStyle: const TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+    final hasDetail = detailText.trim().isNotEmpty;
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Label(l.pickup_detail_location_km('2.4')),
-                    if (detailText.trim().isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        detailText,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: T.inkSub,
-                          height: 1.35,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              TextButton.icon(
-                onPressed: _canNavigate ? () => _openNav(context) : null,
-                icon: const Icon(Icons.near_me, size: 16),
-                label: Text(l.pickup_detail_navigate),
-                style: TextButton.styleFrom(
-                  foregroundColor: T.live,
-                  disabledForegroundColor: T.inkMute,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
-                  ),
-                  minimumSize: const Size(0, 32),
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  textStyle: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
+              Expanded(child: Label(l.pickup_detail_location_km('2.4'))),
+              if (!hasDetail) ...[const SizedBox(width: 8), navButton],
             ],
           ),
+          if (hasDetail) ...[
+            const SizedBox(height: 4),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Text(
+                    detailText,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: T.inkSub,
+                      height: 1.35,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                navButton,
+              ],
+            ),
+          ],
           const SizedBox(height: 10),
           GestureDetector(
             onTap: _canNavigate ? () => _openNav(context) : null,
