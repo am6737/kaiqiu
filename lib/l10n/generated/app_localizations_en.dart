@@ -2040,4 +2040,45 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get rate_pitch_rate_teammates_cta => 'Rate this match';
+
+  @override
+  String get match_detail_title => 'Match';
+
+  @override
+  String get match_status_upcoming => 'Upcoming';
+
+  @override
+  String get match_status_live => 'Live';
+
+  @override
+  String get match_status_done => 'Finished';
+
+  @override
+  String get match_goals_section => 'Goals';
+
+  @override
+  String get match_goals_empty => 'No goals recorded';
+
+  @override
+  String get match_cta_rate => 'Rate players';
+
+  @override
+  String get match_cta_remind => 'Remind me';
+
+  @override
+  String get match_cta_reminded => 'Reminder set';
+
+  @override
+  String get match_own_goal => 'OG';
+
+  @override
+  String get match_penalty => 'Pen.';
+
+  @override
+  String match_assist_by(String name) {
+    return 'assist $name';
+  }
+
+  @override
+  String get match_not_found => 'Match not found';
 }

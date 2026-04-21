@@ -789,5 +789,20 @@
   "rate_pitch_not_registered": "Guest player",
   "rate_pitch_submitted_n": "{n} ratings submitted",
   "@rate_pitch_submitted_n": { "placeholders": { "n": { "type": "int" } } },
-  "rate_pitch_rate_teammates_cta": "Rate this match"
+  "rate_pitch_rate_teammates_cta": "Rate this match",
+
+  "match_detail_title": "Match",
+  "match_status_upcoming": "Upcoming",
+  "match_status_live": "Live",
+  "match_status_done": "Finished",
+  "match_goals_section": "Goals",
+  "match_goals_empty": "No goals recorded",
+  "match_cta_rate": "Rate players",
+  "match_cta_remind": "Remind me",
+  "match_cta_reminded": "Reminder set",
+  "match_own_goal": "OG",
+  "match_penalty": "Pen.",
+  "match_assist_by": "assist {name}",
+  "@match_assist_by": { "placeholders": { "name": { "type": "String" } } },
+  "match_not_found": "Match not found"
 }

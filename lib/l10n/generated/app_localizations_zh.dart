@@ -2016,4 +2016,45 @@ class AppL10nZh extends AppL10n {
 
   @override
   String get rate_pitch_rate_teammates_cta => '给本局打分';
+
+  @override
+  String get match_detail_title => '比赛详情';
+
+  @override
+  String get match_status_upcoming => '未开始';
+
+  @override
+  String get match_status_live => '进行中';
+
+  @override
+  String get match_status_done => '已结束';
+
+  @override
+  String get match_goals_section => '进球';
+
+  @override
+  String get match_goals_empty => '暂无进球';
+
+  @override
+  String get match_cta_rate => '去评分';
+
+  @override
+  String get match_cta_remind => '赛前提醒';
+
+  @override
+  String get match_cta_reminded => '已设置提醒';
+
+  @override
+  String get match_own_goal => '乌龙';
+
+  @override
+  String get match_penalty => '点球';
+
+  @override
+  String match_assist_by(String name) {
+    return '助攻 $name';
+  }
+
+  @override
+  String get match_not_found => '未找到该比赛';
 }

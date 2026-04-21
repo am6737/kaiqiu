@@ -5,6 +5,7 @@ import 'features/auth/sign_in_screen.dart';
 import 'features/create_event/create_event_screen.dart';
 import 'features/events/event_detail_screen.dart';
 import 'features/events/events_hub_screen.dart';
+import 'features/events/match_detail_screen.dart';
 import 'features/events/wc_live_screen.dart';
 import 'features/events/wc_predict_screen.dart';
 import 'features/events/world_cup_screen.dart';
@@ -101,6 +102,13 @@ final router = GoRouter(
     GoRoute(
       path: '/event/:id',
       builder: (_, s) => EventDetailScreen(id: s.pathParameters['id']!),
+    ),
+    GoRoute(
+      path: '/event/:eventId/match/:matchId',
+      builder: (_, s) => MatchDetailScreen(
+        eventId: s.pathParameters['eventId']!,
+        matchId: s.pathParameters['matchId']!,
+      ),
     ),
     GoRoute(path: '/worldcup', builder: (_, s) => const WorldCupScreen()),
     GoRoute(

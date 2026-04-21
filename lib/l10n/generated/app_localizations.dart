@@ -3900,6 +3900,84 @@ abstract class AppL10n {
   /// In zh, this message translates to:
   /// **'给本局打分'**
   String get rate_pitch_rate_teammates_cta;
+
+  /// No description provided for @match_detail_title.
+  ///
+  /// In zh, this message translates to:
+  /// **'比赛详情'**
+  String get match_detail_title;
+
+  /// No description provided for @match_status_upcoming.
+  ///
+  /// In zh, this message translates to:
+  /// **'未开始'**
+  String get match_status_upcoming;
+
+  /// No description provided for @match_status_live.
+  ///
+  /// In zh, this message translates to:
+  /// **'进行中'**
+  String get match_status_live;
+
+  /// No description provided for @match_status_done.
+  ///
+  /// In zh, this message translates to:
+  /// **'已结束'**
+  String get match_status_done;
+
+  /// No description provided for @match_goals_section.
+  ///
+  /// In zh, this message translates to:
+  /// **'进球'**
+  String get match_goals_section;
+
+  /// No description provided for @match_goals_empty.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无进球'**
+  String get match_goals_empty;
+
+  /// No description provided for @match_cta_rate.
+  ///
+  /// In zh, this message translates to:
+  /// **'去评分'**
+  String get match_cta_rate;
+
+  /// No description provided for @match_cta_remind.
+  ///
+  /// In zh, this message translates to:
+  /// **'赛前提醒'**
+  String get match_cta_remind;
+
+  /// No description provided for @match_cta_reminded.
+  ///
+  /// In zh, this message translates to:
+  /// **'已设置提醒'**
+  String get match_cta_reminded;
+
+  /// No description provided for @match_own_goal.
+  ///
+  /// In zh, this message translates to:
+  /// **'乌龙'**
+  String get match_own_goal;
+
+  /// No description provided for @match_penalty.
+  ///
+  /// In zh, this message translates to:
+  /// **'点球'**
+  String get match_penalty;
+
+  /// No description provided for @match_assist_by.
+  ///
+  /// In zh, this message translates to:
+  /// **'助攻 {name}'**
+  String match_assist_by(String name);
+
+  /// No description provided for @match_not_found.
+  ///
+  /// In zh, this message translates to:
+  /// **'未找到该比赛'**
+  String get match_not_found;
 }
 
 class _AppL10nDelegate extends LocalizationsDelegate<AppL10n> {

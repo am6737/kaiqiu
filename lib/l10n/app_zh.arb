@@ -789,5 +789,20 @@
   "rate_pitch_not_registered": "未注册球友",
   "rate_pitch_submitted_n": "已提交 {n} 条评分",
   "@rate_pitch_submitted_n": { "placeholders": { "n": { "type": "int" } } },
-  "rate_pitch_rate_teammates_cta": "给本局打分"
+  "rate_pitch_rate_teammates_cta": "给本局打分",
+
+  "match_detail_title": "比赛详情",
+  "match_status_upcoming": "未开始",
+  "match_status_live": "进行中",
+  "match_status_done": "已结束",
+  "match_goals_section": "进球",
+  "match_goals_empty": "暂无进球",
+  "match_cta_rate": "去评分",
+  "match_cta_remind": "赛前提醒",
+  "match_cta_reminded": "已设置提醒",
+  "match_own_goal": "乌龙",
+  "match_penalty": "点球",
+  "match_assist_by": "助攻 {name}",
+  "@match_assist_by": { "placeholders": { "name": { "type": "String" } } },
+  "match_not_found": "未找到该比赛"
 }

@@ -1,0 +1,559 @@
+// match_detail_screen.dart — 单场比赛详情
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../l10n/generated/app_localizations.dart';
+import '../../l10n/l10n_extension.dart';
+import '../../models/event.dart';
+import '../../providers.dart';
+import '../../repositories/goals_repository.dart';
+import '../../services/local_storage.dart';
+import '../../theme/tokens.dart';
+import '../../utils/toast.dart';
+import '../../widgets/primary_button.dart';
+import '../../widgets/typography.dart';
+
+class MatchDetailScreen extends ConsumerWidget {
+  final String eventId;
+  final String matchId;
+  const MatchDetailScreen({
+    super.key,
+    required this.eventId,
+    required this.matchId,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = context.l10n;
+    final matchesAsync = ref.watch(eventMatchesProvider(eventId));
+
+    return Scaffold(
+      backgroundColor: T.bg,
+      appBar: AppBar(
+        backgroundColor: T.bg,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, size: 18, color: T.ink),
+          onPressed: () => context.pop(),
+        ),
+        title: Text(
+          l.match_detail_title,
+          style: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+            color: T.ink,
+          ),
+        ),
+        shape: const Border(bottom: BorderSide(color: T.line, width: 1)),
+      ),
+      body: matchesAsync.when(
+        loading: () => const _Loading(),
+        error: (e, _) => _Error(error: e),
+        data: (matches) {
+          final match = _firstWhereOrNull(matches, (m) => m.id == matchId);
+          if (match == null) {
+            return Center(
+              child: Text(
+                l.match_not_found,
+                style: const TextStyle(color: T.inkSub, fontSize: 13),
+              ),
+            );
+          }
+          return _MatchDetailBody(match: match);
+        },
+      ),
+    );
+  }
+}
+
+E? _firstWhereOrNull<E>(Iterable<E> xs, bool Function(E) test) {
+  for (final x in xs) {
+    if (test(x)) return x;
+  }
+  return null;
+}
+
+// ─────────────────────────────────────────────────────────────
+// Body
+// ─────────────────────────────────────────────────────────────
+class _MatchDetailBody extends ConsumerWidget {
+  final Match match;
+  const _MatchDetailBody({required this.match});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final goalsAsync = ref.watch(matchGoalsProvider(match.id));
+    final status = _statusFor(match);
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.only(bottom: 120),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _HeaderCard(match: match, status: status),
+          const SizedBox(height: 8),
+          if (match.done)
+            goalsAsync.when(
+              loading: () => const _GoalsLoading(),
+              error: (e, _) => _GoalsError(error: e),
+              data: (goals) => _GoalsSection(goals: goals),
+            ),
+          const SizedBox(height: 24),
+          _BottomCtaArea(match: match, status: status),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Header: round label + status chip + teams/scores + time
+// ─────────────────────────────────────────────────────────────
+class _HeaderCard extends StatelessWidget {
+  final Match match;
+  final _MatchStatus status;
+  const _HeaderCard({required this.match, required this.status});
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    final sa = match.scoreA;
+    final sb = match.scoreB;
+    final aWins = match.done && sa != null && sb != null && sa > sb;
+    final bWins = match.done && sa != null && sb != null && sb > sa;
+    final timeStr = _formatPlayedAt(match.playedAt);
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
+      decoration: const BoxDecoration(
+        color: T.elev1,
+        border: Border(bottom: BorderSide(color: T.line, width: 1)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Label(_roundLabel(l, match.round)),
+              const Spacer(),
+              _StatusChip(status: status),
+            ],
+          ),
+          const SizedBox(height: 14),
+          _TeamRow(
+            name: match.teamALabel ?? 'TBD',
+            score: sa,
+            won: aWins,
+            done: match.done,
+          ),
+          const SizedBox(height: 10),
+          _TeamRow(
+            name: match.teamBLabel ?? 'TBD',
+            score: sb,
+            won: bWins,
+            done: match.done,
+          ),
+          if (match.pkScore != null) ...[
+            const SizedBox(height: 10),
+            Align(
+              alignment: Alignment.centerRight,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: T.warnDim,
+                  borderRadius: BorderRadius.circular(T.r1),
+                ),
+                child: Text(
+                  'PK ${match.pkScore}',
+                  style: const TextStyle(
+                    fontFamily: T.fontMono,
+                    fontFamilyFallback: T.monoFallbacks,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: T.warn,
+                  ),
+                ),
+              ),
+            ),
+          ],
+          if (timeStr != null) ...[
+            const SizedBox(height: 10),
+            Text(
+              timeStr,
+              style: const TextStyle(
+                fontFamily: T.fontMono,
+                fontFamilyFallback: T.monoFallbacks,
+                fontSize: 11,
+                color: T.inkDim,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _TeamRow extends StatelessWidget {
+  final String name;
+  final int? score;
+  final bool won;
+  final bool done;
+  const _TeamRow({
+    required this.name,
+    required this.score,
+    required this.won,
+    required this.done,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final nameColor = done ? (won ? T.ink : T.inkSub) : T.ink;
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            name,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 16,
+              color: nameColor,
+              fontWeight: won ? FontWeight.w700 : FontWeight.w500,
+            ),
+          ),
+        ),
+        if (done && score != null)
+          N(
+            '$score',
+            size: 22,
+            weight: FontWeight.w800,
+            color: won ? T.live : T.inkSub,
+          )
+        else
+          const Text('-', style: TextStyle(color: T.inkDim, fontSize: 16)),
+      ],
+    );
+  }
+}
+
+class _StatusChip extends StatelessWidget {
+  final _MatchStatus status;
+  const _StatusChip({required this.status});
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    final (bg, fg, text) = switch (status) {
+      _MatchStatus.upcoming => (T.elev3, T.inkSub, l.match_status_upcoming),
+      _MatchStatus.live => (T.liveDim, T.live, l.match_status_live),
+      _MatchStatus.done => (T.elev3, T.inkDim, l.match_status_done),
+    };
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(T.r1),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.6,
+          color: fg,
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Goals timeline
+// ─────────────────────────────────────────────────────────────
+class _GoalsSection extends StatelessWidget {
+  final List<GoalEvent> goals;
+  const _GoalsSection({required this.goals});
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Label(l.match_goals_section),
+          const SizedBox(height: 10),
+          if (goals.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(14),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: T.elev2,
+                border: Border.all(color: T.line),
+                borderRadius: BorderRadius.circular(T.r2),
+              ),
+              child: Text(
+                l.match_goals_empty,
+                style: const TextStyle(color: T.inkDim, fontSize: 12),
+              ),
+            )
+          else
+            for (final g in goals) _GoalRow(goal: g),
+        ],
+      ),
+    );
+  }
+}
+
+class _GoalRow extends StatelessWidget {
+  final GoalEvent goal;
+  const _GoalRow({required this.goal});
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: T.elev2,
+        border: Border.all(color: T.line),
+        borderRadius: BorderRadius.circular(T.r2),
+      ),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 40,
+            child: N(
+              goal.minute != null ? "${goal.minute}'" : '-',
+              size: 13,
+              weight: FontWeight.w700,
+              color: T.live,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  goal.scorerName ?? '—',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: T.ink,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (goal.assistId != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    l.match_assist_by(goal.assistId!),
+                    style: const TextStyle(fontSize: 11, color: T.inkSub),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ],
+            ),
+          ),
+          if (goal.isPenalty) _GoalTag(text: l.match_penalty, color: T.live),
+          if (goal.isOwnGoal) ...[
+            if (goal.isPenalty) const SizedBox(width: 6),
+            _GoalTag(text: l.match_own_goal, color: T.warn),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _GoalTag extends StatelessWidget {
+  final String text;
+  final Color color;
+  const _GoalTag({required this.text, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        border: Border.all(color: color),
+        borderRadius: BorderRadius.circular(T.r1),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+          color: color,
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Bottom CTA: rate (if done) / remind toggle (if upcoming)
+// ─────────────────────────────────────────────────────────────
+class _BottomCtaArea extends ConsumerStatefulWidget {
+  final Match match;
+  final _MatchStatus status;
+  const _BottomCtaArea({required this.match, required this.status});
+
+  @override
+  ConsumerState<_BottomCtaArea> createState() => _BottomCtaAreaState();
+}
+
+class _BottomCtaAreaState extends ConsumerState<_BottomCtaArea> {
+  Future<void> _toggleReminder() async {
+    final repo = ref.read(remindersRepoProvider);
+    final matchId = widget.match.id;
+    final playedAt = widget.match.playedAt;
+    try {
+      if (LocalStore.hasReminder(matchId)) {
+        await repo.cancel(matchId);
+      } else {
+        final remindAt = playedAt != null
+            ? playedAt.subtract(const Duration(hours: 1))
+            : DateTime.now().add(const Duration(hours: 1));
+        await repo.schedule(matchId: matchId, remindAt: remindAt);
+      }
+      if (!mounted) return;
+      setState(() {});
+      showToast(
+        context,
+        LocalStore.hasReminder(matchId)
+            ? context.l10n.match_cta_reminded
+            : context.l10n.match_cta_remind,
+        success: LocalStore.hasReminder(matchId),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      showToast(context, '$e', error: true);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    ref.watch(localStoreProvider);
+
+    if (widget.status == _MatchStatus.done) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: PrimaryButton(
+          label: l.match_cta_rate,
+          full: true,
+          size: BtnSize.lg,
+          onPressed: () => context.push('/rate/${widget.match.id}'),
+        ),
+      );
+    }
+
+    if (widget.status == _MatchStatus.upcoming) {
+      final set = LocalStore.hasReminder(widget.match.id);
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: PrimaryButton(
+          label: set ? l.match_cta_reminded : l.match_cta_remind,
+          full: true,
+          size: BtnSize.lg,
+          variant: set ? BtnVariant.secondary : BtnVariant.primary,
+          onPressed: _toggleReminder,
+        ),
+      );
+    }
+
+    // Live (kicked off but not done) — no CTA for now.
+    return const SizedBox.shrink();
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Loading / error states
+// ─────────────────────────────────────────────────────────────
+class _Loading extends StatelessWidget {
+  const _Loading();
+  @override
+  Widget build(BuildContext context) => const Center(
+    child: SizedBox(
+      width: 22,
+      height: 22,
+      child: CircularProgressIndicator(color: T.live, strokeWidth: 2),
+    ),
+  );
+}
+
+class _Error extends StatelessWidget {
+  final Object error;
+  const _Error({required this.error});
+  @override
+  Widget build(BuildContext context) => Center(
+    child: Padding(
+      padding: const EdgeInsets.all(24),
+      child: Text(
+        '$error',
+        style: const TextStyle(color: T.inkDim, fontSize: 12),
+        textAlign: TextAlign.center,
+      ),
+    ),
+  );
+}
+
+class _GoalsLoading extends StatelessWidget {
+  const _GoalsLoading();
+  @override
+  Widget build(BuildContext context) => const Padding(
+    padding: EdgeInsets.symmetric(vertical: 24),
+    child: Center(
+      child: SizedBox(
+        width: 18,
+        height: 18,
+        child: CircularProgressIndicator(color: T.inkDim, strokeWidth: 2),
+      ),
+    ),
+  );
+}
+
+class _GoalsError extends StatelessWidget {
+  final Object error;
+  const _GoalsError({required this.error});
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.all(16),
+    child: Text(
+      '$error',
+      style: const TextStyle(color: T.inkDim, fontSize: 11),
+    ),
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────────────────────
+enum _MatchStatus { upcoming, live, done }
+
+_MatchStatus _statusFor(Match m) {
+  if (m.done) return _MatchStatus.done;
+  final at = m.playedAt;
+  if (at != null && at.isAfter(DateTime.now())) return _MatchStatus.upcoming;
+  return _MatchStatus.live;
+}
+
+String _roundLabel(AppL10n l, String? round) => switch (round) {
+  'qf' => l.event_bracket_qf,
+  'sf' => l.event_bracket_sf,
+  'final' => l.event_bracket_final,
+  _ => l.match_detail_title,
+};
+
+String? _formatPlayedAt(DateTime? at) {
+  if (at == null) return null;
+  final mm = at.month.toString().padLeft(2, '0');
+  final dd = at.day.toString().padLeft(2, '0');
+  final hh = at.hour.toString().padLeft(2, '0');
+  final mi = at.minute.toString().padLeft(2, '0');
+  return '$mm-$dd $hh:$mi';
+}
