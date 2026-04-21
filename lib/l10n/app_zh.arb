@@ -868,5 +868,13 @@
   "match_penalty": "点球",
   "match_assist_by": "助攻 {name}",
   "@match_assist_by": { "placeholders": { "name": { "type": "String" } } },
-  "match_not_found": "未找到该比赛"
+  "match_not_found": "未找到该比赛",
+  "event_standings_leaders_label": "榜首之争",
+  "event_standings_leader_top": "榜首",
+  "event_standings_leader_runner": "次席",
+  "event_standings_points_diff": "积分差 {n}",
+  "@event_standings_points_diff": { "placeholders": { "n": { "type": "int" } } },
+  "event_scorers_golden_boot": "金靴得主",
+  "event_scorers_per_match": "场均 {avg} 球",
+  "@event_scorers_per_match": { "placeholders": { "avg": { "type": "String" } } }
 }

@@ -2221,4 +2221,26 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get match_not_found => 'Match not found';
+
+  @override
+  String get event_standings_leaders_label => 'League Leaders';
+
+  @override
+  String get event_standings_leader_top => '1st';
+
+  @override
+  String get event_standings_leader_runner => '2nd';
+
+  @override
+  String event_standings_points_diff(int n) {
+    return '$n points apart';
+  }
+
+  @override
+  String get event_scorers_golden_boot => 'Golden Boot';
+
+  @override
+  String event_scorers_per_match(String avg) {
+    return '$avg / match';
+  }
 }

@@ -2196,4 +2196,26 @@ class AppL10nZh extends AppL10n {
 
   @override
   String get match_not_found => '未找到该比赛';
+
+  @override
+  String get event_standings_leaders_label => '榜首之争';
+
+  @override
+  String get event_standings_leader_top => '榜首';
+
+  @override
+  String get event_standings_leader_runner => '次席';
+
+  @override
+  String event_standings_points_diff(int n) {
+    return '积分差 $n';
+  }
+
+  @override
+  String get event_scorers_golden_boot => '金靴得主';
+
+  @override
+  String event_scorers_per_match(String avg) {
+    return '场均 $avg 球';
+  }
 }

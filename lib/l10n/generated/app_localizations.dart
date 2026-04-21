@@ -4230,6 +4230,42 @@ abstract class AppL10n {
   /// In zh, this message translates to:
   /// **'未找到该比赛'**
   String get match_not_found;
+
+  /// No description provided for @event_standings_leaders_label.
+  ///
+  /// In zh, this message translates to:
+  /// **'榜首之争'**
+  String get event_standings_leaders_label;
+
+  /// No description provided for @event_standings_leader_top.
+  ///
+  /// In zh, this message translates to:
+  /// **'榜首'**
+  String get event_standings_leader_top;
+
+  /// No description provided for @event_standings_leader_runner.
+  ///
+  /// In zh, this message translates to:
+  /// **'次席'**
+  String get event_standings_leader_runner;
+
+  /// No description provided for @event_standings_points_diff.
+  ///
+  /// In zh, this message translates to:
+  /// **'积分差 {n}'**
+  String event_standings_points_diff(int n);
+
+  /// No description provided for @event_scorers_golden_boot.
+  ///
+  /// In zh, this message translates to:
+  /// **'金靴得主'**
+  String get event_scorers_golden_boot;
+
+  /// No description provided for @event_scorers_per_match.
+  ///
+  /// In zh, this message translates to:
+  /// **'场均 {avg} 球'**
+  String event_scorers_per_match(String avg);
 }
 
 class _AppL10nDelegate extends LocalizationsDelegate<AppL10n> {
