@@ -225,53 +225,59 @@ class _Header extends StatelessWidget {
             ),
           ),
         ),
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 0,
-          child: Container(
-            padding: const EdgeInsets.all(16),
+        const Positioned.fill(
+          child: DecoratedBox(
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [Color(0x00000000), Color(0xF20A0A0A)],
-                stops: [0, 0.8],
+                stops: [0.0, 0.45, 1.0],
+                colors: [
+                  Color(0x33000000),
+                  Color(0x66000000),
+                  Color(0xCC000000),
+                ],
               ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: dotColor,
-                        shape: BoxShape.circle,
-                      ),
+          ),
+        ),
+        Positioned(
+          left: 16,
+          right: 16,
+          bottom: 16,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: dotColor,
+                      shape: BoxShape.circle,
                     ),
-                    const SizedBox(width: 6),
-                    Label(pillText, color: pillColor),
-                    if (event.sub != null && event.sub!.isNotEmpty) ...[
-                      const SizedBox(width: 8),
-                      Label('· ${event.sub!}', color: const Color(0xCCFFFFFF)),
-                    ],
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  event.name,
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFFFFFFFF),
-                    letterSpacing: -0.4,
                   ),
+                  const SizedBox(width: 6),
+                  Label(pillText, color: pillColor),
+                  if (event.sub != null && event.sub!.isNotEmpty) ...[
+                    const SizedBox(width: 8),
+                    Label('· ${event.sub!}', color: const Color(0xCCFFFFFF)),
+                  ],
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                event.name,
+                style: const TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFFFFFFFF),
+                  letterSpacing: -0.6,
+                  height: 1.1,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ],
