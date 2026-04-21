@@ -1,4 +1,4 @@
-// bottom_nav_shell.dart — 5-tab bottom nav, wraps StatefulShellRoute children
+// bottom_nav_shell.dart — 4-tab bottom nav, wraps StatefulShellRoute children
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
