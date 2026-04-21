@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_tokens.dart';
 
+/// 一条弹幕的数据载体。
 class DanmakuItem {
   final String user;
   final String text;
@@ -61,6 +62,15 @@ class _DanmakuOverlayState extends State<DanmakuOverlay>
   }
 
   @override
+  void didUpdateWidget(DanmakuOverlay old) {
+    super.didUpdateWidget(old);
+    if (widget.stream != old.stream) {
+      _sub?.cancel();
+      _sub = widget.stream.listen(_onItem);
+    }
+  }
+
+  @override
   void dispose() {
     _sub?.cancel();
     for (final d in _active) {
@@ -77,10 +87,11 @@ class _DanmakuOverlayState extends State<DanmakuOverlay>
     final active = _ActiveDanmu(item: item, track: 0, controller: c);
     c.addStatusListener((s) {
       if (s == AnimationStatus.completed) {
-        if (!mounted) return;
-        setState(() {
-          _active.remove(active);
-        });
+        if (!mounted) {
+          return; // State.dispose will handle the controller.
+        }
+        // Remove from active list; controller can now be safely disposed.
+        setState(() => _active.remove(active));
         c.dispose();
       }
     });
@@ -165,15 +176,20 @@ class _MeasureSize extends StatefulWidget {
 
 class _MeasureSizeState extends State<_MeasureSize> {
   final GlobalKey _key = GlobalKey();
+  bool _measured = false;
 
   @override
   Widget build(BuildContext context) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final box = _key.currentContext?.findRenderObject() as RenderBox?;
-      if (box != null && box.hasSize) {
-        widget.onMeasured(box.size.width);
-      }
-    });
-    return Container(key: _key, child: widget.child);
+    if (!_measured) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final box = _key.currentContext?.findRenderObject() as RenderBox?;
+        if (box != null && box.hasSize) {
+          _measured = true;
+          widget.onMeasured(box.size.width);
+        }
+      });
+    }
+    return KeyedSubtree(key: _key, child: widget.child);
   }
 }

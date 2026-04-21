@@ -49,5 +49,27 @@ void main() {
       // Let animations finish so the widget tree is clean on dispose.
       await tester.pump(const Duration(seconds: 10));
     });
+
+    testWidgets('renders a self-authored danmu with accent pill', (tester) async {
+      final ctrl = StreamController<DanmakuItem>.broadcast();
+      addTearDown(ctrl.close);
+
+      await tester.pumpWidget(_wrap(DanmakuOverlay(stream: ctrl.stream)));
+      await tester.pump();
+
+      ctrl.add(const DanmakuItem(user: 'Me', text: 'mine', self: true));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.text('mine'), findsOneWidget);
+      // Confirm the pill container exists: find a DecoratedBox ancestor of the text.
+      final decorated = find.ancestor(
+        of: find.text('mine'),
+        matching: find.byType(DecoratedBox),
+      );
+      expect(decorated, findsWidgets);
+
+      await tester.pump(const Duration(seconds: 10));
+    });
   });
 }
