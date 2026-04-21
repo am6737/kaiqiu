@@ -912,6 +912,8 @@ class _StandingsTable extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 14),
       child: Column(
         children: [
+          if (rows.length >= 2)
+            _StandingsHero(top: rows[0], runner: rows[1], allMatches: matches),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
             child: Row(
@@ -2125,4 +2127,155 @@ String _deterministicViewers(String eventId) {
   if (n >= 10000) return '${(n / 10000).toStringAsFixed(1)}w';
   if (n >= 1000) return '${(n / 1000).toStringAsFixed(1)}K';
   return '$n';
+}
+
+class _StandingsHero extends StatelessWidget {
+  final StandingRow top;
+  final StandingRow runner;
+  final List<Match> allMatches;
+
+  const _StandingsHero({
+    required this.top,
+    required this.runner,
+    required this.allMatches,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    final diff = top.pts - runner.pts;
+    final accent = context.tokens.accent;
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 14, 16, 10),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      decoration: BoxDecoration(
+        color: context.tokens.elev2,
+        border: Border.all(color: accent.withAlpha(0x66)),
+        borderRadius: BorderRadius.circular(context.tokens.r3),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Label(l.event_standings_leaders_label),
+              const Spacer(),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: _StandingsHeroSide(
+                  standing: top,
+                  subLabel: l.event_standings_leader_top,
+                  subLabelColor: accent,
+                  allMatches: allMatches,
+                ),
+              ),
+              SizedBox(
+                width: 110,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        N(
+                          '${top.pts}',
+                          size: 40,
+                          weight: FontWeight.w800,
+                          color: accent,
+                        ),
+                        Text(
+                          ' - ',
+                          style: TextStyle(
+                            color: context.tokens.inkDim,
+                            fontSize: 18,
+                          ),
+                        ),
+                        N(
+                          '${runner.pts}',
+                          size: 40,
+                          weight: FontWeight.w800,
+                          color: context.tokens.ink,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Label(l.event_standings_points_diff(diff)),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: _StandingsHeroSide(
+                  standing: runner,
+                  subLabel: l.event_standings_leader_runner,
+                  subLabelColor: context.tokens.inkSub,
+                  allMatches: allMatches,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StandingsHeroSide extends StatelessWidget {
+  final StandingRow standing;
+  final String subLabel;
+  final Color subLabelColor;
+  final List<Match> allMatches;
+
+  const _StandingsHeroSide({
+    required this.standing,
+    required this.subLabel,
+    required this.subLabelColor,
+    required this.allMatches,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final radius = BorderRadius.circular(context.tokens.r2);
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: radius,
+        onTap: () => _showTeamSheet(
+          context,
+          standing: standing,
+          allMatches: allMatches,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TeamBadge(
+                name: standing.team,
+                logoUrl: DemoTeamAssets.forTeamName(standing.team).logoUrl,
+                size: 72,
+              ),
+              const SizedBox(height: 6),
+              Text(
+                standing.team,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: context.tokens.ink,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Label(subLabel, color: subLabelColor),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
