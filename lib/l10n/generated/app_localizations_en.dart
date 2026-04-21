@@ -902,12 +902,6 @@ class AppL10nEn extends AppL10n {
   String get messages_new_group => 'New group';
 
   @override
-  String get messages_new_scan => 'Scan to join';
-
-  @override
-  String get messages_new_contact_organizer => 'Contact organizer';
-
-  @override
   String get messages_new_group_title_hint => 'Group name';
 
   @override

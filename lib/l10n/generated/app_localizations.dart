@@ -1783,18 +1783,6 @@ abstract class AppL10n {
   /// **'新建群聊'**
   String get messages_new_group;
 
-  /// No description provided for @messages_new_scan.
-  ///
-  /// In zh, this message translates to:
-  /// **'扫码加群'**
-  String get messages_new_scan;
-
-  /// No description provided for @messages_new_contact_organizer.
-  ///
-  /// In zh, this message translates to:
-  /// **'联系组织者'**
-  String get messages_new_contact_organizer;
-
   /// No description provided for @messages_new_group_title_hint.
   ///
   /// In zh, this message translates to:

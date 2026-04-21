@@ -892,12 +892,6 @@ class AppL10nZh extends AppL10n {
   String get messages_new_group => '新建群聊';
 
   @override
-  String get messages_new_scan => '扫码加群';
-
-  @override
-  String get messages_new_contact_organizer => '联系组织者';
-
-  @override
   String get messages_new_group_title_hint => '群聊名称';
 
   @override

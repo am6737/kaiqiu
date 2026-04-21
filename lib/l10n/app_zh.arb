@@ -350,8 +350,6 @@
   "messages_empty_sub": "去约球或赛事里，发现更多同城球友",
   "messages_new_sheet_title": "新建",
   "messages_new_group": "新建群聊",
-  "messages_new_scan": "扫码加群",
-  "messages_new_contact_organizer": "联系组织者",
   "messages_new_group_title_hint": "群聊名称",
   "messages_new_created": "已创建对话",
   "messages_new_failed": "创建失败",
