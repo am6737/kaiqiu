@@ -1,4 +1,4 @@
-// wc_live_screen.dart — 世界杯直播（占位 player + 弹幕）
+// wc_live_screen.dart — 世界杯直播（真实 HLS 流 + 弹幕）
 import 'dart:async';
 import 'dart:math';
 
@@ -12,6 +12,7 @@ import '../../services/local_storage.dart';
 import '../../theme/tokens.dart';
 import '../../utils/toast.dart';
 import '../../widgets/live_pill.dart';
+import '../../widgets/live_stream_player.dart';
 import '../../widgets/typography.dart';
 
 class WcLiveScreen extends ConsumerStatefulWidget {
@@ -67,7 +68,6 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
         _viewers += r.nextInt(50) - 10;
         if (_viewers < 0) _viewers = 0;
         _minute = (_minute + 1).clamp(0, 90);
-        // tiny chance to bump score
         if (r.nextInt(60) == 0) {
           if (r.nextBool()) {
             _scoreA++;
@@ -75,7 +75,6 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
             _scoreB++;
           }
         }
-        // occasional bot danmu
         if (r.nextInt(3) == 0) {
           _danmus.insert(
             0,
@@ -118,149 +117,74 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
         ? '${(_viewers / 1000).toStringAsFixed(1)}K'
         : '$_viewers';
     final hasReminder = LocalStore.hasReminder(widget.matchId);
+    final scoreOverlay = l.wc_live_score_overlay(
+      'ARG',
+      '$_scoreA',
+      '$_scoreB',
+      'BRA',
+      '$_minute',
+    );
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
         top: false,
         child: Column(
           children: [
-            // Player area
-            Stack(
-              children: [
-                Container(
-                  height: 240,
-                  width: double.infinity,
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [Color(0xFF0E1712), Color(0xFF050808)],
+            LiveStreamPlayer(
+              height: 240,
+              scoreOverlay: scoreOverlay,
+              topLeft: _BackButton(onTap: () => context.pop()),
+              topRight: _ReminderButton(
+                hasReminder: hasReminder,
+                label: l.wc_btn_remind,
+                onTap: () async {
+                  final repo = ref.read(remindersRepoProvider);
+                  if (LocalStore.hasReminder(widget.matchId)) {
+                    await repo.cancel(widget.matchId);
+                  } else {
+                    await repo.schedule(
+                      matchId: widget.matchId,
+                      remindAt: DateTime.now().add(const Duration(hours: 1)),
+                    );
+                  }
+                  if (!context.mounted) return;
+                  showToast(
+                    context,
+                    LocalStore.hasReminder(widget.matchId)
+                        ? l.wc_remind_set
+                        : l.wc_remind_unset,
+                    success: true,
+                  );
+                  setState(() {});
+                },
+              ),
+              bottomLeftOverlay: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const LivePill(),
+                  const SizedBox(width: 6),
+                  Label('$_minute\'', color: Colors.white),
+                ],
+              ),
+              bottomRightOverlay: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.remove_red_eye,
+                    size: 14,
+                    color: Colors.white.withValues(alpha: 0.85),
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    l.wc_live_viewer_count(viewerStr),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                  child: CustomPaint(
-                    painter: _StreamPainter(_minute),
-                    child: const Center(
-                      child: Icon(
-                        Icons.play_circle_outline,
-                        size: 56,
-                        color: Colors.white30,
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  top: 40,
-                  left: 12,
-                  child: GestureDetector(
-                    onTap: () => context.pop(),
-                    child: Container(
-                      width: 36,
-                      height: 36,
-                      alignment: Alignment.center,
-                      decoration: const BoxDecoration(
-                        color: Color(0x80000000),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.arrow_back_ios_new,
-                        size: 16,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  top: 40,
-                  right: 12,
-                  child: Row(
-                    children: [
-                      GestureDetector(
-                        onTap: () async {
-                          final repo = ref.read(remindersRepoProvider);
-                          if (LocalStore.hasReminder(widget.matchId)) {
-                            await repo.cancel(widget.matchId);
-                          } else {
-                            await repo.schedule(
-                              matchId: widget.matchId,
-                              remindAt: DateTime.now().add(
-                                const Duration(hours: 1),
-                              ),
-                            );
-                          }
-                          if (context.mounted) {
-                            showToast(
-                              context,
-                              LocalStore.hasReminder(widget.matchId)
-                                  ? l.wc_remind_set
-                                  : l.wc_remind_unset,
-                              success: true,
-                            );
-                          }
-                          setState(() {});
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0x80000000),
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                hasReminder
-                                    ? Icons.notifications_active
-                                    : Icons.notifications_none,
-                                size: 14,
-                                color: hasReminder ? T.live : Colors.white,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                l.wc_btn_remind,
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Positioned(
-                  bottom: 10,
-                  left: 14,
-                  right: 14,
-                  child: Row(
-                    children: [
-                      const LivePill(),
-                      const SizedBox(width: 6),
-                      Label('$_minute\'', color: Colors.white),
-                      const Spacer(),
-                      Icon(
-                        Icons.remove_red_eye,
-                        size: 14,
-                        color: Colors.white.withValues(alpha: 0.8),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        l.wc_live_viewer_count(viewerStr),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
             // Score bar
             Container(
@@ -438,6 +362,76 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
   }
 }
 
+class _BackButton extends StatelessWidget {
+  final VoidCallback onTap;
+  const _BackButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 36,
+        height: 36,
+        alignment: Alignment.center,
+        decoration: const BoxDecoration(
+          color: Color(0x80000000),
+          shape: BoxShape.circle,
+        ),
+        child: const Icon(
+          Icons.arrow_back_ios_new,
+          size: 16,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+}
+
+class _ReminderButton extends StatelessWidget {
+  final bool hasReminder;
+  final String label;
+  final VoidCallback onTap;
+  const _ReminderButton({
+    required this.hasReminder,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: const Color(0x80000000),
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              hasReminder ? Icons.notifications_active : Icons.notifications_none,
+              size: 14,
+              color: hasReminder ? T.live : Colors.white,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _TeamBadge extends StatelessWidget {
   final String name, label;
   final double hue;
@@ -502,32 +496,4 @@ class _Danmu {
     required this.at,
     required this.self,
   });
-}
-
-class _StreamPainter extends CustomPainter {
-  final int minute;
-  _StreamPainter(this.minute);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    // Faux pitch: center circle, halfway line
-    final fg = Paint()
-      ..color = Colors.white.withValues(alpha: 0.08)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.4;
-    final cx = size.width / 2;
-    final cy = size.height / 2;
-    canvas.drawCircle(Offset(cx, cy), 36, fg);
-    canvas.drawLine(Offset(cx, 10), Offset(cx, size.height - 10), fg);
-    // Progress bar at bottom
-    final bar = Paint()..color = Colors.white.withValues(alpha: 0.10);
-    final done = Paint()..color = T.live;
-    final y = size.height - 30;
-    canvas.drawRect(Rect.fromLTWH(24, y, size.width - 48, 3), bar);
-    final pct = (minute / 90).clamp(0.0, 1.0);
-    canvas.drawRect(Rect.fromLTWH(24, y, (size.width - 48) * pct, 3), done);
-  }
-
-  @override
-  bool shouldRepaint(covariant _StreamPainter old) => old.minute != minute;
 }
