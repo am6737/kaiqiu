@@ -578,52 +578,13 @@ class AppL10nEn extends AppL10n {
   String get event_register_success => 'Submitted · awaiting review';
 
   @override
-  String get event_rating_view_this_match => 'This match';
-
-  @override
-  String get event_rating_view_event => 'Event leaderboard';
-
-  @override
   String get event_rating_team_all => 'All';
-
-  @override
-  String get event_rating_no_matches =>
-      'No finished matches yet · see event leaderboard';
-
-  @override
-  String get event_rating_pick_match => 'Pick a match';
 
   @override
   String get event_rating_mvp => 'MVP';
 
   @override
-  String event_rating_goals_assists(int g, int a) {
-    return '${g}G ${a}A';
-  }
-
-  @override
-  String event_rating_filter_count(int n) {
-    return '$n';
-  }
-
-  @override
-  String get event_rating_panel_subtitle => 'Event leaderboard';
-
-  @override
-  String event_rating_players_count(int n) {
-    return '$n players rated';
-  }
-
-  @override
-  String event_rating_votes_count(int n) {
-    return '$n votes';
-  }
-
-  @override
   String get event_rating_tap_for_detail => '· Tap a player for details ·';
-
-  @override
-  String get event_rating_you_badge => 'You';
 
   @override
   String event_rating_players_voted(int n) {
@@ -2203,10 +2164,19 @@ class AppL10nEn extends AppL10n {
   String get match_cta_rate => 'Rate players';
 
   @override
+  String get match_cta_view_ratings => 'View match ratings';
+
+  @override
   String get match_cta_remind => 'Remind me';
 
   @override
   String get match_cta_reminded => 'Reminder set';
+
+  @override
+  String get match_ratings_title => 'Match ratings';
+
+  @override
+  String get match_ratings_go_rate => 'Rate this match';
 
   @override
   String get match_own_goal => 'OG';

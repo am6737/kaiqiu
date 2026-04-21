@@ -572,51 +572,13 @@ class AppL10nZh extends AppL10n {
   String get event_register_success => '报名已提交，等待组委会审核';
 
   @override
-  String get event_rating_view_this_match => '本场比赛评分';
-
-  @override
-  String get event_rating_view_event => '本赛事评分榜';
-
-  @override
   String get event_rating_team_all => '全部';
-
-  @override
-  String get event_rating_no_matches => '还没有完赛比赛，先看赛事评分榜';
-
-  @override
-  String get event_rating_pick_match => '选择比赛';
 
   @override
   String get event_rating_mvp => 'MVP';
 
   @override
-  String event_rating_goals_assists(int g, int a) {
-    return '$g球$a助';
-  }
-
-  @override
-  String event_rating_filter_count(int n) {
-    return '$n';
-  }
-
-  @override
-  String get event_rating_panel_subtitle => '本赛事评分榜';
-
-  @override
-  String event_rating_players_count(int n) {
-    return '$n 位球员被评分';
-  }
-
-  @override
-  String event_rating_votes_count(int n) {
-    return '$n 人次';
-  }
-
-  @override
   String get event_rating_tap_for_detail => '· 点击球员查看评分详情 ·';
-
-  @override
-  String get event_rating_you_badge => '你';
 
   @override
   String event_rating_players_voted(int n) {
@@ -2178,10 +2140,19 @@ class AppL10nZh extends AppL10n {
   String get match_cta_rate => '去评分';
 
   @override
+  String get match_cta_view_ratings => '查看本场评分';
+
+  @override
   String get match_cta_remind => '赛前提醒';
 
   @override
   String get match_cta_reminded => '已设置提醒';
+
+  @override
+  String get match_ratings_title => '本场评分';
+
+  @override
+  String get match_ratings_go_rate => '我也来评一下';
 
   @override
   String get match_own_goal => '乌龙';

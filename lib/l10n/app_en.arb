@@ -205,31 +205,9 @@
   "event_register_phone": "Phone",
   "event_register_submit": "Submit",
   "event_register_success": "Submitted · awaiting review",
-  "event_rating_view_this_match": "This match",
-  "event_rating_view_event": "Event leaderboard",
   "event_rating_team_all": "All",
-  "event_rating_no_matches": "No finished matches yet · see event leaderboard",
-  "event_rating_pick_match": "Pick a match",
   "event_rating_mvp": "MVP",
-  "event_rating_goals_assists": "{g}G {a}A",
-  "@event_rating_goals_assists": {
-    "placeholders": { "g": { "type": "int" }, "a": { "type": "int" } }
-  },
-  "event_rating_filter_count": "{n}",
-  "@event_rating_filter_count": {
-    "placeholders": { "n": { "type": "int" } }
-  },
-  "event_rating_panel_subtitle": "Event leaderboard",
-  "event_rating_players_count": "{n} players rated",
-  "@event_rating_players_count": {
-    "placeholders": { "n": { "type": "int" } }
-  },
-  "event_rating_votes_count": "{n} votes",
-  "@event_rating_votes_count": {
-    "placeholders": { "n": { "type": "int" } }
-  },
   "event_rating_tap_for_detail": "· Tap a player for details ·",
-  "event_rating_you_badge": "You",
   "event_rating_players_voted": "{n} voters",
   "@event_rating_players_voted": {
     "placeholders": { "n": { "type": "int" } }
@@ -862,8 +840,11 @@
   "match_goals_section": "Goals",
   "match_goals_empty": "No goals recorded",
   "match_cta_rate": "Rate players",
+  "match_cta_view_ratings": "View match ratings",
   "match_cta_remind": "Remind me",
   "match_cta_reminded": "Reminder set",
+  "match_ratings_title": "Match ratings",
+  "match_ratings_go_rate": "Rate this match",
   "match_own_goal": "OG",
   "match_penalty": "Pen.",
   "match_assist_by": "assist {name}",
