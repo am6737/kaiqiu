@@ -1393,12 +1393,6 @@ class AppL10nZh extends AppL10n {
   String get notif_demo_event_b => '16 队淘汰制，奖金 2 万，截止 05-25。';
 
   @override
-  String get notif_demo_credit_t => '+5 信用分';
-
-  @override
-  String get notif_demo_credit_b => '感谢你完成了最近一场评分。';
-
-  @override
   String get notif_demo_follow_t => '老王 关注了你';
 
   @override
@@ -1565,9 +1559,6 @@ class AppL10nZh extends AppL10n {
   }
 
   @override
-  String get rate_done_credit => '+5 信用分';
-
-  @override
   String get rate_done_more => '再评一场';
 
   @override
@@ -1619,9 +1610,6 @@ class AppL10nZh extends AppL10n {
 
   @override
   String get home_rate_banner_sub => '龙岗村超 · 1/4决赛 · 9 位球员待评';
-
-  @override
-  String get home_rate_banner_credit => '+5 信用';
 
   @override
   String get home_host_pickup => '发起约球';
@@ -1697,11 +1685,8 @@ class AppL10nZh extends AppL10n {
 
   @override
   String rate_done_thanks_body(int n) {
-    return '感谢你给 $n 位球员打了分。\n贡献有效评分可获得 ';
+    return '感谢你给 $n 位球员打了分。';
   }
-
-  @override
-  String get rate_done_credit_suffix => '+5 信用分';
 
   @override
   String get rate_done_view_leaderboard => '查看评分榜';
@@ -1948,11 +1933,6 @@ class AppL10nZh extends AppL10n {
   @override
   String pickup_detail_host_stats(int n, int rate) {
     return '发起过 $n 场 · 准时率 $rate%';
-  }
-
-  @override
-  String pickup_detail_credit_n(int n) {
-    return '信用 $n';
   }
 
   @override

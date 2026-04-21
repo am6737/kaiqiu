@@ -652,25 +652,12 @@ class _DonePage extends StatelessWidget {
                 const SizedBox(height: 6),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 40),
-                  child: Text.rich(
-                    TextSpan(
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: T.inkSub,
-                        height: 1.5,
-                      ),
-                      children: [
-                        TextSpan(
-                          text: context.l10n.rate_done_thanks_body(count),
-                        ),
-                        TextSpan(
-                          text: context.l10n.rate_done_credit_suffix,
-                          style: const TextStyle(
-                            color: T.live,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
+                  child: Text(
+                    context.l10n.rate_done_thanks_body(count),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: T.inkSub,
+                      height: 1.5,
                     ),
                     textAlign: TextAlign.center,
                   ),

@@ -46,7 +46,8 @@ create policy "profiles public read" on public.profiles for select using (true);
 create policy "profiles self update" on public.profiles for update using (auth.uid() = id);
 
 -- handle_new_user: SECURITY DEFINER 必须设 search_path，否则找不到 public.profiles；
--- 捕获所有异常避免因 profile 失败阻塞 auth.users 的注册流程。
+-- insert 用 on conflict 保证幂等（重复触发或手动 backfill 后不会报错）；
+-- 外层再兜一次 exception，防止 profile 创建意外阻塞 auth.users 的注册流程。
 create function public.handle_new_user()
   returns trigger
   language plpgsql
@@ -58,7 +59,8 @@ begin
   values (
     new.id,
     coalesce(new.raw_user_meta_data->>'name', '新球友')
-  );
+  )
+  on conflict (id) do nothing;
   return new;
 exception when others then
   return new;
@@ -410,6 +412,14 @@ begin
     raise exception 'Not authenticated';
   end if;
 
+  -- 自愈：handle_new_user trigger 可能漏掉的孤儿用户在此补齐 profile，
+  -- 避免后续 insert conversation_members 时触发 FK 约束失败。
+  insert into profiles (id, name)
+  select u.id, coalesce(u.raw_user_meta_data->>'name', '新球友')
+  from auth.users u
+  where u.id = v_user
+  on conflict (id) do nothing;
+
   select conv_id into v_conv
     from conversation_members
     where user_id = v_user
@@ -451,6 +461,13 @@ begin
   if v_user is null then
     raise exception 'Not authenticated';
   end if;
+
+  -- 自愈：见 ensure_demo_conversation 的同段注释。
+  insert into profiles (id, name)
+  select u.id, coalesce(u.raw_user_meta_data->>'name', '新球友')
+  from auth.users u
+  where u.id = v_user
+  on conflict (id) do nothing;
 
   select id into v_conv from conversations where title = v_title limit 1;
 

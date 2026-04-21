@@ -533,8 +533,6 @@
   "notif_demo_pickup_b": "莲花山足球场 · 点击查看阵型。",
   "notif_demo_event_t": "2026 龙岗夏季杯开始报名",
   "notif_demo_event_b": "16 队淘汰制，奖金 2 万，截止 05-25。",
-  "notif_demo_credit_t": "+5 信用分",
-  "notif_demo_credit_b": "感谢你完成了最近一场评分。",
   "notif_demo_follow_t": "老王 关注了你",
   "notif_demo_follow_b": "互相关注后即可私信。",
 
@@ -602,7 +600,6 @@
   "@rate_done_sub": {
     "placeholders": { "n": { "type": "int" } }
   },
-  "rate_done_credit": "+5 信用分",
   "rate_done_more": "再评一场",
   "rate_done_back": "回到赛事",
 
@@ -630,7 +627,6 @@
   "home_join_cta": "一键报名 →",
   "home_rate_banner_title": "给昨天的比赛打个分",
   "home_rate_banner_sub": "龙岗村超 · 1/4决赛 · 9 位球员待评",
-  "home_rate_banner_credit": "+5 信用",
   "home_host_pickup": "发起约球",
   "home_host_pickup_with_time": "发起约球 · {time}",
   "@home_host_pickup_with_time": { "placeholders": { "time": { "type": "String" } } },
@@ -657,9 +653,8 @@
   "rate_level_good": "不错",
   "rate_level_god": "封神",
   "rate_done_header": "评分已提交",
-  "rate_done_thanks_body": "感谢你给 {n} 位球员打了分。\n贡献有效评分可获得 ",
+  "rate_done_thanks_body": "感谢你给 {n} 位球员打了分。",
   "@rate_done_thanks_body": { "placeholders": { "n": { "type": "int" } } },
-  "rate_done_credit_suffix": "+5 信用分",
   "rate_done_view_leaderboard": "查看评分榜",
 
   "event_overview_main_visual": "{name} · 主视觉",
@@ -756,9 +751,6 @@
       "rate": { "type": "int" }
     }
   },
-  "pickup_detail_credit_n": "信用 {n}",
-  "@pickup_detail_credit_n": { "placeholders": { "n": { "type": "int" } } },
-
   "messages_thread_default_title": "对话",
   "messages_kind_group": "群聊",
   "messages_kind_dm": "私信",

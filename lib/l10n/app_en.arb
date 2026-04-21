@@ -533,8 +533,6 @@
   "notif_demo_pickup_b": "Lianhuashan Football Field · Tap to see the formation.",
   "notif_demo_event_t": "2026 Longgang Summer Cup registration is open",
   "notif_demo_event_b": "16-team KO, 20k prize, closes 05-25.",
-  "notif_demo_credit_t": "+5 credits",
-  "notif_demo_credit_b": "Thanks for rating your last match.",
   "notif_demo_follow_t": "LaoWang followed you",
   "notif_demo_follow_b": "Follow back to chat.",
 
@@ -602,7 +600,6 @@
   "@rate_done_sub": {
     "placeholders": { "n": { "type": "int" } }
   },
-  "rate_done_credit": "+5 credits",
   "rate_done_more": "Rate another",
   "rate_done_back": "Back to event",
 
@@ -630,7 +627,6 @@
   "home_join_cta": "Join →",
   "home_rate_banner_title": "Rate yesterday's match",
   "home_rate_banner_sub": "Longgang Cun-Chao · QF · 9 players to rate",
-  "home_rate_banner_credit": "+5 credit",
   "home_host_pickup": "Host pickup",
   "home_host_pickup_with_time": "Host pickup · {time}",
   "@home_host_pickup_with_time": { "placeholders": { "time": { "type": "String" } } },
@@ -657,9 +653,8 @@
   "rate_level_good": "Good",
   "rate_level_god": "Legend",
   "rate_done_header": "Rating submitted",
-  "rate_done_thanks_body": "Thanks for rating {n} players.\nValid ratings earn you ",
+  "rate_done_thanks_body": "Thanks for rating {n} players.",
   "@rate_done_thanks_body": { "placeholders": { "n": { "type": "int" } } },
-  "rate_done_credit_suffix": "+5 credit",
   "rate_done_view_leaderboard": "View leaderboard",
 
   "event_overview_main_visual": "{name} · hero",
@@ -756,9 +751,6 @@
       "rate": { "type": "int" }
     }
   },
-  "pickup_detail_credit_n": "Credit {n}",
-  "@pickup_detail_credit_n": { "placeholders": { "n": { "type": "int" } } },
-
   "messages_thread_default_title": "Conversation",
   "messages_kind_group": "Group",
   "messages_kind_dm": "Direct",

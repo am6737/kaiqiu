@@ -8,7 +8,6 @@ class Profile {
   final String? position;
   final int? height;
   final String? foot;
-  final int credit;
   final String? avatarUrl;
   final DateTime createdAt;
 
@@ -21,7 +20,6 @@ class Profile {
     this.position,
     this.height,
     this.foot,
-    this.credit = 60,
     this.avatarUrl,
     required this.createdAt,
   });
@@ -35,7 +33,6 @@ class Profile {
     position: m['position'] as String?,
     height: m['height'] as int?,
     foot: m['foot'] as String?,
-    credit: (m['credit'] as int?) ?? 60,
     avatarUrl: m['avatar_url'] as String?,
     createdAt: DateTime.parse(m['created_at'] as String),
   );
@@ -49,7 +46,6 @@ class Profile {
     'position': position,
     'height': height,
     'foot': foot,
-    'credit': credit,
     'avatar_url': avatarUrl,
   };
 }

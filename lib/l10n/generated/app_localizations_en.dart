@@ -1416,12 +1416,6 @@ class AppL10nEn extends AppL10n {
   String get notif_demo_event_b => '16-team KO, 20k prize, closes 05-25.';
 
   @override
-  String get notif_demo_credit_t => '+5 credits';
-
-  @override
-  String get notif_demo_credit_b => 'Thanks for rating your last match.';
-
-  @override
   String get notif_demo_follow_t => 'LaoWang followed you';
 
   @override
@@ -1588,9 +1582,6 @@ class AppL10nEn extends AppL10n {
   }
 
   @override
-  String get rate_done_credit => '+5 credits';
-
-  @override
   String get rate_done_more => 'Rate another';
 
   @override
@@ -1643,9 +1634,6 @@ class AppL10nEn extends AppL10n {
   @override
   String get home_rate_banner_sub =>
       'Longgang Cun-Chao · QF · 9 players to rate';
-
-  @override
-  String get home_rate_banner_credit => '+5 credit';
 
   @override
   String get home_host_pickup => 'Host pickup';
@@ -1721,11 +1709,8 @@ class AppL10nEn extends AppL10n {
 
   @override
   String rate_done_thanks_body(int n) {
-    return 'Thanks for rating $n players.\nValid ratings earn you ';
+    return 'Thanks for rating $n players.';
   }
-
-  @override
-  String get rate_done_credit_suffix => '+5 credit';
 
   @override
   String get rate_done_view_leaderboard => 'View leaderboard';
@@ -1972,11 +1957,6 @@ class AppL10nEn extends AppL10n {
   @override
   String pickup_detail_host_stats(int n, int rate) {
     return 'Hosted $n · $rate% on time';
-  }
-
-  @override
-  String pickup_detail_credit_n(int n) {
-    return 'Credit $n';
   }
 
   @override

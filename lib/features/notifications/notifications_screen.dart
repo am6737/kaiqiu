@@ -165,14 +165,6 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         route: '/events',
       ),
       _Notif(
-        id: 'credit-1',
-        group: 'system',
-        icon: Icons.verified,
-        title: l.notif_demo_credit_t,
-        body: l.notif_demo_credit_b,
-        at: now.subtract(const Duration(days: 1)),
-      ),
-      _Notif(
         id: 'follow-1',
         group: 'system',
         icon: Icons.person_add_alt,

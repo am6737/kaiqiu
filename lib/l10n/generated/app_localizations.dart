@@ -2767,18 +2767,6 @@ abstract class AppL10n {
   /// **'16 队淘汰制，奖金 2 万，截止 05-25。'**
   String get notif_demo_event_b;
 
-  /// No description provided for @notif_demo_credit_t.
-  ///
-  /// In zh, this message translates to:
-  /// **'+5 信用分'**
-  String get notif_demo_credit_t;
-
-  /// No description provided for @notif_demo_credit_b.
-  ///
-  /// In zh, this message translates to:
-  /// **'感谢你完成了最近一场评分。'**
-  String get notif_demo_credit_b;
-
   /// No description provided for @notif_demo_follow_t.
   ///
   /// In zh, this message translates to:
@@ -3103,12 +3091,6 @@ abstract class AppL10n {
   /// **'{n} 位球员已评分'**
   String rate_done_sub(int n);
 
-  /// No description provided for @rate_done_credit.
-  ///
-  /// In zh, this message translates to:
-  /// **'+5 信用分'**
-  String get rate_done_credit;
-
   /// No description provided for @rate_done_more.
   ///
   /// In zh, this message translates to:
@@ -3198,12 +3180,6 @@ abstract class AppL10n {
   /// In zh, this message translates to:
   /// **'龙岗村超 · 1/4决赛 · 9 位球员待评'**
   String get home_rate_banner_sub;
-
-  /// No description provided for @home_rate_banner_credit.
-  ///
-  /// In zh, this message translates to:
-  /// **'+5 信用'**
-  String get home_rate_banner_credit;
 
   /// No description provided for @home_host_pickup.
   ///
@@ -3340,14 +3316,8 @@ abstract class AppL10n {
   /// No description provided for @rate_done_thanks_body.
   ///
   /// In zh, this message translates to:
-  /// **'感谢你给 {n} 位球员打了分。\n贡献有效评分可获得 '**
+  /// **'感谢你给 {n} 位球员打了分。'**
   String rate_done_thanks_body(int n);
-
-  /// No description provided for @rate_done_credit_suffix.
-  ///
-  /// In zh, this message translates to:
-  /// **'+5 信用分'**
-  String get rate_done_credit_suffix;
 
   /// No description provided for @rate_done_view_leaderboard.
   ///
@@ -3786,12 +3756,6 @@ abstract class AppL10n {
   /// In zh, this message translates to:
   /// **'发起过 {n} 场 · 准时率 {rate}%'**
   String pickup_detail_host_stats(int n, int rate);
-
-  /// No description provided for @pickup_detail_credit_n.
-  ///
-  /// In zh, this message translates to:
-  /// **'信用 {n}'**
-  String pickup_detail_credit_n(int n);
 
   /// No description provided for @messages_thread_default_title.
   ///

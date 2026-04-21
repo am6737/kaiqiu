@@ -292,11 +292,14 @@ class _LiveStrip extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
         itemCount: items.length,
         separatorBuilder: (_, i) => const SizedBox(width: 10),
-        itemBuilder: (_, i) {
+        itemBuilder: (context, i) {
           final m = items[i];
           final aWins = m.scoreA > m.scoreB;
           final bWins = m.scoreB > m.scoreA;
-          return Container(
+          return GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => context.push('/worldcup/live/${m.id}'),
+            child: Container(
             width: 180,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -374,6 +377,7 @@ class _LiveStrip extends StatelessWidget {
                 ),
               ],
             ),
+            ),
           );
         },
       ),
@@ -428,19 +432,13 @@ class _RateCtaBanner extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Row(
-                      children: [
-                        Text(
-                          context.l10n.home_rate_banner_title,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: T.ink,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        const _CreditPill(),
-                      ],
+                    Text(
+                      context.l10n.home_rate_banner_title,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: T.ink,
+                      ),
                     ),
                     const SizedBox(height: 3),
                     Label(context.l10n.home_rate_banner_sub),
@@ -450,31 +448,6 @@ class _RateCtaBanner extends StatelessWidget {
               const Icon(Icons.chevron_right, size: 16, color: T.live),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _CreditPill extends StatelessWidget {
-  const _CreditPill();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-      decoration: BoxDecoration(
-        color: T.warnDim,
-        borderRadius: BorderRadius.circular(2),
-      ),
-      child: Text(
-        context.l10n.home_rate_banner_credit,
-        style: const TextStyle(
-          fontFamily: T.fontMono,
-          fontFamilyFallback: T.monoFallbacks,
-          fontSize: 9,
-          fontWeight: FontWeight.w700,
-          color: T.warn,
         ),
       ),
     );
