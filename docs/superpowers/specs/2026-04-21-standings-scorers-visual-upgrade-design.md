@@ -4,6 +4,8 @@
 **Date:** 2026-04-21
 **Owner:** am6737
 
+> **更新 (2026-04-21)**：本 spec 原先在"不做 (YAGNI)"里写过不把**评分榜**(`ratings` Tab) 移到比赛详情。该结论已被推翻——ratings Tab 已整体搬到比赛详情子页 `/event/:eventId/match/:matchId/ratings`（文件 `lib/features/events/match_ratings_screen.dart`），赛事详情 Tab 从 6 个减为 5 个（`overview / bracket / standings / scorers / chat`）。本 spec 继续聚焦 standings + scorers 的视觉升级，和 ratings 搬迁互不干涉。
+
 ## 一、目标
 
 提升赛事详情页 (`event_detail_screen.dart`) 里**积分榜**和**射手榜**两个 tab 的视觉表现：

@@ -60,7 +60,7 @@ class MatchDetailScreen extends ConsumerWidget {
               ),
             );
           }
-          return _MatchDetailBody(match: match);
+          return _MatchDetailBody(match: match, eventId: eventId);
         },
       ),
     );
@@ -79,7 +79,8 @@ E? _firstWhereOrNull<E>(Iterable<E> xs, bool Function(E) test) {
 // ─────────────────────────────────────────────────────────────
 class _MatchDetailBody extends ConsumerWidget {
   final Match match;
-  const _MatchDetailBody({required this.match});
+  final String eventId;
+  const _MatchDetailBody({required this.match, required this.eventId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -100,7 +101,7 @@ class _MatchDetailBody extends ConsumerWidget {
               data: (goals) => _GoalsSection(goals: goals),
             ),
           const SizedBox(height: 24),
-          _BottomCtaArea(match: match, status: status),
+          _BottomCtaArea(match: match, status: status, eventId: eventId),
         ],
       ),
     );
@@ -400,7 +401,12 @@ class _GoalTag extends StatelessWidget {
 class _BottomCtaArea extends ConsumerStatefulWidget {
   final Match match;
   final _MatchStatus status;
-  const _BottomCtaArea({required this.match, required this.status});
+  final String eventId;
+  const _BottomCtaArea({
+    required this.match,
+    required this.status,
+    required this.eventId,
+  });
 
   @override
   ConsumerState<_BottomCtaArea> createState() => _BottomCtaAreaState();
@@ -444,10 +450,12 @@ class _BottomCtaAreaState extends ConsumerState<_BottomCtaArea> {
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: PrimaryButton(
-          label: l.match_cta_rate,
+          label: l.match_cta_view_ratings,
           full: true,
           size: BtnSize.lg,
-          onPressed: () => context.push('/rate/${widget.match.id}'),
+          onPressed: () => context.push(
+            '/event/${widget.eventId}/match/${widget.match.id}/ratings',
+          ),
         ),
       );
     }
