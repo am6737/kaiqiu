@@ -9,6 +9,7 @@ import '../../models/event.dart';
 import '../../providers.dart';
 import '../../theme/tokens.dart';
 import '../../widgets/live_pill.dart';
+import '../../widgets/network_cover.dart';
 import '../../widgets/photo_halftone.dart';
 import '../../widgets/typography.dart';
 
@@ -38,7 +39,7 @@ class _EventsHubScreenState extends ConsumerState<EventsHubScreen> {
     };
 
     return Scaffold(
-      backgroundColor: T.bg,
+      backgroundColor: context.tokens.bg,
       body: SafeArea(
         bottom: false,
         child: ListView(
@@ -99,8 +100,8 @@ class _EventsHubScreenState extends ConsumerState<EventsHubScreen> {
               child: Container(
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  color: T.elev2,
-                  border: Border.all(color: T.line),
+                  color: context.tokens.elev2,
+                  border: Border.all(color: context.tokens.line),
                   borderRadius: BorderRadius.circular(T.r2),
                 ),
                 child: Row(
@@ -114,7 +115,7 @@ class _EventsHubScreenState extends ConsumerState<EventsHubScreen> {
                             alignment: Alignment.center,
                             decoration: BoxDecoration(
                               color: _tab == t.$1
-                                  ? T.elev3
+                                  ? context.tokens.elev3
                                   : Colors.transparent,
                               borderRadius: BorderRadius.circular(8),
                             ),
@@ -185,8 +186,8 @@ class _EventsHubScreenState extends ConsumerState<EventsHubScreen> {
             margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: T.elev2,
-              border: Border.all(color: T.line),
+              color: context.tokens.elev2,
+              border: Border.all(color: context.tokens.line),
               borderRadius: BorderRadius.circular(T.r3),
             ),
             child: Row(
@@ -303,7 +304,7 @@ class _WcBanner extends StatelessWidget {
                   Container(
                     width: 1,
                     height: 28,
-                    color: T.line,
+                    color: context.tokens.line,
                     margin: const EdgeInsets.symmetric(horizontal: 14),
                   ),
                   Column(
@@ -358,8 +359,8 @@ class _LiveEventRow extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
         decoration: BoxDecoration(
-          color: T.elev2,
-          border: Border.all(color: T.line),
+          color: context.tokens.elev2,
+          border: Border.all(color: context.tokens.line),
           borderRadius: BorderRadius.circular(T.r3),
         ),
         child: Column(
@@ -372,8 +373,9 @@ class _LiveEventRow extends StatelessWidget {
               ),
               child: Stack(
                 children: [
-                  PhotoHalftone(
-                    label: event.name,
+                  NetworkCover(
+                    url: event.coverUrl,
+                    fallbackLabel: event.name,
                     height: 110,
                     hue: hue,
                     variant: HalftoneVariant.lines,
@@ -388,7 +390,7 @@ class _LiveEventRow extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         color: isReg ? T.liveDim : const Color(0x80000000),
-                        border: Border.all(color: isReg ? T.live : T.line),
+                        border: Border.all(color: isReg ? T.live : context.tokens.line),
                         borderRadius: BorderRadius.circular(3),
                       ),
                       child: Label(
@@ -478,7 +480,7 @@ class _LiveEventRow extends StatelessWidget {
                             child: LinearProgressIndicator(
                               value: progress,
                               minHeight: 3,
-                              backgroundColor: T.elev3,
+                              backgroundColor: context.tokens.elev3,
                               valueColor: AlwaysStoppedAnimation(
                                 isReg ? T.live : T.inkSub,
                               ),
@@ -578,8 +580,8 @@ class _EmptyEvents extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(28),
         decoration: BoxDecoration(
-          color: T.elev2,
-          border: Border.all(color: T.line),
+          color: context.tokens.elev2,
+          border: Border.all(color: context.tokens.line),
           borderRadius: BorderRadius.circular(T.r3),
         ),
         child: Column(
@@ -615,8 +617,8 @@ class _EventsError extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: T.elev2,
-          border: Border.all(color: T.line),
+          color: context.tokens.elev2,
+          border: Border.all(color: context.tokens.line),
           borderRadius: BorderRadius.circular(T.r3),
         ),
         child: Column(
@@ -637,8 +639,8 @@ class _EventsError extends StatelessWidget {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: T.elev3,
-                  border: Border.all(color: T.line),
+                  color: context.tokens.elev3,
+                  border: Border.all(color: context.tokens.line),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(

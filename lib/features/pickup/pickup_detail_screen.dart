@@ -16,7 +16,7 @@ import '../../utils/share_helper.dart';
 import '../../utils/toast.dart';
 import '../../widgets/avatar.dart';
 import '../../widgets/live_pill.dart';
-import '../../widgets/photo_halftone.dart';
+import '../../widgets/network_cover.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/typography.dart';
 
@@ -46,7 +46,7 @@ class PickupDetailScreen extends ConsumerWidget {
     final pickupAsync = ref.watch(pickupDetailProvider(id));
 
     return Scaffold(
-      backgroundColor: T.bg,
+      backgroundColor: context.tokens.bg,
       body: Stack(
         children: [
           SingleChildScrollView(
@@ -113,9 +113,19 @@ class _Header extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(localStoreProvider);
     final faved = LocalStore.isPickupFavorited(pickupId);
+    final pickup = ref.watch(pickupDetailProvider(pickupId)).valueOrNull;
+    final venue = pickup?.venue;
+    final label = venue == null || venue.isEmpty
+        ? '场地外景'
+        : '场地外景 · $venue';
     return Stack(
       children: [
-        const PhotoHalftone(label: '场地外景 · 龙岗体育中心 3号场', height: 200, hue: 140),
+        NetworkCover(
+          url: pickup?.venuePhotoUrl,
+          fallbackLabel: label,
+          height: 200,
+          hue: 140,
+        ),
         Positioned(
           top: 12,
           left: 12,
@@ -276,8 +286,8 @@ class _HostStrip extends ConsumerWidget {
       margin: const EdgeInsets.fromLTRB(16, 4, 16, 14),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: T.elev2,
-        border: Border.all(color: T.line),
+        color: context.tokens.elev2,
+        border: Border.all(color: context.tokens.line),
         borderRadius: BorderRadius.circular(T.r3),
       ),
       child: Row(
@@ -309,8 +319,8 @@ class _HostStrip extends ConsumerWidget {
               alignment: Alignment.center,
               margin: const EdgeInsets.only(right: 8),
               decoration: BoxDecoration(
-                color: T.elev3,
-                border: Border.all(color: T.line),
+                color: context.tokens.elev3,
+                border: Border.all(color: context.tokens.line),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -477,7 +487,7 @@ class _Formation extends ConsumerWidget {
                       HSLColor.fromAHSL(1, 150, 0.25, 0.16).toColor(),
                     ],
                   ),
-                  border: Border.all(color: T.line),
+                  border: Border.all(color: context.tokens.line),
                   borderRadius: BorderRadius.circular(T.r3),
                 ),
                 child: Stack(
@@ -592,9 +602,9 @@ class _PlayerDot extends StatelessWidget {
             height: 36,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: filled ? T.elev1 : Colors.transparent,
+              color: filled ? context.tokens.elev1 : Colors.transparent,
               shape: BoxShape.circle,
-              border: Border.all(color: filled ? T.line : T.live, width: 1.5),
+              border: Border.all(color: filled ? context.tokens.line : T.live, width: 1.5),
             ),
             child: Text(
               label,
@@ -641,8 +651,8 @@ class _FormationLoading extends StatelessWidget {
       child: Container(
         height: 340,
         decoration: BoxDecoration(
-          color: T.elev2,
-          border: Border.all(color: T.line),
+          color: context.tokens.elev2,
+          border: Border.all(color: context.tokens.line),
           borderRadius: BorderRadius.circular(T.r3),
         ),
         child: const Center(
@@ -670,8 +680,8 @@ class _FormationError extends StatelessWidget {
         height: 340,
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: T.elev2,
-          border: Border.all(color: T.line),
+          color: context.tokens.elev2,
+          border: Border.all(color: context.tokens.line),
           borderRadius: BorderRadius.circular(T.r3),
         ),
         child: Column(
@@ -698,8 +708,8 @@ class _FormationError extends StatelessWidget {
                   vertical: 8,
                 ),
                 decoration: BoxDecoration(
-                  color: T.elev3,
-                  border: Border.all(color: T.line),
+                  color: context.tokens.elev3,
+                  border: Border.all(color: context.tokens.line),
                   borderRadius: BorderRadius.circular(T.r2),
                 ),
                 child: Text(
@@ -744,8 +754,8 @@ class _Details extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: T.elev2,
-                    border: Border.all(color: T.line),
+                    color: context.tokens.elev2,
+                    border: Border.all(color: context.tokens.line),
                     borderRadius: BorderRadius.circular(T.r2),
                   ),
                   child: Column(
@@ -852,8 +862,8 @@ class _BottomCta extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 32),
       decoration: const BoxDecoration(
-        color: T.elev1,
-        border: Border(top: BorderSide(color: T.line, width: 1)),
+        color: context.tokens.elev1,
+        border: Border(top: BorderSide(color: context.tokens.line, width: 1)),
       ),
       child: Row(
         children: [

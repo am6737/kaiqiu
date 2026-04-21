@@ -25,7 +25,7 @@ import '../../utils/share_helper.dart';
 import '../../utils/toast.dart';
 import '../../widgets/avatar.dart';
 import '../../widgets/network_avatar.dart';
-import '../../widgets/photo_halftone.dart';
+import '../../widgets/network_cover.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/typography.dart';
 
@@ -44,7 +44,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
   Widget build(BuildContext context) {
     final async = ref.watch(eventDetailProvider(widget.id));
     return Scaffold(
-      backgroundColor: T.bg,
+      backgroundColor: context.tokens.bg,
       body: async.when(
         data: (event) => _buildContent(event),
         loading: () =>
@@ -78,8 +78,8 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                   vertical: 8,
                 ),
                 decoration: BoxDecoration(
-                  color: T.elev3,
-                  border: Border.all(color: T.line),
+                  color: context.tokens.elev3,
+                  border: Border.all(color: context.tokens.line),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
@@ -160,8 +160,9 @@ class _Header extends StatelessWidget {
     };
     return Stack(
       children: [
-        PhotoHalftone(
-          label: context.l10n.event_overview_main_visual(event.name),
+        NetworkCover(
+          url: event.coverUrl,
+          fallbackLabel: context.l10n.event_overview_main_visual(event.name),
           height: 180,
           hue: hue,
         ),
@@ -285,7 +286,7 @@ class _KpiStrip extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: T.line, width: 1)),
+        border: Border(bottom: BorderSide(color: context.tokens.line, width: 1)),
       ),
       child: Row(
         children: [
@@ -297,7 +298,7 @@ class _KpiStrip extends ConsumerWidget {
                     ? null
                     : const BoxDecoration(
                         border: Border(
-                          left: BorderSide(color: T.line, width: 1),
+                          left: BorderSide(color: context.tokens.line, width: 1),
                         ),
                       ),
                 child: Column(
@@ -338,7 +339,7 @@ class _Tabs extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: T.line, width: 1)),
+        border: Border(bottom: BorderSide(color: context.tokens.line, width: 1)),
       ),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
@@ -463,8 +464,8 @@ class _OverviewPanel extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: T.elev2,
-              border: Border.all(color: T.line),
+              color: context.tokens.elev2,
+              border: Border.all(color: context.tokens.line),
               borderRadius: BorderRadius.circular(T.r2),
             ),
             child: Row(
@@ -473,7 +474,7 @@ class _OverviewPanel extends StatelessWidget {
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
-                    color: T.elev3,
+                    color: context.tokens.elev3,
                     borderRadius: BorderRadius.circular(6),
                   ),
                 ),
@@ -622,8 +623,8 @@ class _EmptyCell extends StatelessWidget {
     padding: const EdgeInsets.all(10),
     alignment: Alignment.center,
     decoration: BoxDecoration(
-      color: T.elev2,
-      border: Border.all(color: T.line, style: BorderStyle.solid),
+      color: context.tokens.elev2,
+      border: Border.all(color: context.tokens.line, style: BorderStyle.solid),
       borderRadius: BorderRadius.circular(T.r2),
     ),
     child: Text(
@@ -660,9 +661,9 @@ class _MatchCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: isFinal ? T.liveDim : T.elev2,
+        color: isFinal ? T.liveDim : context.tokens.elev2,
         border: Border.all(
-          color: isFinal ? T.live : T.line,
+          color: isFinal ? T.live : context.tokens.line,
           width: isFinal ? 1.2 : 1,
         ),
         borderRadius: BorderRadius.circular(T.r2),
@@ -935,7 +936,7 @@ class _StandingsTable extends StatelessWidget {
                     vertical: 12,
                   ),
                   decoration: const BoxDecoration(
-                    border: Border(top: BorderSide(color: T.line, width: 1)),
+                    border: Border(top: BorderSide(color: context.tokens.line, width: 1)),
                   ),
                   child: Row(
                     children: [
@@ -1028,7 +1029,7 @@ Future<void> _showTeamSheet(
   return showModalBottomSheet(
     context: context,
     isScrollControlled: true,
-    backgroundColor: T.elev1,
+    backgroundColor: context.tokens.elev1,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
@@ -1129,8 +1130,8 @@ class _TeamSheet extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(vertical: 12),
               decoration: BoxDecoration(
-                color: T.elev2,
-                border: Border.all(color: T.line),
+                color: context.tokens.elev2,
+                border: Border.all(color: context.tokens.line),
                 borderRadius: BorderRadius.circular(T.r2),
               ),
               child: Row(
@@ -1167,8 +1168,8 @@ class _TeamSheet extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(vertical: 10),
               decoration: BoxDecoration(
-                color: T.elev2,
-                border: Border.all(color: T.line),
+                color: context.tokens.elev2,
+                border: Border.all(color: context.tokens.line),
                 borderRadius: BorderRadius.circular(T.r2),
               ),
               child: Row(
@@ -1257,8 +1258,8 @@ class _TeamMatchRow extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: T.elev2,
-        border: Border.all(color: T.line),
+        color: context.tokens.elev2,
+        border: Border.all(color: context.tokens.line),
         borderRadius: BorderRadius.circular(T.r2),
       ),
       child: Row(
@@ -1398,7 +1399,7 @@ class _ScorerCard extends ConsumerWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       child: Material(
-        color: T.elev2,
+        color: context.tokens.elev2,
         borderRadius: radius,
         child: InkWell(
           onTap: onTap,
@@ -1406,7 +1407,7 @@ class _ScorerCard extends ConsumerWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
-              border: Border.all(color: T.line),
+              border: Border.all(color: context.tokens.line),
               borderRadius: radius,
             ),
             child: _buildRow(context, avatarUrl),
@@ -1489,7 +1490,7 @@ Future<void> _showScorerSheet(
   return showModalBottomSheet(
     context: context,
     isScrollControlled: true,
-    backgroundColor: T.elev1,
+    backgroundColor: context.tokens.elev1,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
@@ -1613,8 +1614,8 @@ class _ScorerSheet extends ConsumerWidget {
                   vertical: 12,
                 ),
                 decoration: BoxDecoration(
-                  color: T.elev2,
-                  border: Border.all(color: T.line),
+                  color: context.tokens.elev2,
+                  border: Border.all(color: context.tokens.line),
                   borderRadius: BorderRadius.circular(T.r2),
                 ),
                 child: Row(
@@ -1773,7 +1774,7 @@ class _ChatPanelState extends ConsumerState<_ChatPanel> {
     final async = ref.watch(eventChatMessagesProvider(widget.eventId));
     return Container(
       padding: const EdgeInsets.all(14),
-      color: T.elev1,
+      color: context.tokens.elev1,
       constraints: const BoxConstraints(minHeight: 320),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1819,7 +1820,7 @@ class _ChatPanelState extends ConsumerState<_ChatPanel> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14),
                   decoration: BoxDecoration(
-                    color: T.elev2,
+                    color: context.tokens.elev2,
                     borderRadius: BorderRadius.circular(18),
                   ),
                   child: TextField(
@@ -1936,8 +1937,8 @@ class _BottomCta extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 32),
       decoration: const BoxDecoration(
-        color: T.elev1,
-        border: Border(top: BorderSide(color: T.line, width: 1)),
+        color: context.tokens.elev1,
+        border: Border(top: BorderSide(color: context.tokens.line, width: 1)),
       ),
       child: Row(
         children: [
@@ -1990,7 +1991,7 @@ class _BottomCta extends ConsumerWidget {
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: T.elev1,
+      backgroundColor: context.tokens.elev1,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -2089,8 +2090,8 @@ class _RegField extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
-              color: T.elev2,
-              border: Border.all(color: T.line),
+              color: context.tokens.elev2,
+              border: Border.all(color: context.tokens.line),
               borderRadius: BorderRadius.circular(T.r2),
             ),
             child: TextField(
@@ -2222,7 +2223,7 @@ class _ViewToggle extends StatelessWidget {
                 ),
                 decoration: BoxDecoration(
                   color: view == it.$1 ? T.liveDim : Colors.transparent,
-                  border: Border.all(color: view == it.$1 ? T.live : T.line),
+                  border: Border.all(color: view == it.$1 ? T.live : context.tokens.line),
                   borderRadius: BorderRadius.circular(T.r2),
                 ),
                 child: Text(
@@ -2361,8 +2362,8 @@ class _MatchPicker extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: isPicked ? T.liveDim : T.elev2,
-              border: Border.all(color: isPicked ? T.live : T.line),
+              color: isPicked ? T.liveDim : context.tokens.elev2,
+              border: Border.all(color: isPicked ? T.live : context.tokens.line),
               borderRadius: BorderRadius.circular(T.r2),
             ),
             child: Row(
@@ -2415,7 +2416,7 @@ class _ScoreStrip extends StatelessWidget {
             HSLColor.fromAHSL(1, 150, 0.10, 0.12).toColor(),
           ],
         ),
-        border: Border.all(color: T.line),
+        border: Border.all(color: context.tokens.line),
         borderRadius: BorderRadius.circular(T.r3),
       ),
       child: Column(
@@ -2536,8 +2537,8 @@ class _TeamFilterRow extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           decoration: BoxDecoration(
-            color: active ? T.ink : T.elev2,
-            border: Border.all(color: active ? T.ink : T.line),
+            color: active ? T.ink : context.tokens.elev2,
+            border: Border.all(color: active ? T.ink : context.tokens.line),
             borderRadius: BorderRadius.circular(999),
           ),
           child: Text(
@@ -2545,7 +2546,7 @@ class _TeamFilterRow extends StatelessWidget {
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w700,
-              color: active ? T.bg : T.inkSub,
+              color: active ? context.tokens.bg : T.inkSub,
             ),
           ),
         ),
@@ -2605,7 +2606,7 @@ class _EventWideSection extends ConsumerWidget {
                       HSLColor.fromAHSL(1, 150, 0.10, 0.12).toColor(),
                     ],
                   ),
-                  border: Border.all(color: T.line),
+                  border: Border.all(color: context.tokens.line),
                   borderRadius: BorderRadius.circular(T.r3),
                 ),
                 child: Column(
@@ -2685,8 +2686,8 @@ class _PlayerRow extends StatelessWidget {
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: T.elev2,
-        border: Border.all(color: rank == 1 ? T.live : T.line),
+        color: context.tokens.elev2,
+        border: Border.all(color: rank == 1 ? T.live : context.tokens.line),
         borderRadius: BorderRadius.circular(T.r3),
       ),
       child: Row(
@@ -2700,8 +2701,8 @@ class _PlayerRow extends StatelessWidget {
             decoration: BoxDecoration(
               color: rank == 1
                   ? T.live
-                  : (rank <= 3 ? T.elev3 : Colors.transparent),
-              border: rank == 1 ? null : Border.all(color: T.line),
+                  : (rank <= 3 ? context.tokens.elev3 : Colors.transparent),
+              border: rank == 1 ? null : Border.all(color: context.tokens.line),
               borderRadius: BorderRadius.circular(4),
             ),
             child: Text(
@@ -2835,8 +2836,8 @@ class _MomentQuote extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
-        color: T.elev3,
-        border: Border.all(color: T.line),
+        color: context.tokens.elev3,
+        border: Border.all(color: context.tokens.line),
         borderRadius: BorderRadius.circular(T.r2),
       ),
       child: Row(
@@ -2911,7 +2912,7 @@ class _PlayerRatingDetail extends ConsumerWidget {
                 HSLColor.fromAHSL(1, 150, 0.10, 0.12).toColor(),
               ],
             ),
-            border: Border.all(color: T.line),
+            border: Border.all(color: context.tokens.line),
             borderRadius: BorderRadius.circular(T.r3),
           ),
           child: Row(
@@ -3000,8 +3001,8 @@ class _PlayerRatingDetail extends ConsumerWidget {
                   vertical: 14,
                 ),
                 decoration: BoxDecoration(
-                  color: T.elev2,
-                  border: Border.all(color: T.line),
+                  color: context.tokens.elev2,
+                  border: Border.all(color: context.tokens.line),
                   borderRadius: BorderRadius.circular(T.r2),
                 ),
                 child: Column(
@@ -3084,8 +3085,8 @@ class _PlayerRatingDetail extends ConsumerWidget {
                   margin: const EdgeInsets.only(bottom: 8),
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: T.elev2,
-                    border: Border.all(color: T.line),
+                    color: context.tokens.elev2,
+                    border: Border.all(color: context.tokens.line),
                     borderRadius: BorderRadius.circular(T.r2),
                   ),
                   child: Column(
@@ -3113,13 +3114,13 @@ class _PlayerRatingDetail extends ConsumerWidget {
                               color: c.score >= 8
                                   ? T.liveDim
                                   : c.score >= 6
-                                  ? T.elev3
+                                  ? context.tokens.elev3
                                   : const Color(0x24FF3B6B),
                               border: Border.all(
                                 color: c.score >= 8
                                     ? T.live.withValues(alpha: 0.3)
                                     : c.score >= 6
-                                    ? T.line
+                                    ? context.tokens.line
                                     : T.danger.withValues(alpha: 0.3),
                               ),
                               borderRadius: BorderRadius.circular(3),

@@ -8,6 +8,7 @@ import '../../models/event.dart';
 import '../../providers.dart';
 import '../../theme/tokens.dart';
 import '../../widgets/empty_state.dart';
+import '../../widgets/network_cover.dart';
 import '../../widgets/photo_halftone.dart';
 import '../../widgets/section_header.dart';
 
@@ -25,7 +26,7 @@ class _MyEventsScreenState extends ConsumerState<MyEventsScreen> {
   Widget build(BuildContext context) {
     final l = context.l10n;
     return Scaffold(
-      backgroundColor: T.bg,
+      backgroundColor: context.tokens.bg,
       body: SafeArea(
         child: Column(
           children: [
@@ -70,8 +71,8 @@ class _Tabs extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
-          color: T.elev2,
-          border: Border.all(color: T.line),
+          color: context.tokens.elev2,
+          border: Border.all(color: context.tokens.line),
           borderRadius: BorderRadius.circular(T.r2),
         ),
         child: Row(
@@ -84,7 +85,7 @@ class _Tabs extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 9),
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: current == i ? T.elev3 : Colors.transparent,
+                      color: current == i ? context.tokens.elev3 : Colors.transparent,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -215,8 +216,8 @@ class _EventCard extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
         decoration: BoxDecoration(
-          color: T.elev2,
-          border: Border.all(color: T.line),
+          color: context.tokens.elev2,
+          border: Border.all(color: context.tokens.line),
           borderRadius: BorderRadius.circular(T.r3),
         ),
         child: Column(
@@ -227,8 +228,9 @@ class _EventCard extends StatelessWidget {
                 topLeft: Radius.circular(T.r3),
                 topRight: Radius.circular(T.r3),
               ),
-              child: PhotoHalftone(
-                label: event.name,
+              child: NetworkCover(
+                url: event.coverUrl,
+                fallbackLabel: event.name,
                 height: 90,
                 hue: hue,
                 variant: HalftoneVariant.lines,

@@ -14,6 +14,7 @@ class Pickup {
   final String? hostName; // display-only fallback when hostId is null
   final String venue;
   final String? address;
+  final String? venuePhotoUrl;
   final double? lat;
   final double? lng;
   final DateTime startAt;
@@ -34,6 +35,7 @@ class Pickup {
     this.hostName,
     required this.venue,
     this.address,
+    this.venuePhotoUrl,
     this.lat,
     this.lng,
     required this.startAt,
@@ -55,6 +57,7 @@ class Pickup {
     hostName: m['host_name'] as String?,
     venue: m['venue'] as String,
     address: m['address'] as String?,
+    venuePhotoUrl: m['venue_photo_url'] as String?,
     lat: (m['lat'] as num?)?.toDouble(),
     lng: (m['lng'] as num?)?.toDouble(),
     startAt: DateTime.parse(m['start_at'] as String),
