@@ -403,7 +403,13 @@ class _ThreadRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(localStoreProvider);
-    final title = thread.title ?? context.l10n.messages_thread_default_title;
+    String title;
+    if (thread.kind == 'dm') {
+      final peer = ref.watch(dmPeerProfileProvider(thread.id)).valueOrNull;
+      title = peer?.name ?? context.l10n.messages_thread_default_title;
+    } else {
+      title = thread.title ?? context.l10n.messages_thread_default_title;
+    }
     final time = DateFormat('HH:mm').format(thread.updatedAt.toLocal());
     final pinned = LocalStore.isPinned(thread.id);
     return GestureDetector(
