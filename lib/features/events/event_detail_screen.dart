@@ -108,8 +108,8 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
     ];
     return LayoutBuilder(
       builder: (ctx, constraints) {
-        // Cover 180 + KpiStrip ~62 + Tabs ~47 = ~289 above; reserve 110 for CTA.
-        final panelMinHeight = (constraints.maxHeight - 289 - 110)
+        // Cover 240 + KpiStrip ~62 + Tabs ~47 = ~349 above; reserve 110 for CTA.
+        final panelMinHeight = (constraints.maxHeight - 349 - 110)
             .clamp(0.0, double.infinity);
         return Stack(
           children: [
@@ -176,7 +176,7 @@ class _Header extends StatelessWidget {
               ? event.coverUrl
               : DemoImages.pickCoverFor(event.id),
           fallbackLabel: context.l10n.event_overview_main_visual(event.name),
-          height: 180,
+          height: 240,
           hue: hue,
         ),
         Positioned(
