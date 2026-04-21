@@ -20,14 +20,14 @@ class EventsHubScreen extends ConsumerStatefulWidget {
 }
 
 class _EventsHubScreenState extends ConsumerState<EventsHubScreen> {
-  String _tab = 'registering';
+  String _tab = 'ongoing';
 
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
     final tabs = [
-      ('ongoing', l.events_tab_ongoing),
       ('registering', l.events_tab_registering),
+      ('ongoing', l.events_tab_ongoing),
       ('watch', l.events_tab_watch),
     ];
     final wcMatches = ref.watch(wcMatchesProvider);
