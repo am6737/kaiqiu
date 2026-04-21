@@ -12,12 +12,14 @@ class Avatar extends StatelessWidget {
   Widget build(BuildContext context) {
     final initial = name.isEmpty ? '•' : name.characters.first.toUpperCase();
     final hue = name.isEmpty ? 140 : (name.codeUnitAt(0) * 37) % 360;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final lightness = isDark ? 0.22 : 0.78;
     return Container(
       width: size,
       height: size,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: HSLColor.fromAHSL(1, hue.toDouble(), 0.2, 0.22).toColor(),
+        color: HSLColor.fromAHSL(1, hue.toDouble(), 0.2, lightness).toColor(),
         shape: BoxShape.circle,
         border: Border.all(color: context.tokens.line, width: 1),
       ),

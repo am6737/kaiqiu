@@ -6,6 +6,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
+import '../theme/app_tokens.dart';
+
 class TeamBadge extends StatelessWidget {
   final String name;
   final String? logoUrl;
@@ -31,20 +33,23 @@ class TeamBadge extends StatelessWidget {
           child: CachedNetworkImage(
             imageUrl: u,
             fit: BoxFit.cover,
-            errorWidget: (_, _, _) => _chip(),
-            placeholder: (_, _) => _chip(),
+            errorWidget: (_, _, _) => _chip(context),
+            placeholder: (_, _) => _chip(context),
           ),
         ),
       );
     }
-    return ClipRRect(borderRadius: radius, child: _chip());
+    return ClipRRect(borderRadius: radius, child: _chip(context));
   }
 
-  Widget _chip() {
+  Widget _chip(BuildContext context) {
     final label = _initials(name);
     final hue = _hueFromName(name);
-    final bg = HSLColor.fromAHSL(1, hue, 0.45, 0.32).toColor();
-    final accent = HSLColor.fromAHSL(1, hue, 0.55, 0.55).toColor();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgL = isDark ? 0.32 : 0.78;
+    final accentL = isDark ? 0.55 : 0.62;
+    final bg = HSLColor.fromAHSL(1, hue, 0.45, bgL).toColor();
+    final accent = HSLColor.fromAHSL(1, hue, 0.55, accentL).toColor();
     return Container(
       width: size,
       height: size,
@@ -62,7 +67,7 @@ class TeamBadge extends StatelessWidget {
         style: TextStyle(
           fontSize: _labelSize(label, size),
           fontWeight: FontWeight.w800,
-          color: Colors.white,
+          color: context.tokens.ink,
           letterSpacing: label.runes.length <= 2 ? 0 : -0.5,
           height: 1.05,
         ),

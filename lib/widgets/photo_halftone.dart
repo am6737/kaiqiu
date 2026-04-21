@@ -21,7 +21,11 @@ class PhotoHalftone extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = HSLColor.fromAHSL(1, hue, 0.15, 0.18).toColor();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final lightness = isDark ? 0.18 : 0.85;
+    final bg = HSLColor.fromAHSL(1, hue, 0.15, lightness).toColor();
+    // Dots/lines should be visible in both modes: use ink color at low opacity.
+    final dotColor = context.tokens.ink.withAlpha(isDark ? 0x17 : 0x28);
     return ClipRect(
       child: SizedBox(
         height: height,
@@ -31,7 +35,7 @@ class PhotoHalftone extends StatelessWidget {
           children: [
             Container(color: bg),
             // Pattern layer
-            CustomPaint(painter: _HalftonePainter(variant)),
+            CustomPaint(painter: _HalftonePainter(variant, dotColor)),
             // Label at bottom-left
             Positioned(
               left: 10,
@@ -56,11 +60,12 @@ class PhotoHalftone extends StatelessWidget {
 
 class _HalftonePainter extends CustomPainter {
   final HalftoneVariant variant;
-  _HalftonePainter(this.variant);
+  final Color dotColor;
+  _HalftonePainter(this.variant, this.dotColor);
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = const Color(0x17FFFFFF); // ~0.09
+    final paint = Paint()..color = dotColor;
     if (variant == HalftoneVariant.dots) {
       const step = 6.0;
       for (double y = 0; y < size.height; y += step) {
@@ -70,8 +75,7 @@ class _HalftonePainter extends CustomPainter {
       }
     } else {
       final line = Paint()
-        ..color =
-            const Color(0x0AFFFFFF) // ~0.04
+        ..color = dotColor.withAlpha(dotColor.a ~/ 2)
         ..strokeWidth = 1;
       for (double y = 0; y < size.height; y += 3) {
         canvas.drawLine(Offset(0, y), Offset(size.width, y), line);
@@ -80,5 +84,6 @@ class _HalftonePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _HalftonePainter old) => old.variant != variant;
+  bool shouldRepaint(covariant _HalftonePainter old) =>
+      old.variant != variant || old.dotColor != dotColor;
 }

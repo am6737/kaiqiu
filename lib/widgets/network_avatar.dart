@@ -79,7 +79,9 @@ class _SquareMonogram extends StatelessWidget {
   Widget build(BuildContext context) {
     final ch = name.isEmpty ? '?' : String.fromCharCode(name.runes.first);
     final hue = (ch.codeUnitAt(0) * 37) % 360;
-    final bg = HSLColor.fromAHSL(1, hue.toDouble(), 0.35, 0.28).toColor();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final lightness = isDark ? 0.28 : 0.72;
+    final bg = HSLColor.fromAHSL(1, hue.toDouble(), 0.35, lightness).toColor();
     return Container(
       width: size,
       height: size,
@@ -90,7 +92,7 @@ class _SquareMonogram extends StatelessWidget {
         style: TextStyle(
           fontSize: size * 0.42,
           fontWeight: FontWeight.w700,
-          color: Colors.white,
+          color: context.tokens.ink,
         ),
       ),
     );
