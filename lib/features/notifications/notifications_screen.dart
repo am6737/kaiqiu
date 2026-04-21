@@ -5,11 +5,16 @@ import 'package:go_router/go_router.dart';
 
 import '../../l10n/generated/app_localizations.dart';
 import '../../l10n/l10n_extension.dart';
+import '../../providers.dart';
 import '../../utils/time_fmt.dart';
 import '../../widgets/avatar.dart';
 import '../../widgets/section_header.dart';
 import '../../widgets/typography.dart';
 import '../../theme/app_tokens.dart';
+
+// Shell-branch roots must be entered via context.go() so the bottom-tab
+// StatefulShellRoute switches branches instead of pushing an empty overlay.
+const _branchRoots = {'/home', '/pickup', '/events', '/messages', '/me'};
 
 class NotificationsScreen extends ConsumerStatefulWidget {
   const NotificationsScreen({super.key});
@@ -93,7 +98,13 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                               read: _read.contains(n.id),
                               onTap: () {
                                 setState(() => _read.add(n.id));
-                                if (n.route != null) context.push(n.route!);
+                                final route = n.route;
+                                if (route == null) return;
+                                if (_branchRoots.contains(route)) {
+                                  context.go(route);
+                                } else {
+                                  context.push(route);
+                                }
                               },
                             ),
                         ],
@@ -144,7 +155,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         title: l.notif_demo_rate_t,
         body: l.notif_demo_rate_b,
         at: now.subtract(const Duration(minutes: 20)),
-        route: '/rate/demo',
+        route: '/rate/$demoMatchId',
       ),
       _Notif(
         id: 'pickup-1',
@@ -171,6 +182,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         title: l.notif_demo_follow_t,
         body: l.notif_demo_follow_b,
         at: now.subtract(const Duration(days: 1)),
+        route: '/me',
       ),
     ];
   }
