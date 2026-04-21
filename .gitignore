@@ -14,6 +14,7 @@ migrate_working_dir/
 
 # Superpowers / Claude Code skill scratch
 .superpowers/
+.worktrees/
 
 # Gradle build artifacts that escape /build/ on some subproject setups
 /android/build/
