@@ -80,7 +80,7 @@ from (values
 where p.id = dp.id;
 
 -- ═══════════════════════════════════════════════════════════════
--- 1. Pickups — 6 场约球，坐标用 0-1 归一化后再映射到深圳经纬度窗口
+-- 1. Pickups — 4 场约球，坐标用 0-1 归一化后再映射到深圳经纬度窗口
 -- ═══════════════════════════════════════════════════════════════
 
 delete from pickup_slots where pickup_id in (
@@ -117,11 +117,7 @@ insert into pickups (
   ('平湖体育公园',      '张教练',  '周六 15:00',   5, 10, '初级', 3000, 120, 'open',   0.30, 0.65, now() + interval '3 days',
    'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=1200&h=600&q=70'),
   ('坂田足球场',        '阿泽',    '周日 20:00',   0, 10, '中级', 4500, 120, 'full',   0.70, 0.30, now() + interval '4 days',
-   'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=1200&h=600&q=70'),
-  ('华南城五人制',      '林帅',    '后天 21:00',   2,  5, '中级', 6000,  60, 'open',   0.50, 0.20, now() + interval '2 days',
-   'https://images.unsplash.com/photo-1551958219-acbc608c6377?auto=format&fit=crop&w=1200&h=600&q=70'),
-  ('大鹏海滨球场',      '小赵',    '下周六 09:00', 4, 10, '初级', 3500, 120, 'open',   0.82, 0.55, now() + interval '6 days',
-   'https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=1200&h=600&q=70');
+   'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=1200&h=600&q=70');
 
 -- 把归一化 (0-1) 坐标映射到真实深圳经纬度（lat ≈ 22.5, lng ≈ 114.0）。
 -- 条件 lat <= 1 and lng <= 1 保证只动种子数据，不会误伤真实 pickup。

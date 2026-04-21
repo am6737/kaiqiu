@@ -301,6 +301,7 @@ create view public.event_scorers as
 -- ═══════════════════════════════════════════════════════════════
 
 drop function if exists public.ensure_demo_conversation();
+drop function if exists public.ensure_event_conversation(text);
 drop trigger if exists message_created on public.messages;
 drop function if exists public.on_message_created();
 drop table if exists public.messages cascade;
