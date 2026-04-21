@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'l10n/locale_controller.dart';
 import 'routes.dart';
+import 'theme/accent_seed.dart';
 import 'theme/theme.dart';
 
 class KaiqiuApp extends StatelessWidget {
@@ -17,7 +18,7 @@ class KaiqiuApp extends StatelessWidget {
         return MaterialApp.router(
           onGenerateTitle: (ctx) => AppL10n.of(ctx).app_name,
           debugShowCheckedModeBanner: false,
-          theme: buildAppTheme(),
+          theme: buildAppTheme(Brightness.dark, AccentSeed.defaultSeed),
           routerConfig: router,
           locale: LocaleController.instance.current,
           supportedLocales: AppL10n.supportedLocales,
