@@ -13,6 +13,7 @@ import '../../theme/tokens.dart';
 import '../../theme/app_tokens.dart';
 import '../../utils/toast.dart';
 import '../../widgets/live_pill.dart';
+import '../../widgets/live_predict_strip.dart';
 import '../../widgets/live_stream_player.dart';
 import '../../widgets/typography.dart';
 
@@ -238,6 +239,12 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
                   ),
                 ],
               ),
+            ),
+            // Prediction strip — tap to open bottom sheet.
+            LivePredictStrip(
+              matchId: widget.matchId,
+              homeLabel: l.wc_team_argentina,
+              awayLabel: l.wc_team_brazil,
             ),
             // Danmu feed
             Expanded(
