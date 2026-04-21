@@ -1,6 +1,7 @@
 // primary_button.dart — matches React Button (primary/secondary/ghost/warn)
 import 'package:flutter/material.dart';
 import '../theme/tokens.dart';
+import '../theme/app_tokens.dart';
 
 enum BtnVariant { primary, secondary, ghost, warn }
 
@@ -35,8 +36,8 @@ class PrimaryButton extends StatelessWidget {
     };
     final (bg, fg, border) = switch (variant) {
       BtnVariant.primary => (T.live, Colors.black, Colors.transparent),
-      BtnVariant.secondary => (T.elev3, T.ink, T.line),
-      BtnVariant.ghost => (Colors.transparent, T.ink, T.lineStrong),
+      BtnVariant.secondary => (context.tokens.elev3, T.ink, context.tokens.line),
+      BtnVariant.ghost => (Colors.transparent, T.ink, context.tokens.lineStrong),
       BtnVariant.warn => (T.warn, Colors.black, Colors.transparent),
     };
     return Opacity(

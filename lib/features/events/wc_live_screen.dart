@@ -10,6 +10,7 @@ import '../../l10n/l10n_extension.dart';
 import '../../providers.dart';
 import '../../services/local_storage.dart';
 import '../../theme/tokens.dart';
+import '../../theme/app_tokens.dart';
 import '../../utils/toast.dart';
 import '../../widgets/live_pill.dart';
 import '../../widgets/live_stream_player.dart';
@@ -189,9 +190,9 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
             // Score bar
             Container(
               padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-              decoration: const BoxDecoration(
-                color: T.elev1,
-                border: Border(bottom: BorderSide(color: T.line, width: 1)),
+              decoration: BoxDecoration(
+                color: context.tokens.elev1,
+                border: Border(bottom: BorderSide(color: context.tokens.line, width: 1)),
               ),
               child: Row(
                 children: [
@@ -241,7 +242,7 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
             // Danmu feed
             Expanded(
               child: Container(
-                color: T.bg,
+                color: context.tokens.bg,
                 child: _danmus.isEmpty
                     ? Center(
                         child: Text(
@@ -265,9 +266,9 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
                                     vertical: 6,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: d.self ? T.liveDim : T.elev2,
+                                    color: d.self ? T.liveDim : context.tokens.elev2,
                                     border: Border.all(
-                                      color: d.self ? T.live : T.line,
+                                      color: d.self ? T.live : context.tokens.line,
                                     ),
                                     borderRadius: BorderRadius.circular(999),
                                   ),
@@ -302,9 +303,9 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
             ),
             Container(
               padding: const EdgeInsets.fromLTRB(12, 10, 12, 28),
-              decoration: const BoxDecoration(
-                color: T.elev1,
-                border: Border(top: BorderSide(color: T.line, width: 1)),
+              decoration: BoxDecoration(
+                color: context.tokens.elev1,
+                border: Border(top: BorderSide(color: context.tokens.line, width: 1)),
               ),
               child: Row(
                 children: [
@@ -312,7 +313,7 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 14),
                       decoration: BoxDecoration(
-                        color: T.elev2,
+                        color: context.tokens.elev2,
                         borderRadius: BorderRadius.circular(24),
                       ),
                       child: TextField(
@@ -341,7 +342,7 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
                       width: 42,
                       height: 42,
                       alignment: Alignment.center,
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         color: T.live,
                         shape: BoxShape.circle,
                       ),
@@ -374,7 +375,7 @@ class _BackButton extends StatelessWidget {
         width: 36,
         height: 36,
         alignment: Alignment.center,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           color: Color(0x80000000),
           shape: BoxShape.circle,
         ),

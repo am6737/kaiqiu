@@ -19,6 +19,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../l10n/l10n_extension.dart';
 import '../theme/tokens.dart';
+import '../theme/app_tokens.dart';
 import '../utils/toast.dart';
 
 enum _MapApp { amap, baidu, system }
@@ -91,7 +92,7 @@ class MapLauncher {
 
     await showModalBottomSheet<void>(
       context: context,
-      backgroundColor: T.elev1,
+      backgroundColor: context.tokens.elev1,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),

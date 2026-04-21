@@ -11,6 +11,7 @@ import '../../services/local_storage.dart';
 import '../../services/map_launcher.dart';
 import '../../services/supabase.dart' as svc;
 import '../../theme/tokens.dart';
+import '../../theme/app_tokens.dart';
 import 'map/mini_map.dart';
 import '../../utils/share_helper.dart';
 import '../../utils/toast.dart';
@@ -172,7 +173,7 @@ class _CircleBtn extends StatelessWidget {
         width: 36,
         height: 36,
         alignment: Alignment.center,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           color: Color(0x80000000),
           shape: BoxShape.circle,
         ),
@@ -861,7 +862,7 @@ class _BottomCta extends ConsumerWidget {
 
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 32),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: context.tokens.elev1,
         border: Border(top: BorderSide(color: context.tokens.line, width: 1)),
       ),

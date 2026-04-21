@@ -9,6 +9,7 @@ import '../../providers.dart';
 import '../../repositories/goals_repository.dart';
 import '../../services/supabase.dart' as svc;
 import '../../theme/tokens.dart';
+import '../../theme/app_tokens.dart';
 import '../../utils/toast.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/typography.dart';
@@ -169,9 +170,9 @@ class _FormationRatingScreenState
     final uid = svc.currentUserId;
 
     return Scaffold(
-      backgroundColor: T.bg,
+      backgroundColor: context.tokens.bg,
       appBar: AppBar(
-        backgroundColor: T.bg,
+        backgroundColor: context.tokens.bg,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.close, size: 20, color: T.ink),
@@ -185,7 +186,7 @@ class _FormationRatingScreenState
             color: T.ink,
           ),
         ),
-        shape: const Border(bottom: BorderSide(color: T.line, width: 1)),
+        shape: Border(bottom: BorderSide(color: context.tokens.line, width: 1)),
       ),
       body: slotsAsync.when(
         loading: () => const Center(
@@ -286,7 +287,7 @@ class _ProgressHeader extends StatelessWidget {
             child: LinearProgressIndicator(
               value: frac,
               minHeight: 3,
-              backgroundColor: T.elev3,
+              backgroundColor: context.tokens.elev3,
               valueColor: const AlwaysStoppedAnimation(T.live),
             ),
           ),
@@ -316,9 +317,9 @@ class _SubmitBar extends StatelessWidget {
         : (rated == total ? l.rate_submit_all : l.rate_pitch_submit_n(rated));
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
-      decoration: const BoxDecoration(
-        color: T.elev1,
-        border: Border(top: BorderSide(color: T.line, width: 1)),
+      decoration: BoxDecoration(
+        color: context.tokens.elev1,
+        border: Border(top: BorderSide(color: context.tokens.line, width: 1)),
       ),
       child: PrimaryButton(
         label: label,
@@ -350,8 +351,8 @@ class _EmptyState extends StatelessWidget {
               height: 64,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: T.elev2,
-                border: Border.all(color: T.line),
+                color: context.tokens.elev2,
+                border: Border.all(color: context.tokens.line),
                 shape: BoxShape.circle,
               ),
               child: const Icon(

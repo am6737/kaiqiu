@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../l10n/l10n_extension.dart';
 import '../../theme/tokens.dart';
+import '../../theme/app_tokens.dart';
 import '../../utils/time_fmt.dart';
 import '../../widgets/avatar.dart';
 import '../../widgets/section_header.dart';
@@ -32,7 +33,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         : items;
 
     return Scaffold(
-      backgroundColor: T.bg,
+      backgroundColor: context.tokens.bg,
       body: SafeArea(
         child: Column(
           children: [
@@ -55,8 +56,8 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
               child: Container(
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  color: T.elev2,
-                  border: Border.all(color: T.line),
+                  color: context.tokens.elev2,
+                  border: Border.all(color: context.tokens.line),
                   borderRadius: BorderRadius.circular(T.r2),
                 ),
                 child: Row(
@@ -206,7 +207,7 @@ class _Tab extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 9),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: active ? T.elev3 : Colors.transparent,
+          color: active ? context.tokens.elev3 : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Text(
@@ -238,8 +239,8 @@ class _NotifRow extends StatelessWidget {
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-        decoration: const BoxDecoration(
-          border: Border(top: BorderSide(color: T.line, width: 1)),
+        decoration: BoxDecoration(
+          border: Border(top: BorderSide(color: context.tokens.line, width: 1)),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -249,9 +250,9 @@ class _NotifRow extends StatelessWidget {
               height: 36,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: T.elev3,
+                color: context.tokens.elev3,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: T.line),
+                border: Border.all(color: context.tokens.line),
               ),
               child: Icon(item.icon, size: 18, color: T.live),
             ),
@@ -277,7 +278,7 @@ class _NotifRow extends StatelessWidget {
                           width: 6,
                           height: 6,
                           margin: const EdgeInsets.only(left: 6),
-                          decoration: const BoxDecoration(
+                          decoration: BoxDecoration(
                             color: T.live,
                             shape: BoxShape.circle,
                           ),

@@ -10,6 +10,7 @@ import '../../providers.dart';
 import '../../repositories/goals_repository.dart';
 import '../../services/local_storage.dart';
 import '../../theme/tokens.dart';
+import '../../theme/app_tokens.dart';
 import '../../utils/toast.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/typography.dart';
@@ -29,9 +30,9 @@ class MatchDetailScreen extends ConsumerWidget {
     final matchesAsync = ref.watch(eventMatchesProvider(eventId));
 
     return Scaffold(
-      backgroundColor: T.bg,
+      backgroundColor: context.tokens.bg,
       appBar: AppBar(
-        backgroundColor: T.bg,
+        backgroundColor: context.tokens.bg,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, size: 18, color: T.ink),
@@ -45,7 +46,7 @@ class MatchDetailScreen extends ConsumerWidget {
             color: T.ink,
           ),
         ),
-        shape: const Border(bottom: BorderSide(color: T.line, width: 1)),
+        shape: Border(bottom: BorderSide(color: context.tokens.line, width: 1)),
       ),
       body: matchesAsync.when(
         loading: () => const _Loading(),
@@ -126,9 +127,9 @@ class _HeaderCard extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
-      decoration: const BoxDecoration(
-        color: T.elev1,
-        border: Border(bottom: BorderSide(color: T.line, width: 1)),
+      decoration: BoxDecoration(
+        color: context.tokens.elev1,
+        border: Border(bottom: BorderSide(color: context.tokens.line, width: 1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -245,9 +246,9 @@ class _StatusChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = context.l10n;
     final (bg, fg, text) = switch (status) {
-      _MatchStatus.upcoming => (T.elev3, T.inkSub, l.match_status_upcoming),
+      _MatchStatus.upcoming => (context.tokens.elev3, T.inkSub, l.match_status_upcoming),
       _MatchStatus.live => (T.liveDim, T.live, l.match_status_live),
-      _MatchStatus.done => (T.elev3, T.inkDim, l.match_status_done),
+      _MatchStatus.done => (context.tokens.elev3, T.inkDim, l.match_status_done),
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -290,8 +291,8 @@ class _GoalsSection extends StatelessWidget {
               padding: const EdgeInsets.all(14),
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: T.elev2,
-                border: Border.all(color: T.line),
+                color: context.tokens.elev2,
+                border: Border.all(color: context.tokens.line),
                 borderRadius: BorderRadius.circular(T.r2),
               ),
               child: Text(
@@ -318,8 +319,8 @@ class _GoalRow extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: T.elev2,
-        border: Border.all(color: T.line),
+        color: context.tokens.elev2,
+        border: Border.all(color: context.tokens.line),
         borderRadius: BorderRadius.circular(T.r2),
       ),
       child: Row(

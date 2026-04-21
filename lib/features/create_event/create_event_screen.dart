@@ -11,6 +11,7 @@ import '../../providers.dart';
 import '../../services/storage.dart';
 import '../../services/supabase.dart';
 import '../../theme/tokens.dart';
+import '../../theme/app_tokens.dart';
 import '../../utils/toast.dart';
 import '../../widgets/photo_halftone.dart';
 import '../../widgets/primary_button.dart';
@@ -87,15 +88,15 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     final l = context.l10n;
     final steps = _stepsList(context);
     return Scaffold(
-      backgroundColor: T.bg,
+      backgroundColor: context.tokens.bg,
       body: Column(
         children: [
           SafeArea(
             bottom: false,
             child: Container(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 14),
-              decoration: const BoxDecoration(
-                border: Border(bottom: BorderSide(color: T.line, width: 1)),
+              decoration: BoxDecoration(
+                border: Border(bottom: BorderSide(color: context.tokens.line, width: 1)),
               ),
               child: Row(
                 children: [
@@ -139,7 +140,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                         Container(
                           height: 3,
                           decoration: BoxDecoration(
-                            color: i + 1 <= _step ? T.live : T.elev3,
+                            color: i + 1 <= _step ? T.live : context.tokens.elev3,
                             borderRadius: BorderRadius.circular(2),
                           ),
                         ),
@@ -176,9 +177,9 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       ),
       bottomSheet: Container(
         padding: const EdgeInsets.fromLTRB(16, 14, 16, 32),
-        decoration: const BoxDecoration(
-          color: T.elev1,
-          border: Border(top: BorderSide(color: T.line, width: 1)),
+        decoration: BoxDecoration(
+          color: context.tokens.elev1,
+          border: Border(top: BorderSide(color: context.tokens.line, width: 1)),
         ),
         child: Row(
           children: [
@@ -333,8 +334,8 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
               child: Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: _tpl == t.$1 ? T.elev3 : T.elev2,
-                  border: Border.all(color: _tpl == t.$1 ? T.live : T.line),
+                  color: _tpl == t.$1 ? context.tokens.elev3 : context.tokens.elev2,
+                  border: Border.all(color: _tpl == t.$1 ? T.live : context.tokens.line),
                   borderRadius: BorderRadius.circular(T.r3),
                 ),
                 child: Row(
@@ -378,7 +379,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                         color: _tpl == t.$1 ? T.live : Colors.transparent,
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: _tpl == t.$1 ? T.live : T.line,
+                          color: _tpl == t.$1 ? T.live : context.tokens.line,
                           width: 1.5,
                         ),
                       ),
@@ -504,9 +505,9 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                       padding: const EdgeInsets.all(14),
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: _review == opt.$1 ? T.elev3 : T.elev2,
+                        color: _review == opt.$1 ? context.tokens.elev3 : context.tokens.elev2,
                         border: Border.all(
-                          color: _review == opt.$1 ? T.live : T.line,
+                          color: _review == opt.$1 ? T.live : context.tokens.line,
                         ),
                         borderRadius: BorderRadius.circular(T.r2),
                       ),
@@ -549,8 +550,8 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: T.elev2,
-              border: Border.all(color: T.line),
+              color: context.tokens.elev2,
+              border: Border.all(color: context.tokens.line),
               borderRadius: BorderRadius.circular(T.r2),
             ),
             child: Column(
@@ -612,8 +613,8 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               decoration: BoxDecoration(
-                color: T.elev2,
-                border: Border.all(color: T.line),
+                color: context.tokens.elev2,
+                border: Border.all(color: context.tokens.line),
                 borderRadius: BorderRadius.circular(T.r2),
               ),
               child: Row(
@@ -648,8 +649,8 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
           const SizedBox(height: 14),
           Container(
             decoration: BoxDecoration(
-              color: T.elev2,
-              border: Border.all(color: T.line),
+              color: context.tokens.elev2,
+              border: Border.all(color: context.tokens.line),
               borderRadius: BorderRadius.circular(T.r3),
             ),
             child: Column(
@@ -731,7 +732,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                       Container(
                         height: 3,
                         decoration: BoxDecoration(
-                          color: T.elev3,
+                          color: context.tokens.elev3,
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -783,8 +784,8 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       child: Container(
         padding: border ? const EdgeInsets.only(left: 10) : null,
         decoration: border
-            ? const BoxDecoration(
-                border: Border(left: BorderSide(color: T.line, width: 1)),
+            ? BoxDecoration(
+                border: Border(left: BorderSide(color: context.tokens.line, width: 1)),
               )
             : null,
         child: Column(
@@ -825,8 +826,8 @@ class _Field extends StatelessWidget {
             height: 46,
             padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
-              color: T.elev2,
-              border: Border.all(color: T.line),
+              color: context.tokens.elev2,
+              border: Border.all(color: context.tokens.line),
               borderRadius: BorderRadius.circular(T.r2),
             ),
             child: Row(

@@ -21,6 +21,7 @@ import '../../repositories/goals_repository.dart';
 import '../../services/local_storage.dart';
 import '../../services/supabase.dart';
 import '../../theme/tokens.dart';
+import '../../theme/app_tokens.dart';
 import '../../utils/share_helper.dart';
 import '../../utils/toast.dart';
 import '../../widgets/avatar.dart';
@@ -175,7 +176,7 @@ class _Header extends StatelessWidget {
               width: 36,
               height: 36,
               alignment: Alignment.center,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: Color(0x80000000),
                 shape: BoxShape.circle,
               ),
@@ -196,7 +197,7 @@ class _Header extends StatelessWidget {
               width: 36,
               height: 36,
               alignment: Alignment.center,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: Color(0x80000000),
                 shape: BoxShape.circle,
               ),
@@ -210,7 +211,7 @@ class _Header extends StatelessWidget {
           bottom: 0,
           child: Container(
             padding: const EdgeInsets.all(16),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -285,7 +286,7 @@ class _KpiStrip extends ConsumerWidget {
     ];
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         border: Border(bottom: BorderSide(color: context.tokens.line, width: 1)),
       ),
       child: Row(
@@ -296,7 +297,7 @@ class _KpiStrip extends ConsumerWidget {
                 padding: i == 0 ? null : const EdgeInsets.only(left: 10),
                 decoration: i == 0
                     ? null
-                    : const BoxDecoration(
+                    : BoxDecoration(
                         border: Border(
                           left: BorderSide(color: context.tokens.line, width: 1),
                         ),
@@ -338,7 +339,7 @@ class _Tabs extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         border: Border(bottom: BorderSide(color: context.tokens.line, width: 1)),
       ),
       child: SingleChildScrollView(
@@ -445,7 +446,7 @@ class _OverviewPanel extends StatelessWidget {
                   Container(
                     width: 4,
                     height: 4,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       color: T.live,
                       shape: BoxShape.circle,
                     ),
@@ -681,7 +682,7 @@ class _MatchCard extends StatelessWidget {
                 if (isFinal)
                   Container(
                     padding: const EdgeInsets.symmetric(vertical: 6),
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       border: Border(
                         bottom: BorderSide(color: T.live, width: 0.6),
                       ),
@@ -935,7 +936,7 @@ class _StandingsTable extends StatelessWidget {
                     horizontal: 16,
                     vertical: 12,
                   ),
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     border: Border(top: BorderSide(color: context.tokens.line, width: 1)),
                   ),
                   child: Row(
@@ -1844,7 +1845,7 @@ class _ChatPanelState extends ConsumerState<_ChatPanel> {
                   width: 36,
                   height: 36,
                   alignment: Alignment.center,
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     color: T.live,
                     shape: BoxShape.circle,
                   ),
@@ -1936,7 +1937,7 @@ class _BottomCta extends ConsumerWidget {
     final registered = LocalStore.isEventFavorited(event.id);
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 32),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: context.tokens.elev1,
         border: Border(top: BorderSide(color: context.tokens.line, width: 1)),
       ),

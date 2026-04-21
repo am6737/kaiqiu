@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../l10n/l10n_extension.dart';
 import '../theme/tokens.dart';
+import '../theme/app_tokens.dart';
 
 class BottomNavShell extends StatelessWidget {
   final StatefulNavigationShell shell;
@@ -20,12 +21,12 @@ class BottomNavShell extends StatelessWidget {
       (l.tab_me, Icons.person_outline, Icons.person),
     ];
     return Scaffold(
-      backgroundColor: T.bg,
+      backgroundColor: context.tokens.bg,
       body: shell,
       bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          color: T.elev1,
-          border: Border(top: BorderSide(color: T.line, width: 1)),
+        decoration: BoxDecoration(
+          color: context.tokens.elev1,
+          border: Border(top: BorderSide(color: context.tokens.line, width: 1)),
         ),
         padding: const EdgeInsets.only(top: 8, bottom: 28),
         child: Row(

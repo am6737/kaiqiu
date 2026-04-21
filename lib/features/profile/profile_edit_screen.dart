@@ -8,6 +8,7 @@ import '../../providers.dart';
 import '../../services/storage.dart';
 import '../../services/supabase.dart';
 import '../../theme/tokens.dart';
+import '../../theme/app_tokens.dart';
 import '../../utils/toast.dart';
 import '../../widgets/network_avatar.dart';
 import '../../widgets/primary_button.dart';
@@ -140,7 +141,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
   Widget build(BuildContext context) {
     final l = context.l10n;
     return Scaffold(
-      backgroundColor: T.bg,
+      backgroundColor: context.tokens.bg,
       body: SafeArea(
         child: Column(
           children: [
@@ -231,9 +232,9 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
             ),
             Container(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-              decoration: const BoxDecoration(
-                color: T.elev1,
-                border: Border(top: BorderSide(color: T.line, width: 1)),
+              decoration: BoxDecoration(
+                color: context.tokens.elev1,
+                border: Border(top: BorderSide(color: context.tokens.line, width: 1)),
               ),
               child: PrimaryButton(
                 label: _saving ? l.rate_submitting : l.common_save,
@@ -346,8 +347,8 @@ class _ChoiceBtn extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: active ? T.liveDim : T.elev2,
-          border: Border.all(color: active ? T.live : T.line),
+          color: active ? T.liveDim : context.tokens.elev2,
+          border: Border.all(color: active ? T.live : context.tokens.line),
           borderRadius: BorderRadius.circular(T.r2),
         ),
         child: Text(
@@ -385,8 +386,8 @@ class _Field extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
-              color: T.elev2,
-              border: Border.all(color: T.line),
+              color: context.tokens.elev2,
+              border: Border.all(color: context.tokens.line),
               borderRadius: BorderRadius.circular(T.r2),
             ),
             child: TextField(

@@ -7,6 +7,7 @@ import '../../l10n/l10n_extension.dart';
 import '../../services/local_storage.dart';
 import '../../services/supabase.dart';
 import '../../theme/tokens.dart';
+import '../../theme/app_tokens.dart';
 import '../../utils/toast.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/typography.dart';
@@ -102,7 +103,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: T.elev1,
+      backgroundColor: context.tokens.elev1,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -135,8 +136,8 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 decoration: BoxDecoration(
-                  color: T.elev2,
-                  border: Border.all(color: T.line),
+                  color: context.tokens.elev2,
+                  border: Border.all(color: context.tokens.line),
                   borderRadius: BorderRadius.circular(T.r2),
                 ),
                 child: TextField(
@@ -182,7 +183,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   Widget build(BuildContext context) {
     final l = context.l10n;
     return Scaffold(
-      backgroundColor: T.bg,
+      backgroundColor: context.tokens.bg,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -292,11 +293,11 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
               const SizedBox(height: 20),
               Row(
                 children: [
-                  const Expanded(child: Divider(color: T.line)),
+                  Expanded(child: Divider(color: context.tokens.line)),
                   const SizedBox(width: 10),
                   Label(l.auth_or),
                   const SizedBox(width: 10),
-                  const Expanded(child: Divider(color: T.line)),
+                  Expanded(child: Divider(color: context.tokens.line)),
                 ],
               ),
               const SizedBox(height: 20),
@@ -380,8 +381,8 @@ class _Field extends StatelessWidget {
           height: 50,
           padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
-            color: T.elev2,
-            border: Border.all(color: T.line),
+            color: context.tokens.elev2,
+            border: Border.all(color: context.tokens.line),
             borderRadius: BorderRadius.circular(T.r2),
           ),
           child: Row(

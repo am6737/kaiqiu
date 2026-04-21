@@ -9,6 +9,7 @@ import '../../l10n/locale_controller.dart';
 import '../../services/local_storage.dart';
 import '../../services/supabase.dart';
 import '../../theme/tokens.dart';
+import '../../theme/app_tokens.dart';
 import '../../utils/toast.dart';
 import '../../utils/validators.dart';
 import '../../widgets/primary_button.dart';
@@ -28,7 +29,7 @@ class AccountSettingsScreen extends ConsumerWidget {
       _ => l.settings_lang_system,
     };
     return Scaffold(
-      backgroundColor: T.bg,
+      backgroundColor: context.tokens.bg,
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.only(bottom: 40),
@@ -92,8 +93,8 @@ class AccountSettingsScreen extends ConsumerWidget {
                   height: 48,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: T.elev2,
-                    border: Border.all(color: T.line),
+                    color: context.tokens.elev2,
+                    border: Border.all(color: context.tokens.line),
                     borderRadius: BorderRadius.circular(T.r2),
                   ),
                   child: Text(
@@ -135,14 +136,14 @@ class AccountSettingsScreen extends ConsumerWidget {
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       child: Container(
         decoration: BoxDecoration(
-          color: T.elev2,
-          border: Border.all(color: T.line),
+          color: context.tokens.elev2,
+          border: Border.all(color: context.tokens.line),
           borderRadius: BorderRadius.circular(T.r2),
         ),
         child: Column(
           children: [
             for (int i = 0; i < children.length; i++) ...[
-              if (i > 0) const Divider(height: 1, color: T.line),
+              if (i > 0) Divider(height: 1, color: context.tokens.line),
               children[i],
             ],
           ],
@@ -200,7 +201,7 @@ class AccountSettingsScreen extends ConsumerWidget {
     final cur = LocaleController.instance.explicitCode;
     await showModalBottomSheet(
       context: context,
-      backgroundColor: T.elev1,
+      backgroundColor: context.tokens.elev1,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -259,7 +260,7 @@ class AccountSettingsScreen extends ConsumerWidget {
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: T.elev1,
+      backgroundColor: context.tokens.elev1,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -343,7 +344,7 @@ class AccountSettingsScreen extends ConsumerWidget {
         await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            backgroundColor: T.elev2,
+            backgroundColor: context.tokens.elev2,
             content: Text(
               l.profile_logout_confirm,
               style: const TextStyle(color: T.ink),
@@ -378,7 +379,7 @@ class AccountSettingsScreen extends ConsumerWidget {
         await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            backgroundColor: T.elev2,
+            backgroundColor: context.tokens.elev2,
             content: Text(
               l.settings_account_delete_confirm,
               style: const TextStyle(color: T.ink),
@@ -430,8 +431,8 @@ class _PwField extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
-              color: T.elev2,
-              border: Border.all(color: T.line),
+              color: context.tokens.elev2,
+              border: Border.all(color: context.tokens.line),
               borderRadius: BorderRadius.circular(T.r2),
             ),
             child: TextField(

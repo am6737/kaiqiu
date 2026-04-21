@@ -8,6 +8,7 @@ import '../../models/pickup.dart';
 import '../../providers.dart';
 import '../../services/local_storage.dart';
 import '../../theme/tokens.dart';
+import '../../theme/app_tokens.dart';
 import '../../widgets/chip_pill.dart';
 import '../../widgets/live_pill.dart';
 import '../../widgets/primary_button.dart';
@@ -51,7 +52,7 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
     String localLevel = _level;
     await showModalBottomSheet(
       context: context,
-      backgroundColor: T.elev1,
+      backgroundColor: context.tokens.elev1,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -128,9 +129,9 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                               vertical: 7,
                             ),
                             decoration: BoxDecoration(
-                              color: localLevel == lv.$1 ? T.liveDim : T.elev2,
+                              color: localLevel == lv.$1 ? T.liveDim : context.tokens.elev2,
                               border: Border.all(
-                                color: localLevel == lv.$1 ? T.live : T.line,
+                                color: localLevel == lv.$1 ? T.live : context.tokens.line,
                               ),
                               borderRadius: BorderRadius.circular(999),
                             ),
@@ -197,12 +198,12 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
     final async = ref.watch(livePickupsProvider);
     return async.when(
       data: (list) => _buildMap(context, list),
-      loading: () => const Scaffold(
-        backgroundColor: T.bg,
+      loading: () => Scaffold(
+        backgroundColor: context.tokens.bg,
         body: Center(child: CircularProgressIndicator(color: T.live)),
       ),
       error: (e, _) => Scaffold(
-        backgroundColor: T.bg,
+        backgroundColor: context.tokens.bg,
         body: SafeArea(
           child: Center(
             child: Padding(
@@ -225,8 +226,8 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: T.elev3,
-                        border: Border.all(color: T.line),
+                        color: context.tokens.elev3,
+                        border: Border.all(color: context.tokens.line),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
@@ -246,7 +247,7 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
 
   Widget _buildMap(BuildContext context, List<Pickup> pickups) {
     return Scaffold(
-      backgroundColor: T.bg,
+      backgroundColor: context.tokens.bg,
       body: Stack(
         children: [
           // Real map (AMap on mobile, SVG canvas on web via conditional import).
@@ -270,8 +271,8 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    T.bg.withValues(alpha: 0.9),
-                    T.bg.withValues(alpha: 0),
+                    context.tokens.bg.withValues(alpha: 0.9),
+                    context.tokens.bg.withValues(alpha: 0),
                   ],
                   stops: const [0.5, 1.0],
                 ),
@@ -339,8 +340,8 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
               decoration: BoxDecoration(
-                color: T.elev2,
-                border: Border.all(color: T.line),
+                color: context.tokens.elev2,
+                border: Border.all(color: context.tokens.line),
                 borderRadius: BorderRadius.circular(T.r2),
               ),
               child: Column(
@@ -373,13 +374,13 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
             bottom: 0,
             height: _sheetOpen ? MediaQuery.of(context).size.height * 0.55 : 80,
             child: Container(
-              decoration: const BoxDecoration(
-                color: T.elev1,
+              decoration: BoxDecoration(
+                color: context.tokens.elev1,
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(24),
                   topRight: Radius.circular(24),
                 ),
-                border: Border(top: BorderSide(color: T.line, width: 1)),
+                border: Border(top: BorderSide(color: context.tokens.line, width: 1)),
               ),
               child: Column(
                 children: [
@@ -466,9 +467,9 @@ class _CircleBtn extends StatelessWidget {
         height: 36,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: T.elev2,
+          color: context.tokens.elev2,
           shape: BoxShape.circle,
-          border: Border.all(color: T.line),
+          border: Border.all(color: context.tokens.line),
         ),
         child: Icon(icon, size: 16, color: T.ink),
       ),
@@ -512,8 +513,8 @@ class _MapListRow extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: const BoxDecoration(
-          border: Border(bottom: BorderSide(color: T.line, width: 1)),
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: context.tokens.line, width: 1)),
         ),
         child: Row(
           children: [

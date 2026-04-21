@@ -7,6 +7,7 @@ import '../../data/mock.dart' as mock;
 import '../../l10n/l10n_extension.dart';
 import '../../services/supabase.dart' as svc;
 import '../../theme/tokens.dart';
+import '../../theme/app_tokens.dart';
 import '../../utils/toast.dart';
 import '../../widgets/avatar.dart';
 import '../../widgets/primary_button.dart';
@@ -85,7 +86,7 @@ class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
     final info = mock.ratingMatchInfo;
 
     return Scaffold(
-      backgroundColor: T.bg,
+      backgroundColor: context.tokens.bg,
       body: Column(
         children: [
           // Header
@@ -93,8 +94,8 @@ class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
             bottom: false,
             child: Container(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
-              decoration: const BoxDecoration(
-                border: Border(bottom: BorderSide(color: T.line, width: 1)),
+              decoration: BoxDecoration(
+                border: Border(bottom: BorderSide(color: context.tokens.line, width: 1)),
               ),
               child: Row(
                 children: [
@@ -146,7 +147,7 @@ class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
                             ? T.live
                             : i == _idx
                             ? T.ink
-                            : T.elev3,
+                            : context.tokens.elev3,
                         borderRadius: BorderRadius.circular(1),
                       ),
                     ),
@@ -166,8 +167,8 @@ class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
                     margin: const EdgeInsets.all(16),
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: T.elev2,
-                      border: Border.all(color: T.line),
+                      color: context.tokens.elev2,
+                      border: Border.all(color: context.tokens.line),
                       borderRadius: BorderRadius.circular(T.r3),
                     ),
                     child: Row(
@@ -216,8 +217,8 @@ class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
                     margin: const EdgeInsets.symmetric(horizontal: 16),
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: T.elev2,
-                      border: Border.all(color: T.line),
+                      color: context.tokens.elev2,
+                      border: Border.all(color: context.tokens.line),
                       borderRadius: BorderRadius.circular(T.r3),
                     ),
                     child: Column(
@@ -320,14 +321,14 @@ class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
                                 : context.l10n.rate_other_hint,
                             hintStyle: const TextStyle(color: T.inkDim),
                             filled: true,
-                            fillColor: T.elev3,
+                            fillColor: context.tokens.elev3,
                             contentPadding: const EdgeInsets.all(12),
                             border: OutlineInputBorder(
-                              borderSide: const BorderSide(color: T.line),
+                              borderSide: BorderSide(color: context.tokens.line),
                               borderRadius: BorderRadius.circular(T.r2),
                             ),
                             enabledBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(color: T.line),
+                              borderSide: BorderSide(color: context.tokens.line),
                               borderRadius: BorderRadius.circular(T.r2),
                             ),
                           ),
@@ -342,8 +343,8 @@ class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
                       margin: const EdgeInsets.symmetric(horizontal: 16),
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: T.elev1,
-                        border: Border.all(color: T.line),
+                        color: context.tokens.elev1,
+                        border: Border.all(color: context.tokens.line),
                         borderRadius: BorderRadius.circular(T.r2),
                       ),
                       child: Row(
@@ -408,9 +409,9 @@ class _BottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
-      decoration: const BoxDecoration(
-        color: T.elev1,
-        border: Border(top: BorderSide(color: T.line, width: 1)),
+      decoration: BoxDecoration(
+        color: context.tokens.elev1,
+        border: Border(top: BorderSide(color: context.tokens.line, width: 1)),
       ),
       child: Row(
         children: [
@@ -503,8 +504,8 @@ class _RatingSlider extends StatelessWidget {
                     Positioned.fill(
                       child: Container(
                         decoration: BoxDecoration(
-                          color: T.elev2,
-                          border: Border.all(color: T.line),
+                          color: context.tokens.elev2,
+                          border: Border.all(color: context.tokens.line),
                           borderRadius: BorderRadius.circular(23),
                         ),
                       ),
@@ -620,7 +621,7 @@ class _DonePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: T.bg,
+      backgroundColor: context.tokens.bg,
       body: SafeArea(
         child: Center(
           child: Padding(

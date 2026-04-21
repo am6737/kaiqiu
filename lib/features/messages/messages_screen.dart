@@ -9,6 +9,7 @@ import '../../providers.dart';
 import '../../repositories/messages_repository.dart';
 import '../../services/local_storage.dart';
 import '../../theme/tokens.dart';
+import '../../theme/app_tokens.dart';
 import '../../utils/toast.dart';
 import '../../widgets/avatar.dart';
 import '../../widgets/primary_button.dart';
@@ -22,7 +23,7 @@ class MessagesScreen extends ConsumerWidget {
     final l = context.l10n;
     final async = ref.watch(conversationsProvider);
     return Scaffold(
-      backgroundColor: T.bg,
+      backgroundColor: context.tokens.bg,
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -65,7 +66,7 @@ class MessagesScreen extends ConsumerWidget {
                   if (list.isEmpty) {
                     return RefreshIndicator(
                       color: T.live,
-                      backgroundColor: T.elev1,
+                      backgroundColor: context.tokens.elev1,
                       onRefresh: () async =>
                           ref.invalidate(conversationsProvider),
                       child: ListView(
@@ -84,7 +85,7 @@ class MessagesScreen extends ConsumerWidget {
                   final sorted = [...pinned, ...others];
                   return RefreshIndicator(
                     color: T.live,
-                    backgroundColor: T.elev1,
+                    backgroundColor: context.tokens.elev1,
                     onRefresh: () async =>
                         ref.invalidate(conversationsProvider),
                     child: ListView.builder(
@@ -147,7 +148,7 @@ class MessagesScreen extends ConsumerWidget {
     final l = context.l10n;
     await showModalBottomSheet(
       context: context,
-      backgroundColor: T.elev1,
+      backgroundColor: context.tokens.elev1,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -222,7 +223,7 @@ class MessagesScreen extends ConsumerWidget {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: T.elev2,
+        backgroundColor: context.tokens.elev2,
         title: Text(l.messages_new_group, style: const TextStyle(color: T.ink)),
         content: TextField(
           controller: titleC,
@@ -271,7 +272,7 @@ class MessagesScreen extends ConsumerWidget {
     final l = context.l10n;
     await showModalBottomSheet(
       context: context,
-      backgroundColor: T.elev1,
+      backgroundColor: context.tokens.elev1,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -350,7 +351,7 @@ class MessagesScreen extends ConsumerWidget {
                 final confirm = await showDialog<bool>(
                   context: context,
                   builder: (d) => AlertDialog(
-                    backgroundColor: T.elev2,
+                    backgroundColor: context.tokens.elev2,
                     content: Text(
                       l.messages_delete_confirm,
                       style: const TextStyle(color: T.ink),
@@ -423,7 +424,7 @@ class _ThreadRow extends ConsumerWidget {
           color: pinned ? const Color(0x0800FF85) : null,
           border: isFirst
               ? null
-              : const Border(top: BorderSide(color: T.line, width: 1)),
+              : Border(top: BorderSide(color: context.tokens.line, width: 1)),
         ),
         child: Row(
           children: [
@@ -445,7 +446,7 @@ class _ThreadRow extends ConsumerWidget {
                       decoration: BoxDecoration(
                         color: T.warn,
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: T.bg, width: 2),
+                        border: Border.all(color: context.tokens.bg, width: 2),
                       ),
                       child: Text(
                         '${thread.unread}',

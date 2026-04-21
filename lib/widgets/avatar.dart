@@ -1,6 +1,7 @@
 // avatar.dart — monogram-on-tinted-bg avatar
 import 'package:flutter/material.dart';
 import '../theme/tokens.dart';
+import '../theme/app_tokens.dart';
 
 class Avatar extends StatelessWidget {
   final String name;
@@ -19,7 +20,7 @@ class Avatar extends StatelessWidget {
       decoration: BoxDecoration(
         color: HSLColor.fromAHSL(1, hue.toDouble(), 0.2, 0.22).toColor(),
         shape: BoxShape.circle,
-        border: Border.all(color: T.line, width: 1),
+        border: Border.all(color: context.tokens.line, width: 1),
       ),
       child: Text(
         initial,

@@ -1,6 +1,7 @@
 // chip_pill.dart — filter / pill chip
 import 'package:flutter/material.dart';
 import '../theme/tokens.dart';
+import '../theme/app_tokens.dart';
 
 class ChipPill extends StatelessWidget {
   final String label;
@@ -27,7 +28,7 @@ class ChipPill extends StatelessWidget {
         decoration: BoxDecoration(
           color: active ? T.ink : Colors.transparent,
           borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: active ? T.ink : T.line),
+          border: Border.all(color: active ? T.ink : context.tokens.line),
         ),
         child: Text(
           label,

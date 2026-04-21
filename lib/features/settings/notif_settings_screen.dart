@@ -7,6 +7,7 @@ import '../../l10n/l10n_extension.dart';
 import '../../providers.dart';
 import '../../services/local_storage.dart';
 import '../../theme/tokens.dart';
+import '../../theme/app_tokens.dart';
 import '../../widgets/section_header.dart';
 
 class NotifSettingsScreen extends ConsumerWidget {
@@ -17,7 +18,7 @@ class NotifSettingsScreen extends ConsumerWidget {
     final l = context.l10n;
     ref.watch(localStoreProvider);
     return Scaffold(
-      backgroundColor: T.bg,
+      backgroundColor: context.tokens.bg,
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.only(bottom: 40),
@@ -27,24 +28,28 @@ class NotifSettingsScreen extends ConsumerWidget {
               onBack: () => context.pop(),
             ),
             _switchRow(
+              context: context,
               title: l.settings_notif_push,
               sub: l.settings_notif_push_sub,
               value: LocalStore.notifPush,
               onChanged: LocalStore.setNotifPush,
             ),
             _switchRow(
+              context: context,
               title: l.settings_notif_inapp,
               sub: l.settings_notif_inapp_sub,
               value: LocalStore.notifInApp,
               onChanged: LocalStore.setNotifInApp,
             ),
             _switchRow(
+              context: context,
               title: l.settings_notif_email,
               sub: l.settings_notif_email_sub,
               value: LocalStore.notifEmail,
               onChanged: LocalStore.setNotifEmail,
             ),
             _switchRow(
+              context: context,
               title: l.settings_notif_match_reminder,
               sub: l.settings_notif_match_reminder_sub,
               value: LocalStore.notifMatchReminder,
@@ -57,6 +62,7 @@ class NotifSettingsScreen extends ConsumerWidget {
   }
 
   Widget _switchRow({
+    required BuildContext context,
     required String title,
     required String sub,
     required bool value,
@@ -66,8 +72,8 @@ class NotifSettingsScreen extends ConsumerWidget {
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: T.elev2,
-        border: Border.all(color: T.line),
+        color: context.tokens.elev2,
+        border: Border.all(color: context.tokens.line),
         borderRadius: BorderRadius.circular(T.r2),
       ),
       child: Row(

@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../l10n/l10n_extension.dart';
 import '../../theme/tokens.dart';
+import '../../theme/app_tokens.dart';
 import '../../widgets/section_header.dart';
 import '../../widgets/typography.dart';
 
@@ -17,7 +18,7 @@ class AboutScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = context.l10n;
     return Scaffold(
-      backgroundColor: T.bg,
+      backgroundColor: context.tokens.bg,
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.only(bottom: 40),
@@ -86,8 +87,8 @@ class AboutScreen extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: T.elev2,
-                  border: Border.all(color: T.line),
+                  color: context.tokens.elev2,
+                  border: Border.all(color: context.tokens.line),
                   borderRadius: BorderRadius.circular(T.r2),
                 ),
                 child: Text(
@@ -105,8 +106,8 @@ class AboutScreen extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 18),
               child: Container(
                 decoration: BoxDecoration(
-                  color: T.elev2,
-                  border: Border.all(color: T.line),
+                  color: context.tokens.elev2,
+                  border: Border.all(color: context.tokens.line),
                   borderRadius: BorderRadius.circular(T.r2),
                 ),
                 child: Column(
@@ -116,7 +117,7 @@ class AboutScreen extends StatelessWidget {
                       l.settings_about_terms,
                       () => context.push('/settings/legal/terms'),
                     ),
-                    const Divider(height: 1, color: T.line),
+                    Divider(height: 1, color: context.tokens.line),
                     _menuRow(
                       Icons.shield_outlined,
                       l.settings_about_privacy,
@@ -136,8 +137,8 @@ class AboutScreen extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: T.elev2,
-                    border: Border.all(color: T.line),
+                    color: context.tokens.elev2,
+                    border: Border.all(color: context.tokens.line),
                     borderRadius: BorderRadius.circular(T.r2),
                   ),
                   child: Row(

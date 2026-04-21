@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 
 import '../../../models/pickup.dart';
 import '../../../theme/tokens.dart';
+import '../../../theme/app_tokens.dart';
 import '../../../widgets/sport_icon.dart';
 
 /// Shenzhen default center — used by the mobile map, surfaced here so the
@@ -93,7 +94,7 @@ class _Pin extends StatelessWidget {
               height: isActive ? 40 : 32,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: T.elev1,
+                color: context.tokens.elev1,
                 shape: BoxShape.circle,
                 border: Border.all(color: statusColor, width: 2),
                 boxShadow: [

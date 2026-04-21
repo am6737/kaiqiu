@@ -7,6 +7,7 @@ import '../../l10n/l10n_extension.dart';
 import '../../providers.dart';
 import '../../services/local_storage.dart';
 import '../../theme/tokens.dart';
+import '../../theme/app_tokens.dart';
 import '../../utils/share_helper.dart';
 import '../../utils/toast.dart';
 import '../../widgets/live_pill.dart';
@@ -24,7 +25,7 @@ class WorldCupScreen extends ConsumerWidget {
     final focusMatchId = 'wc-focus';
 
     return Scaffold(
-      backgroundColor: T.bg,
+      backgroundColor: context.tokens.bg,
       body: ListView(
         padding: const EdgeInsets.only(bottom: 100),
         children: [
@@ -132,7 +133,7 @@ class WorldCupScreen extends ConsumerWidget {
             margin: const EdgeInsets.fromLTRB(16, 0, 16, 14),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: T.elev2,
+              color: context.tokens.elev2,
               border: Border.all(color: const Color(0x4D00FF85)),
               borderRadius: BorderRadius.circular(T.r3),
             ),
@@ -276,8 +277,8 @@ class WorldCupScreen extends ConsumerWidget {
             margin: const EdgeInsets.fromLTRB(16, 0, 16, 14),
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: T.elev2,
-              border: Border.all(color: T.line),
+              color: context.tokens.elev2,
+              border: Border.all(color: context.tokens.line),
               borderRadius: BorderRadius.circular(T.r3),
             ),
             child: Column(
@@ -288,7 +289,7 @@ class WorldCupScreen extends ConsumerWidget {
                     const SizedBox(width: 8),
                     _predBar(14, l.wc_team_draw, T.inkMute, T.ink),
                     const SizedBox(width: 8),
-                    _predBar(24, l.wc_team_brazil_win, T.elev3, T.ink),
+                    _predBar(24, l.wc_team_brazil_win, context.tokens.elev3, T.ink),
                   ],
                 ),
                 const SizedBox(height: 10),
@@ -320,8 +321,8 @@ class WorldCupScreen extends ConsumerWidget {
                     margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: T.elev2,
-                      border: Border.all(color: T.line),
+                      color: context.tokens.elev2,
+                      border: Border.all(color: context.tokens.line),
                       borderRadius: BorderRadius.circular(T.r2),
                     ),
                     child: Row(
@@ -349,7 +350,7 @@ class WorldCupScreen extends ConsumerWidget {
                         Container(
                           width: 1,
                           height: 36,
-                          color: T.line,
+                          color: context.tokens.line,
                           margin: const EdgeInsets.symmetric(horizontal: 12),
                         ),
                         Expanded(
@@ -415,9 +416,9 @@ class WorldCupScreen extends ConsumerWidget {
                               vertical: 5,
                             ),
                             decoration: BoxDecoration(
-                              color: reminded ? T.liveDim : T.elev3,
+                              color: reminded ? T.liveDim : context.tokens.elev3,
                               border: Border.all(
-                                color: reminded ? T.live : T.line,
+                                color: reminded ? T.live : context.tokens.line,
                               ),
                               borderRadius: BorderRadius.circular(6),
                             ),

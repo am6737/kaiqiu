@@ -8,6 +8,7 @@ import '../../providers.dart';
 import '../../repositories/user_teams_repository.dart';
 import '../../services/local_storage.dart';
 import '../../theme/tokens.dart';
+import '../../theme/app_tokens.dart';
 import '../../utils/toast.dart';
 import '../../utils/validators.dart';
 import '../../widgets/avatar.dart';
@@ -26,7 +27,7 @@ class MyTeamsScreen extends ConsumerWidget {
     final teammates = ref.watch(teammatesProvider);
 
     return Scaffold(
-      backgroundColor: T.bg,
+      backgroundColor: context.tokens.bg,
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.only(bottom: 40),
@@ -106,8 +107,8 @@ class MyTeamsScreen extends ConsumerWidget {
               child: Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: T.elev2,
-                  border: Border.all(color: T.line),
+                  color: context.tokens.elev2,
+                  border: Border.all(color: context.tokens.line),
                   borderRadius: BorderRadius.circular(T.r3),
                 ),
                 child: Column(
@@ -162,7 +163,7 @@ class MyTeamsScreen extends ConsumerWidget {
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: T.elev1,
+      backgroundColor: context.tokens.elev1,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -241,7 +242,7 @@ class MyTeamsScreen extends ConsumerWidget {
     return await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            backgroundColor: T.elev2,
+            backgroundColor: context.tokens.elev2,
             content: Text(msg, style: const TextStyle(color: T.ink)),
             actions: [
               TextButton(
@@ -278,8 +279,8 @@ class _TeamCard extends StatelessWidget {
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: T.elev2,
-        border: Border.all(color: T.line),
+        color: context.tokens.elev2,
+        border: Border.all(color: context.tokens.line),
         borderRadius: BorderRadius.circular(T.r3),
       ),
       child: Column(
@@ -371,8 +372,8 @@ class _Field extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
-              color: T.elev2,
-              border: Border.all(color: T.line),
+              color: context.tokens.elev2,
+              border: Border.all(color: context.tokens.line),
               borderRadius: BorderRadius.circular(T.r2),
             ),
             child: TextField(

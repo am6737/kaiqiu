@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../l10n/l10n_extension.dart';
 import '../../services/local_storage.dart';
 import '../../theme/tokens.dart';
+import '../../theme/app_tokens.dart';
 import '../../widgets/section_header.dart';
 
 class CityPickerScreen extends ConsumerWidget {
@@ -70,7 +71,7 @@ class CityPickerScreen extends ConsumerWidget {
     final l = context.l10n;
     final current = LocalStore.city;
     return Scaffold(
-      backgroundColor: T.bg,
+      backgroundColor: context.tokens.bg,
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.only(bottom: 40),
@@ -84,8 +85,8 @@ class CityPickerScreen extends ConsumerWidget {
               child: Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: T.elev2,
-                  border: Border.all(color: T.line),
+                  color: context.tokens.elev2,
+                  border: Border.all(color: context.tokens.line),
                   borderRadius: BorderRadius.circular(T.r2),
                 ),
                 child: Row(
@@ -177,8 +178,8 @@ class _CityChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: active ? T.liveDim : T.elev2,
-          border: Border.all(color: active ? T.live : T.line),
+          color: active ? T.liveDim : context.tokens.elev2,
+          border: Border.all(color: active ? T.live : context.tokens.line),
           borderRadius: BorderRadius.circular(999),
         ),
         child: Text(
@@ -210,8 +211,8 @@ class _CityRow extends StatelessWidget {
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-        decoration: const BoxDecoration(
-          border: Border(bottom: BorderSide(color: T.line, width: 1)),
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: context.tokens.line, width: 1)),
         ),
         child: Row(
           children: [

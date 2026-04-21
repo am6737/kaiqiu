@@ -8,6 +8,7 @@ import '../../l10n/l10n_extension.dart';
 import '../../models/pickup.dart' as live;
 import '../../providers.dart';
 import '../../theme/tokens.dart';
+import '../../theme/app_tokens.dart';
 import '../../widgets/avatar.dart';
 import '../../widgets/chip_pill.dart';
 import '../../widgets/live_pill.dart';
@@ -27,14 +28,14 @@ class HomeScreen extends ConsumerWidget {
     final nonPickupFeeds = feeds.where((f) => f is! FeedPickup).toList();
 
     return Scaffold(
-      backgroundColor: T.bg,
+      backgroundColor: context.tokens.bg,
       body: Stack(
         children: [
           SafeArea(
             bottom: false,
             child: RefreshIndicator(
               color: T.live,
-              backgroundColor: T.elev1,
+              backgroundColor: context.tokens.elev1,
               onRefresh: () async => ref.invalidate(livePickupsProvider),
               child: ListView(
                 padding: const EdgeInsets.only(bottom: 90),
@@ -194,7 +195,7 @@ class _WarnDot extends StatelessWidget {
     return Container(
       width: 6,
       height: 6,
-      decoration: const BoxDecoration(color: T.warn, shape: BoxShape.circle),
+      decoration: BoxDecoration(color: T.warn, shape: BoxShape.circle),
     );
   }
 }
@@ -215,7 +216,7 @@ class _SportPicker extends ConsumerWidget {
     };
     return PopupMenuButton<String>(
       offset: const Offset(0, 36),
-      color: T.elev2,
+      color: context.tokens.elev2,
       initialValue: sport,
       onSelected: (v) => ref.read(sportProvider.notifier).state = v,
       itemBuilder: (_) => [
@@ -246,9 +247,9 @@ class _SportPicker extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
-          color: T.elev2,
+          color: context.tokens.elev2,
           borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: T.line),
+          border: Border.all(color: context.tokens.line),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -303,8 +304,8 @@ class _LiveStrip extends StatelessWidget {
             width: 180,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: T.elev2,
-              border: Border.all(color: T.line),
+              color: context.tokens.elev2,
+              border: Border.all(color: context.tokens.line),
               borderRadius: BorderRadius.circular(T.r2),
             ),
             child: Column(
@@ -415,7 +416,7 @@ class _RateCtaBanner extends StatelessWidget {
                 height: 44,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: T.elev3,
+                  color: context.tokens.elev3,
                   border: Border.all(color: const Color(0x9900FF85)),
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -488,8 +489,8 @@ class _PickupCard extends StatelessWidget {
         margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: T.elev2,
-          border: Border.all(color: T.line),
+          color: context.tokens.elev2,
+          border: Border.all(color: context.tokens.line),
           borderRadius: BorderRadius.circular(T.r3),
         ),
         child: Column(
@@ -539,7 +540,7 @@ class _PickupCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 10),
-            const Divider(height: 1, color: T.line),
+            Divider(height: 1, color: context.tokens.line),
             const SizedBox(height: 10),
             Row(
               children: [
@@ -557,7 +558,7 @@ class _PickupCard extends StatelessWidget {
                           child: Container(
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              border: Border.all(color: T.elev2, width: 2),
+                              border: Border.all(color: context.tokens.elev2, width: 2),
                             ),
                             child: Avatar(['A', 'B', 'C', 'D'][i], size: 22),
                           ),
@@ -602,16 +603,16 @@ class _ResultCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
       decoration: BoxDecoration(
-        color: T.elev2,
-        border: Border.all(color: T.line),
+        color: context.tokens.elev2,
+        border: Border.all(color: context.tokens.line),
         borderRadius: BorderRadius.circular(T.r3),
       ),
       child: Column(
         children: [
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: const BoxDecoration(
-              border: Border(bottom: BorderSide(color: T.line, width: 1)),
+            decoration: BoxDecoration(
+              border: Border(bottom: BorderSide(color: context.tokens.line, width: 1)),
             ),
             child: Row(
               children: [
@@ -650,7 +651,7 @@ class _ResultCard extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: HSLColor.fromAHSL(1, 25, 0.4, 0.28).toColor(),
                           borderRadius: BorderRadius.circular(4),
-                          border: Border.all(color: T.line),
+                          border: Border.all(color: context.tokens.line),
                         ),
                       ),
                     ],
@@ -699,7 +700,7 @@ class _ResultCard extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: HSLColor.fromAHSL(1, 200, 0.4, 0.28).toColor(),
                           borderRadius: BorderRadius.circular(4),
-                          border: Border.all(color: T.line),
+                          border: Border.all(color: context.tokens.line),
                         ),
                       ),
                     ],
@@ -710,9 +711,9 @@ class _ResultCard extends StatelessWidget {
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: const BoxDecoration(
-              color: T.elev1,
-              border: Border(top: BorderSide(color: T.line, width: 1)),
+            decoration: BoxDecoration(
+              color: context.tokens.elev1,
+              border: Border(top: BorderSide(color: context.tokens.line, width: 1)),
             ),
             child: Row(
               children: [
@@ -743,8 +744,8 @@ class _PostCard extends StatelessWidget {
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: T.elev2,
-        border: Border.all(color: T.line),
+        color: context.tokens.elev2,
+        border: Border.all(color: context.tokens.line),
         borderRadius: BorderRadius.circular(T.r3),
       ),
       child: Column(
@@ -786,7 +787,7 @@ class _PostCard extends StatelessWidget {
                     vertical: 3,
                   ),
                   decoration: BoxDecoration(
-                    color: T.elev3,
+                    color: context.tokens.elev3,
                     borderRadius: BorderRadius.circular(3),
                   ),
                   child: Text(
@@ -849,8 +850,8 @@ class _EventTeaserCard extends StatelessWidget {
         margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: T.elev2,
-          border: Border.all(color: T.line),
+          color: context.tokens.elev2,
+          border: Border.all(color: context.tokens.line),
           borderRadius: BorderRadius.circular(T.r3),
         ),
         child: Column(
@@ -893,7 +894,7 @@ class _EventTeaserCard extends StatelessWidget {
                 Container(
                   width: 1,
                   height: 28,
-                  color: T.line,
+                  color: context.tokens.line,
                   margin: const EdgeInsets.symmetric(horizontal: 12),
                 ),
                 Column(
@@ -917,7 +918,7 @@ class _EventTeaserCard extends StatelessWidget {
               child: LinearProgressIndicator(
                 value: progress,
                 minHeight: 3,
-                backgroundColor: T.elev3,
+                backgroundColor: context.tokens.elev3,
                 valueColor: const AlwaysStoppedAnimation(T.live),
               ),
             ),
@@ -972,8 +973,8 @@ class _LivePickupCard extends StatelessWidget {
         margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: T.elev2,
-          border: Border.all(color: T.line),
+          color: context.tokens.elev2,
+          border: Border.all(color: context.tokens.line),
           borderRadius: BorderRadius.circular(T.r3),
         ),
         child: Column(
@@ -1023,7 +1024,7 @@ class _LivePickupCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 10),
-            const Divider(height: 1, color: T.line),
+            Divider(height: 1, color: context.tokens.line),
             const SizedBox(height: 10),
             Row(
               children: [
@@ -1040,7 +1041,7 @@ class _LivePickupCard extends StatelessWidget {
                           child: Container(
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              border: Border.all(color: T.elev2, width: 2),
+                              border: Border.all(color: context.tokens.elev2, width: 2),
                             ),
                             child: Avatar(['A', 'B', 'C', 'D'][i], size: 22),
                           ),
@@ -1083,8 +1084,8 @@ class _PickupLoading extends StatelessWidget {
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: T.elev2,
-        border: Border.all(color: T.line),
+        color: context.tokens.elev2,
+        border: Border.all(color: context.tokens.line),
         borderRadius: BorderRadius.circular(T.r3),
       ),
       child: const Center(
@@ -1109,8 +1110,8 @@ class _PickupError extends StatelessWidget {
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: T.elev2,
-        border: Border.all(color: T.line),
+        color: context.tokens.elev2,
+        border: Border.all(color: context.tokens.line),
         borderRadius: BorderRadius.circular(T.r3),
       ),
       child: Column(
@@ -1131,8 +1132,8 @@ class _PickupError extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: T.elev3,
-                border: Border.all(color: T.line),
+                color: context.tokens.elev3,
+                border: Border.all(color: context.tokens.line),
                 borderRadius: BorderRadius.circular(T.r2),
               ),
               child: Text(

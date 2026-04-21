@@ -8,6 +8,7 @@ import '../../data/mock.dart';
 import '../../l10n/l10n_extension.dart';
 import '../../providers.dart';
 import '../../theme/tokens.dart';
+import '../../theme/app_tokens.dart';
 import '../../utils/share_helper.dart';
 import '../../widgets/avatar.dart';
 import '../../widgets/primary_button.dart';
@@ -51,7 +52,7 @@ class _PlayerArchiveScreenState extends ConsumerState<PlayerArchiveScreen>
     final history = ref.watch(historyProvider);
 
     return Scaffold(
-      backgroundColor: T.bg,
+      backgroundColor: context.tokens.bg,
       body: SafeArea(
         bottom: false,
         child: ListView(
@@ -231,8 +232,8 @@ class _PlayerArchiveScreenState extends ConsumerState<PlayerArchiveScreen>
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: T.elev2,
-                      border: Border.all(color: T.line),
+                      color: context.tokens.elev2,
+                      border: Border.all(color: context.tokens.line),
                       borderRadius: BorderRadius.circular(T.r2),
                     ),
                     child: Column(
@@ -339,8 +340,8 @@ class _PlayerArchiveScreenState extends ConsumerState<PlayerArchiveScreen>
                   const SizedBox(height: 10),
                   Container(
                     decoration: BoxDecoration(
-                      color: T.elev2,
-                      border: Border.all(color: T.line),
+                      color: context.tokens.elev2,
+                      border: Border.all(color: context.tokens.line),
                       borderRadius: BorderRadius.circular(T.r2),
                     ),
                     child: Column(
@@ -381,7 +382,7 @@ class _CardFront extends StatelessWidget {
           ],
           stops: const [0, 0.6, 1],
         ),
-        border: Border.all(color: T.line),
+        border: Border.all(color: context.tokens.line),
         borderRadius: BorderRadius.circular(T.r4),
       ),
       child: Stack(
@@ -438,7 +439,7 @@ class _CardFront extends StatelessWidget {
                     HSLColor.fromAHSL(1, 150, 0.2, 0.18).toColor(),
                   ],
                 ),
-                border: Border.all(color: T.lineStrong),
+                border: Border.all(color: context.tokens.lineStrong),
                 borderRadius: BorderRadius.circular(T.r2),
               ),
               child: Stack(
@@ -483,8 +484,8 @@ class _CardFront extends StatelessWidget {
             bottom: 20,
             child: Container(
               padding: const EdgeInsets.only(top: 14),
-              decoration: const BoxDecoration(
-                border: Border(top: BorderSide(color: T.line, width: 1)),
+              decoration: BoxDecoration(
+                border: Border(top: BorderSide(color: context.tokens.line, width: 1)),
               ),
               child: Row(
                 children: [
@@ -521,8 +522,8 @@ class _CardStat extends StatelessWidget {
       child: Container(
         padding: border ? const EdgeInsets.only(left: 10) : null,
         decoration: border
-            ? const BoxDecoration(
-                border: Border(left: BorderSide(color: T.line, width: 1)),
+            ? BoxDecoration(
+                border: Border(left: BorderSide(color: context.tokens.line, width: 1)),
               )
             : null,
         child: Column(
@@ -557,7 +558,7 @@ class _CardBack extends StatelessWidget {
             HSLColor.fromAHSL(1, 150, 0.15, 0.10).toColor(),
           ],
         ),
-        border: Border.all(color: T.line),
+        border: Border.all(color: context.tokens.line),
         borderRadius: BorderRadius.circular(T.r4),
       ),
       child: Column(
@@ -596,8 +597,8 @@ class _CardBack extends StatelessWidget {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: T.elev2,
-                    border: Border.all(color: T.line),
+                    color: context.tokens.elev2,
+                    border: Border.all(color: context.tokens.line),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Row(
@@ -607,7 +608,7 @@ class _CardBack extends StatelessWidget {
                         width: 40,
                         height: 3,
                         decoration: BoxDecoration(
-                          color: T.elev3,
+                          color: context.tokens.elev3,
                           borderRadius: BorderRadius.circular(2),
                         ),
                         child: FractionallySizedBox(
@@ -897,7 +898,7 @@ class _RatingBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: T.elev2,
+        color: context.tokens.elev2,
         border: Border.all(color: c.withValues(alpha: 0.4)),
         borderRadius: BorderRadius.circular(6),
       ),
@@ -956,8 +957,8 @@ class _StatTile extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: T.elev2,
-          border: Border.all(color: T.line),
+          color: context.tokens.elev2,
+          border: Border.all(color: context.tokens.line),
           borderRadius: BorderRadius.circular(T.r2),
         ),
         child: Column(
@@ -983,8 +984,8 @@ class _HonorTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: T.elev2,
-        border: Border.all(color: T.line),
+        color: context.tokens.elev2,
+        border: Border.all(color: context.tokens.line),
         borderRadius: BorderRadius.circular(T.r2),
       ),
       child: Row(
@@ -1001,9 +1002,9 @@ class _HonorTile extends StatelessWidget {
                       colors: [Color(0xFFFFD700), Color(0xFFB8860B)],
                     )
                   : null,
-              color: isGold ? null : T.elev3,
+              color: isGold ? null : context.tokens.elev3,
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: T.line),
+              border: Border.all(color: context.tokens.line),
             ),
             child: Icon(
               Icons.emoji_events,
@@ -1055,7 +1056,7 @@ class _HistoryRow extends StatelessWidget {
       decoration: BoxDecoration(
         border: isFirst
             ? null
-            : const Border(top: BorderSide(color: T.line, width: 1)),
+            : Border(top: BorderSide(color: context.tokens.line, width: 1)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,

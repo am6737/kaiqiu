@@ -10,6 +10,7 @@ import '../../providers.dart';
 import '../../services/local_storage.dart';
 import '../../services/supabase.dart';
 import '../../theme/tokens.dart';
+import '../../theme/app_tokens.dart';
 import '../../widgets/avatar.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/typography.dart';
@@ -83,7 +84,7 @@ class ProfileScreen extends ConsumerWidget {
     ];
 
     return Scaffold(
-      backgroundColor: T.bg,
+      backgroundColor: context.tokens.bg,
       body: SafeArea(
         bottom: false,
         child: ListView(
@@ -304,7 +305,7 @@ class ProfileScreen extends ConsumerWidget {
                       await showDialog<bool>(
                         context: context,
                         builder: (ctx) => AlertDialog(
-                          backgroundColor: T.elev2,
+                          backgroundColor: context.tokens.elev2,
                           content: Text(
                             l.profile_logout_confirm,
                             style: const TextStyle(color: T.ink),
@@ -337,8 +338,8 @@ class ProfileScreen extends ConsumerWidget {
                   height: 48,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: T.elev2,
-                    border: Border.all(color: T.line),
+                    color: context.tokens.elev2,
+                    border: Border.all(color: context.tokens.line),
                     borderRadius: BorderRadius.circular(T.r2),
                   ),
                   child: Text(
@@ -411,13 +412,13 @@ class _EntrySection extends StatelessWidget {
           const SizedBox(height: 10),
           Container(
             decoration: BoxDecoration(
-              color: T.elev2,
-              border: Border.all(color: T.line),
+              color: context.tokens.elev2,
+              border: Border.all(color: context.tokens.line),
               borderRadius: BorderRadius.circular(T.r2),
             ),
             child: Column(
               children: [
-                for (int i = 0; i < items.length; i++) _row(items[i], i > 0),
+                for (int i = 0; i < items.length; i++) _row(context, items[i], i > 0),
               ],
             ),
           ),
@@ -426,14 +427,14 @@ class _EntrySection extends StatelessWidget {
     );
   }
 
-  Widget _row(_MenuItem item, bool divider) {
+  Widget _row(BuildContext context, _MenuItem item, bool divider) {
     return InkWell(
       onTap: item.onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: divider
-            ? const BoxDecoration(
-                border: Border(top: BorderSide(color: T.line, width: 1)),
+            ? BoxDecoration(
+                border: Border(top: BorderSide(color: context.tokens.line, width: 1)),
               )
             : null,
         child: Row(
@@ -443,8 +444,8 @@ class _EntrySection extends StatelessWidget {
               height: 30,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: T.elev3,
-                border: Border.all(color: T.line),
+                color: context.tokens.elev3,
+                border: Border.all(color: context.tokens.line),
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Icon(item.icon, size: 14, color: T.inkSub),
@@ -464,8 +465,8 @@ class _EntrySection extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
                 decoration: BoxDecoration(
-                  color: T.elev3,
-                  border: Border.all(color: T.line),
+                  color: context.tokens.elev3,
+                  border: Border.all(color: context.tokens.line),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(

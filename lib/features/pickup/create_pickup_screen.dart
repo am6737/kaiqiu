@@ -8,6 +8,7 @@ import '../../providers.dart';
 import '../../services/storage.dart';
 import '../../services/supabase.dart';
 import '../../theme/tokens.dart';
+import '../../theme/app_tokens.dart';
 import '../../utils/toast.dart';
 import '../../utils/validators.dart';
 import '../../widgets/primary_button.dart';
@@ -151,7 +152,7 @@ class _CreatePickupScreenState extends ConsumerState<CreatePickupScreen> {
   Widget build(BuildContext context) {
     final l = context.l10n;
     return Scaffold(
-      backgroundColor: T.bg,
+      backgroundColor: context.tokens.bg,
       body: SafeArea(
         child: Column(
           children: [
@@ -285,8 +286,8 @@ class _CreatePickupScreenState extends ConsumerState<CreatePickupScreen> {
                           vertical: 12,
                         ),
                         decoration: BoxDecoration(
-                          color: T.elev2,
-                          border: Border.all(color: T.line),
+                          color: context.tokens.elev2,
+                          border: Border.all(color: context.tokens.line),
                           borderRadius: BorderRadius.circular(T.r2),
                         ),
                         child: Row(
@@ -329,9 +330,9 @@ class _CreatePickupScreenState extends ConsumerState<CreatePickupScreen> {
             ),
             Container(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-              decoration: const BoxDecoration(
-                color: T.elev1,
-                border: Border(top: BorderSide(color: T.line, width: 1)),
+              decoration: BoxDecoration(
+                color: context.tokens.elev1,
+                border: Border(top: BorderSide(color: context.tokens.line, width: 1)),
               ),
               child: PrimaryButton(
                 label: _submitting ? l.rate_submitting : l.pickup_create_submit,
@@ -397,8 +398,8 @@ class _Field extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
-              color: T.elev2,
-              border: Border.all(color: T.line),
+              color: context.tokens.elev2,
+              border: Border.all(color: context.tokens.line),
               borderRadius: BorderRadius.circular(T.r2),
             ),
             child: Row(
@@ -448,8 +449,8 @@ class _Chip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
         decoration: BoxDecoration(
-          color: active ? T.liveDim : T.elev2,
-          border: Border.all(color: active ? T.live : T.line),
+          color: active ? T.liveDim : context.tokens.elev2,
+          border: Border.all(color: active ? T.live : context.tokens.line),
           borderRadius: BorderRadius.circular(999),
         ),
         child: Text(

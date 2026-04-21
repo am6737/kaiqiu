@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../../models/pickup.dart';
 import '../../../theme/tokens.dart';
+import '../../../theme/app_tokens.dart';
 
 class PitchView extends StatelessWidget {
   final List<PickupSlot> slots;
@@ -36,7 +37,7 @@ class PitchView extends StatelessWidget {
                 HSLColor.fromAHSL(1, 150, 0.25, 0.16).toColor(),
               ],
             ),
-            border: Border.all(color: T.line),
+            border: Border.all(color: context.tokens.line),
             borderRadius: BorderRadius.circular(T.r3),
           ),
           child: Stack(
@@ -100,7 +101,7 @@ class _PlayerDot extends StatelessWidget {
     final label = slot.initial(isSelf ? slot.userId : null);
     final dotColor = rated != null
         ? _ratedColor(rated!)
-        : (isSelected ? T.ink : T.elev1);
+        : (isSelected ? T.ink : context.tokens.elev1);
     final dotFg = rated != null || isSelected ? Colors.black : T.ink;
 
     return GestureDetector(
@@ -131,7 +132,7 @@ class _PlayerDot extends StatelessWidget {
                   color: dotColor,
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: isSelected ? T.ink : T.line,
+                    color: isSelected ? T.ink : context.tokens.line,
                     width: isSelected ? 2 : 1,
                   ),
                   boxShadow: isSelected

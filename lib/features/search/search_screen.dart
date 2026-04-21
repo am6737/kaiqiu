@@ -8,6 +8,7 @@ import '../../models/event.dart';
 import '../../providers.dart';
 import '../../services/local_storage.dart';
 import '../../theme/tokens.dart';
+import '../../theme/app_tokens.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/section_header.dart';
 import '../../widgets/typography.dart';
@@ -39,7 +40,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     final q = _query.trim();
 
     return Scaffold(
-      backgroundColor: T.bg,
+      backgroundColor: context.tokens.bg,
       body: SafeArea(
         child: Column(
           children: [
@@ -64,8 +65,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                       height: 40,
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
-                        color: T.elev2,
-                        border: Border.all(color: T.line),
+                        color: context.tokens.elev2,
+                        border: Border.all(color: context.tokens.line),
                         borderRadius: BorderRadius.circular(T.r2),
                       ),
                       child: Row(
@@ -278,8 +279,8 @@ class _Chip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
         decoration: BoxDecoration(
-          color: T.elev2,
-          border: Border.all(color: T.line),
+          color: context.tokens.elev2,
+          border: Border.all(color: context.tokens.line),
           borderRadius: BorderRadius.circular(999),
         ),
         child: Text(

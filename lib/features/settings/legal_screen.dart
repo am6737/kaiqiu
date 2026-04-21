@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../l10n/l10n_extension.dart';
 import '../../theme/tokens.dart';
+import '../../theme/app_tokens.dart';
 import '../../widgets/section_header.dart';
 
 class LegalScreen extends StatelessWidget {
@@ -18,7 +19,7 @@ class LegalScreen extends StatelessWidget {
       _ => (l.legal_terms_title, l.legal_terms_body),
     };
     return Scaffold(
-      backgroundColor: T.bg,
+      backgroundColor: context.tokens.bg,
       body: SafeArea(
         child: Column(
           children: [

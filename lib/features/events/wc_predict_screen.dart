@@ -9,6 +9,7 @@ import '../../l10n/l10n_extension.dart';
 import '../../providers.dart';
 import '../../services/local_storage.dart';
 import '../../theme/tokens.dart';
+import '../../theme/app_tokens.dart';
 import '../../utils/toast.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/section_header.dart';
@@ -50,7 +51,7 @@ class _WcPredictScreenState extends ConsumerState<WcPredictScreen> {
     final submitted = existing != null;
 
     return Scaffold(
-      backgroundColor: T.bg,
+      backgroundColor: context.tokens.bg,
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.only(bottom: 120),
@@ -64,8 +65,8 @@ class _WcPredictScreenState extends ConsumerState<WcPredictScreen> {
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: T.elev2,
-                  border: Border.all(color: T.line),
+                  color: context.tokens.elev2,
+                  border: Border.all(color: context.tokens.line),
                   borderRadius: BorderRadius.circular(T.r3),
                 ),
                 child: Row(
@@ -142,8 +143,8 @@ class _WcPredictScreenState extends ConsumerState<WcPredictScreen> {
               child: Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: T.elev2,
-                  border: Border.all(color: T.line),
+                  color: context.tokens.elev2,
+                  border: Border.all(color: context.tokens.line),
                   borderRadius: BorderRadius.circular(T.r2),
                 ),
                 child: Column(
@@ -167,7 +168,7 @@ class _WcPredictScreenState extends ConsumerState<WcPredictScreen> {
                         _Bar(
                           flex: bPct,
                           label: '$bPct%',
-                          color: T.elev3,
+                          color: context.tokens.elev3,
                           fg: T.ink,
                         ),
                       ],
@@ -218,9 +219,9 @@ class _WcPredictScreenState extends ConsumerState<WcPredictScreen> {
       ),
       bottomSheet: Container(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 26),
-        decoration: const BoxDecoration(
-          color: T.elev1,
-          border: Border(top: BorderSide(color: T.line, width: 1)),
+        decoration: BoxDecoration(
+          color: context.tokens.elev1,
+          border: Border(top: BorderSide(color: context.tokens.line, width: 1)),
         ),
         child: PrimaryButton(
           label: submitted ? l.wc_predict_submitted : l.wc_predict_submit,
@@ -276,8 +277,8 @@ class _Option extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 16),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: active ? T.liveDim : T.elev2,
-          border: Border.all(color: active ? T.live : T.line),
+          color: active ? T.liveDim : context.tokens.elev2,
+          border: Border.all(color: active ? T.live : context.tokens.line),
           borderRadius: BorderRadius.circular(T.r2),
         ),
         child: Text(
@@ -311,8 +312,8 @@ class _StakeBtn extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 12),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: active ? T.liveDim : T.elev2,
-          border: Border.all(color: active ? T.live : T.line),
+          color: active ? T.liveDim : context.tokens.elev2,
+          border: Border.all(color: active ? T.live : context.tokens.line),
           borderRadius: BorderRadius.circular(T.r2),
         ),
         child: N(

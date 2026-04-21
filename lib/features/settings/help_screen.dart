@@ -7,6 +7,7 @@ import '../../l10n/generated/app_localizations.dart';
 import '../../l10n/l10n_extension.dart';
 import '../../providers.dart';
 import '../../theme/tokens.dart';
+import '../../theme/app_tokens.dart';
 import '../../utils/toast.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/section_header.dart';
@@ -42,7 +43,7 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
     final l = context.l10n;
     final faqs = _faqs(l);
     return Scaffold(
-      backgroundColor: T.bg,
+      backgroundColor: context.tokens.bg,
       body: SafeArea(
         child: Column(
           children: [
@@ -58,14 +59,14 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                     padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
                     child: Container(
                       decoration: BoxDecoration(
-                        color: T.elev2,
-                        border: Border.all(color: T.line),
+                        color: context.tokens.elev2,
+                        border: Border.all(color: context.tokens.line),
                         borderRadius: BorderRadius.circular(T.r2),
                       ),
                       child: Column(
                         children: [
                           for (int i = 0; i < faqs.length; i++) ...[
-                            if (i > 0) const Divider(height: 1, color: T.line),
+                            if (i > 0) Divider(height: 1, color: context.tokens.line),
                             _FaqRow(
                               q: faqs[i].$1,
                               a: faqs[i].$2,
@@ -99,8 +100,8 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: T.elev2,
-                        border: Border.all(color: T.line),
+                        color: context.tokens.elev2,
+                        border: Border.all(color: context.tokens.line),
                         borderRadius: BorderRadius.circular(T.r2),
                       ),
                       child: TextField(

@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/tokens.dart';
+import '../theme/app_tokens.dart';
 
 void showToast(
   BuildContext context,
@@ -13,7 +14,7 @@ void showToast(
       ? T.danger
       : success
       ? T.live
-      : T.elev3;
+      : context.tokens.elev3;
   final Color fg = (success || error) ? Colors.black : T.ink;
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(

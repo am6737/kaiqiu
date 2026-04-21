@@ -7,6 +7,7 @@ import '../../l10n/l10n_extension.dart';
 import '../../models/pickup.dart';
 import '../../providers.dart';
 import '../../theme/tokens.dart';
+import '../../theme/app_tokens.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/live_pill.dart';
 import '../../widgets/section_header.dart';
@@ -27,7 +28,7 @@ class _MyPickupsScreenState extends ConsumerState<MyPickupsScreen> {
   Widget build(BuildContext context) {
     final l = context.l10n;
     return Scaffold(
-      backgroundColor: T.bg,
+      backgroundColor: context.tokens.bg,
       body: SafeArea(
         child: Column(
           children: [
@@ -49,8 +50,8 @@ class _MyPickupsScreenState extends ConsumerState<MyPickupsScreen> {
               child: Container(
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  color: T.elev2,
-                  border: Border.all(color: T.line),
+                  color: context.tokens.elev2,
+                  border: Border.all(color: context.tokens.line),
                   borderRadius: BorderRadius.circular(T.r2),
                 ),
                 child: Row(
@@ -99,7 +100,7 @@ class _TabBtn extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 9),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: active ? T.elev3 : Colors.transparent,
+          color: active ? context.tokens.elev3 : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Text(
@@ -190,8 +191,8 @@ class _Row extends StatelessWidget {
       onTap: () => context.push('/pickup/${p.id}'),
       child: Container(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-        decoration: const BoxDecoration(
-          border: Border(bottom: BorderSide(color: T.line, width: 1)),
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: context.tokens.line, width: 1)),
         ),
         child: Row(
           children: [
@@ -200,8 +201,8 @@ class _Row extends StatelessWidget {
               height: 46,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: T.elev2,
-                border: Border.all(color: T.line),
+                color: context.tokens.elev2,
+                border: Border.all(color: context.tokens.line),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const SportIcon(Sport.football, size: 20, color: T.inkSub),

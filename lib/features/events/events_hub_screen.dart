@@ -8,6 +8,7 @@ import '../../l10n/l10n_extension.dart';
 import '../../models/event.dart';
 import '../../providers.dart';
 import '../../theme/tokens.dart';
+import '../../theme/app_tokens.dart';
 import '../../widgets/live_pill.dart';
 import '../../widgets/network_cover.dart';
 import '../../widgets/photo_halftone.dart';

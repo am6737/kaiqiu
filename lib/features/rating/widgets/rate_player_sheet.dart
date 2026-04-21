@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../../l10n/l10n_extension.dart';
 import '../../../models/pickup.dart';
 import '../../../theme/tokens.dart';
+import '../../../theme/app_tokens.dart';
 import '../../../widgets/avatar.dart';
 import '../../../widgets/primary_button.dart';
 import '../../../widgets/typography.dart';
@@ -80,9 +81,9 @@ class _RatePlayerSheetState extends State<RatePlayerSheet> {
         bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
       child: Container(
-        decoration: const BoxDecoration(
-          color: T.elev1,
-          border: Border(top: BorderSide(color: T.line)),
+        decoration: BoxDecoration(
+          color: context.tokens.elev1,
+          border: Border(top: BorderSide(color: context.tokens.line)),
           borderRadius: BorderRadius.vertical(top: Radius.circular(T.r4)),
         ),
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
@@ -138,8 +139,8 @@ class _RatePlayerSheetState extends State<RatePlayerSheet> {
               Container(
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 decoration: BoxDecoration(
-                  color: T.elev2,
-                  border: Border.all(color: T.line),
+                  color: context.tokens.elev2,
+                  border: Border.all(color: context.tokens.line),
                   borderRadius: BorderRadius.circular(T.r2),
                 ),
                 child: Row(
@@ -201,18 +202,18 @@ class _RatePlayerSheetState extends State<RatePlayerSheet> {
                   hintText: l.rate_other_hint,
                   hintStyle: const TextStyle(color: T.inkDim),
                   filled: true,
-                  fillColor: T.elev3,
+                  fillColor: context.tokens.elev3,
                   contentPadding: const EdgeInsets.all(12),
                   border: OutlineInputBorder(
-                    borderSide: const BorderSide(color: T.line),
+                    borderSide: BorderSide(color: context.tokens.line),
                     borderRadius: BorderRadius.circular(T.r2),
                   ),
                   enabledBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(color: T.line),
+                    borderSide: BorderSide(color: context.tokens.line),
                     borderRadius: BorderRadius.circular(T.r2),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(color: T.live),
+                    borderSide: BorderSide(color: T.live),
                     borderRadius: BorderRadius.circular(T.r2),
                   ),
                 ),
@@ -257,7 +258,7 @@ class _StatCell extends StatelessWidget {
 class _Divider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Container(width: 1, height: 28, color: T.line);
+    return Container(width: 1, height: 28, color: context.tokens.line);
   }
 }
 
@@ -294,8 +295,8 @@ class _Slider extends StatelessWidget {
                 Positioned.fill(
                   child: Container(
                     decoration: BoxDecoration(
-                      color: T.elev2,
-                      border: Border.all(color: T.line),
+                      color: context.tokens.elev2,
+                      border: Border.all(color: context.tokens.line),
                       borderRadius: BorderRadius.circular(22),
                     ),
                   ),

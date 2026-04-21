@@ -10,6 +10,7 @@ import '../../providers.dart';
 import '../../services/local_storage.dart';
 import '../../services/supabase.dart' as svc;
 import '../../theme/tokens.dart';
+import '../../theme/app_tokens.dart';
 import '../../utils/toast.dart';
 import '../../widgets/avatar.dart';
 
@@ -52,7 +53,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final l = context.l10n;
     await showModalBottomSheet(
       context: context,
-      backgroundColor: T.elev1,
+      backgroundColor: context.tokens.elev1,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -112,7 +113,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 final ok = await showDialog<bool>(
                   context: context,
                   builder: (d) => AlertDialog(
-                    backgroundColor: T.elev2,
+                    backgroundColor: context.tokens.elev2,
                     content: Text(
                       l.chat_clear_confirm,
                       style: const TextStyle(color: T.ink),
@@ -169,7 +170,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final l = context.l10n;
     await showModalBottomSheet(
       context: context,
-      backgroundColor: T.elev1,
+      backgroundColor: context.tokens.elev1,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -255,15 +256,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     });
 
     return Scaffold(
-      backgroundColor: T.bg,
+      backgroundColor: context.tokens.bg,
       body: SafeArea(
         child: Column(
           children: [
             // Header
             Container(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
-              decoration: const BoxDecoration(
-                border: Border(bottom: BorderSide(color: T.line, width: 1)),
+              decoration: BoxDecoration(
+                border: Border(bottom: BorderSide(color: context.tokens.line, width: 1)),
               ),
               child: Row(
                 children: [
@@ -325,9 +326,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             // Send bar
             Container(
               padding: const EdgeInsets.fromLTRB(12, 10, 12, 24),
-              decoration: const BoxDecoration(
-                color: T.elev1,
-                border: Border(top: BorderSide(color: T.line, width: 1)),
+              decoration: BoxDecoration(
+                color: context.tokens.elev1,
+                border: Border(top: BorderSide(color: context.tokens.line, width: 1)),
               ),
               child: Row(
                 children: [
@@ -338,8 +339,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       height: 34,
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: T.elev2,
-                        border: Border.all(color: T.line),
+                        color: context.tokens.elev2,
+                        border: Border.all(color: context.tokens.line),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(Icons.add, size: 18, color: T.inkSub),
@@ -350,7 +351,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 14),
                       decoration: BoxDecoration(
-                        color: T.elev2,
+                        color: context.tokens.elev2,
                         borderRadius: BorderRadius.circular(22),
                       ),
                       child: TextField(
@@ -380,7 +381,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       height: 40,
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: _sending ? T.elev3 : T.live,
+                        color: _sending ? context.tokens.elev3 : T.live,
                         shape: BoxShape.circle,
                       ),
                       child: _sending
@@ -427,8 +428,8 @@ class _AttBtn extends StatelessWidget {
             height: 54,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: T.elev2,
-              border: Border.all(color: T.line),
+              color: context.tokens.elev2,
+              border: Border.all(color: context.tokens.line),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Icon(icon, size: 22, color: T.ink),
@@ -455,7 +456,7 @@ class _Bubble extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: T.elev2,
+              color: context.tokens.elev2,
               borderRadius: BorderRadius.circular(10),
             ),
             child: Text(
@@ -476,7 +477,7 @@ class _Bubble extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       constraints: const BoxConstraints(maxWidth: 260),
       decoration: BoxDecoration(
-        color: isMe ? T.live : T.elev2,
+        color: isMe ? T.live : context.tokens.elev2,
         borderRadius: BorderRadius.circular(10),
       ),
       child: Text(
