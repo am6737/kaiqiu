@@ -54,6 +54,7 @@ class _DanmakuOverlayState extends State<DanmakuOverlay>
     with TickerProviderStateMixin {
   StreamSubscription<DanmakuItem>? _sub;
   final List<_ActiveDanmu> _active = [];
+  double _layoutWidth = 400.0;
 
   @override
   void initState() {
@@ -115,6 +116,15 @@ class _DanmakuOverlayState extends State<DanmakuOverlay>
     int? best;
     double bestScore = -double.infinity;
     latestByTrack.forEach((track, d) {
+      // Unmeasured width (first frame): treat as infinite — the incoming
+      // danmu would land on top of a danmu whose footprint we don't yet
+      // know. Prefer to drop.
+      if (d.width == 0) {
+        // -infinity score means this track will never be chosen over any
+        // measured track, and if it's the only candidate the bestScore
+        // stays negative and we drop.
+        return;
+      }
       final tailLeftOfRight =
           (overlayWidth + d.width) * d.controller.value - d.width;
       if (tailLeftOfRight > bestScore) {
@@ -130,9 +140,7 @@ class _DanmakuOverlayState extends State<DanmakuOverlay>
   void _onItem(DanmakuItem item) {
     if (!widget.enabled) return;
     if (!mounted) return;
-    final rb = context.findRenderObject() as RenderBox?;
-    final overlayWidth = rb?.hasSize == true ? rb!.size.width : 400.0;
-    final track = _pickTrack(overlayWidth);
+    final track = _pickTrack(_layoutWidth);
     if (track == null) return; // all tracks busy — drop.
     final c = AnimationController(vsync: this, duration: widget.speed);
     final active = _ActiveDanmu(item: item, track: track, controller: c);
@@ -155,6 +163,7 @@ class _DanmakuOverlayState extends State<DanmakuOverlay>
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
+        _layoutWidth = constraints.maxWidth;
         final w = constraints.maxWidth;
         return Stack(
           clipBehavior: Clip.hardEdge,
