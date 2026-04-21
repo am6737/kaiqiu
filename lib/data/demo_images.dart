@@ -12,7 +12,6 @@ class DemoImages {
   static const _landscape =
       '?auto=format&fit=crop&w=1200&h=600&q=70';
   static const _square = '?auto=format&fit=crop&w=400&h=400&q=70';
-  static const _logo = '?auto=format&fit=crop&w=200&h=200&q=70';
 
   // ── 赛事海报（events.cover_url）─────────────────────────────
   /// 2026 龙岗村超 — 夜场看台氛围
@@ -65,18 +64,9 @@ class DemoImages {
         'https://images.unsplash.com/photo-1500648767791-00dcc994a43e$_square',
   };
 
-  // ── 队徽（teams.logo_url）─────────────────────────────────
-  /// 16 支队各配一枚队徽；Unsplash 抽象球徽题材有限，此处按颜色/主题
-  /// 复用 6 张基础图，demo 级别够用。
-  static const List<String> _logoPool = [
-    'https://images.unsplash.com/photo-1521412644187-c49fa049e84d$_logo', // 红系
-    'https://images.unsplash.com/photo-1579952363873-27f3bade9f55$_logo', // 绿系
-    'https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d$_logo', // 草场纹理
-    'https://images.unsplash.com/photo-1614632537190-23e4b2e69c88$_logo', // 蓝系
-    'https://images.unsplash.com/photo-1493924731456-15fbd6ba2ad5$_logo', // 橙系
-    'https://images.unsplash.com/photo-1606925797300-0b35e9d1794e$_logo', // 黑银
-  ];
-
-  static String logoForTeam(String name, int index) =>
-      _logoPool[index % _logoPool.length];
+  // ── 队徽 ────────────────────────────────────────────────
+  // 不提供 URL：demo 球队是虚构的（"龙岗狼队" 等），强行套 Unsplash 随机
+  // 场景照反而不像队徽。改由 widgets/team_badge.dart 的 TeamBadge 按名字
+  // 哈希生成方形 chip（色 + 首字母），风格对齐世界杯 flag chip。
+  // 真实球队注册后 teams.logo_url 才会被填，TeamBadge 优先走 URL。
 }

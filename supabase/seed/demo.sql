@@ -183,24 +183,27 @@ values (
   'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1200&h=600&q=70'
 );
 
--- 16 支参赛队（approved 全为 true，captain_id 暂不绑定，logo_url 走 6 张池循环）
-insert into teams (event_id, name, approved, logo_url) values
-  ('11111111-1111-1111-1111-111111111111', '龙岗狼队',     true, 'https://images.unsplash.com/photo-1521412644187-c49fa049e84d?auto=format&fit=crop&w=200&h=200&q=70'),
-  ('11111111-1111-1111-1111-111111111111', 'FC 黑马',      true, 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=200&h=200&q=70'),
-  ('11111111-1111-1111-1111-111111111111', '布吉联队',     true, 'https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?auto=format&fit=crop&w=200&h=200&q=70'),
-  ('11111111-1111-1111-1111-111111111111', '大运雄鹰',     true, 'https://images.unsplash.com/photo-1614632537190-23e4b2e69c88?auto=format&fit=crop&w=200&h=200&q=70'),
-  ('11111111-1111-1111-1111-111111111111', '坂田红军',     true, 'https://images.unsplash.com/photo-1493924731456-15fbd6ba2ad5?auto=format&fit=crop&w=200&h=200&q=70'),
-  ('11111111-1111-1111-1111-111111111111', '华南城FC',     true, 'https://images.unsplash.com/photo-1606925797300-0b35e9d1794e?auto=format&fit=crop&w=200&h=200&q=70'),
-  ('11111111-1111-1111-1111-111111111111', '平湖流星',     true, 'https://images.unsplash.com/photo-1521412644187-c49fa049e84d?auto=format&fit=crop&w=200&h=200&q=70'),
-  ('11111111-1111-1111-1111-111111111111', '大鹏海军',     true, 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=200&h=200&q=70'),
-  ('11111111-1111-1111-1111-111111111111', '横岗野牛',     true, 'https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?auto=format&fit=crop&w=200&h=200&q=70'),
-  ('11111111-1111-1111-1111-111111111111', '园山猛虎',     true, 'https://images.unsplash.com/photo-1614632537190-23e4b2e69c88?auto=format&fit=crop&w=200&h=200&q=70'),
-  ('11111111-1111-1111-1111-111111111111', '宝龙雷霆',     true, 'https://images.unsplash.com/photo-1493924731456-15fbd6ba2ad5?auto=format&fit=crop&w=200&h=200&q=70'),
-  ('11111111-1111-1111-1111-111111111111', '同乐雄狮',     true, 'https://images.unsplash.com/photo-1606925797300-0b35e9d1794e?auto=format&fit=crop&w=200&h=200&q=70'),
-  ('11111111-1111-1111-1111-111111111111', '爱联骑士',     true, 'https://images.unsplash.com/photo-1521412644187-c49fa049e84d?auto=format&fit=crop&w=200&h=200&q=70'),
-  ('11111111-1111-1111-1111-111111111111', '盐田航海',     true, 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=200&h=200&q=70'),
-  ('11111111-1111-1111-1111-111111111111', '南联铁骑',     true, 'https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?auto=format&fit=crop&w=200&h=200&q=70'),
-  ('11111111-1111-1111-1111-111111111111', '低碳城飞翼',   true, 'https://images.unsplash.com/photo-1614632537190-23e4b2e69c88?auto=format&fit=crop&w=200&h=200&q=70');
+-- 16 支参赛队（approved 全为 true，captain_id 暂不绑定）。
+-- logo_url 留空：demo 的球队是虚构的（"龙岗狼队" 等社区队伍），没有真正的
+-- 联赛队徽，客户端改用 TeamBadge widget 生成方形 chip（名字哈希 → 颜色
+-- + 首字母），风格参考世界杯 flag chip。真队伍上传后再回填 logo_url。
+insert into teams (event_id, name, approved) values
+  ('11111111-1111-1111-1111-111111111111', '龙岗狼队',     true),
+  ('11111111-1111-1111-1111-111111111111', 'FC 黑马',      true),
+  ('11111111-1111-1111-1111-111111111111', '布吉联队',     true),
+  ('11111111-1111-1111-1111-111111111111', '大运雄鹰',     true),
+  ('11111111-1111-1111-1111-111111111111', '坂田红军',     true),
+  ('11111111-1111-1111-1111-111111111111', '华南城FC',     true),
+  ('11111111-1111-1111-1111-111111111111', '平湖流星',     true),
+  ('11111111-1111-1111-1111-111111111111', '大鹏海军',     true),
+  ('11111111-1111-1111-1111-111111111111', '横岗野牛',     true),
+  ('11111111-1111-1111-1111-111111111111', '园山猛虎',     true),
+  ('11111111-1111-1111-1111-111111111111', '宝龙雷霆',     true),
+  ('11111111-1111-1111-1111-111111111111', '同乐雄狮',     true),
+  ('11111111-1111-1111-1111-111111111111', '爱联骑士',     true),
+  ('11111111-1111-1111-1111-111111111111', '盐田航海',     true),
+  ('11111111-1111-1111-1111-111111111111', '南联铁骑',     true),
+  ('11111111-1111-1111-1111-111111111111', '低碳城飞翼',   true);
 
 -- 首场 QF 用稳定 UUID（客户端 demoMatchId 引用）。其余 matches 默认 gen_random_uuid。
 insert into matches (id, event_id, round, team_a_label, team_b_label,
@@ -395,9 +398,6 @@ select 'venue_photos', count(*)::text from pickups
 union all
 select 'event_cover', count(*)::text from events
   where id = '11111111-1111-1111-1111-111111111111' and cover_url is not null
-union all
-select 'team_logos',  count(*)::text from teams
-  where event_id = '11111111-1111-1111-1111-111111111111' and logo_url is not null
 union all
 select 'ratings_linked', count(*)::text from ratings r
   join matches m on m.id = r.match_id

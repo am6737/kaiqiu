@@ -1455,7 +1455,7 @@ class _ScorerCard extends ConsumerWidget {
           ),
         ),
         const SizedBox(width: 12),
-        NetworkAvatar(row.name, url: avatarUrl, size: 48),
+        NetworkAvatar(row.name, url: avatarUrl, size: 48, square: true),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
@@ -1550,7 +1550,7 @@ class _ScorerSheet extends ConsumerWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                NetworkAvatar(row.name, url: profile?.avatarUrl, size: 96),
+                NetworkAvatar(row.name, url: profile?.avatarUrl, size: 96, square: true),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Column(
