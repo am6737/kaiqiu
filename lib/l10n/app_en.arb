@@ -312,6 +312,22 @@
   "wc_btn_remind": "Remind",
   "wc_remind_set": "Reminder set · we'll notify you 10 min before kickoff",
   "wc_remind_unset": "Reminder removed",
+  "wc_remind_sheet_title": "Pre-match reminder",
+  "wc_remind_sheet_sub": "How far ahead?",
+  "wc_remind_option_min": "{n} min",
+  "@wc_remind_option_min": {
+    "placeholders": { "n": { "type": "int" } }
+  },
+  "wc_remind_option_hour": "{n} hr",
+  "@wc_remind_option_hour": {
+    "placeholders": { "n": { "type": "int" } }
+  },
+  "wc_remind_cancel": "Cancel reminder",
+  "wc_remind_set_n_min": "Reminder set · we'll notify you {n} min before kickoff",
+  "@wc_remind_set_n_min": {
+    "placeholders": { "n": { "type": "int" } }
+  },
+  "wc_remind_default_badge": "default",
   "wc_live_title": "Live",
   "wc_live_input_hint": "Send a danmu…",
   "wc_live_viewer_count": "{n} watching",

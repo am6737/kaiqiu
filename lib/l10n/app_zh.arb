@@ -312,6 +312,22 @@
   "wc_btn_remind": "提醒",
   "wc_remind_set": "已设置提醒，比赛开始前 10 分钟通知你",
   "wc_remind_unset": "已取消提醒",
+  "wc_remind_sheet_title": "赛前提醒",
+  "wc_remind_sheet_sub": "提前多久提醒你？",
+  "wc_remind_option_min": "{n} 分钟",
+  "@wc_remind_option_min": {
+    "placeholders": { "n": { "type": "int" } }
+  },
+  "wc_remind_option_hour": "{n} 小时",
+  "@wc_remind_option_hour": {
+    "placeholders": { "n": { "type": "int" } }
+  },
+  "wc_remind_cancel": "取消提醒",
+  "wc_remind_set_n_min": "已设置提醒，比赛开始前 {n} 分钟通知你",
+  "@wc_remind_set_n_min": {
+    "placeholders": { "n": { "type": "int" } }
+  },
+  "wc_remind_default_badge": "默认",
   "wc_live_title": "直播中",
   "wc_live_input_hint": "发一条弹幕…",
   "wc_live_viewer_count": "{n} 人观看",

@@ -807,6 +807,33 @@ class AppL10nZh extends AppL10n {
   String get wc_remind_unset => '已取消提醒';
 
   @override
+  String get wc_remind_sheet_title => '赛前提醒';
+
+  @override
+  String get wc_remind_sheet_sub => '提前多久提醒你？';
+
+  @override
+  String wc_remind_option_min(int n) {
+    return '$n 分钟';
+  }
+
+  @override
+  String wc_remind_option_hour(int n) {
+    return '$n 小时';
+  }
+
+  @override
+  String get wc_remind_cancel => '取消提醒';
+
+  @override
+  String wc_remind_set_n_min(int n) {
+    return '已设置提醒，比赛开始前 $n 分钟通知你';
+  }
+
+  @override
+  String get wc_remind_default_badge => '默认';
+
+  @override
   String get wc_live_title => '直播中';
 
   @override

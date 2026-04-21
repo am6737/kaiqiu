@@ -818,6 +818,33 @@ class AppL10nEn extends AppL10n {
   String get wc_remind_unset => 'Reminder removed';
 
   @override
+  String get wc_remind_sheet_title => 'Pre-match reminder';
+
+  @override
+  String get wc_remind_sheet_sub => 'How far ahead?';
+
+  @override
+  String wc_remind_option_min(int n) {
+    return '$n min';
+  }
+
+  @override
+  String wc_remind_option_hour(int n) {
+    return '$n hr';
+  }
+
+  @override
+  String get wc_remind_cancel => 'Cancel reminder';
+
+  @override
+  String wc_remind_set_n_min(int n) {
+    return 'Reminder set · we\'ll notify you $n min before kickoff';
+  }
+
+  @override
+  String get wc_remind_default_badge => 'default';
+
+  @override
   String get wc_live_title => 'Live';
 
   @override

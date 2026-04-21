@@ -111,6 +111,35 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
     _inputC.clear();
   }
 
+  Future<void> _showReminderSheet(BuildContext ctx) async {
+    final l = ctx.l10n;
+    final repo = ref.read(remindersRepoProvider);
+    final matchId = widget.matchId;
+    final picked = await showModalBottomSheet<int>(
+      context: ctx,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) => _ReminderSheet(
+        hasReminder: LocalStore.hasReminder(matchId),
+      ),
+    );
+    if (picked == null) return;
+    if (!ctx.mounted) return;
+    if (picked == 0) {
+      await repo.cancel(matchId);
+      if (!ctx.mounted) return;
+      showToast(ctx, l.wc_remind_unset, success: true);
+    } else {
+      await repo.schedule(
+        matchId: matchId,
+        remindAt: DateTime.now().add(Duration(minutes: picked)),
+      );
+      if (!ctx.mounted) return;
+      showToast(ctx, l.wc_remind_set_n_min(picked), success: true);
+    }
+    if (mounted) setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
@@ -138,26 +167,7 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
               topRight: _ReminderButton(
                 hasReminder: hasReminder,
                 label: l.wc_btn_remind,
-                onTap: () async {
-                  final repo = ref.read(remindersRepoProvider);
-                  if (LocalStore.hasReminder(widget.matchId)) {
-                    await repo.cancel(widget.matchId);
-                  } else {
-                    await repo.schedule(
-                      matchId: widget.matchId,
-                      remindAt: DateTime.now().add(const Duration(hours: 1)),
-                    );
-                  }
-                  if (!context.mounted) return;
-                  showToast(
-                    context,
-                    LocalStore.hasReminder(widget.matchId)
-                        ? l.wc_remind_set
-                        : l.wc_remind_unset,
-                    success: true,
-                  );
-                  setState(() {});
-                },
+                onTap: () => _showReminderSheet(context),
               ),
               bottomLeftOverlay: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -503,4 +513,172 @@ class _Danmu {
     required this.at,
     required this.self,
   });
+}
+
+/// Bottom sheet that lets the user pick a pre-match reminder offset.
+/// Pops with the chosen offset in minutes, `0` to cancel, or `null` on dismiss.
+class _ReminderSheet extends StatelessWidget {
+  final bool hasReminder;
+  const _ReminderSheet({required this.hasReminder});
+
+  static const _options = <int>[5, 10, 15, 30, 60];
+  static const _defaultMinutes = 10;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    return Container(
+      decoration: BoxDecoration(
+        color: context.tokens.elev1,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        border: Border(top: BorderSide(color: context.tokens.line, width: 1)),
+      ),
+      padding: EdgeInsets.only(
+        left: 16,
+        right: 16,
+        top: 12,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: context.tokens.inkMute,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
+          Text(
+            l.wc_remind_sheet_title,
+            style: TextStyle(
+              color: context.tokens.ink,
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            l.wc_remind_sheet_sub,
+            style: TextStyle(
+              color: context.tokens.inkDim,
+              fontSize: 12,
+            ),
+          ),
+          const SizedBox(height: 14),
+          for (final m in _options)
+            _ReminderOption(
+              label: m >= 60
+                  ? l.wc_remind_option_hour(m ~/ 60)
+                  : l.wc_remind_option_min(m),
+              isDefault: m == _defaultMinutes,
+              onTap: () => Navigator.of(context).pop(m),
+            ),
+          if (hasReminder) ...[
+            const SizedBox(height: 12),
+            GestureDetector(
+              onTap: () => Navigator.of(context).pop(0),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: context.tokens.elev2,
+                  border: Border.all(color: context.tokens.line),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  l.wc_remind_cancel,
+                  style: TextStyle(
+                    color: context.tokens.inkSub,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _ReminderOption extends StatelessWidget {
+  final String label;
+  final bool isDefault;
+  final VoidCallback onTap;
+  const _ReminderOption({
+    required this.label,
+    required this.isDefault,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+          decoration: BoxDecoration(
+            color: isDefault
+                ? context.tokens.accentSubtle
+                : context.tokens.elev2,
+            border: Border.all(
+              color: isDefault ? context.tokens.accent : context.tokens.line,
+            ),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                Icons.notifications_outlined,
+                size: 18,
+                color: isDefault
+                    ? context.tokens.accent
+                    : context.tokens.inkSub,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    color: context.tokens.ink,
+                    fontSize: 14,
+                    fontWeight: isDefault ? FontWeight.w700 : FontWeight.w500,
+                  ),
+                ),
+              ),
+              if (isDefault)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: context.tokens.accent,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    l.wc_remind_default_badge,
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }

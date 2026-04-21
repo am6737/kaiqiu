@@ -1627,6 +1627,48 @@ abstract class AppL10n {
   /// **'已取消提醒'**
   String get wc_remind_unset;
 
+  /// No description provided for @wc_remind_sheet_title.
+  ///
+  /// In zh, this message translates to:
+  /// **'赛前提醒'**
+  String get wc_remind_sheet_title;
+
+  /// No description provided for @wc_remind_sheet_sub.
+  ///
+  /// In zh, this message translates to:
+  /// **'提前多久提醒你？'**
+  String get wc_remind_sheet_sub;
+
+  /// No description provided for @wc_remind_option_min.
+  ///
+  /// In zh, this message translates to:
+  /// **'{n} 分钟'**
+  String wc_remind_option_min(int n);
+
+  /// No description provided for @wc_remind_option_hour.
+  ///
+  /// In zh, this message translates to:
+  /// **'{n} 小时'**
+  String wc_remind_option_hour(int n);
+
+  /// No description provided for @wc_remind_cancel.
+  ///
+  /// In zh, this message translates to:
+  /// **'取消提醒'**
+  String get wc_remind_cancel;
+
+  /// No description provided for @wc_remind_set_n_min.
+  ///
+  /// In zh, this message translates to:
+  /// **'已设置提醒，比赛开始前 {n} 分钟通知你'**
+  String wc_remind_set_n_min(int n);
+
+  /// No description provided for @wc_remind_default_badge.
+  ///
+  /// In zh, this message translates to:
+  /// **'默认'**
+  String get wc_remind_default_badge;
+
   /// No description provided for @wc_live_title.
   ///
   /// In zh, this message translates to:
