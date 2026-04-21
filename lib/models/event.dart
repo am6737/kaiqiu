@@ -106,7 +106,13 @@ class Match {
   );
 }
 
+/// Which side of a match a player is on — derived heuristically from goals.
+enum MatchSide { a, b }
+
 /// Row returned by `event_player_ratings` view joined with profiles.
+///
+/// Match-scoped rows also carry per-match extras (goals / assists / top
+/// highlight / top comment / team side) derived client-side.
 class PlayerRatingRow {
   final String rateeId;
   final String name;
@@ -114,12 +120,24 @@ class PlayerRatingRow {
   final double avgScore;
   final int votes;
 
+  // Match-scoped extras. Null for event-wide rows.
+  final int goals;
+  final int assists;
+  final String? topHighlight;
+  final String? topComment;
+  final MatchSide? side;
+
   const PlayerRatingRow({
     required this.rateeId,
     required this.name,
     this.position,
     required this.avgScore,
     required this.votes,
+    this.goals = 0,
+    this.assists = 0,
+    this.topHighlight,
+    this.topComment,
+    this.side,
   });
 
   factory PlayerRatingRow.fromMap(Map<String, dynamic> m) {
@@ -132,4 +150,23 @@ class PlayerRatingRow {
       votes: (m['votes'] as num).toInt(),
     );
   }
+
+  PlayerRatingRow copyWith({
+    int? goals,
+    int? assists,
+    String? topHighlight,
+    String? topComment,
+    MatchSide? side,
+  }) => PlayerRatingRow(
+    rateeId: rateeId,
+    name: name,
+    position: position,
+    avgScore: avgScore,
+    votes: votes,
+    goals: goals ?? this.goals,
+    assists: assists ?? this.assists,
+    topHighlight: topHighlight ?? this.topHighlight,
+    topComment: topComment ?? this.topComment,
+    side: side ?? this.side,
+  );
 }

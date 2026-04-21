@@ -578,6 +578,35 @@ class AppL10nEn extends AppL10n {
   String get event_register_success => 'Submitted · awaiting review';
 
   @override
+  String get event_rating_view_this_match => 'This match';
+
+  @override
+  String get event_rating_view_event => 'Event leaderboard';
+
+  @override
+  String get event_rating_team_all => 'All';
+
+  @override
+  String get event_rating_no_matches =>
+      'No finished matches yet · see event leaderboard';
+
+  @override
+  String get event_rating_pick_match => 'Pick a match';
+
+  @override
+  String get event_rating_mvp => 'MVP';
+
+  @override
+  String event_rating_goals_assists(int g, int a) {
+    return '${g}G ${a}A';
+  }
+
+  @override
+  String event_rating_filter_count(int n) {
+    return '$n';
+  }
+
+  @override
   String get event_rating_panel_subtitle => 'Event leaderboard';
 
   @override

@@ -205,6 +205,20 @@
   "event_register_phone": "电话",
   "event_register_submit": "提交报名",
   "event_register_success": "报名已提交，等待组委会审核",
+  "event_rating_view_this_match": "本场比赛评分",
+  "event_rating_view_event": "本赛事评分榜",
+  "event_rating_team_all": "全部",
+  "event_rating_no_matches": "还没有完赛比赛，先看赛事评分榜",
+  "event_rating_pick_match": "选择比赛",
+  "event_rating_mvp": "MVP",
+  "event_rating_goals_assists": "{g}球{a}助",
+  "@event_rating_goals_assists": {
+    "placeholders": { "g": { "type": "int" }, "a": { "type": "int" } }
+  },
+  "event_rating_filter_count": "{n}",
+  "@event_rating_filter_count": {
+    "placeholders": { "n": { "type": "int" } }
+  },
   "event_rating_panel_subtitle": "本赛事评分榜",
   "event_rating_players_count": "{n} 位球员被评分",
   "@event_rating_players_count": {

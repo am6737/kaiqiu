@@ -572,6 +572,34 @@ class AppL10nZh extends AppL10n {
   String get event_register_success => '报名已提交，等待组委会审核';
 
   @override
+  String get event_rating_view_this_match => '本场比赛评分';
+
+  @override
+  String get event_rating_view_event => '本赛事评分榜';
+
+  @override
+  String get event_rating_team_all => '全部';
+
+  @override
+  String get event_rating_no_matches => '还没有完赛比赛，先看赛事评分榜';
+
+  @override
+  String get event_rating_pick_match => '选择比赛';
+
+  @override
+  String get event_rating_mvp => 'MVP';
+
+  @override
+  String event_rating_goals_assists(int g, int a) {
+    return '$g球$a助';
+  }
+
+  @override
+  String event_rating_filter_count(int n) {
+    return '$n';
+  }
+
+  @override
   String get event_rating_panel_subtitle => '本赛事评分榜';
 
   @override

@@ -1195,6 +1195,54 @@ abstract class AppL10n {
   /// **'报名已提交，等待组委会审核'**
   String get event_register_success;
 
+  /// No description provided for @event_rating_view_this_match.
+  ///
+  /// In zh, this message translates to:
+  /// **'本场比赛评分'**
+  String get event_rating_view_this_match;
+
+  /// No description provided for @event_rating_view_event.
+  ///
+  /// In zh, this message translates to:
+  /// **'本赛事评分榜'**
+  String get event_rating_view_event;
+
+  /// No description provided for @event_rating_team_all.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部'**
+  String get event_rating_team_all;
+
+  /// No description provided for @event_rating_no_matches.
+  ///
+  /// In zh, this message translates to:
+  /// **'还没有完赛比赛，先看赛事评分榜'**
+  String get event_rating_no_matches;
+
+  /// No description provided for @event_rating_pick_match.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择比赛'**
+  String get event_rating_pick_match;
+
+  /// No description provided for @event_rating_mvp.
+  ///
+  /// In zh, this message translates to:
+  /// **'MVP'**
+  String get event_rating_mvp;
+
+  /// No description provided for @event_rating_goals_assists.
+  ///
+  /// In zh, this message translates to:
+  /// **'{g}球{a}助'**
+  String event_rating_goals_assists(int g, int a);
+
+  /// No description provided for @event_rating_filter_count.
+  ///
+  /// In zh, this message translates to:
+  /// **'{n}'**
+  String event_rating_filter_count(int n);
+
   /// No description provided for @event_rating_panel_subtitle.
   ///
   /// In zh, this message translates to:

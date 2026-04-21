@@ -146,6 +146,12 @@ final eventPlayerRatingsProvider =
       return ref.read(eventsRepoProvider).playerRatingsForEvent(id);
     });
 
+/// Per-match player rating leaderboard (aggregates raw ratings + goals).
+final matchPlayerRatingsProvider =
+    FutureProvider.family<List<PlayerRatingRow>, Match>((ref, match) async {
+      return ref.read(eventsRepoProvider).playerRatingsForMatch(match);
+    });
+
 /// Event-scoped discussion conversation id (creates one if missing).
 final eventChatConvProvider = FutureProvider.family<String, String>((
   ref,
@@ -244,10 +250,11 @@ final myRemindersProvider = FutureProvider<List<MatchReminder>>((ref) async {
 });
 
 /// Fetch any profile by id (cached per id via autoDispose + family).
-final profileByIdProvider = FutureProvider.family
-    .autoDispose<Profile?, String>((ref, id) async {
-      return ref.read(profilesRepoProvider).fetch(id);
-    });
+final profileByIdProvider = FutureProvider.family.autoDispose<Profile?, String>(
+  (ref, id) async {
+    return ref.read(profilesRepoProvider).fetch(id);
+  },
+);
 
 /// Current user's profile — real fields from Supabase (name, handle, city,
 /// position, height, foot), plus mock fallbacks for fields the DB doesn't

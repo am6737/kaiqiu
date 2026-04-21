@@ -938,75 +938,79 @@ class _StandingsTable extends StatelessWidget {
                     border: Border(top: BorderSide(color: T.line, width: 1)),
                   ),
                   child: Row(
-                children: [
-                  SizedBox(
-                    width: 24,
-                    child: N(
-                      '${s.rank}',
-                      size: 13,
-                      weight: FontWeight.w600,
-                      color: s.rank <= 2 ? T.live : T.inkSub,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 32,
-                          height: 32,
-                          decoration: BoxDecoration(
-                            color: HSLColor.fromAHSL(
-                              1,
-                              (s.rank * 50).toDouble() % 360,
-                              0.35,
-                              0.3,
-                            ).toColor(),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
+                    children: [
+                      SizedBox(
+                        width: 24,
+                        child: N(
+                          '${s.rank}',
+                          size: 13,
+                          weight: FontWeight.w600,
+                          color: s.rank <= 2 ? T.live : T.inkSub,
                         ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            s.team,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              color: T.ink,
-                              fontWeight: FontWeight.w500,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 32,
+                              height: 32,
+                              decoration: BoxDecoration(
+                                color: HSLColor.fromAHSL(
+                                  1,
+                                  (s.rank * 50).toDouble() % 360,
+                                  0.35,
+                                  0.3,
+                                ).toColor(),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
                             ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                s.team,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: T.ink,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(
+                        width: 32,
+                        child: Center(
+                          child: N('${s.w}', size: 12, color: T.inkSub),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 32,
+                        child: Center(
+                          child: N('${s.d}', size: 12, color: T.inkSub),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 32,
+                        child: Center(
+                          child: N('${s.l}', size: 12, color: T.inkSub),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 40,
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: N(
+                            '${s.pts}',
+                            size: 14,
+                            weight: FontWeight.w700,
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                  SizedBox(
-                    width: 32,
-                    child: Center(
-                      child: N('${s.w}', size: 12, color: T.inkSub),
-                    ),
-                  ),
-                  SizedBox(
-                    width: 32,
-                    child: Center(
-                      child: N('${s.d}', size: 12, color: T.inkSub),
-                    ),
-                  ),
-                  SizedBox(
-                    width: 32,
-                    child: Center(
-                      child: N('${s.l}', size: 12, color: T.inkSub),
-                    ),
-                  ),
-                  SizedBox(
-                    width: 40,
-                    child: Align(
-                      alignment: Alignment.centerRight,
-                      child: N('${s.pts}', size: 14, weight: FontWeight.w700),
-                    ),
-                  ),
-                ],
-              ),
                 ),
               ),
             ),
@@ -1041,16 +1045,17 @@ class _TeamSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = context.l10n;
     final own = standing.team;
-    final teamMatches = allMatches
-        .where((m) => m.teamALabel == own || m.teamBLabel == own)
-        .toList()
-      ..sort((a, b) {
-        final at = a.playedAt, bt = b.playedAt;
-        if (at == null && bt == null) return 0;
-        if (at == null) return 1;
-        if (bt == null) return -1;
-        return bt.compareTo(at);
-      });
+    final teamMatches =
+        allMatches
+            .where((m) => m.teamALabel == own || m.teamBLabel == own)
+            .toList()
+          ..sort((a, b) {
+            final at = a.playedAt, bt = b.playedAt;
+            if (at == null && bt == null) return 0;
+            if (at == null) return 1;
+            if (bt == null) return -1;
+            return bt.compareTo(at);
+          });
     final gd = standing.gf - standing.ga;
     final hue = (standing.rank * 50).toDouble() % 360;
     final teamColor = HSLColor.fromAHSL(1, hue, 0.35, 0.3).toColor();
@@ -1187,8 +1192,8 @@ class _TeamSheet extends StatelessWidget {
                       accent: gd > 0
                           ? T.live
                           : gd < 0
-                              ? T.inkSub
-                              : null,
+                          ? T.inkSub
+                          : null,
                     ),
                   ),
                 ],
@@ -1199,18 +1204,14 @@ class _TeamSheet extends StatelessWidget {
             const SizedBox(height: 8),
             Expanded(
               child: teamMatches.isEmpty
-                  ? Center(
-                      child: Label(l.event_standings_empty2),
-                    )
+                  ? Center(child: Label(l.event_standings_empty2))
                   : ListView.separated(
                       controller: scroll,
                       padding: EdgeInsets.zero,
                       itemCount: teamMatches.length,
                       separatorBuilder: (_, _) => const SizedBox(height: 6),
-                      itemBuilder: (_, i) => _TeamMatchRow(
-                        match: teamMatches[i],
-                        ownTeam: own,
-                      ),
+                      itemBuilder: (_, i) =>
+                          _TeamMatchRow(match: teamMatches[i], ownTeam: own),
                     ),
             ),
           ],
@@ -1364,11 +1365,8 @@ class _ScorersPanel extends ConsumerWidget {
                   rank: i + 1,
                   row: rows[i],
                   medal: _medal,
-                  onTap: () => _showScorerSheet(
-                    context,
-                    eventId: eventId,
-                    row: rows[i],
-                  ),
+                  onTap: () =>
+                      _showScorerSheet(context, eventId: eventId, row: rows[i]),
                 ),
             ],
           ),
@@ -1420,70 +1418,65 @@ class _ScorerCard extends ConsumerWidget {
 
   Widget _buildRow(BuildContext context, String? avatarUrl) {
     return Row(
-        children: [
-          SizedBox(
-            width: 28,
-            child: Center(
-              child: rank <= 3
-                  ? Container(
-                      width: 22,
-                      height: 22,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: medal[rank - 1],
-                        shape: BoxShape.circle,
-                      ),
-                      child: Text(
-                        '$rank',
-                        style: const TextStyle(
-                          fontFamily: T.fontMono,
-                          fontFamilyFallback: T.monoFallbacks,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 11,
-                          color: Colors.black,
-                        ),
-                      ),
-                    )
-                  : N(
-                      '$rank',
-                      size: 14,
-                      weight: FontWeight.w600,
-                      color: T.inkSub,
+      children: [
+        SizedBox(
+          width: 28,
+          child: Center(
+            child: rank <= 3
+                ? Container(
+                    width: 22,
+                    height: 22,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: medal[rank - 1],
+                      shape: BoxShape.circle,
                     ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          NetworkAvatar(row.name, url: avatarUrl, size: 48),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  row.name,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: T.ink,
+                    child: Text(
+                      '$rank',
+                      style: const TextStyle(
+                        fontFamily: T.fontMono,
+                        fontFamilyFallback: T.monoFallbacks,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 11,
+                        color: Colors.black,
+                      ),
+                    ),
+                  )
+                : N(
+                    '$rank',
+                    size: 14,
+                    weight: FontWeight.w600,
+                    color: T.inkSub,
                   ),
-                ),
-                Label(context.l10n.archive_teammates_matches(row.matches)),
-              ],
-            ),
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
+        ),
+        const SizedBox(width: 12),
+        NetworkAvatar(row.name, url: avatarUrl, size: 48),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              N(
-                '${row.goals}',
-                size: 22,
-                weight: FontWeight.w700,
-                color: T.live,
+              Text(
+                row.name,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: T.ink,
+                ),
               ),
-              Label(context.l10n.event_scorers_goals),
+              Label(context.l10n.archive_teammates_matches(row.matches)),
             ],
           ),
-        ],
+        ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            N('${row.goals}', size: 22, weight: FontWeight.w700, color: T.live),
+            Label(context.l10n.event_scorers_goals),
+          ],
+        ),
+      ],
     );
   }
 }
@@ -1572,10 +1565,7 @@ class _ScorerSheet extends ConsumerWidget {
                         const SizedBox(height: 4),
                         Text(
                           _metaLine(profile),
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: T.inkSub,
-                          ),
+                          style: const TextStyle(fontSize: 12, color: T.inkSub),
                         ),
                       ],
                     ],
@@ -1704,10 +1694,7 @@ class _StatCell extends StatelessWidget {
         Label(label),
         if (sub != null) ...[
           const SizedBox(height: 2),
-          Text(
-            sub!,
-            style: const TextStyle(fontSize: 10, color: T.inkDim),
-          ),
+          Text(sub!, style: const TextStyle(fontSize: 10, color: T.inkDim)),
         ],
       ],
     );
@@ -2142,12 +2129,16 @@ class RatingsPanel extends ConsumerStatefulWidget {
   ConsumerState<RatingsPanel> createState() => _RatingsPanelState();
 }
 
+enum _RatingsView { thisMatch, event }
+
 class _RatingsPanelState extends ConsumerState<RatingsPanel> {
   PlayerRatingRow? _selected;
+  _RatingsView _view = _RatingsView.thisMatch;
+  Match? _pickedMatch;
+  String _teamFilter = 'all'; // 'all' / 'a' / 'b'
 
   @override
   Widget build(BuildContext context) {
-    final async = ref.watch(eventPlayerRatingsProvider(widget.event.id));
     if (_selected != null) {
       return _PlayerRatingDetail(
         player: _selected!,
@@ -2155,26 +2146,452 @@ class _RatingsPanelState extends ConsumerState<RatingsPanel> {
         onBack: () => setState(() => _selected = null),
       );
     }
-    return async.when(
-      data: (rows) => _buildList(rows),
+
+    final matchesAsync = ref.watch(eventMatchesProvider(widget.event.id));
+    return matchesAsync.when(
       loading: () => const _PanelLoading(),
       error: (e, _) => _PanelError(e),
+      data: (matches) {
+        final finished = matches.where((m) => m.done).toList();
+        // Default pick: most recent finished match (list is ordered played_at asc)
+        final picked =
+            _pickedMatch ?? (finished.isNotEmpty ? finished.last : null);
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _ViewToggle(
+              view: _view,
+              hasMatch: picked != null,
+              onChange: (v) => setState(() => _view = v),
+            ),
+            if (_view == _RatingsView.thisMatch)
+              picked == null
+                  ? _EmptyNote(context.l10n.event_rating_no_matches)
+                  : _ThisMatchSection(
+                      event: widget.event,
+                      match: picked,
+                      allMatches: finished,
+                      teamFilter: _teamFilter,
+                      onPickMatch: (m) => setState(() {
+                        _pickedMatch = m;
+                        _teamFilter = 'all';
+                      }),
+                      onFilter: (f) => setState(() => _teamFilter = f),
+                      onOpenPlayer: (p) => setState(() => _selected = p),
+                    )
+            else
+              _EventWideSection(
+                event: widget.event,
+                onOpenPlayer: (p) => setState(() => _selected = p),
+              ),
+          ],
+        );
+      },
     );
   }
+}
 
-  Widget _buildList(List<PlayerRatingRow> rows) {
-    final totalVotes = rows.fold<int>(0, (s, r) => s + r.votes);
+class _ViewToggle extends StatelessWidget {
+  final _RatingsView view;
+  final bool hasMatch;
+  final ValueChanged<_RatingsView> onChange;
+  const _ViewToggle({
+    required this.view,
+    required this.hasMatch,
+    required this.onChange,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    final items = [
+      (_RatingsView.thisMatch, l.event_rating_view_this_match, hasMatch),
+      (_RatingsView.event, l.event_rating_view_event, true),
+    ];
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
+      child: Row(
+        children: [
+          for (final it in items) ...[
+            GestureDetector(
+              onTap: it.$3 ? () => onChange(it.$1) : null,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 7,
+                ),
+                decoration: BoxDecoration(
+                  color: view == it.$1 ? T.liveDim : Colors.transparent,
+                  border: Border.all(color: view == it.$1 ? T.live : T.line),
+                  borderRadius: BorderRadius.circular(T.r2),
+                ),
+                child: Text(
+                  it.$2,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: view == it.$1
+                        ? T.live
+                        : (it.$3 ? T.inkSub : T.inkDim),
+                  ),
+                ),
+              ),
+            ),
+            if (it != items.last) const SizedBox(width: 8),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _EmptyNote extends StatelessWidget {
+  final String text;
+  const _EmptyNote(this.text);
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.all(40),
+    child: Center(child: Label(text)),
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// "This match" view — score strip + match picker + team filter
+// ─────────────────────────────────────────────────────────────
+class _ThisMatchSection extends ConsumerWidget {
+  final Event event;
+  final Match match;
+  final List<Match> allMatches;
+  final String teamFilter;
+  final ValueChanged<Match> onPickMatch;
+  final ValueChanged<String> onFilter;
+  final ValueChanged<PlayerRatingRow> onOpenPlayer;
+
+  const _ThisMatchSection({
+    required this.event,
+    required this.match,
+    required this.allMatches,
+    required this.teamFilter,
+    required this.onPickMatch,
+    required this.onFilter,
+    required this.onOpenPlayer,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final async = ref.watch(matchPlayerRatingsProvider(match));
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        if (allMatches.length > 1)
+          _MatchPicker(matches: allMatches, picked: match, onPick: onPickMatch),
+        _ScoreStrip(event: event, match: match),
+        async.when(
+          loading: () => const _PanelLoading(),
+          error: (e, _) => _PanelError(e),
+          data: (rows) {
+            final visible = rows.where((r) => r.name != '—').toList();
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _TeamFilterRow(
+                  match: match,
+                  total: visible.length,
+                  selected: teamFilter,
+                  onChange: onFilter,
+                ),
+                if (visible.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.all(40),
+                    child: Center(
+                      child: Label(context.l10n.event_rating_empty_go_rate),
+                    ),
+                  )
+                else
+                  for (int i = 0; i < visible.length; i++)
+                    GestureDetector(
+                      onTap: () => onOpenPlayer(visible[i]),
+                      child: _PlayerRow(
+                        p: visible[i],
+                        rank: i + 1,
+                        showMomentBlock: true,
+                      ),
+                    ),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Center(
+                    child: Label(context.l10n.event_rating_tap_for_detail),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class _MatchPicker extends StatelessWidget {
+  final List<Match> matches;
+  final Match picked;
+  final ValueChanged<Match> onPick;
+  const _MatchPicker({
+    required this.matches,
+    required this.picked,
+    required this.onPick,
+  });
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+    height: 44,
+    child: ListView.separated(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+      itemCount: matches.length,
+      separatorBuilder: (_, _) => const SizedBox(width: 8),
+      itemBuilder: (_, i) {
+        final m = matches[i];
+        final isPicked = m.id == picked.id;
+        final a = m.teamALabel ?? '—';
+        final b = m.teamBLabel ?? '—';
+        final score = '${m.scoreA ?? 0}-${m.scoreB ?? 0}';
+        return GestureDetector(
+          onTap: () => onPick(m),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: isPicked ? T.liveDim : T.elev2,
+              border: Border.all(color: isPicked ? T.live : T.line),
+              borderRadius: BorderRadius.circular(T.r2),
+            ),
+            child: Row(
+              children: [
+                Text(
+                  '$a  $score  $b',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: isPicked ? T.live : T.inkSub,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    ),
+  );
+}
+
+class _ScoreStrip extends StatelessWidget {
+  final Event event;
+  final Match match;
+  const _ScoreStrip({required this.event, required this.match});
+
+  @override
+  Widget build(BuildContext context) {
+    final a = match.teamALabel ?? '—';
+    final b = match.teamBLabel ?? '—';
+    final sa = match.scoreA ?? 0;
+    final sb = match.scoreB ?? 0;
+    final winA = sa > sb;
+    final winB = sb > sa;
+    final date = match.playedAt;
+    final dateStr = date == null
+        ? ''
+        : '${date.year.toString().padLeft(4, '0')}.'
+              '${date.month.toString().padLeft(2, '0')}.'
+              '${date.day.toString().padLeft(2, '0')}';
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            HSLColor.fromAHSL(1, 150, 0.25, 0.18).toColor(),
+            HSLColor.fromAHSL(1, 150, 0.10, 0.12).toColor(),
+          ],
+        ),
+        border: Border.all(color: T.line),
+        borderRadius: BorderRadius.circular(T.r3),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Label(context.l10n.event_rating_panel_subtitle),
-              const SizedBox(height: 8),
               Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: T.liveDim,
+                  border: Border.all(color: T.live.withValues(alpha: 0.3)),
+                  borderRadius: BorderRadius.circular(3),
+                ),
+                child: Text(
+                  event.name,
+                  style: const TextStyle(
+                    fontFamily: T.fontMono,
+                    fontFamilyFallback: T.monoFallbacks,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: T.live,
+                  ),
+                ),
+              ),
+              if (match.round != null) ...[
+                const SizedBox(width: 6),
+                Label('· ${match.round}'),
+              ],
+              const Spacer(),
+              if (dateStr.isNotEmpty)
+                Text(
+                  dateStr,
+                  style: const TextStyle(
+                    fontFamily: T.fontMono,
+                    fontFamilyFallback: T.monoFallbacks,
+                    fontSize: 11,
+                    color: T.inkSub,
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  a,
+                  textAlign: TextAlign.right,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: winA ? T.ink : T.inkSub,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              N(
+                '$sa',
+                size: 26,
+                weight: FontWeight.w800,
+                color: winA ? T.live : T.ink,
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 6),
+                child: N(
+                  '-',
+                  size: 22,
+                  weight: FontWeight.w800,
+                  color: T.inkSub,
+                ),
+              ),
+              N(
+                '$sb',
+                size: 26,
+                weight: FontWeight.w800,
+                color: winB ? T.live : T.ink,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  b,
+                  textAlign: TextAlign.left,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: winB ? T.ink : T.inkSub,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TeamFilterRow extends StatelessWidget {
+  final Match match;
+  final int total;
+  final String selected;
+  final ValueChanged<String> onChange;
+  const _TeamFilterRow({
+    required this.match,
+    required this.total,
+    required this.selected,
+    required this.onChange,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    Widget chip(String value, String text) {
+      final active = value == selected;
+      return GestureDetector(
+        onTap: () => onChange(value),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          decoration: BoxDecoration(
+            color: active ? T.ink : T.elev2,
+            border: Border.all(color: active ? T.ink : T.line),
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: active ? T.bg : T.inkSub,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+      child: Row(
+        children: [
+          chip('all', '${l.event_rating_team_all} $total'),
+          const SizedBox(width: 8),
+          if (match.teamALabel != null) chip('a', match.teamALabel!),
+          if (match.teamALabel != null) const SizedBox(width: 8),
+          if (match.teamBLabel != null) chip('b', match.teamBLabel!),
+          const Spacer(),
+          Label(l.event_rating_players_voted(total)),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// "Event-wide" view — original leaderboard (now with enhanced rows)
+// ─────────────────────────────────────────────────────────────
+class _EventWideSection extends ConsumerWidget {
+  final Event event;
+  final ValueChanged<PlayerRatingRow> onOpenPlayer;
+  const _EventWideSection({required this.event, required this.onOpenPlayer});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final async = ref.watch(eventPlayerRatingsProvider(event.id));
+    return async.when(
+      loading: () => const _PanelLoading(),
+      error: (e, _) => _PanelError(e),
+      data: (rows) {
+        final visible = rows.where((r) => r.name != '—').toList();
+        final totalVotes = visible.fold<int>(0, (s, r) => s + r.votes);
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+              child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 14,
@@ -2195,7 +2612,7 @@ class _RatingsPanelState extends ConsumerState<RatingsPanel> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.event.name,
+                      event.name,
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
@@ -2206,7 +2623,9 @@ class _RatingsPanelState extends ConsumerState<RatingsPanel> {
                     Row(
                       children: [
                         Label(
-                          context.l10n.event_rating_players_count(rows.length),
+                          context.l10n.event_rating_players_count(
+                            visible.length,
+                          ),
                         ),
                         const Spacer(),
                         Label(
@@ -2217,27 +2636,29 @@ class _RatingsPanelState extends ConsumerState<RatingsPanel> {
                   ],
                 ),
               ),
-            ],
-          ),
-        ),
-        if (rows.isEmpty)
-          Padding(
-            padding: const EdgeInsets.all(40),
-            child: Center(
-              child: Label(context.l10n.event_rating_empty_go_rate),
             ),
-          )
-        else
-          for (int i = 0; i < rows.length; i++)
-            GestureDetector(
-              onTap: () => setState(() => _selected = rows[i]),
-              child: _PlayerRow(p: rows[i], rank: i + 1),
+            if (visible.isEmpty)
+              Padding(
+                padding: const EdgeInsets.all(40),
+                child: Center(
+                  child: Label(context.l10n.event_rating_empty_go_rate),
+                ),
+              )
+            else
+              for (int i = 0; i < visible.length; i++)
+                GestureDetector(
+                  onTap: () => onOpenPlayer(visible[i]),
+                  child: _PlayerRow(p: visible[i], rank: i + 1),
+                ),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Center(
+                child: Label(context.l10n.event_rating_tap_for_detail),
+              ),
             ),
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: Center(child: Label(context.l10n.event_rating_tap_for_detail)),
-        ),
-      ],
+          ],
+        );
+      },
     );
   }
 }
@@ -2245,14 +2666,21 @@ class _RatingsPanelState extends ConsumerState<RatingsPanel> {
 class _PlayerRow extends StatelessWidget {
   final PlayerRatingRow p;
   final int rank;
-  const _PlayerRow({required this.p, required this.rank});
+  final bool showMomentBlock;
+  const _PlayerRow({
+    required this.p,
+    required this.rank,
+    this.showMomentBlock = false,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     final you = p.rateeId == currentUserId;
     final scoreColor = p.avgScore >= 8
         ? T.live
         : (p.avgScore >= 6 ? T.ink : T.danger);
+    final hasMoment = showMomentBlock && (p.topComment?.isNotEmpty ?? false);
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
       padding: const EdgeInsets.all(12),
@@ -2310,21 +2738,24 @@ class _PlayerRow extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    if (you)
-                      _tinyBadge(
-                        context.l10n.rate_short_you,
-                        T.liveDim,
-                        T.live,
-                      ),
+                    if (you) _tinyBadge(l.rate_short_you, T.liveDim, T.live),
+                    if (rank == 1)
+                      _tinyBadge(l.event_rating_mvp, T.liveDim, T.live),
+                    if (p.topHighlight != null && p.topHighlight!.isNotEmpty)
+                      _statChip(p.topHighlight!),
                   ],
                 ),
                 const SizedBox(height: 3),
                 Label(
                   [
                     if (p.position != null) p.position!,
-                    context.l10n.event_rating_n_voters_inline(p.votes),
+                    l.event_rating_n_voters_inline(p.votes),
                   ].join(' · '),
                 ),
+                if (hasMoment) ...[
+                  const SizedBox(height: 8),
+                  _MomentQuote(text: p.topComment!),
+                ],
               ],
             ),
           ),
@@ -2342,7 +2773,7 @@ class _PlayerRow extends StatelessWidget {
                   color: scoreColor,
                 ),
                 const SizedBox(height: 2),
-                Label(context.l10n.event_rating_score_avg),
+                Label(l.event_rating_score_avg),
               ],
             ),
           ),
@@ -2374,6 +2805,56 @@ class _PlayerRow extends StatelessWidget {
       ),
     ),
   );
+
+  Widget _statChip(String text) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+    decoration: BoxDecoration(
+      color: const Color(0x22FF6D3B),
+      borderRadius: BorderRadius.circular(3),
+      border: Border.all(color: const Color(0x55FF6D3B)),
+    ),
+    child: Text(
+      text,
+      style: const TextStyle(
+        fontFamily: T.fontMono,
+        fontFamilyFallback: T.monoFallbacks,
+        fontSize: 10,
+        fontWeight: FontWeight.w700,
+        color: Color(0xFFFFB38A),
+      ),
+    ),
+  );
+}
+
+class _MomentQuote extends StatelessWidget {
+  final String text;
+  const _MomentQuote({required this.text});
+  @override
+  Widget build(BuildContext context) {
+    final trimmed = text.length > 28 ? '${text.substring(0, 28)}…' : text;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      decoration: BoxDecoration(
+        color: T.elev3,
+        border: Border.all(color: T.line),
+        borderRadius: BorderRadius.circular(T.r2),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.format_quote, size: 12, color: T.inkSub),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              trimmed,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 12, color: T.inkSub),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _PlayerRatingDetail extends ConsumerWidget {

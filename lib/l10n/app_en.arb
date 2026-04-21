@@ -205,6 +205,20 @@
   "event_register_phone": "Phone",
   "event_register_submit": "Submit",
   "event_register_success": "Submitted · awaiting review",
+  "event_rating_view_this_match": "This match",
+  "event_rating_view_event": "Event leaderboard",
+  "event_rating_team_all": "All",
+  "event_rating_no_matches": "No finished matches yet · see event leaderboard",
+  "event_rating_pick_match": "Pick a match",
+  "event_rating_mvp": "MVP",
+  "event_rating_goals_assists": "{g}G {a}A",
+  "@event_rating_goals_assists": {
+    "placeholders": { "g": { "type": "int" }, "a": { "type": "int" } }
+  },
+  "event_rating_filter_count": "{n}",
+  "@event_rating_filter_count": {
+    "placeholders": { "n": { "type": "int" } }
+  },
   "event_rating_panel_subtitle": "Event leaderboard",
   "event_rating_players_count": "{n} players rated",
   "@event_rating_players_count": {
