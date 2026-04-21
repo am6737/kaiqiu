@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,6 +11,17 @@ import 'package:kaiqiu_app/providers.dart';
 import 'package:kaiqiu_app/repositories/messages_repository.dart';
 import 'package:kaiqiu_app/theme/theme_controller.dart';
 import 'package:kaiqiu_app/widgets/user_card_sheet.dart';
+
+class _SlowMessagesRepo extends MessagesRepository {
+  final completer = Completer<String>();
+  int callCount = 0;
+
+  @override
+  Future<String> ensureDmWith(String otherUserId) {
+    callCount++;
+    return completer.future;
+  }
+}
 
 class _FakeMessagesRepo extends MessagesRepository {
   String? calledWithUserId;
@@ -118,6 +131,38 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(repo.calledWithUserId, 'u-other');
+    });
+
+    testWidgets('button disabled while ensureDmWith pending', (tester) async {
+      final repo = _SlowMessagesRepo();
+      await tester.pumpWidget(_wrap(
+        Builder(builder: (ctx) => Center(
+          child: Consumer(builder: (c, ref, _) => ElevatedButton(
+            onPressed: () => showUserCardSheet(c, ref, userId: 'u-other'),
+            child: const Text('open'),
+          )),
+        )),
+        overrides: [
+          profileByIdProvider('u-other').overrideWith((ref) async => _sampleProfile()),
+          messagesRepoProvider.overrideWithValue(repo),
+        ],
+      ));
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+
+      // First tap kicks off ensureDmWith (still pending)
+      await tester.tap(find.text('发起私聊'));
+      await tester.pump(); // let setState take effect, but don't settle
+      expect(repo.callCount, 1);
+
+      // Second tap should NOT invoke the repo again while _busy
+      await tester.tap(find.text('发起私聊'));
+      await tester.pump();
+      expect(repo.callCount, 1);
+
+      // Let the pending future complete to clean up (avoid pending timers warnings).
+      repo.completer.complete('conv-done');
+      await tester.pumpAndSettle();
     });
   });
 }

@@ -48,12 +48,14 @@ class _UserCardSheetBodyState extends ConsumerState<_UserCardSheetBody> {
       final convId =
           await ref.read(messagesRepoProvider).ensureDmWith(widget.userId);
       if (!mounted) return;
-      Navigator.of(context).pop();
-      context.push('/chat/$convId');
+      final router = GoRouter.of(context);
       ref.invalidate(conversationsProvider);
+      Navigator.of(context).pop();
+      router.push('/chat/$convId');
     } catch (e) {
       if (!mounted) return;
-      showToast(context, '$e', error: true);
+      final l = context.l10n;
+      showToast(context, '${l.messages_new_failed}: $e', error: true);
       setState(() => _busy = false);
     }
   }
@@ -104,7 +106,7 @@ class _UserCardSheetBodyState extends ConsumerState<_UserCardSheetBody> {
                   const SizedBox(width: 8),
                   Flexible(
                     child: Text(
-                      '$e',
+                      '${l.messages_new_failed}: $e',
                       style: TextStyle(color: context.tokens.danger),
                     ),
                   ),
