@@ -1537,6 +1537,105 @@ class _ScorersPanel extends ConsumerWidget {
   }
 }
 
+class _GoldenBootHero extends ConsumerWidget {
+  final ScorerRow row;
+  final VoidCallback? onTap;
+
+  const _GoldenBootHero({required this.row, this.onTap});
+
+  static const _gold = Color(0xFFFFD700);
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = context.l10n;
+    final profileAsync = row.scorerId == null
+        ? const AsyncValue<Profile?>.data(null)
+        : ref.watch(profileByIdProvider(row.scorerId!));
+    final avatarUrl = profileAsync.valueOrNull?.avatarUrl;
+    final radius = BorderRadius.circular(context.tokens.r3);
+    final perMatch = row.matches > 0
+        ? (row.goals / row.matches).toStringAsFixed(2)
+        : null;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      child: Material(
+        color: const Color(0x14FFD700),
+        borderRadius: radius,
+        child: InkWell(
+          borderRadius: radius,
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              border: Border.all(color: const Color(0x66FFD700)),
+              borderRadius: radius,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: _gold, width: 2),
+                  ),
+                  padding: const EdgeInsets.all(2),
+                  child: NetworkAvatar(
+                    row.name,
+                    url: avatarUrl,
+                    size: 96,
+                    square: true,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Label(
+                        l.event_scorers_golden_boot,
+                        color: context.tokens.accent,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        row.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: context.tokens.ink,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      if (perMatch != null)
+                        Label(l.event_scorers_per_match(perMatch))
+                      else
+                        Label(l.archive_teammates_matches(row.matches)),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    N(
+                      '${row.goals}',
+                      size: 32,
+                      weight: FontWeight.w800,
+                      color: context.tokens.accent,
+                    ),
+                    Label(l.event_scorers_goals),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _ScorerCard extends ConsumerWidget {
   final int rank;
   final ScorerRow row;
