@@ -24,14 +24,19 @@ class PickupMapScreen extends ConsumerStatefulWidget {
 
 class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
   String _filter = 'today';
-  bool _sheetOpen = true;
   String? _activePin;
-  double _overscrollAccum = 0;
+  final _sheetCtrl = DraggableScrollableController();
 
   // Extended filter state (opened from the filter icon sheet).
   double _distKm = 5;
   int _maxFee = 100;
   String _level = 'any'; // any/新手/初级/中级/高级
+
+  @override
+  void dispose() {
+    _sheetCtrl.dispose();
+    super.dispose();
+  }
 
   List<(String, String)> _filterOptions(BuildContext context) {
     final l = context.l10n;
@@ -255,10 +260,14 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
             child: RealPickupMap(
               pickups: pickups,
               activePinId: _activePin,
-              onPinTap: (id) => setState(() {
-                _activePin = id;
-                _sheetOpen = true;
-              }),
+              onPinTap: (id) {
+                setState(() => _activePin = id);
+                _sheetCtrl.animateTo(
+                  0.55,
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeOut,
+                );
+              },
             ),
           ),
           // Top bar (gradient fade)
@@ -366,35 +375,26 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
             ),
           ),
           // Bottom sheet
-          AnimatedPositioned(
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOut,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            height: _sheetOpen ? MediaQuery.of(context).size.height * 0.55 : 80,
-            child: Container(
+          DraggableScrollableSheet(
+            controller: _sheetCtrl,
+            initialChildSize: 0.55,
+            minChildSize: 80 / MediaQuery.of(context).size.height,
+            maxChildSize: 0.55,
+            snap: true,
+            snapSizes: const [0.55],
+            builder: (context, scrollController) => Container(
               decoration: BoxDecoration(
                 color: context.tokens.elev1,
-                borderRadius: BorderRadius.only(
+                borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(24),
                   topRight: Radius.circular(24),
                 ),
                 border: Border(top: BorderSide(color: context.tokens.line, width: 1)),
               ),
-              child: Column(
-                children: [
-                  GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () => setState(() => _sheetOpen = !_sheetOpen),
-                    onVerticalDragEnd: (details) {
-                      final v = details.primaryVelocity ?? 0;
-                      if (v > 150 && _sheetOpen) {
-                        setState(() => _sheetOpen = false);
-                      } else if (v < -150 && !_sheetOpen) {
-                        setState(() => _sheetOpen = true);
-                      }
-                    },
+              child: CustomScrollView(
+                controller: scrollController,
+                slivers: [
+                  SliverToBoxAdapter(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -434,31 +434,13 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                       ],
                     ),
                   ),
-                  Expanded(
-                    child: NotificationListener<ScrollNotification>(
-                      onNotification: (notification) {
-                        if (!_sheetOpen) return false;
-                        if (notification is OverscrollNotification &&
-                            notification.overscroll < 0) {
-                          _overscrollAccum += notification.overscroll.abs();
-                          if (_overscrollAccum > 80) {
-                            setState(() => _sheetOpen = false);
-                            _overscrollAccum = 0;
-                          }
-                          return true;
-                        }
-                        if (notification is ScrollEndNotification) {
-                          _overscrollAccum = 0;
-                        }
-                        return false;
-                      },
-                      child: ListView.builder(
-                        itemCount: pickups.length,
-                        itemBuilder: (_, i) => _MapListRow(
-                          item: pickups[i],
-                          onTap: () => context.push('/pickup/${pickups[i].id}'),
-                        ),
+                  SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (_, i) => _MapListRow(
+                        item: pickups[i],
+                        onTap: () => context.push('/pickup/${pickups[i].id}'),
                       ),
+                      childCount: pickups.length,
                     ),
                   ),
                 ],
