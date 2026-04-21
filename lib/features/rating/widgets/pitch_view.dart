@@ -1,8 +1,10 @@
 // pitch_view.dart — 俯视球场（单队 4-3-3），球员点击触发回调
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../models/pickup.dart';
 import '../../../theme/app_tokens.dart';
+import '../../../widgets/user_card_sheet.dart';
 
 class PitchView extends StatelessWidget {
   final List<PickupSlot> slots;
@@ -73,7 +75,7 @@ class PitchView extends StatelessWidget {
   }
 }
 
-class _PlayerDot extends StatelessWidget {
+class _PlayerDot extends ConsumerWidget {
   final PickupSlot slot;
   final bool isSelf;
   final bool isSelected;
@@ -96,7 +98,7 @@ class _PlayerDot extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final label = slot.initial(isSelf ? slot.userId : null);
     final dotColor = rated != null
         ? _ratedColor(context, rated!)
@@ -106,6 +108,9 @@ class _PlayerDot extends StatelessWidget {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
+      onLongPress: slot.userId == null
+          ? null
+          : () => showUserCardSheet(context, ref, userId: slot.userId!),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
