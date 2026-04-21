@@ -11,6 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../data/demo_images.dart';
+import '../../data/demo_team_assets.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../l10n/l10n_extension.dart';
 import '../../models/event.dart';
@@ -27,6 +28,7 @@ import '../../widgets/avatar.dart';
 import '../../widgets/network_avatar.dart';
 import '../../widgets/network_cover.dart';
 import '../../widgets/primary_button.dart';
+import '../../widgets/team_badge.dart';
 import '../../widgets/typography.dart';
 import '../../theme/app_tokens.dart';
 
@@ -948,7 +950,7 @@ class _StandingsTable extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
-                    vertical: 12,
+                    vertical: 14,
                   ),
                   decoration: BoxDecoration(
                     border: Border(top: BorderSide(color: context.tokens.line, width: 1)),
@@ -968,18 +970,10 @@ class _StandingsTable extends StatelessWidget {
                       Expanded(
                         child: Row(
                           children: [
-                            Container(
-                              width: 32,
-                              height: 32,
-                              decoration: BoxDecoration(
-                                color: HSLColor.fromAHSL(
-                                  1,
-                                  (s.rank * 50).toDouble() % 360,
-                                  0.35,
-                                  0.3,
-                                ).toColor(),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
+                            TeamBadge(
+                              name: s.team,
+                              logoUrl: DemoTeamAssets.forTeamName(s.team).logoUrl,
+                              size: 44,
                             ),
                             const SizedBox(width: 10),
                             Expanded(
