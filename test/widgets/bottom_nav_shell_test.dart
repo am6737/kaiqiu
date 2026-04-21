@@ -15,19 +15,19 @@ Widget _shellWith4Branches() {
     initialLocation: '/home',
     routes: [
       StatefulShellRoute.indexedStack(
-        builder: (_, __, shell) => BottomNavShell(shell: shell),
+        builder: (_, _, shell) => BottomNavShell(shell: shell),
         branches: [
           StatefulShellBranch(routes: [
-            GoRoute(path: '/home', builder: (_, __) => const _Stub('H')),
+            GoRoute(path: '/home', builder: (_, _) => const _Stub('H')),
           ]),
           StatefulShellBranch(routes: [
-            GoRoute(path: '/pickup', builder: (_, __) => const _Stub('P')),
+            GoRoute(path: '/pickup', builder: (_, _) => const _Stub('P')),
           ]),
           StatefulShellBranch(routes: [
-            GoRoute(path: '/events', builder: (_, __) => const _Stub('E')),
+            GoRoute(path: '/events', builder: (_, _) => const _Stub('E')),
           ]),
           StatefulShellBranch(routes: [
-            GoRoute(path: '/me', builder: (_, __) => const _Stub('M')),
+            GoRoute(path: '/me', builder: (_, _) => const _Stub('M')),
           ]),
         ],
       ),
