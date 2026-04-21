@@ -1,7 +1,8 @@
 // demo_images.dart — demo 图片 URL 常量，所有 URL 与 supabase/seed/demo.sql 保持同步。
 //
-// 来源：Unsplash（手选稳定 photo-id）。URL 走统一 query string 规范化尺寸/质量，
-// 避免拉原图浪费流量。如需替换直接改这里 + 对应 seed.sql。
+// 来源：场地 / 赛事封面走 Unsplash（手选稳定 photo-id + query string 规范化尺寸
+// 质量），球员头像走 Wikipedia Commons（直链固定尺寸）。如需替换直接改这里 +
+// 对应 seed.sql。
 //
 // Fallback 策略：运行时 CachedNetworkImage 的 errorWidget 会兜到 PhotoHalftone /
 // 字母 Avatar，所以单张 URL 失效不会崩。
@@ -11,8 +12,6 @@ class DemoImages {
 
   static const _landscape =
       '?auto=format&fit=crop&w=1200&h=600&q=70';
-  // ignore: unused_field
-  static const _square = '?auto=format&fit=crop&w=400&h=400&q=70';
 
   // ── 赛事海报（events.cover_url）─────────────────────────────
   /// 2026 龙岗村超 — 慕尼黑奥林匹克球场空场绿茵,World Cup hero 兜底用
