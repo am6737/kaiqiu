@@ -86,7 +86,7 @@ UI 调用关系：
    - `insert into conversations(kind) values ('dm') returning id into v_id;`
    - `insert into conversation_members(conv_id, user_id, unread) values (v_id, v_me, 0), (v_id, p_other_user_id, 0);`
    - `return v_id;`
-5. **并发防护**：插入逻辑包一层 `begin ... exception when unique_violation then <重走查询分支> end;`。并发极低的情况下若两侧同时插入，返回其中任意一条（读方以 RPC 返回的 id 为准，不阻塞用户）。
+5. **并发 tradeoff**：`conversations` 表上没有"(DM 双方) 唯一键"这种约束（`kind='dm'` 并没有附加 unique 索引），所以严格的幂等只在串行调用下保证；在两个客户端**同时**首次发起 A↔B DM 时，理论上可能各自插入一条，产生两条内容相同的 DM 会话。发生概率极低；后续读方永远以 RPC 本次返回的 id 为准，不阻塞用户。该 tradeoff 在迁移文件顶部注释中显式说明，以免未来开发者误读。
 
 **Grant**：`grant execute on function public.ensure_dm_conversation(uuid) to authenticated;`
 
@@ -102,10 +102,15 @@ select m.conv_id as conv_id,
        m.user_id as peer_user_id
 from conversation_members m
 join conversations c on c.id = m.conv_id
-where c.kind = 'dm';
+where c.kind = 'dm'
+  -- 安全：只让调用者看到自己参与的 DM 的成员行，避免社交图谱泄漏。
+  and exists (
+    select 1 from conversation_members me
+    where me.conv_id = m.conv_id and me.user_id = auth.uid()
+  );
 ```
 
-输出列名沿用项目约定的 `conv_id`。客户端按需：`select peer_user_id from v_conversation_peers where conv_id=$1 and peer_user_id <> auth.uid()` 取得对端 id。
+输出列名沿用项目约定的 `conv_id`。客户端按需：`select peer_user_id from v_conversation_peers where conv_id=$1 and peer_user_id <> auth.uid()` 取得对端 id。view 默认 `security invoker`/`security definer` 行为在此不影响安全性——显式的 `where exists (... auth.uid())` 保证任意用户只能从中看到"自己参与的"DM 的成员行。
 
 **优化（可选，作为后续优化点，不在本设计强制范围内）**：`listConversations()` 的 SQL 可一次性 JOIN 出 DM 对端的 `name / avatar_url / handle`，避免 N+1。初版可以先按"每个 DM 行发一次 `profileByIdProvider`"的方式工作，客户端侧的 provider 会对同一 id 去重。
 
