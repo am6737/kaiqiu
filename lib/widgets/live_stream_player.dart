@@ -11,6 +11,7 @@ import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
 
 import '../l10n/l10n_extension.dart';
+import 'danmaku_overlay.dart';
 import 'live_pill.dart';
 import '../theme/app_tokens.dart';
 
@@ -44,6 +45,9 @@ class LiveStreamPlayer extends StatefulWidget {
   /// e.g. "ARG 1 - 1 BRA · 67'".
   final String? scoreOverlay;
 
+  final Stream<DanmakuItem>? danmakuStream;
+  final bool danmakuEnabled;
+
   const LiveStreamPlayer({
     super.key,
     this.height = 240,
@@ -52,6 +56,8 @@ class LiveStreamPlayer extends StatefulWidget {
     this.bottomLeftOverlay,
     this.bottomRightOverlay,
     this.scoreOverlay,
+    this.danmakuStream,
+    this.danmakuEnabled = true,
   });
 
   @override
@@ -182,6 +188,8 @@ class _LiveStreamPlayerState extends State<LiveStreamPlayer> {
             if (mounted) setState(() {});
           },
           scoreOverlay: widget.scoreOverlay,
+          danmakuStream: widget.danmakuStream,
+          danmakuEnabled: widget.danmakuEnabled,
         ),
         transitionsBuilder: (_, anim, _, child) =>
             FadeTransition(opacity: anim, child: child),
@@ -467,12 +475,16 @@ class _LiveFullscreenRoute extends StatefulWidget {
   final bool initiallyMuted;
   final ValueChanged<bool> onMuteChanged;
   final String? scoreOverlay;
+  final Stream<DanmakuItem>? danmakuStream;
+  final bool danmakuEnabled;
 
   const _LiveFullscreenRoute({
     required this.controller,
     required this.initiallyMuted,
     required this.onMuteChanged,
     required this.scoreOverlay,
+    this.danmakuStream,
+    this.danmakuEnabled = true,
   });
 
   @override
@@ -551,6 +563,15 @@ class _LiveFullscreenRouteState extends State<_LiveFullscreenRoute> {
                 child: VideoPlayer(widget.controller),
               ),
             ),
+            if (widget.danmakuStream != null)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: DanmakuOverlay(
+                    stream: widget.danmakuStream!,
+                    enabled: widget.danmakuEnabled,
+                  ),
+                ),
+              ),
             // Top-left close.
             if (_showControls)
               Positioned(

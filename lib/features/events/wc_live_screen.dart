@@ -175,6 +175,8 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
                   LiveStreamPlayer(
                     height: 240,
                     scoreOverlay: scoreOverlay,
+                    danmakuStream: _danmuController.stream,
+                    danmakuEnabled: _danmakuOn,
                     topLeft: _BackButton(onTap: () => context.pop()),
                     topRight: Row(
                       mainAxisSize: MainAxisSize.min,
