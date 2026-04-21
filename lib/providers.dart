@@ -22,7 +22,7 @@ import 'services/local_storage.dart';
 import 'services/supabase.dart';
 
 // ─────────────────────────────────────────────────────────────
-// Stable demo UUIDs — must match seed 03_demo_match.sql.
+// Stable demo UUIDs — must match supabase/seed/demo.sql.
 // ─────────────────────────────────────────────────────────────
 const demoMatchId = '22222222-2222-2222-2222-222222222222';
 

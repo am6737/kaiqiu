@@ -14,8 +14,9 @@
 | `SUPABASE_SERVICE_ROLE_KEY` | 同上（**不进仓**）| Edge Function / 定时任务 |
 
 **Storage buckets（Dashboard → Storage）**  
-新建 3 个 public bucket：`avatars` / `event-covers` / `pickup-photos`，
-并跑 `docs/storage-policies.sql` 里的 RLS policies。
+新建 3 个 public bucket：`avatars` / `event-covers` / `pickup-photos`。
+Storage RLS 已在 `supabase/migrations/0001_schema.sql` section 12，建 bucket 后
+整个 schema 文件 paste 执行即可。
 
 ---
 
@@ -90,7 +91,7 @@ Google Maps 走 Maven Central，没有手动下载步骤。
 
 ### 4.4 pg_cron
 Dashboard → Database → Extensions 启用 `pg_cron` + `pg_net`；
-然后按 `supabase/migrations/0019_reminders_cron.sql` 里的说明手动跑（替换 `<PROJECT_REF>`）。
+然后按 `supabase/migrations/0001_schema.sql` 末尾附录里的说明手动跑（替换 `<PROJECT_REF>`）。
 
 ### 4.5 国内分发
 已决定**不接** JPush/个推。FCM 在中国大陆网络下送达率受限，这是已知取舍。
