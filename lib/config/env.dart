@@ -38,6 +38,11 @@ class Env {
   static bool get isFirebaseConfigured =>
       firebaseApiKey.isNotEmpty && firebaseAppId.isNotEmpty;
 
+  // LiveKit (live streaming).
+  static const livekitWsUrl = String.fromEnvironment('LIVEKIT_WS_URL');
+
+  static bool get isLiveKitConfigured => livekitWsUrl.isNotEmpty;
+
   // Maps (S2). AMap (高德地图) API key.
   static const amapKey = String.fromEnvironment(
     'AMAP_KEY',

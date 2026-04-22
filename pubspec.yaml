@@ -55,6 +55,9 @@ dependencies:
   # Live stream video player — HLS via AVPlayer (iOS) / ExoPlayer (Android).
   video_player: ^2.9.2
 
+  # LiveKit multi-party video (live streaming rooms)
+  livekit_client: ^2.3.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
