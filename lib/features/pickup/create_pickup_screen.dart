@@ -203,6 +203,7 @@ class _CreatePickupScreenState extends ConsumerState<CreatePickupScreen> {
                     label: '活动标题',
                     controller: _title,
                     hint: '给你的约球起个标题吧',
+                    maxLength: 30,
                   ),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
@@ -499,6 +500,7 @@ class _Field extends StatelessWidget {
   final String? hint;
   final VoidCallback? onTap;
   final bool readOnly;
+  final int? maxLength;
   const _Field({
     required this.label,
     required this.controller,
@@ -507,6 +509,7 @@ class _Field extends StatelessWidget {
     this.hint,
     this.onTap,
     this.readOnly = false,
+    this.maxLength,
   });
 
   @override
@@ -538,9 +541,11 @@ class _Field extends StatelessWidget {
                     keyboardType: keyboardType,
                     readOnly: readOnly,
                     onTap: onTap,
+                    maxLength: maxLength,
                     style: TextStyle(color: context.tokens.ink, fontSize: 14),
                     decoration: InputDecoration(
                       border: InputBorder.none,
+                      counterText: '',
                       isDense: true,
                       contentPadding:
                           const EdgeInsets.symmetric(vertical: 12),
