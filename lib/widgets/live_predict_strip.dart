@@ -4,14 +4,13 @@
 // distribution percentages. Tapping any outcome opens a modal bottom sheet
 // to confirm the pick + choose a stake + submit. Once submitted, the strip
 // collapses into a summary chip ("你的选择: 主胜 · 50 分 ✓").
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../l10n/l10n_extension.dart';
 import '../l10n/generated/app_localizations.dart';
 import '../providers.dart';
+import '../repositories/predictions_repository.dart';
 import '../services/local_storage.dart';
 import '../utils/toast.dart';
 import 'typography.dart';
@@ -35,7 +34,9 @@ class LivePredictStrip extends ConsumerWidget {
     ref.watch(localStoreProvider);
     final l = context.l10n;
     final raw = LocalStore.getPrediction(matchId);
-    final dist = _fakeDistribution(matchId);
+    final pd = ref.watch(predictionDistProvider(matchId)).valueOrNull
+        ?? PredictionDistribution.empty();
+    final dist = _Dist.fromPrediction(pd);
 
     if (raw == null) {
       return _UnvotedStrip(
@@ -65,7 +66,7 @@ class LivePredictStrip extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref, {
     required String initialChoice,
-    required _FakeDist dist,
+    required _Dist dist,
   }) {
     showModalBottomSheet<void>(
       context: context,
@@ -89,26 +90,25 @@ String _labelFor(AppL10n l, String choice, String home, String away) =>
       _ => l.wc_predict_draw,
     };
 
-/// Deterministic pseudo-random distribution seeded by matchId — matches the
-/// look of the standalone predict screen.
-class _FakeDist {
+class _Dist {
   final int a, d, b;
-  const _FakeDist(this.a, this.d, this.b);
-}
+  const _Dist(this.a, this.d, this.b);
 
-_FakeDist _fakeDistribution(String matchId) {
-  final r = Random(matchId.hashCode);
-  final aPct = 35 + r.nextInt(40); // 35-74
-  final dPct = 8 + r.nextInt(18); // 8-25
-  final bPct = (100 - aPct - dPct).clamp(5, 70);
-  return _FakeDist(aPct, dPct, bPct);
+  factory _Dist.fromPrediction(PredictionDistribution pd) {
+    final total = pd.total;
+    if (total == 0) return const _Dist(33, 34, 33);
+    final aPct = (pd.votesA * 100 / total).round();
+    final dPct = (pd.votesDraw * 100 / total).round();
+    final bPct = 100 - aPct - dPct;
+    return _Dist(aPct, dPct, bPct);
+  }
 }
 
 class _UnvotedStrip extends StatelessWidget {
   final String matchId;
   final String homeLabel;
   final String awayLabel;
-  final _FakeDist dist;
+  final _Dist dist;
   final ValueChanged<String> onTap;
   const _UnvotedStrip({
     required this.matchId,
@@ -245,7 +245,7 @@ class _OutcomeBtn extends StatelessWidget {
 class _VotedStrip extends StatelessWidget {
   final String choiceLabel;
   final int stake;
-  final _FakeDist dist;
+  final _Dist dist;
   final String myChoice;
   final VoidCallback onTap;
   const _VotedStrip({
@@ -337,7 +337,7 @@ class _PredictSheet extends ConsumerStatefulWidget {
   final String homeLabel;
   final String awayLabel;
   final String initialChoice;
-  final _FakeDist dist;
+  final _Dist dist;
   const _PredictSheet({
     required this.matchId,
     required this.homeLabel,
@@ -625,7 +625,7 @@ class _StakeChip extends StatelessWidget {
 }
 
 class _DistBars extends StatelessWidget {
-  final _FakeDist dist;
+  final _Dist dist;
   const _DistBars({required this.dist});
 
   @override

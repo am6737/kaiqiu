@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../data/mock.dart' as mock;
 import '../../l10n/l10n_extension.dart';
+import '../../models/event.dart' show Match;
+import '../../models/rating.dart';
+import '../../providers.dart';
 import '../../services/supabase.dart' as svc;
 import '../../utils/toast.dart';
 import '../../widgets/avatar.dart';
@@ -27,11 +29,37 @@ class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
   final Map<String, String> _comments = {};
   bool _done = false;
   bool _submitting = false;
+  bool _loading = true;
 
-  late final List<mock.RatingPlayer> _players = [
-    ...mock.yourTeam,
-    ...mock.oppTeam,
-  ];
+  List<MatchParticipant> _players = [];
+  Match? _match;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final players = await ref
+        .read(ratingsRepoProvider)
+        .matchParticipants(widget.matchId);
+    Match? match;
+    try {
+      final row = await svc.supabase
+          .from('matches')
+          .select()
+          .eq('id', widget.matchId)
+          .maybeSingle();
+      if (row != null) match = Match.fromMap(row);
+    } catch (_) {}
+    if (!mounted) return;
+    setState(() {
+      _players = players;
+      _match = match;
+      _loading = false;
+    });
+  }
 
   /// Submit all non-null ratings to Supabase. Returns count written.
   Future<int> _submitAll() async {
@@ -39,17 +67,15 @@ class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
     if (uid == null) throw StateError('Not signed in');
     int written = 0;
     for (final p in _players) {
-      final score = _ratings[p.name];
+      final score = _ratings[p.displayName];
       if (score == null) continue;
       await svc.supabase.from('ratings').upsert({
         'match_id': widget.matchId,
         'rater_id': uid,
-        'ratee_id': null,
-        'ratee_name': p.name,
+        'ratee_id': p.userId,
         'score': score,
-        'comment': _comments[p.name],
-        'highlight': p.highlight,
-      }, onConflict: 'match_id,rater_id,ratee_name');
+        'comment': _comments[p.displayName],
+      }, onConflict: 'match_id,rater_id,ratee_id');
       written++;
     }
     return written;
@@ -79,10 +105,21 @@ class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
   @override
   Widget build(BuildContext context) {
     if (_done) return _DonePage(count: _ratings.length);
+    if (_loading || _players.isEmpty) {
+      return Scaffold(
+        backgroundColor: context.tokens.bg,
+        body: Center(
+          child: _loading
+              ? CircularProgressIndicator(color: context.tokens.accent)
+              : Text(context.l10n.match_not_found,
+                  style: TextStyle(color: context.tokens.inkSub)),
+        ),
+      );
+    }
 
     final p = _players[_idx];
-    final cur = _ratings[p.name] ?? (p.you ? 0.0 : p.avgScore);
-    final info = mock.ratingMatchInfo;
+    final isYou = p.userId == svc.currentUserId;
+    final cur = _ratings[p.displayName] ?? (isYou ? 0.0 : 5.0);
 
     return Scaffold(
       backgroundColor: context.tokens.bg,
@@ -111,7 +148,7 @@ class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
                         Label(context.l10n.rate_panel_title),
                         const SizedBox(height: 2),
                         Text(
-                          info.event,
+                          '',
                           style: TextStyle(
                             fontSize: 14,
                             color: context.tokens.ink,
@@ -174,7 +211,7 @@ class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
                       children: [
                         Expanded(
                           child: Text(
-                            info.teamA,
+                            _match?.teamALabel ?? '',
                             textAlign: TextAlign.right,
                             style: TextStyle(
                               fontSize: 13,
@@ -185,14 +222,14 @@ class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
                         ),
                         const SizedBox(width: 12),
                         N(
-                          '${info.scoreA}',
+                          '${_match?.scoreA ?? 0}',
                           size: 20,
                           weight: FontWeight.w700,
                           color: context.tokens.accent,
                         ),
                         Text(' - ', style: TextStyle(color: context.tokens.inkDim)),
                         N(
-                          '${info.scoreB}',
+                          '${_match?.scoreB ?? 0}',
                           size: 20,
                           weight: FontWeight.w700,
                           color: context.tokens.ink,
@@ -200,7 +237,7 @@ class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            info.teamB,
+                            _match?.teamBLabel ?? '',
                             style: TextStyle(
                               fontSize: 13,
                               color: context.tokens.ink,
@@ -223,12 +260,9 @@ class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // TODO(dm-initiation): 当 RatingPlayer 增加 userId 字段后，追加
-                        //   onLongPress: () => showUserCardSheet(context, ref, userId: p.userId!);
-                        // 现阶段 RatingPlayer 仅存 name（mock 数据），无法驱动 profile 查询。
                         Row(
                           children: [
-                            Avatar(p.name, size: 50),
+                            Avatar(p.displayName, size: 50),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Column(
@@ -237,14 +271,14 @@ class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
                                   Row(
                                     children: [
                                       Text(
-                                        p.name,
+                                        p.displayName,
                                         style: TextStyle(
                                           fontSize: 17,
                                           fontWeight: FontWeight.w700,
                                           color: context.tokens.ink,
                                         ),
                                       ),
-                                      if (p.you) ...[
+                                      if (isYou) ...[
                                         const SizedBox(width: 6),
                                         Container(
                                           padding: const EdgeInsets.symmetric(
@@ -276,49 +310,34 @@ class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
                                     ],
                                   ),
                                   const SizedBox(height: 2),
-                                  Label('${p.team ?? info.teamA} · ${p.pos}'),
+                                  Label('${p.side == 'a' ? 'A' : 'B'} · ${p.position ?? ''}'),
                                 ],
                               ),
                             ),
-                            if (p.highlight != null)
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 5,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: context.tokens.warnSubtle,
-                                  border: Border.all(
-                                    color: const Color(0x66FF6B35),
-                                  ),
-                                  borderRadius: BorderRadius.circular(3),
-                                ),
-                                child: Label(p.highlight!, color: context.tokens.warn),
-                              ),
                           ],
                         ),
                         const SizedBox(height: 16),
                         _RatingSlider(
                           value: cur,
                           onChanged: (v) {
-                            setState(() => _ratings[p.name] = v);
+                            setState(() => _ratings[p.displayName] = v);
                           },
                         ),
                         const SizedBox(height: 18),
                         Label(context.l10n.rate_say_optional),
                         const SizedBox(height: 6),
                         TextField(
-                          key: ValueKey('comment-${p.name}'),
+                          key: ValueKey('comment-${p.displayName}'),
                           minLines: 3,
                           maxLines: 4,
-                          onChanged: (v) => _comments[p.name] = v,
+                          onChanged: (v) => _comments[p.displayName] = v,
                           style: TextStyle(
                             fontSize: 13,
                             color: context.tokens.ink,
                             height: 1.5,
                           ),
                           decoration: InputDecoration(
-                            hintText: p.you
+                            hintText: isYou
                                 ? context.l10n.rate_self_hint
                                 : context.l10n.rate_other_hint,
                             hintStyle: TextStyle(color: context.tokens.inkDim),
@@ -339,7 +358,7 @@ class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
                     ),
                   ),
                   // Crowd avg (non-self only)
-                  if (!p.you) ...[
+                  if (!isYou) ...[
                     const SizedBox(height: 10),
                     Container(
                       margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -358,13 +377,13 @@ class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
                           ),
                           const SizedBox(width: 10),
                           Expanded(
-                            child: Label(context.l10n.rate_voters_avg(p.votes)),
+                            child: Label(context.l10n.rate_voters_avg(0)),
                           ),
                           N(
-                            p.avgScore.toStringAsFixed(1),
+                            '—',
                             size: 15,
                             weight: FontWeight.w700,
-                            color: p.avgScore >= 8 ? context.tokens.accent : context.tokens.ink,
+                            color: context.tokens.ink,
                           ),
                         ],
                       ),
@@ -379,7 +398,7 @@ class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
       bottomSheet: _BottomNav(
         idx: _idx,
         total: _players.length,
-        canSubmit: _ratings[p.name] != null,
+        canSubmit: _ratings[p.displayName] != null,
         submitting: _submitting,
         onBack: _idx > 0 && !_submitting ? () => _commit(_idx - 1) : null,
         onSkip: _submitting ? null : () => _commit(_idx + 1),

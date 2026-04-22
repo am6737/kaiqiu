@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../data/mock.dart';
 import '../../l10n/l10n_extension.dart';
+import '../../models/feed.dart';
+import '../../models/live_match.dart';
 import '../../models/pickup.dart' as live;
 import '../../providers.dart';
 import '../../widgets/avatar.dart';
@@ -20,11 +21,9 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
-    final feeds = ref.watch(feedsProvider);
-    final liveNow = ref.watch(liveNowProvider);
+    final feedsAsync = ref.watch(feedsProvider);
+    final liveNowAsync = ref.watch(liveNowProvider);
     final livePickups = ref.watch(livePickupsProvider);
-    // Keep only the non-pickup mock feed items — pickups come from Supabase.
-    final nonPickupFeeds = feeds.where((f) => f is! FeedPickup).toList();
 
     return Scaffold(
       backgroundColor: context.tokens.bg,
@@ -56,7 +55,16 @@ class HomeScreen extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  _LiveStrip(items: liveNow),
+                  ...liveNowAsync.when(
+                    data: (items) => items.isEmpty
+                        ? [Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            child: Label(l.home_no_live),
+                          )]
+                        : [_LiveStrip(items: items)],
+                    loading: () => [const SizedBox(height: 96)],
+                    error: (_, __) => [const SizedBox.shrink()],
+                  ),
                   const _RateCtaBanner(),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
@@ -90,8 +98,13 @@ class HomeScreen extends ConsumerWidget {
                       ),
                     ],
                   ),
-                  // Rest of mock feed (results / posts / event teasers)
-                  for (final item in nonPickupFeeds) _feedCard(context, item),
+                  // Feed items (results / posts / event teasers)
+                  ...feedsAsync.when(
+                    data: (items) =>
+                        items.map((item) => _feedCard(context, item)).toList(),
+                    loading: () => [const _PickupLoading()],
+                    error: (_, __) => [const SizedBox.shrink()],
+                  ),
                   Padding(
                     padding: const EdgeInsets.all(20),
                     child: Center(child: Label(l.home_bottom_of_feed)),
@@ -107,10 +120,6 @@ class HomeScreen extends ConsumerWidget {
 
   Widget _feedCard(BuildContext ctx, FeedItem item) {
     return switch (item) {
-      FeedPickup p => _PickupCard(
-        item: p,
-        onTap: () => ctx.push('/pickup/${p.id}'),
-      ),
       FeedResult r => _ResultCard(item: r),
       FeedPost p => _PostCard(item: p),
       FeedEvent e => _EventTeaserCard(
@@ -187,17 +196,13 @@ class _TopBar extends ConsumerWidget {
   }
 }
 
-// Notifications are still demo data, so we don't yet have a provider for
-// "any notification unread". Until notifications land real data, the dot
-// renders whenever there's an unread DM OR unconditionally (for demo).
-// The ref.watch() keeps the widget reactive so new DMs light it up.
-// TODO: once notifications has a real provider, gate the dot on
-// `hasUnread || hasNotifUnread` and return `SizedBox.shrink()` otherwise.
 class _InboxUnreadDot extends ConsumerWidget {
   const _InboxUnreadDot();
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.watch(messagesUnreadProvider);
+    final hasMsgUnread = ref.watch(messagesUnreadProvider);
+    final notifUnread = ref.watch(notificationsUnreadProvider).valueOrNull ?? 0;
+    if (!hasMsgUnread && notifUnread == 0) return const SizedBox.shrink();
     return Container(
       width: 6,
       height: 6,
@@ -398,15 +403,21 @@ class _LiveStrip extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────
 // Rating CTA banner
 // ─────────────────────────────────────────────────────────────
-class _RateCtaBanner extends StatelessWidget {
+class _RateCtaBanner extends ConsumerWidget {
   const _RateCtaBanner();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final matchId = ref.watch(latestUnratedMatchProvider).valueOrNull;
+    final profile = ref.watch(myProfileProvider).valueOrNull;
+    final ratingStr = profile != null && profile.rating > 0
+        ? profile.rating.toStringAsFixed(1)
+        : '—';
+    if (matchId == null) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),
       child: GestureDetector(
-        onTap: () => GoRouter.of(context).push('/rate/$demoMatchId'),
+        onTap: () => GoRouter.of(context).push('/rate/$matchId'),
         child: Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
@@ -430,7 +441,7 @@ class _RateCtaBanner extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: N(
-                  '9.0',
+                  ratingStr,
                   size: 16,
                   weight: FontWeight.w800,
                   color: context.tokens.accent,
@@ -467,140 +478,6 @@ class _RateCtaBanner extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────
 // Feed cards: Pickup / Result / Post / EventTeaser
 // ─────────────────────────────────────────────────────────────
-class _PickupCard extends StatelessWidget {
-  final FeedPickup item;
-  final VoidCallback onTap;
-  const _PickupCard({required this.item, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final filled = item.total - item.need;
-    final l = context.l10n;
-    final state = item.need <= 0
-        ? 'full'
-        : item.need <= 2
-        ? 'almost'
-        : 'open';
-    final labels = {
-      'open': l.home_status_open,
-      'almost': l.home_status_almost,
-      'full': l.home_status_full,
-    };
-    final stateColor = state == 'open'
-        ? context.tokens.accent
-        : state == 'almost'
-        ? context.tokens.warn
-        : context.tokens.inkDim;
-
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: context.tokens.elev2,
-          border: Border.all(color: context.tokens.line),
-          borderRadius: BorderRadius.circular(context.tokens.r3),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Avatar(item.host, size: 24),
-                const SizedBox(width: 8),
-                Text(
-                  item.host,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: context.tokens.ink,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Label(l.home_host_pickup_with_time(item.time)),
-                const Spacer(),
-                StatusDot(state: state),
-                const SizedBox(width: 4),
-                Label(labels[state]!, color: stateColor),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Text(
-              item.venue,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: context.tokens.ink,
-                letterSpacing: -0.2,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                Icon(Icons.schedule, size: 12, color: context.tokens.inkSub),
-                const SizedBox(width: 4),
-                N(item.when, size: 12, color: context.tokens.inkSub),
-                const SizedBox(width: 10),
-                Icon(Icons.currency_yen, size: 12, color: context.tokens.inkSub),
-                N('${item.fee}', size: 12, color: context.tokens.inkSub),
-                const SizedBox(width: 10),
-                Label(item.level),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Divider(height: 1, color: context.tokens.line),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                // Stacked mini avatars
-                SizedBox(
-                  width: (filled.clamp(0, 4) > 0)
-                      ? (22 + (filled.clamp(0, 4) - 1) * 16).toDouble()
-                      : 0,
-                  height: 22,
-                  child: Stack(
-                    children: [
-                      for (int i = 0; i < filled.clamp(0, 4); i++)
-                        Positioned(
-                          left: i * 16.0,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(color: context.tokens.elev2, width: 2),
-                            ),
-                            child: Avatar(['A', 'B', 'C', 'D'][i], size: 22),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                N('$filled', size: 12, weight: FontWeight.w600, color: context.tokens.ink),
-                N('/${item.total}', size: 12, color: context.tokens.inkDim),
-                const SizedBox(width: 6),
-                if (item.need > 0)
-                  N(l.home_need_n(item.need), size: 12, color: context.tokens.accent)
-                else
-                  N(l.home_full, size: 12, color: context.tokens.inkDim),
-                const Spacer(),
-                Text(
-                  item.need > 0 ? l.home_join_cta : l.home_status_full,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: item.need > 0 ? context.tokens.accent : context.tokens.inkDim,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _ResultCard extends StatelessWidget {
   final FeedResult item;
   const _ResultCard({required this.item});
@@ -633,9 +510,9 @@ class _ResultCard extends StatelessWidget {
                   color: context.tokens.inkSub,
                 ),
                 const SizedBox(width: 6),
-                Label(item.event),
+                Label(item.eventName),
                 const Spacer(),
-                Label(item.time),
+                Label(item.displayTime),
               ],
             ),
           ),
@@ -764,27 +641,27 @@ class _PostCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Avatar(item.author, size: 28),
+              Avatar(item.authorName, size: 28),
               const SizedBox(width: 8),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    item.author,
+                    item.authorName,
                     style: TextStyle(
                       fontSize: 13,
                       color: context.tokens.ink,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  Label(item.time),
+                  Label(item.displayTime),
                 ],
               ),
             ],
           ),
           const SizedBox(height: 10),
           Text(
-            item.text,
+            item.body,
             style: TextStyle(fontSize: 14, color: context.tokens.ink, height: 1.55),
           ),
           const SizedBox(height: 10),
@@ -814,13 +691,13 @@ class _PostCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 10),
-          const Row(
+          Row(
             children: [
-              _InteractStat(icon: Icons.favorite_border, count: 128),
-              SizedBox(width: 16),
-              _InteractStat(icon: Icons.chat_bubble_outline, count: 24),
-              SizedBox(width: 16),
-              _InteractStat(icon: Icons.share_outlined, count: 6),
+              _InteractStat(icon: Icons.favorite_border, count: item.likes),
+              const SizedBox(width: 16),
+              _InteractStat(icon: Icons.chat_bubble_outline, count: item.comments),
+              const SizedBox(width: 16),
+              _InteractStat(icon: Icons.share_outlined, count: item.shares),
             ],
           ),
         ],
@@ -874,12 +751,12 @@ class _EventTeaserCard extends StatelessWidget {
                 const SizedBox(width: 6),
                 Label(context.l10n.home_event_teaser, color: context.tokens.accent),
                 const Spacer(),
-                Label(item.time),
+                Label(item.displayTime),
               ],
             ),
             const SizedBox(height: 10),
             Text(
-              item.event,
+              item.eventName,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,

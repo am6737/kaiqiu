@@ -266,6 +266,9 @@ class AppL10nEn extends AppL10n {
   }
 
   @override
+  String get home_no_live => 'No live matches';
+
+  @override
   String get home_bottom_of_feed => '— You\'re all caught up —';
 
   @override
@@ -2016,6 +2019,9 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get pickup_detail_detail_parking => 'Parking';
+
+  @override
+  String get pickup_detail_location => 'Location';
 
   @override
   String pickup_detail_location_km(String km) {

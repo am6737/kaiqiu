@@ -1,18 +1,25 @@
-// providers.dart — Riverpod providers.
-// Mixed: some screens use MOCK (Home feed non-pickup items, events, profile),
-// pickups now read from Supabase.
+// providers.dart — Riverpod providers (Supabase-backed).
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'data/mock.dart' as mock;
 import 'models/event.dart';
+import 'models/external_match.dart';
+import 'models/feed.dart';
+import 'models/live_match.dart';
+import 'models/match_history.dart';
 import 'models/message.dart';
+import 'models/notification_item.dart';
 import 'models/pickup.dart';
+import 'models/player_profile.dart';
 import 'models/profile.dart';
+import 'models/teammate.dart';
 import 'repositories/events_repository.dart';
+import 'repositories/external_matches_repository.dart';
 import 'repositories/favorites_repository.dart';
+import 'repositories/feed_repository.dart';
 import 'repositories/feedback_repository.dart';
 import 'repositories/goals_repository.dart';
 import 'repositories/messages_repository.dart';
+import 'repositories/notifications_repository.dart';
 import 'repositories/pickups_repository.dart';
 import 'repositories/predictions_repository.dart';
 import 'repositories/profiles_repository.dart';
@@ -21,11 +28,6 @@ import 'repositories/reminders_repository.dart';
 import 'repositories/user_teams_repository.dart';
 import 'services/local_storage.dart';
 import 'services/supabase.dart';
-
-// ─────────────────────────────────────────────────────────────
-// Stable demo UUIDs — must match supabase/seed/demo.sql.
-// ─────────────────────────────────────────────────────────────
-const demoMatchId = '22222222-2222-2222-2222-222222222222';
 
 // ─────────────────────────────────────────────────────────────
 // Repositories
@@ -41,6 +43,11 @@ final predictionsRepoProvider = Provider((_) => PredictionsRepository());
 final remindersRepoProvider = Provider((_) => RemindersRepository());
 final favoritesRepoProvider = Provider((_) => FavoritesRepository());
 final feedbackRepoProvider = Provider((_) => FeedbackRepository());
+final feedRepoProvider = Provider((_) => FeedRepository());
+final externalMatchesRepoProvider =
+    Provider((_) => ExternalMatchesRepository());
+final notificationsRepoProvider =
+    Provider((_) => NotificationsRepository());
 
 // ─────────────────────────────────────────────────────────────
 // Local storage tick — bump whenever LocalStore changes so widgets
@@ -51,22 +58,84 @@ final localStoreProvider = ChangeNotifierProvider<LocalStoreNotifier>(
 );
 
 // ─────────────────────────────────────────────────────────────
-// Mock data providers (prototype mode)
+// Live data providers (replacing former mock providers)
 // ─────────────────────────────────────────────────────────────
-final userProvider = Provider((_) => mock.user);
-final pickupsProvider = Provider((_) => mock.pickups);
-final eventsProvider = Provider((_) => mock.events);
-final feedsProvider = Provider((_) => mock.feeds);
-final liveNowProvider = Provider((_) => mock.liveNow);
-final wcMatchesProvider = Provider((_) => mock.wcMatches);
-final standingsProvider = Provider((_) => mock.standings);
-final scorersProvider = Provider((_) => mock.scorers);
-final bracketProvider = Provider((_) => mock.bracket);
-final lineupProvider = Provider((_) => mock.lineup);
-final teammatesProvider = Provider((_) => mock.teammates);
-final historyProvider = Provider((_) => mock.history);
-final messageThreadsProvider = Provider((_) => mock.messageThreads);
-final hotRatedProvider = Provider((_) => mock.hotRated);
+final feedsProvider = FutureProvider<List<FeedItem>>((ref) async {
+  return ref.read(feedRepoProvider).buildFeed();
+});
+
+final liveNowProvider = FutureProvider<List<LiveMatch>>((ref) async {
+  final rows = await supabase
+      .from('matches')
+      .select('id, event_id, team_a_label, team_b_label, score_a, score_b, minute, viewers')
+      .eq('is_live', true)
+      .order('viewers', ascending: false);
+  return (rows as List)
+      .cast<Map<String, dynamic>>()
+      .map(LiveMatch.fromMap)
+      .toList();
+});
+
+final wcMatchesProvider = FutureProvider<List<ExternalMatch>>((ref) async {
+  return ref.read(externalMatchesRepoProvider).listAll();
+});
+
+final teammatesProvider = FutureProvider<List<Teammate>>((ref) async {
+  final uid = currentUserId;
+  if (uid == null) return [];
+  return ref.read(profilesRepoProvider).teammates(uid);
+});
+
+final historyProvider = FutureProvider<List<MatchHistoryEntry>>((ref) async {
+  final uid = currentUserId;
+  if (uid == null) return [];
+  return ref.read(profilesRepoProvider).matchHistory(uid);
+});
+
+final notificationsProvider =
+    FutureProvider<List<NotificationItem>>((ref) async {
+  return ref.read(notificationsRepoProvider).listMine();
+});
+
+final notificationsUnreadProvider = FutureProvider<int>((ref) async {
+  return ref.read(notificationsRepoProvider).unreadCount();
+});
+
+final latestUnratedMatchProvider = FutureProvider<String?>((ref) async {
+  final uid = currentUserId;
+  if (uid == null) return null;
+  final rows = await supabase
+      .from('matches')
+      .select('id')
+      .eq('done', true)
+      .order('played_at', ascending: false)
+      .limit(1);
+  if (rows.isEmpty) return null;
+  return rows[0]['id'] as String?;
+});
+
+final hotTagsProvider = FutureProvider<List<String>>((ref) async {
+  final rows = await supabase
+      .from('hot_tags')
+      .select('label')
+      .eq('active', true)
+      .order('sort_order');
+  return (rows as List)
+      .cast<Map<String, dynamic>>()
+      .map((m) => m['label'] as String)
+      .toList();
+});
+
+final eventTeamsCountProvider =
+    FutureProvider.family<int, String>((ref, eventId) async {
+  final rows = await supabase
+      .from('event_teams_count')
+      .select('teams_registered')
+      .eq('event_id', eventId)
+      .maybeSingle();
+  if (rows == null) return 0;
+  return (rows['teams_registered'] as num?)?.toInt() ?? 0;
+});
 
 // Sport selection (for top bar)
 final sportProvider = StateProvider<String>((_) => 'football');
@@ -287,33 +356,10 @@ final conversationByIdProvider =
   return null;
 });
 
-/// Current user's profile — real fields from Supabase (name, handle, city,
-/// position, height, foot), plus mock fallbacks for fields the DB doesn't
-/// carry yet (rating / stats / attrs / honors — those need real match data).
-final myProfileProvider = FutureProvider<mock.MockUser>((ref) async {
+/// Current user's full profile from Supabase (profile + stats + attrs + honors).
+final myProfileProvider = FutureProvider<PlayerProfile?>((ref) async {
   ref.watch(localStoreProvider);
   final uid = currentUserId;
-  if (uid == null) return mock.user;
-
-  final row = await supabase
-      .from('profiles')
-      .select()
-      .eq('id', uid)
-      .maybeSingle();
-  if (row == null) return mock.user;
-
-  return mock.MockUser(
-    name: (row['name'] as String?) ?? '新球友',
-    handle: (row['handle'] as String?) ?? '@${uid.substring(0, 6)}',
-    city: (row['city'] as String?) ?? mock.user.city,
-    district: (row['district'] as String?) ?? mock.user.district,
-    position: (row['position'] as String?) ?? mock.user.position,
-    positionFull: mock.user.positionFull, // mock
-    rating: mock.user.rating, // mock
-    height: (row['height'] as int?) ?? mock.user.height,
-    foot: (row['foot'] as String?) ?? mock.user.foot,
-    stats: mock.user.stats, // mock
-    attrs: mock.user.attrs, // mock
-    honors: mock.user.honors, // mock
-  );
+  if (uid == null) return null;
+  return ref.read(profilesRepoProvider).fetchFullProfile(uid);
 });

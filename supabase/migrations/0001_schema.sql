@@ -16,6 +16,15 @@
 --  10. push_subscriptions — FCM/APNs 设备 token
 --  11. feedback          — 用户反馈
 --  12. storage_policies  — Supabase Storage RLS（需先在 Dashboard 建 bucket）
+--  13. posts             — 社交动态（Feed post）
+--  14. external_matches  — 外部赛事（世界杯、欧冠等）
+--  15. match_participants— 比赛双方球员名单
+--  16. player_*          — 球员属性 / 荣誉 / 统计视图
+--  17. my_teammates      — 队友视图 + 比赛历史 RPC
+--  18. notifications     — 站内通知
+--  19. event_teams_count — 赛事报名队数视图
+--  20. hot_tags          — 热门搜索标签
+--  21. rating_likes      — 评分评论点赞
 --
 -- 附录 · 未启用的 cron 脚本见文件末尾注释块。
 
@@ -190,10 +199,14 @@ create table public.matches (
   score_b int,
   pk_score text,                        -- '4-3' if penalties
   played_at timestamptz,
-  done boolean default false
+  done boolean default false,
+  is_live boolean default false,
+  minute text,
+  viewers int default 0
 );
 
 create index matches_event_idx on public.matches (event_id);
+create index matches_live_idx on public.matches(is_live) where is_live = true;
 alter table public.matches enable row level security;
 create policy "matches public read" on public.matches for select using (true);
 
@@ -488,6 +501,75 @@ $$;
 
 grant execute on function public.ensure_event_conversation(text) to authenticated;
 
+-- ensure_dm_conversation: 1v1 DM 的幂等"找到或创建"RPC。
+-- 并发 tradeoff：conversations 表上不存在"(DM 双方) 唯一键"约束，
+-- 严格幂等只在串行调用下成立；发生概率极低，读方以 RPC 返回 id 为准。
+
+drop function if exists public.ensure_dm_conversation(uuid);
+
+create function public.ensure_dm_conversation(p_other_user_id uuid)
+  returns uuid
+  language plpgsql
+  security definer
+  set search_path = public
+as $$
+declare
+  v_me uuid := auth.uid();
+  v_id uuid;
+begin
+  if v_me is null then
+    raise exception 'not_authenticated';
+  end if;
+  if p_other_user_id is null then
+    raise exception 'other_required';
+  end if;
+  if p_other_user_id = v_me then
+    raise exception 'cannot_dm_self';
+  end if;
+  if not exists (select 1 from profiles where id = p_other_user_id) then
+    raise exception 'user_not_found';
+  end if;
+
+  select c.id into v_id
+  from conversations c
+  where c.kind = 'dm'
+    and exists (select 1 from conversation_members m
+                where m.conv_id = c.id and m.user_id = v_me)
+    and exists (select 1 from conversation_members m
+                where m.conv_id = c.id and m.user_id = p_other_user_id)
+    and (select count(*) from conversation_members m
+         where m.conv_id = c.id) = 2
+  limit 1;
+
+  if v_id is not null then
+    return v_id;
+  end if;
+
+  insert into conversations (kind) values ('dm') returning id into v_id;
+
+  insert into conversation_members (conv_id, user_id, unread)
+  values (v_id, v_me, 0), (v_id, p_other_user_id, 0);
+
+  return v_id;
+end;
+$$;
+
+grant execute on function public.ensure_dm_conversation(uuid) to authenticated;
+
+-- v_conversation_peers: DM 会话成员视图，供客户端查对端 uid。
+create or replace view public.v_conversation_peers as
+select m.conv_id as conv_id,
+       m.user_id as peer_user_id
+from conversation_members m
+join conversations c on c.id = m.conv_id
+where c.kind = 'dm'
+  and exists (
+    select 1 from conversation_members me
+    where me.conv_id = m.conv_id and me.user_id = auth.uid()
+  );
+
+grant select on public.v_conversation_peers to authenticated;
+
 
 -- ═══════════════════════════════════════════════════════════════
 -- 6. user_teams — 用户自建球队（与 events.teams 独立，不绑定赛事）
@@ -730,6 +812,284 @@ create policy "pickup_photos_self_update" on storage.objects
     bucket_id = 'pickup-photos'
     and (storage.foldername(name))[1] = auth.uid()::text
   );
+
+
+-- ═══════════════════════════════════════════════════════════════
+-- 13. posts — 社交动态（Feed 中的 post 类型）
+-- ═══════════════════════════════════════════════════════════════
+
+drop table if exists public.posts cascade;
+
+create table public.posts (
+  id uuid primary key default gen_random_uuid(),
+  author_id uuid references public.profiles on delete cascade,
+  body text not null,
+  tags text[] default '{}',
+  likes int default 0,
+  comments int default 0,
+  shares int default 0,
+  created_at timestamptz default now()
+);
+
+create index posts_created_idx on public.posts(created_at desc);
+
+alter table public.posts enable row level security;
+create policy "posts public read" on public.posts for select using (true);
+create policy "posts self insert" on public.posts for insert
+  with check (auth.uid() = author_id);
+create policy "posts self update" on public.posts for update
+  using (auth.uid() = author_id);
+create policy "posts self delete" on public.posts for delete
+  using (auth.uid() = author_id);
+
+
+-- ═══════════════════════════════════════════════════════════════
+-- 14. external_matches — 外部赛事（世界杯、欧冠等）
+-- ═══════════════════════════════════════════════════════════════
+
+drop table if exists public.external_matches cascade;
+
+create table public.external_matches (
+  id uuid primary key default gen_random_uuid(),
+  team_a text not null,
+  team_b text not null,
+  flag_a text,
+  flag_b text,
+  competition text,
+  kick_off timestamptz,
+  is_live boolean default false,
+  score_a int,
+  score_b int,
+  minute text,
+  viewers int default 0,
+  status text default 'upcoming',
+  created_at timestamptz default now()
+);
+
+create index ext_matches_kickoff_idx on public.external_matches(kick_off desc);
+
+alter table public.external_matches enable row level security;
+create policy ext_read on public.external_matches for select using (true);
+
+
+-- ═══════════════════════════════════════════════════════════════
+-- 15. match_participants — 比赛双方球员名单
+-- ═══════════════════════════════════════════════════════════════
+
+drop table if exists public.match_participants cascade;
+
+create table public.match_participants (
+  id uuid primary key default gen_random_uuid(),
+  match_id uuid not null references public.matches on delete cascade,
+  user_id uuid references public.profiles,
+  display_name text not null,
+  position text,
+  side text not null check (side in ('a', 'b')),
+  created_at timestamptz default now(),
+  unique (match_id, user_id)
+);
+
+create index match_part_match_idx on public.match_participants(match_id);
+
+alter table public.match_participants enable row level security;
+create policy match_part_read on public.match_participants for select using (true);
+create policy match_part_write on public.match_participants for insert
+  with check (true);
+
+
+-- ═══════════════════════════════════════════════════════════════
+-- 16. player_attributes + player_honors + player_stats 视图
+-- ═══════════════════════════════════════════════════════════════
+
+drop table if exists public.player_attributes cascade;
+drop table if exists public.player_honors cascade;
+drop view if exists public.player_stats;
+
+create table public.player_attributes (
+  user_id uuid primary key references public.profiles on delete cascade,
+  speed int default 50,
+  shooting int default 50,
+  passing int default 50,
+  defense int default 50,
+  stamina int default 50,
+  technique int default 50,
+  updated_at timestamptz default now()
+);
+
+alter table public.player_attributes enable row level security;
+create policy attrs_read on public.player_attributes for select using (true);
+create policy attrs_write on public.player_attributes for all
+  using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+create table public.player_honors (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references public.profiles on delete cascade,
+  year text not null,
+  title text not null,
+  meta text,
+  created_at timestamptz default now()
+);
+
+alter table public.player_honors enable row level security;
+create policy honors_read on public.player_honors for select using (true);
+create policy honors_write on public.player_honors for all
+  using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+create or replace view public.player_stats as
+select
+  p.id as user_id,
+  count(distinct r.match_id) as matches,
+  coalesce(sum(case when g.scorer_id = p.id and not g.is_own_goal then 1 else 0 end), 0) as goals,
+  coalesce(sum(case when g.assist_id = p.id then 1 else 0 end), 0) as assists
+from public.profiles p
+left join public.ratings r on r.ratee_id = p.id
+left join public.goals g on g.match_id = r.match_id
+  and (g.scorer_id = p.id or g.assist_id = p.id)
+group by p.id;
+
+
+-- ═══════════════════════════════════════════════════════════════
+-- 17. my_teammates 视图 + my_match_history RPC
+-- ═══════════════════════════════════════════════════════════════
+
+create or replace view public.my_teammates as
+select
+  mine.user_id  as me,
+  theirs.user_id as teammate_id,
+  p.name         as teammate_name,
+  p.avatar_url,
+  count(distinct mine.pickup_id) as matches
+from public.pickup_slots mine
+join public.pickup_slots theirs
+  on  theirs.pickup_id = mine.pickup_id
+  and theirs.user_id != mine.user_id
+  and theirs.user_id is not null
+join public.profiles p on p.id = theirs.user_id
+where mine.user_id is not null
+group by mine.user_id, theirs.user_id, p.name, p.avatar_url;
+
+create or replace function public.my_match_history(p_user_id uuid)
+returns table (
+  match_id uuid,
+  played_at timestamptz,
+  event_name text,
+  team_a text,
+  team_b text,
+  score_a int,
+  score_b int,
+  my_goals bigint,
+  my_assists bigint
+) language sql stable as $$
+  select
+    m.id,
+    m.played_at,
+    e.name,
+    coalesce(m.team_a_label, ''),
+    coalesce(m.team_b_label, ''),
+    coalesce(m.score_a, 0),
+    coalesce(m.score_b, 0),
+    count(*) filter (where g.scorer_id = p_user_id and not g.is_own_goal),
+    count(*) filter (where g.assist_id = p_user_id)
+  from public.matches m
+  join public.events e on e.id = m.event_id
+  join public.ratings r on r.match_id = m.id and r.ratee_id = p_user_id
+  left join public.goals g on g.match_id = m.id
+    and (g.scorer_id = p_user_id or g.assist_id = p_user_id)
+  where m.done = true
+  group by m.id, m.played_at, e.name
+  order by m.played_at desc;
+$$;
+
+grant execute on function public.my_match_history(uuid) to authenticated;
+
+
+-- ═══════════════════════════════════════════════════════════════
+-- 18. notifications — 站内通知
+-- ═══════════════════════════════════════════════════════════════
+
+drop table if exists public.notifications cascade;
+
+create table public.notifications (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references public.profiles on delete cascade,
+  type text not null default 'system',    -- system/rating/pickup/match/follow
+  title text not null,
+  body text not null,
+  icon text,
+  route text,
+  read boolean default false,
+  created_at timestamptz default now()
+);
+
+create index notif_user_created_idx
+  on public.notifications(user_id, created_at desc);
+
+alter table public.notifications enable row level security;
+
+create policy notif_self_read on public.notifications
+  for select using (auth.uid() = user_id);
+
+create policy notif_self_update on public.notifications
+  for update using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+
+-- ═══════════════════════════════════════════════════════════════
+-- 19. event_teams_count 视图
+-- ═══════════════════════════════════════════════════════════════
+
+create or replace view public.event_teams_count as
+select
+  e.id as event_id,
+  count(t.id)::int as teams_registered
+from public.events e
+left join public.teams t on t.event_id = e.id
+group by e.id;
+
+
+-- ═══════════════════════════════════════════════════════════════
+-- 20. hot_tags — 热门搜索标签（可后台维护）
+-- ═══════════════════════════════════════════════════════════════
+
+drop table if exists public.hot_tags cascade;
+
+create table public.hot_tags (
+  id serial primary key,
+  label text not null unique,
+  sort_order int default 0,
+  active boolean default true,
+  created_at timestamptz default now()
+);
+
+alter table public.hot_tags enable row level security;
+create policy hot_tags_public_read on public.hot_tags
+  for select using (true);
+
+insert into public.hot_tags (label, sort_order) values
+  ('足球', 1), ('篮球', 2), ('约球', 3), ('龙岗杯', 4),
+  ('莲花山', 5), ('新手局', 6), ('中级', 7), ('免费场', 8);
+
+
+-- ═══════════════════════════════════════════════════════════════
+-- 21. rating_likes — 评分评论点赞
+-- ═══════════════════════════════════════════════════════════════
+
+drop table if exists public.rating_likes cascade;
+
+create table public.rating_likes (
+  rating_id uuid references public.ratings on delete cascade,
+  user_id uuid references public.profiles on delete cascade,
+  created_at timestamptz default now(),
+  primary key (rating_id, user_id)
+);
+
+alter table public.rating_likes enable row level security;
+
+create policy rating_likes_read on public.rating_likes
+  for select using (true);
+create policy rating_likes_self_write on public.rating_likes
+  for all using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
 
 
 -- ═══════════════════════════════════════════════════════════════

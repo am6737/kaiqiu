@@ -304,11 +304,11 @@ class _KpiStrip extends ConsumerWidget {
             (prizeCents! / 1000000).toStringAsFixed(1),
           )
         : '-';
+    final teamsRegistered = ref.watch(eventTeamsCountProvider(eventId)).valueOrNull ?? 0;
     final items = [
-      (l.event_kpi_teams, teamsMax?.toString() ?? '-'),
+      (l.event_kpi_teams, teamsMax != null ? '$teamsRegistered/$teamsMax' : '$teamsRegistered'),
       (l.event_kpi_matches, matchesStr),
       (l.event_kpi_prize, prizeStr),
-      (l.event_kpi_viewers, _deterministicViewers(eventId)),
     ];
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -2531,10 +2531,3 @@ class _RegField extends StatelessWidget {
   }
 }
 
-String _deterministicViewers(String eventId) {
-  final h = eventId.hashCode.abs();
-  final n = 800 + h % 48000;
-  if (n >= 10000) return '${(n / 10000).toStringAsFixed(1)}w';
-  if (n >= 1000) return '${(n / 1000).toStringAsFixed(1)}K';
-  return '$n';
-}

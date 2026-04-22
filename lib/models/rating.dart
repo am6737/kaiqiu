@@ -41,6 +41,59 @@ class Rating {
   };
 }
 
+/// A participant in a match (for the rating screen player list).
+class MatchParticipant {
+  final String id;
+  final String matchId;
+  final String displayName;
+  final String side; // 'a' or 'b'
+  final String? userId;
+  final String? position;
+
+  const MatchParticipant({
+    required this.id,
+    required this.matchId,
+    required this.displayName,
+    required this.side,
+    this.userId,
+    this.position,
+  });
+
+  factory MatchParticipant.fromMap(Map<String, dynamic> m) {
+    final profile = m['profile'] as Map<String, dynamic>?;
+    return MatchParticipant(
+      id: m['id'] as String,
+      matchId: m['match_id'] as String,
+      displayName: (profile?['name'] as String?) ??
+          (m['display_name'] as String?) ??
+          '球员',
+      side: (m['side'] as String?) ?? 'a',
+      userId: m['user_id'] as String?,
+      position: (profile?['position'] as String?) ??
+          (m['position'] as String?),
+    );
+  }
+}
+
+/// A rating comment for the match ratings screen.
+class RatingComment {
+  final String ratingId;
+  final String user;
+  final String text;
+  final double score;
+  final int likes;
+  final DateTime createdAt;
+
+  const RatingComment({
+    required this.ratingId,
+    required this.user,
+    required this.text,
+    required this.score,
+    this.likes = 0,
+    required this.createdAt,
+  });
+}
+
 /// Aggregate view for leaderboards.
 class PlayerRatingSummary {
   final String rateeId;

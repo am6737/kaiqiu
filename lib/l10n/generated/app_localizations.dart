@@ -589,6 +589,12 @@ abstract class AppL10n {
   /// **'{count, plural, =0{暂无} other{{count} 位队友等你评分}}'**
   String home_rate_cta_sub(int count);
 
+  /// No description provided for @home_no_live.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无直播比赛'**
+  String get home_no_live;
+
   /// No description provided for @home_bottom_of_feed.
   ///
   /// In zh, this message translates to:
@@ -3870,6 +3876,12 @@ abstract class AppL10n {
   /// In zh, this message translates to:
   /// **'停车'**
   String get pickup_detail_detail_parking;
+
+  /// No description provided for @pickup_detail_location.
+  ///
+  /// In zh, this message translates to:
+  /// **'位置'**
+  String get pickup_detail_location;
 
   /// No description provided for @pickup_detail_location_km.
   ///

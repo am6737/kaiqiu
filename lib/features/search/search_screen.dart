@@ -23,7 +23,6 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   final _controller = TextEditingController();
   String _query = '';
 
-  static const _hotTags = ['足球', '篮球', '约球', '龙岗杯', '莲花山', '新手局', '中级', '免费场'];
 
   @override
   void dispose() {
@@ -160,19 +159,23 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         SectionHeader(title: l.search_hot_tags),
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-          child: Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final t in _hotTags)
-                _Chip(
-                  label: t,
-                  onTap: () {
-                    _controller.text = t;
-                    setState(() => _query = t);
-                  },
-                ),
-            ],
+          child: ref.watch(hotTagsProvider).when(
+            data: (tags) => Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final t in tags)
+                  _Chip(
+                    label: t,
+                    onTap: () {
+                      _controller.text = t;
+                      setState(() => _query = t);
+                    },
+                  ),
+              ],
+            ),
+            loading: () => const SizedBox(height: 32),
+            error: (_, _) => const SizedBox.shrink(),
           ),
         ),
       ],

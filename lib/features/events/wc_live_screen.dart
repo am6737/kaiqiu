@@ -1,14 +1,15 @@
 // wc_live_screen.dart — 世界杯直播（真实 HLS 流 + 弹幕）
 import 'dart:async';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../l10n/l10n_extension.dart';
+import '../../models/external_match.dart';
 import '../../providers.dart';
 import '../../services/local_storage.dart';
+import '../../services/supabase.dart';
 import '../../utils/toast.dart';
 import '../../widgets/danmaku_overlay.dart';
 import '../../widgets/live_pill.dart';
@@ -32,66 +33,41 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
   final StreamController<DanmakuItem> _danmuController =
       StreamController<DanmakuItem>.broadcast();
   bool _danmakuOn = LocalStore.danmakuEnabled;
-  int _scoreA = 1;
-  int _scoreB = 1;
-  int _minute = 67;
-  late int _viewers;
-
-  static const _botMessages = [
-    '狼队今天状态拉满',
-    '边路这一下太精彩了',
-    '门将反应真快',
-    '这个越位判得准',
-    '进球进球进球！',
-    '看直播真爽',
-    '现场氛围不错',
-    'FC 黑马防守端还得加强',
-    '这个换人很关键',
-    '下半场节奏更好了',
-  ];
-
-  static const _botNames = [
-    '老王',
-    '阿泽',
-    'Kevin',
-    '江北',
-    '林帅',
-    '路人甲',
-    '小张',
-    '老李',
-    '球迷007',
-  ];
+  int _scoreA = 0;
+  int _scoreB = 0;
+  String _minute = '';
+  int _viewers = 0;
+  String _teamA = '';
+  String _teamB = '';
 
   @override
   void initState() {
     super.initState();
-    final r = Random(widget.matchId.hashCode);
-    _viewers = 1200 + r.nextInt(128000);
-    _tickTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+    _loadMatch();
+    _tickTimer = Timer.periodic(const Duration(seconds: 15), (_) {
       if (!mounted) return;
-      setState(() {
-        _viewers += r.nextInt(50) - 10;
-        if (_viewers < 0) _viewers = 0;
-        _minute = (_minute + 1).clamp(0, 90);
-        if (r.nextInt(60) == 0) {
-          if (r.nextBool()) {
-            _scoreA++;
-          } else {
-            _scoreB++;
-          }
-        }
-      });
-      if (r.nextInt(3) == 0) {
-        _pushDanmu(
-          _Danmu(
-            user: _botNames[r.nextInt(_botNames.length)],
-            text: _botMessages[r.nextInt(_botMessages.length)],
-            at: DateTime.now(),
-            self: false,
-          ),
-        );
-      }
+      _loadMatch();
     });
+  }
+
+  Future<void> _loadMatch() async {
+    try {
+      final row = await supabase
+          .from('external_matches')
+          .select()
+          .eq('id', widget.matchId)
+          .maybeSingle();
+      if (row == null || !mounted) return;
+      final m = ExternalMatch.fromMap(row);
+      setState(() {
+        _scoreA = m.scoreA ?? 0;
+        _scoreB = m.scoreB ?? 0;
+        _minute = m.minute ?? '';
+        _viewers = m.viewers;
+        _teamA = m.teamA;
+        _teamB = m.teamB;
+      });
+    } catch (_) {}
   }
 
   @override
@@ -156,11 +132,11 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
         : '$_viewers';
     final hasReminder = LocalStore.hasReminder(widget.matchId);
     final scoreOverlay = l.wc_live_score_overlay(
-      'ARG',
+      _teamA.isNotEmpty ? _teamA : '—',
       '$_scoreA',
       '$_scoreB',
-      'BRA',
-      '$_minute',
+      _teamB.isNotEmpty ? _teamB : '—',
+      _minute,
     );
     return Scaffold(
       backgroundColor: Colors.black,
@@ -250,8 +226,8 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
                 children: [
                   Expanded(
                     child: _TeamBadge(
-                      name: 'ARG',
-                      label: l.wc_team_argentina,
+                      name: _teamA.isNotEmpty ? _teamA : '—',
+                      label: _teamA,
                       hue: 200,
                       alignEnd: false,
                     ),
@@ -282,8 +258,8 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
                   ),
                   Expanded(
                     child: _TeamBadge(
-                      name: 'BRA',
-                      label: l.wc_team_brazil,
+                      name: _teamB.isNotEmpty ? _teamB : '—',
+                      label: _teamB,
                       hue: 140,
                       alignEnd: true,
                     ),
@@ -294,8 +270,8 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
             // Prediction strip — tap to open bottom sheet.
             LivePredictStrip(
               matchId: widget.matchId,
-              homeLabel: l.wc_team_argentina,
-              awayLabel: l.wc_team_brazil,
+              homeLabel: _teamA,
+              awayLabel: _teamB,
             ),
             // Danmu feed
             Expanded(

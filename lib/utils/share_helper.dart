@@ -1,9 +1,9 @@
 // share_helper.dart — 系统分享封装
 import 'package:share_plus/share_plus.dart';
 
-import '../data/mock.dart' show MockUser;
 import '../models/event.dart';
 import '../models/pickup.dart';
+import '../models/player_profile.dart';
 
 const _host = 'https://kaiqiu.app';
 
@@ -38,11 +38,11 @@ Future<void> shareEvent(Event e) async {
   await Share.share(text, subject: '开球·赛事');
 }
 
-Future<void> shareProfile(MockUser u) async {
+Future<void> shareProfile(PlayerProfile u) async {
   final text = [
     '👤 ${u.name} · ${u.positionFull}',
     '综合评分：${u.rating}',
-    '场次：${u.stats.matches} · 进球：${u.stats.goals} · MVP：${u.stats.mvp}',
+    '场次：${u.stats.matches} · 进球：${u.stats.goals} · 助攻：${u.stats.assists}',
     '',
     '$_host/player/${u.handle}',
   ].join('\n');

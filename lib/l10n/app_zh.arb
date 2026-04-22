@@ -92,6 +92,7 @@
   "@home_rate_cta_sub": {
     "placeholders": { "count": { "type": "int" } }
   },
+  "home_no_live": "暂无直播比赛",
   "home_bottom_of_feed": "— 到底了 · 今天也是踢球的一天 —",
   "home_loading_pickups": "正在加载球局…",
 
@@ -775,6 +776,7 @@
   "pickup_detail_detail_headcount": "人数",
   "pickup_detail_detail_field": "场地",
   "pickup_detail_detail_parking": "停车",
+  "pickup_detail_location": "位置",
   "pickup_detail_location_km": "位置 · 距你 {km}km",
   "@pickup_detail_location_km": { "placeholders": { "km": { "type": "String" } } },
   "pickup_detail_navigate": "导航",

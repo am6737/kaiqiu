@@ -1,6 +1,7 @@
 // pickup_detail_screen.dart — 球局详情 + 阵型图 (real slots + tap-to-join)
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../l10n/l10n_extension.dart';
@@ -806,7 +807,7 @@ class _Details extends StatelessWidget {
   }
 }
 
-class _MiniMap extends StatelessWidget {
+class _MiniMap extends StatefulWidget {
   final String venue;
   final String? address;
   final double? lat;
@@ -818,6 +819,37 @@ class _MiniMap extends StatelessWidget {
     this.lng,
   });
 
+  @override
+  State<_MiniMap> createState() => _MiniMapState();
+}
+
+class _MiniMapState extends State<_MiniMap> {
+  String? _distanceKm;
+
+  @override
+  void initState() {
+    super.initState();
+    _computeDistance();
+  }
+
+  Future<void> _computeDistance() async {
+    if (widget.lat == null || widget.lng == null) return;
+    try {
+      final pos = await Geolocator.getLastKnownPosition();
+      if (pos == null || !mounted) return;
+      final meters = Geolocator.distanceBetween(
+        pos.latitude, pos.longitude, widget.lat!, widget.lng!,
+      );
+      if (mounted) {
+        setState(() => _distanceKm = (meters / 1000).toStringAsFixed(1));
+      }
+    } catch (_) {}
+  }
+
+  String get venue => widget.venue;
+  String? get address => widget.address;
+  double? get lat => widget.lat;
+  double? get lng => widget.lng;
   bool get _canNavigate => lat != null && lng != null;
 
   void _openNav(BuildContext context) {
@@ -836,12 +868,15 @@ class _MiniMap extends StatelessWidget {
     final detailText = (address != null && address!.trim().isNotEmpty)
         ? address!
         : venue;
+    final distLabel = _distanceKm != null
+        ? l.pickup_detail_location_km(_distanceKm!)
+        : l.pickup_detail_location;
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Label(l.pickup_detail_location_km('2.4')),
+          Label(distLabel),
           if (detailText.trim().isNotEmpty) ...[
             const SizedBox(height: 4),
             Text(

@@ -4,8 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../data/demo_images.dart';
-import '../../data/mock.dart' show WcMatch;
 import '../../l10n/l10n_extension.dart';
+import '../../models/external_match.dart';
 import '../../models/event.dart';
 import '../../providers.dart';
 import '../../widgets/live_pill.dart';
@@ -32,7 +32,7 @@ class _EventsHubScreenState extends ConsumerState<EventsHubScreen> {
       ('ongoing', l.events_tab_ongoing),
       ('watch', l.events_tab_watch),
     ];
-    final wcMatches = ref.watch(wcMatchesProvider);
+    final wcMatches = ref.watch(wcMatchesProvider).valueOrNull ?? const [];
     final statusForTab = switch (_tab) {
       'ongoing' => EventStatus.ongoing,
       'registering' => EventStatus.registering,
@@ -173,7 +173,7 @@ class _EventsHubScreenState extends ConsumerState<EventsHubScreen> {
     );
   }
 
-  List<Widget> _buildWatchTab(List<WcMatch> matches) {
+  List<Widget> _buildWatchTab(List<ExternalMatch> matches) {
     return [
       Padding(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
@@ -194,18 +194,18 @@ class _EventsHubScreenState extends ConsumerState<EventsHubScreen> {
             child: Row(
               children: [
                 Expanded(
-                  child: _TeamRow(name: m.teamA, flag: m.flagA, hue: 25),
+                  child: _TeamRow(name: m.teamA, flag: m.flagA ?? '', hue: 25),
                 ),
-                if (m.live)
+                if (m.isLive)
                   Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          N('${m.scoreA}', size: 18, weight: FontWeight.w700),
+                          N('${m.scoreA ?? 0}', size: 18, weight: FontWeight.w700),
                           Text(' - ', style: TextStyle(color: context.tokens.inkDim)),
-                          N('${m.scoreB}', size: 18, weight: FontWeight.w700),
+                          N('${m.scoreB ?? 0}', size: 18, weight: FontWeight.w700),
                         ],
                       ),
                       const SizedBox(height: 2),
@@ -223,7 +223,7 @@ class _EventsHubScreenState extends ConsumerState<EventsHubScreen> {
                 Expanded(
                   child: _TeamRow(
                     name: m.teamB,
-                    flag: m.flagB,
+                    flag: m.flagB ?? '',
                     hue: 200,
                     rightAlign: true,
                   ),
@@ -236,13 +236,15 @@ class _EventsHubScreenState extends ConsumerState<EventsHubScreen> {
   }
 }
 
-class _WcBanner extends StatelessWidget {
+class _WcBanner extends ConsumerWidget {
   final VoidCallback onTap;
   const _WcBanner({required this.onTap});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
+    final wcMatches = ref.watch(wcMatchesProvider).valueOrNull ?? const [];
+    final liveCount = wcMatches.where((m) => m.isLive).length;
     // Feature banner: keep the purple identity vivid in both themes,
     // override text to white so the card always reads as "premium / live".
     const titleColor = Color(0xFFFFFFFF);
@@ -299,11 +301,11 @@ class _WcBanner extends StatelessWidget {
                     children: [
                       Label(l.events_wc_live_now, color: labelColor),
                       const SizedBox(height: 2),
-                      const N(
-                        '3',
+                      N(
+                        '$liveCount',
                         size: 20,
                         weight: FontWeight.w700,
-                        color: Color(0xFF00FF85), // brand accent green pops on purple
+                        color: const Color(0xFF00FF85),
                       ),
                     ],
                   ),
@@ -318,7 +320,7 @@ class _WcBanner extends StatelessWidget {
                     children: [
                       Label(l.events_wc_predicts, color: labelColor),
                       const SizedBox(height: 2),
-                      const N('2.4K', size: 20, weight: FontWeight.w700, color: titleColor),
+                      N('${wcMatches.length}', size: 20, weight: FontWeight.w700, color: titleColor),
                     ],
                   ),
                   const Spacer(),
@@ -333,19 +335,17 @@ class _WcBanner extends StatelessWidget {
   }
 }
 
-class _LiveEventRow extends StatelessWidget {
+class _LiveEventRow extends ConsumerWidget {
   final Event event;
   final VoidCallback onTap;
   const _LiveEventRow({required this.event, required this.onTap});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
     final isReg = event.status == EventStatus.registering;
     final teamsMax = event.teamsMax ?? 16;
-    // Deterministic placeholder progress (hash-derived) until a teams table
-    // lands — displayed as "registered teams".
-    final teams = (event.id.hashCode.abs() % (teamsMax + 1));
+    final teams = ref.watch(eventTeamsCountProvider(event.id)).valueOrNull ?? 0;
     final progress = teamsMax > 0 ? teams / teamsMax : 0.0;
     final prizeLabel = event.prizeCents != null
         ? l.event_prize_wan((event.prizeCents! / 1000000).toStringAsFixed(1))

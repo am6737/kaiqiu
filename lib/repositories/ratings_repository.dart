@@ -68,4 +68,84 @@ class RatingsRepository {
         .map(Rating.fromMap)
         .toList();
   }
+
+  /// Players participating in a match (for the rating submission screen).
+  Future<List<MatchParticipant>> matchParticipants(String matchId) async {
+    final rows = await supabase
+        .from('match_participants')
+        .select('*, profile:profiles!user_id(name, position)')
+        .eq('match_id', matchId);
+    return (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map(MatchParticipant.fromMap)
+        .toList();
+  }
+
+  /// Score distribution for a match: a list of 11 ints (index 0..10).
+  Future<List<int>> scoreDistribution(String matchId) async {
+    final rows = await supabase
+        .from('ratings')
+        .select('score')
+        .eq('match_id', matchId);
+    final dist = List<int>.filled(11, 0);
+    for (final r in (rows as List).cast<Map<String, dynamic>>()) {
+      final s = ((r['score'] as num).toDouble()).round().clamp(0, 10);
+      dist[s]++;
+    }
+    return dist;
+  }
+
+  /// Top comments for a match (most recent, with rater profile info).
+  Future<List<RatingComment>> topComments(
+    String matchId, {
+    int limit = 20,
+  }) async {
+    final rows = await supabase
+        .from('ratings')
+        .select('id, score, comment, created_at, rater:profiles!rater_id(name)')
+        .eq('match_id', matchId)
+        .neq('comment', '')
+        .order('created_at', ascending: false)
+        .limit(limit);
+    final comments = <RatingComment>[];
+    for (final r in (rows as List).cast<Map<String, dynamic>>()) {
+      final ratingId = r['id'] as String;
+      final rater = r['rater'] as Map<String, dynamic>?;
+      final likesRows = await supabase
+          .from('rating_likes')
+          .select('rating_id')
+          .eq('rating_id', ratingId);
+      comments.add(RatingComment(
+        ratingId: ratingId,
+        user: (rater?['name'] as String?) ?? '匿名',
+        text: r['comment'] as String,
+        score: (r['score'] as num).toDouble(),
+        likes: (likesRows as List).length,
+        createdAt: DateTime.parse(r['created_at'] as String),
+      ));
+    }
+    return comments;
+  }
+
+  Future<void> toggleLike(String ratingId) async {
+    final uid = currentUserId;
+    if (uid == null) return;
+    final existing = await supabase
+        .from('rating_likes')
+        .select('rating_id')
+        .eq('rating_id', ratingId)
+        .eq('user_id', uid)
+        .maybeSingle();
+    if (existing != null) {
+      await supabase
+          .from('rating_likes')
+          .delete()
+          .eq('rating_id', ratingId)
+          .eq('user_id', uid);
+    } else {
+      await supabase
+          .from('rating_likes')
+          .insert({'rating_id': ratingId, 'user_id': uid});
+    }
+  }
 }

@@ -11,9 +11,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../data/mock.dart' as mock;
 import '../../l10n/l10n_extension.dart';
 import '../../models/event.dart';
+import '../../models/rating.dart';
 import '../../providers.dart';
 import '../../services/supabase.dart';
 import '../../theme/app_tokens.dart';
@@ -129,6 +129,7 @@ class _Body extends ConsumerWidget {
         child: _PlayerRatingDetail(
           player: selected!,
           event: event,
+          matchId: match.id,
           onBack: onBackFromDetail,
         ),
       );
@@ -601,22 +602,36 @@ class _MomentQuote extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────
 // Player detail (inline, same screen — hides list while open)
 // ─────────────────────────────────────────────────────────────
+final _scoreDistProvider =
+    FutureProvider.family<List<int>, String>((ref, matchId) async {
+  return ref.read(ratingsRepoProvider).scoreDistribution(matchId);
+});
+
+final _topCommentsProvider =
+    FutureProvider.family<List<RatingComment>, String>((ref, matchId) async {
+  return ref.read(ratingsRepoProvider).topComments(matchId);
+});
+
 class _PlayerRatingDetail extends ConsumerWidget {
   final VoidCallback onBack;
   final PlayerRatingRow player;
   final Event event;
+  final String matchId;
   const _PlayerRatingDetail({
     required this.onBack,
     required this.player,
     required this.event,
+    required this.matchId,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final p = player;
-    final dist = mock.ratingDist;
-    final maxD = dist.reduce(math.max);
-    final comments = mock.topComments;
+    final dist = ref.watch(_scoreDistProvider(matchId)).valueOrNull ??
+        List<int>.filled(11, 0);
+    final maxD = dist.every((e) => e == 0) ? 1 : dist.reduce(math.max);
+    final comments =
+        ref.watch(_topCommentsProvider(matchId)).valueOrNull ?? const [];
     final you = p.rateeId == currentUserId;
     final scoreColor = p.avgScore >= 8
         ? context.tokens.accent
@@ -868,7 +883,7 @@ class _PlayerRatingDetail extends ConsumerWidget {
                               borderRadius: BorderRadius.circular(3),
                             ),
                             child: Text(
-                              '${c.score}.0',
+                              c.score.toStringAsFixed(1),
                               style: TextStyle(
                                 fontFamily: context.tokens.fontMono,
                                 fontFamilyFallback: context.tokens.monoFallbacks,
@@ -883,7 +898,7 @@ class _PlayerRatingDetail extends ConsumerWidget {
                             ),
                           ),
                           const Spacer(),
-                          Label(c.time),
+                          Label(_relativeTime(c.createdAt)),
                         ],
                       ),
                       const SizedBox(height: 6),
@@ -957,4 +972,13 @@ class _RatingsError extends StatelessWidget {
       ),
     ),
   );
+}
+
+String _relativeTime(DateTime dt) {
+  final diff = DateTime.now().difference(dt);
+  if (diff.inMinutes < 1) return '刚刚';
+  if (diff.inMinutes < 60) return '${diff.inMinutes}分钟前';
+  if (diff.inHours < 24) return '${diff.inHours}小时前';
+  if (diff.inDays < 7) return '${diff.inDays}天前';
+  return '${dt.month}-${dt.day}';
 }

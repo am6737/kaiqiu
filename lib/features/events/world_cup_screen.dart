@@ -20,7 +20,7 @@ class WorldCupScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final wcs = ref.watch(wcMatchesProvider);
+    final wcs = ref.watch(wcMatchesProvider).valueOrNull ?? const [];
     ref.watch(localStoreProvider);
     final l = context.l10n;
     final focusMatchId = 'wc-focus';
@@ -145,6 +145,7 @@ class WorldCupScreen extends ConsumerWidget {
             ),
           ),
           // Featured match
+          if (wcs.isNotEmpty) ...[
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
             child: Label(l.wc_focus_battle),
@@ -324,6 +325,7 @@ class WorldCupScreen extends ConsumerWidget {
               ],
             ),
           ),
+          ], // end wcs.isNotEmpty
           // Today's schedule
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
@@ -379,7 +381,7 @@ class WorldCupScreen extends ConsumerWidget {
                             children: [
                               Row(
                                 children: [
-                                  _miniFlag(context, m.flagA, 220),
+                                  _miniFlag(context, m.flagA ?? '', 220),
                                   const SizedBox(width: 8),
                                   Text(
                                     m.teamA,
@@ -393,7 +395,7 @@ class WorldCupScreen extends ConsumerWidget {
                               const SizedBox(height: 6),
                               Row(
                                 children: [
-                                  _miniFlag(context, m.flagB, 25),
+                                  _miniFlag(context, m.flagB ?? '', 25),
                                   const SizedBox(width: 8),
                                   Text(
                                     m.teamB,

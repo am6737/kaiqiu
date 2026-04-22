@@ -263,6 +263,9 @@ class AppL10nZh extends AppL10n {
   }
 
   @override
+  String get home_no_live => '暂无直播比赛';
+
+  @override
   String get home_bottom_of_feed => '— 到底了 · 今天也是踢球的一天 —';
 
   @override
@@ -1992,6 +1995,9 @@ class AppL10nZh extends AppL10n {
 
   @override
   String get pickup_detail_detail_parking => '停车';
+
+  @override
+  String get pickup_detail_location => '位置';
 
   @override
   String pickup_detail_location_km(String km) {

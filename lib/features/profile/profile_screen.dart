@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../data/mock.dart' show MockUser;
 import '../../l10n/l10n_extension.dart';
+import '../../models/player_profile.dart';
 import '../../providers.dart';
 import '../../services/local_storage.dart';
 import '../../services/supabase.dart';
@@ -20,11 +20,8 @@ class ProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
-    // Real profile from Supabase (name, handle, city, position), mock
-    // fallback for stats/attrs/honors which require real match history.
-    final MockUser u =
-        ref.watch(myProfileProvider).valueOrNull ?? ref.watch(userProvider);
-    final teammates = ref.watch(teammatesProvider);
+    final PlayerProfile? u = ref.watch(myProfileProvider).valueOrNull;
+    final teammatesAsync = ref.watch(teammatesProvider);
     ref.watch(localStoreProvider);
 
     final activity = <_MenuItem>[
@@ -43,7 +40,7 @@ class ProfileScreen extends ConsumerWidget {
       _MenuItem(
         icon: Icons.person_outline,
         label: l.profile_menu_my_teams,
-        badge: '${teammates.length}',
+        badge: '${teammatesAsync.valueOrNull?.length ?? 0}',
         onTap: () => context.push('/me/teams'),
       ),
       _MenuItem(
@@ -107,14 +104,14 @@ class ProfileScreen extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 18),
               child: Row(
                 children: [
-                  Avatar(u.name, size: 56),
+                  Avatar(u?.name ?? '新球友', size: 56),
                   const SizedBox(width: 14),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          u.name,
+                          u?.name ?? '新球友',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
@@ -124,7 +121,7 @@ class ProfileScreen extends ConsumerWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          u.handle,
+                          u?.handle ?? '',
                           style: TextStyle(
                             fontFamily: context.tokens.fontMono,
                             fontFamilyFallback: context.tokens.monoFallbacks,
@@ -184,7 +181,7 @@ class ProfileScreen extends ConsumerWidget {
                           borderRadius: BorderRadius.circular(context.tokens.r2),
                         ),
                         child: Text(
-                          u.position,
+                          u?.position ?? '',
                           style: TextStyle(
                             fontFamily: context.tokens.fontMono,
                             fontFamilyFallback: context.tokens.monoFallbacks,
@@ -237,7 +234,7 @@ class ProfileScreen extends ConsumerWidget {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              '${u.positionFull} · ${u.city} ${u.district}',
+                              '${u?.positionFull ?? ''} · ${u?.city ?? ''} ${u?.district ?? ''}',
                               style: TextStyle(
                                 fontSize: 11,
                                 color: context.tokens.inkSub,
@@ -250,22 +247,22 @@ class ProfileScreen extends ConsumerWidget {
                               children: [
                                 _MiniStat(
                                   label: l.profile_mini_overall,
-                                  value: '${u.rating}',
+                                  value: '${u?.rating ?? 0}',
                                   color: context.tokens.accent,
                                 ),
                                 _MiniStat(
                                   label: l.profile_mini_matches,
-                                  value: '${u.stats.matches}',
+                                  value: '${u?.stats.matches ?? 0}',
                                   color: context.tokens.ink,
                                 ),
                                 _MiniStat(
                                   label: l.profile_mini_goals,
-                                  value: '${u.stats.goals}',
+                                  value: '${u?.stats.goals ?? 0}',
                                   color: context.tokens.ink,
                                 ),
                                 _MiniStat(
                                   label: l.profile_mini_mvp,
-                                  value: '${u.stats.mvp}',
+                                  value: '${u?.stats.assists ?? 0}',
                                   color: context.tokens.warn,
                                 ),
                               ],

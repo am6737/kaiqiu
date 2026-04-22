@@ -23,7 +23,7 @@ class MyTeamsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
     final teamsAsync = ref.watch(myTeamsProvider);
-    final teammates = ref.watch(teammatesProvider);
+    final teammatesAsync = ref.watch(teammatesProvider);
 
     return Scaffold(
       backgroundColor: context.tokens.bg,
@@ -101,51 +101,64 @@ class MyTeamsScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 20),
             SectionHeader(title: context.l10n.archive_teammates_title),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-              child: Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: context.tokens.elev2,
-                  border: Border.all(color: context.tokens.line),
-                  borderRadius: BorderRadius.circular(context.tokens.r3),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    for (final tm in teammates)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: Row(
-                          children: [
-                            Avatar(tm.name, size: 36),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    tm.name,
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: context.tokens.ink,
-                                      fontWeight: FontWeight.w500,
-                                    ),
+            ...teammatesAsync.when(
+              data: (teammates) => [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                  child: Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: context.tokens.elev2,
+                      border: Border.all(color: context.tokens.line),
+                      borderRadius: BorderRadius.circular(context.tokens.r3),
+                    ),
+                    child: teammates.isEmpty
+                        ? Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Label(l.empty_no_teams),
+                          )
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              for (final tm in teammates)
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 10),
+                                  child: Row(
+                                    children: [
+                                      Avatar(tm.name, size: 36),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              tm.name,
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                color: context.tokens.ink,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                            Label(
+                                              context.l10n
+                                                  .archive_teammates_matches(
+                                                tm.matches,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  Label(
-                                    context.l10n.archive_teammates_matches(
-                                      tm.matches,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                  ],
+                                ),
+                            ],
+                          ),
+                  ),
                 ),
-              ),
+              ],
+              loading: () => [const SizedBox(height: 60)],
+              error: (_, __) => [const SizedBox.shrink()],
             ),
           ],
         ),

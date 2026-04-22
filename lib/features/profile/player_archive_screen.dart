@@ -4,8 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../data/mock.dart';
 import '../../l10n/l10n_extension.dart';
+import '../../models/match_history.dart';
+import '../../models/player_profile.dart';
 import '../../providers.dart';
 import '../../utils/share_helper.dart';
 import '../../widgets/avatar.dart';
@@ -45,10 +46,9 @@ class _PlayerArchiveScreenState extends ConsumerState<PlayerArchiveScreen>
 
   @override
   Widget build(BuildContext context) {
-    final MockUser u =
-        ref.watch(myProfileProvider).valueOrNull ?? ref.watch(userProvider);
-    final teammates = ref.watch(teammatesProvider);
-    final history = ref.watch(historyProvider);
+    final PlayerProfile? u = ref.watch(myProfileProvider).valueOrNull;
+    final teammatesAsync = ref.watch(teammatesProvider);
+    final historyAsync = ref.watch(historyProvider);
 
     return Scaffold(
       backgroundColor: context.tokens.bg,
@@ -85,7 +85,9 @@ class _PlayerArchiveScreenState extends ConsumerState<PlayerArchiveScreen>
                   ),
                   const Spacer(),
                   GestureDetector(
-                    onTap: () => shareProfile(u),
+                    onTap: () {
+                      if (u != null) shareProfile(u);
+                    },
                     child: Padding(
                       padding: EdgeInsets.all(6),
                       child: Icon(Icons.ios_share, size: 18, color: context.tokens.inkSub),
@@ -99,14 +101,14 @@ class _PlayerArchiveScreenState extends ConsumerState<PlayerArchiveScreen>
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
               child: Row(
                 children: [
-                  Avatar(u.name, size: 48),
+                  Avatar(u?.name ?? '新球友', size: 48),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          u.name,
+                          u?.name ?? '新球友',
                           style: TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.w700,
@@ -129,7 +131,7 @@ class _PlayerArchiveScreenState extends ConsumerState<PlayerArchiveScreen>
                                 ),
                               ),
                               child: Text(
-                                u.position,
+                                u?.position ?? '',
                                 style: TextStyle(
                                   fontFamily: context.tokens.fontMono,
                                   fontFamilyFallback: context.tokens.monoFallbacks,
@@ -141,7 +143,7 @@ class _PlayerArchiveScreenState extends ConsumerState<PlayerArchiveScreen>
                             ),
                             const SizedBox(width: 6),
                             Label(
-                              '${u.positionFull} · ${u.city} ${u.district}',
+                              '${u?.positionFull ?? ''} · ${u?.city ?? ''} ${u?.district ?? ''}',
                             ),
                           ],
                         ),
@@ -178,9 +180,9 @@ class _PlayerArchiveScreenState extends ConsumerState<PlayerArchiveScreen>
                             ? Transform(
                                 alignment: Alignment.center,
                                 transform: Matrix4.identity()..rotateY(math.pi),
-                                child: _CardBack(u: u),
+                                child: _CardBack(u: u ?? PlayerProfile.empty),
                               )
-                            : _CardFront(u: u),
+                            : _CardFront(u: u ?? PlayerProfile.empty),
                       ),
                     );
                   },
@@ -211,20 +213,15 @@ class _PlayerArchiveScreenState extends ConsumerState<PlayerArchiveScreen>
                     children: [
                       _StatTile(
                         label: context.l10n.profile_mini_matches,
-                        value: '${u.stats.matches}',
+                        value: '${u?.stats.matches ?? 0}',
                       ),
                       const SizedBox(width: 8),
                       _StatTile(
                         label: context.l10n.profile_mini_goals,
-                        value: '${u.stats.goals}',
+                        value: '${u?.stats.goals ?? 0}',
                       ),
                       const SizedBox(width: 8),
-                      _StatTile(label: '助攻', value: '${u.stats.assists}'),
-                      const SizedBox(width: 8),
-                      _StatTile(
-                        label: context.l10n.profile_mini_mvp,
-                        value: '${u.stats.mvp}',
-                      ),
+                      _StatTile(label: '助攻', value: '${u?.stats.assists ?? 0}'),
                     ],
                   ),
                   const SizedBox(height: 10),
@@ -238,23 +235,41 @@ class _PlayerArchiveScreenState extends ConsumerState<PlayerArchiveScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            Label(context.l10n.archive_goal_trend),
-                            const Spacer(),
-                            N(
-                              '+28%',
-                              size: 11,
-                              color: context.tokens.accent,
-                              weight: FontWeight.w600,
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        SizedBox(
-                          height: 60,
-                          width: double.infinity,
-                          child: CustomPaint(painter: _TrendPainter(accentColor: context.tokens.accent)),
+                        ...historyAsync.when(
+                          data: (history) {
+                            final trendData = _goalTrendFromHistory(history);
+                            final trendLabel = _trendPercent(trendData);
+                            return [
+                              Row(
+                                children: [
+                                  Label(context.l10n.archive_goal_trend),
+                                  const Spacer(),
+                                  if (trendLabel.isNotEmpty)
+                                    N(
+                                      trendLabel,
+                                      size: 11,
+                                      color: context.tokens.accent,
+                                      weight: FontWeight.w600,
+                                    ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              SizedBox(
+                                height: 60,
+                                width: double.infinity,
+                                child: trendData.isEmpty
+                                    ? const SizedBox.shrink()
+                                    : CustomPaint(
+                                        painter: _TrendPainter(
+                                          data: trendData,
+                                          accentColor: context.tokens.accent,
+                                        ),
+                                      ),
+                              ),
+                            ];
+                          },
+                          loading: () => [const SizedBox(height: 68)],
+                          error: (_, _) => [const SizedBox.shrink()],
                         ),
                       ],
                     ),
@@ -271,12 +286,12 @@ class _PlayerArchiveScreenState extends ConsumerState<PlayerArchiveScreen>
                     children: [
                       Label(context.l10n.archive_honors_title),
                       const Spacer(),
-                      Label(context.l10n.archive_honors_count(u.honors.length)),
+                      Label(context.l10n.archive_honors_count(u?.honors.length ?? 0)),
                     ],
                   ),
                   const SizedBox(height: 10),
-                  for (int i = 0; i < u.honors.length; i++)
-                    _HonorTile(honor: u.honors[i], isGold: i == 0),
+                  for (int i = 0; i < (u?.honors.length ?? 0); i++)
+                    _HonorTile(honor: u!.honors[i], isGold: i == 0),
                 ],
               ),
             ),
@@ -292,40 +307,48 @@ class _PlayerArchiveScreenState extends ConsumerState<PlayerArchiveScreen>
                         Label(context.l10n.archive_teammates_title),
                         const Spacer(),
                         Label(
-                          context.l10n.archive_teammates_sub(teammates.length),
+                          context.l10n.archive_teammates_sub(
+                            teammatesAsync.valueOrNull?.length ?? 0,
+                          ),
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 10),
-                  SizedBox(
-                    height: 90,
-                    child: ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: teammates.length,
-                      separatorBuilder: (_, i) => const SizedBox(width: 12),
-                      padding: const EdgeInsets.only(right: 16),
-                      itemBuilder: (_, i) {
-                        final t = teammates[i];
-                        return Column(
-                          children: [
-                            Avatar(t.name, size: 46),
-                            const SizedBox(height: 5),
-                            Text(
-                              t.name,
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: context.tokens.ink,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            Label(
-                              context.l10n.archive_teammates_matches(t.matches),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
+                  ...teammatesAsync.when(
+                    data: (teammates) => [
+                      SizedBox(
+                        height: 90,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: teammates.length,
+                          separatorBuilder: (_, __) => const SizedBox(width: 12),
+                          padding: const EdgeInsets.only(right: 16),
+                          itemBuilder: (_, i) {
+                            final t = teammates[i];
+                            return Column(
+                              children: [
+                                Avatar(t.name, size: 46),
+                                const SizedBox(height: 5),
+                                Text(
+                                  t.name,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: context.tokens.ink,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                Label(
+                                  context.l10n.archive_teammates_matches(t.matches),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                    loading: () => [const SizedBox(height: 90)],
+                    error: (_, __) => [const SizedBox.shrink()],
                   ),
                 ],
               ),
@@ -337,18 +360,24 @@ class _PlayerArchiveScreenState extends ConsumerState<PlayerArchiveScreen>
                 children: [
                   Label(context.l10n.archive_history_title),
                   const SizedBox(height: 10),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: context.tokens.elev2,
-                      border: Border.all(color: context.tokens.line),
-                      borderRadius: BorderRadius.circular(context.tokens.r2),
-                    ),
-                    child: Column(
-                      children: [
-                        for (int i = 0; i < history.length; i++)
-                          _HistoryRow(match: history[i], isFirst: i == 0),
-                      ],
-                    ),
+                  ...historyAsync.when(
+                    data: (history) => [
+                      Container(
+                        decoration: BoxDecoration(
+                          color: context.tokens.elev2,
+                          border: Border.all(color: context.tokens.line),
+                          borderRadius: BorderRadius.circular(context.tokens.r2),
+                        ),
+                        child: Column(
+                          children: [
+                            for (int i = 0; i < history.length; i++)
+                              _HistoryRow(match: history[i], isFirst: i == 0),
+                          ],
+                        ),
+                      ),
+                    ],
+                    loading: () => [const SizedBox(height: 60)],
+                    error: (_, __) => [const SizedBox.shrink()],
                   ),
                 ],
               ),
@@ -364,7 +393,7 @@ class _PlayerArchiveScreenState extends ConsumerState<PlayerArchiveScreen>
 // Card front / back (ported as-is)
 // ─────────────────────────────────────────────────────────────
 class _CardFront extends StatelessWidget {
-  final MockUser u;
+  final PlayerProfile u;
   const _CardFront({required this.u});
 
   @override
@@ -540,7 +569,7 @@ class _CardStat extends StatelessWidget {
 }
 
 class _CardBack extends StatelessWidget {
-  final MockUser u;
+  final PlayerProfile u;
   const _CardBack({required this.u});
 
   @override
@@ -771,17 +800,17 @@ class _RadarPainter extends CustomPainter {
 }
 
 class _TrendPainter extends CustomPainter {
-  static const _data = [2, 3, 5, 4, 6, 8, 7, 9, 6, 8, 11, 10];
+  final List<int> data;
   final Color accentColor;
-  _TrendPainter({required this.accentColor});
+  _TrendPainter({required this.data, required this.accentColor});
 
   @override
   void paint(Canvas canvas, Size size) {
-    final maxV = _data.reduce(math.max).toDouble();
+    final maxV = data.reduce(math.max).toDouble();
     final points = <Offset>[];
-    for (int i = 0; i < _data.length; i++) {
-      final x = 8 + (i * (size.width - 16)) / (_data.length - 1);
-      final y = size.height - (_data[i] / maxV) * (size.height - 10) - 4;
+    for (int i = 0; i < data.length; i++) {
+      final x = 8 + (i * (size.width - 16)) / (data.length - 1);
+      final y = size.height - (data[i] / maxV) * (size.height - 10) - 4;
       points.add(Offset(x, y));
     }
 
@@ -813,17 +842,23 @@ class _TrendPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _TrendPainter old) => false;
+  bool shouldRepaint(covariant _TrendPainter old) => old.data != data || old.accentColor != accentColor;
 }
 
 // ─────────────────────────────────────────────────────────────
 // Helpers (ported as-is)
 // ─────────────────────────────────────────────────────────────
-class _RatingPanel extends StatelessWidget {
+class _RatingPanel extends ConsumerWidget {
   const _RatingPanel();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profile = ref.watch(myProfileProvider).valueOrNull;
+    final matchId = ref.watch(latestUnratedMatchProvider).valueOrNull;
+    final score = profile != null && profile.rating > 0
+        ? profile.rating.toDouble()
+        : 0.0;
+    final matches = profile?.stats.matches ?? 0;
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 0),
       padding: const EdgeInsets.all(14),
@@ -841,7 +876,7 @@ class _RatingPanel extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const _RatingBadge(score: 8.74),
+          _RatingBadge(score: score),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
@@ -854,17 +889,12 @@ class _RatingPanel extends StatelessWidget {
                   children: [
                     _StatMini(
                       label: context.l10n.archive_rating_rated,
-                      value: '486',
+                      value: '$matches',
                       color: context.tokens.ink,
                     ),
                     _StatMini(
-                      label: context.l10n.archive_rating_rank,
-                      value: '#1',
-                      color: context.tokens.accent,
-                    ),
-                    _StatMini(
                       label: context.l10n.archive_rating_trend,
-                      value: '+0.12',
+                      value: score > 0 ? score.toStringAsFixed(2) : '—',
                       color: context.tokens.accent,
                     ),
                   ],
@@ -872,13 +902,15 @@ class _RatingPanel extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(width: 10),
-          PrimaryButton(
-            label: context.l10n.archive_rating_go_rate,
-            variant: BtnVariant.primary,
-            size: BtnSize.sm,
-            onPressed: () => GoRouter.of(context).push('/rate/$demoMatchId'),
-          ),
+          if (matchId != null) ...[
+            const SizedBox(width: 10),
+            PrimaryButton(
+              label: context.l10n.archive_rating_go_rate,
+              variant: BtnVariant.primary,
+              size: BtnSize.sm,
+              onPressed: () => GoRouter.of(context).push('/rate/$matchId'),
+            ),
+          ],
         ],
       ),
     );
@@ -976,8 +1008,28 @@ class _StatTile extends StatelessWidget {
   }
 }
 
+List<int> _goalTrendFromHistory(List<MatchHistoryEntry> history) {
+  if (history.isEmpty) return [];
+  final sorted = [...history]..sort((a, b) => a.playedAt.compareTo(b.playedAt));
+  final buckets = <String, int>{};
+  for (final m in sorted) {
+    final key = '${m.playedAt.year}-${m.playedAt.month.toString().padLeft(2, '0')}';
+    buckets[key] = (buckets[key] ?? 0) + m.myGoals;
+  }
+  return buckets.values.toList();
+}
+
+String _trendPercent(List<int> data) {
+  if (data.length < 2) return '';
+  final recent = data.last;
+  final prev = data[data.length - 2];
+  if (prev == 0) return recent > 0 ? '+$recent' : '';
+  final pct = ((recent - prev) / prev * 100).round();
+  return pct >= 0 ? '+$pct%' : '$pct%';
+}
+
 class _HonorTile extends StatelessWidget {
-  final MockHonor honor;
+  final PlayerHonor honor;
   final bool isGold;
   const _HonorTile({required this.honor, required this.isGold});
 
@@ -1028,7 +1080,7 @@ class _HonorTile extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                Label('${honor.year} · ${honor.meta}'),
+                Label('${honor.year}${honor.meta != null ? ' · ${honor.meta}' : ''}'),
               ],
             ),
           ),
@@ -1040,20 +1092,25 @@ class _HonorTile extends StatelessWidget {
 }
 
 class _HistoryRow extends StatelessWidget {
-  final HistoryMatch match;
+  final MatchHistoryEntry match;
   final bool isFirst;
   const _HistoryRow({required this.match, required this.isFirst});
 
   @override
   Widget build(BuildContext context) {
+    final scoreStr = match.score;
+    final won = match.scoreA > match.scoreB;
+    final lost = match.scoreA < match.scoreB;
     final Color scoreColor;
-    if (match.score.contains('胜')) {
+    if (won) {
       scoreColor = context.tokens.accent;
-    } else if (match.score.contains('负')) {
+    } else if (lost) {
       scoreColor = context.tokens.warn;
     } else {
       scoreColor = context.tokens.inkSub;
     }
+    final dateStr =
+        '${match.playedAt.month.toString().padLeft(2, '0')}-${match.playedAt.day.toString().padLeft(2, '0')}';
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
       decoration: BoxDecoration(
@@ -1064,48 +1121,21 @@ class _HistoryRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          SizedBox(width: 36, child: N(match.date, size: 11, color: context.tokens.inkSub)),
+          SizedBox(width: 36, child: N(dateStr, size: 11, color: context.tokens.inkSub)),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Text(
-                      match.opp,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: context.tokens.ink,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    if (match.mvp) ...[
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 5,
-                          vertical: 1,
-                        ),
-                        decoration: BoxDecoration(
-                          color: context.tokens.warnSubtle,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                        child: Text(
-                          'MVP',
-                          style: TextStyle(
-                            fontFamily: context.tokens.fontMono,
-                            fontFamilyFallback: context.tokens.monoFallbacks,
-                            fontSize: 9,
-                            fontWeight: FontWeight.w700,
-                            color: context.tokens.warn,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
+                Text(
+                  '${match.teamA} vs ${match.teamB}',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: context.tokens.ink,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-                Label(match.event),
+                Label(match.eventName),
               ],
             ),
           ),
@@ -1113,20 +1143,20 @@ class _HistoryRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               N(
-                match.score,
+                scoreStr,
                 size: 13,
                 weight: FontWeight.w700,
                 color: scoreColor,
               ),
-              if (match.goals + match.assists > 0)
+              if (match.myGoals + match.myAssists > 0)
                 Padding(
                   padding: const EdgeInsets.only(top: 2),
                   child: Text(
                     [
-                      if (match.goals > 0)
-                        context.l10n.archive_history_goals_n(match.goals),
-                      if (match.assists > 0)
-                        context.l10n.archive_history_assists_n(match.assists),
+                      if (match.myGoals > 0)
+                        context.l10n.archive_history_goals_n(match.myGoals),
+                      if (match.myAssists > 0)
+                        context.l10n.archive_history_assists_n(match.myAssists),
                     ].join(' · '),
                     style: TextStyle(
                       fontFamily: context.tokens.fontMono,
