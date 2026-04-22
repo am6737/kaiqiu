@@ -68,8 +68,13 @@ class PickupDetailScreen extends ConsumerWidget {
                   address: pickupAsync.valueOrNull?.address,
                   lat: pickupAsync.valueOrNull?.lat,
                   lng: pickupAsync.valueOrNull?.lng,
+                  status: pickupAsync.valueOrNull?.status ?? PickupStatus.open,
+                  need: pickupAsync.valueOrNull?.displayNeed ?? 0,
+                  timeLabel: pickupAsync.valueOrNull?.displayTime ?? '',
+                  durationMin: pickupAsync.valueOrNull?.durationMin ?? 120,
+                  feeYuan: pickupAsync.valueOrNull?.feeYuan ?? 0,
                 ),
-                _HostStrip(),
+                _HostStrip(pickup: pickupAsync.valueOrNull),
                 slotsAsync.when(
                   data: (slots) => _Formation(pickupId: id, slots: slots),
                   loading: () => const _FormationLoading(),
@@ -78,7 +83,7 @@ class PickupDetailScreen extends ConsumerWidget {
                     onRetry: () => ref.invalidate(pickupSlotsProvider(id)),
                   ),
                 ),
-                _Details(),
+                _Details(pickup: pickupAsync.valueOrNull),
                 _MiniMap(
                   venue: pickupAsync.valueOrNull?.venue ?? '',
                   address: pickupAsync.valueOrNull?.address,
@@ -190,11 +195,21 @@ class _VenueInfo extends StatelessWidget {
   final String? address;
   final double? lat;
   final double? lng;
+  final PickupStatus status;
+  final int need;
+  final String timeLabel;
+  final int durationMin;
+  final double feeYuan;
   const _VenueInfo({
     required this.venue,
     this.address,
     this.lat,
     this.lng,
+    this.status = PickupStatus.open,
+    this.need = 0,
+    this.timeLabel = '',
+    this.durationMin = 120,
+    this.feeYuan = 0,
   });
 
   bool get _canNavigate => lat != null && lng != null;
@@ -218,9 +233,9 @@ class _VenueInfo extends StatelessWidget {
         children: [
           Row(
             children: [
-              const StatusDot(state: 'open'),
+              StatusDot(state: status.name),
               const SizedBox(width: 6),
-              Label(context.l10n.pickup_detail_open_need_n(3), color: context.tokens.accent),
+              Label(context.l10n.pickup_detail_open_need_n(need), color: context.tokens.accent),
             ],
           ),
           const SizedBox(height: 8),
@@ -229,7 +244,7 @@ class _VenueInfo extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  '龙岗体育中心 3号场',
+                  venue,
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w700,
@@ -265,11 +280,11 @@ class _VenueInfo extends StatelessWidget {
             children: [
               Icon(Icons.calendar_today, size: 13, color: context.tokens.inkSub),
               SizedBox(width: 5),
-              N('今晚 19:30 · 2小时', size: 13, color: context.tokens.inkSub),
+              N('$timeLabel · ${durationMin ~/ 60}小时', size: 13, color: context.tokens.inkSub),
               SizedBox(width: 14),
               Icon(Icons.currency_yen, size: 13, color: context.tokens.inkSub),
               SizedBox(width: 2),
-              N('50 AA', size: 13, color: context.tokens.inkSub),
+              N('${feeYuan.toStringAsFixed(0)} AA', size: 13, color: context.tokens.inkSub),
             ],
           ),
         ],
@@ -279,11 +294,14 @@ class _VenueInfo extends StatelessWidget {
 }
 
 class _HostStrip extends ConsumerWidget {
+  final Pickup? pickup;
+  const _HostStrip({this.pickup});
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
     ref.watch(localStoreProvider);
-    const hostName = '老王';
+    final hostName = pickup?.displayHost ?? '—';
     final followed = LocalStore.isFollowing(hostName);
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 4, 16, 14),
@@ -295,7 +313,7 @@ class _HostStrip extends ConsumerWidget {
       ),
       child: Row(
         children: [
-          const Avatar(hostName, size: 40),
+          Avatar(hostName, size: 40),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
@@ -750,14 +768,29 @@ class _FormationError extends StatelessWidget {
 }
 
 class _Details extends StatelessWidget {
+  final Pickup? pickup;
+  const _Details({this.pickup});
+
+  String _levelLabel(BuildContext context, String? level) {
+    final l = context.l10n;
+    return switch (level) {
+      'beginner' => l.level_beginner,
+      'novice' => l.level_novice,
+      'mid' => l.level_mid,
+      'pro' => l.level_pro,
+      _ => l.level_any,
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
+    final total = pickup?.total ?? 0;
+    final half = total ~/ 2;
     final items = [
-      (l.pickup_detail_detail_level, '${l.level_mid} · 有基础'),
-      (l.pickup_detail_detail_headcount, '10 v 10'),
-      (l.pickup_detail_detail_field, '天然草 · 露天'),
-      (l.pickup_detail_detail_parking, '场地内可停'),
+      (l.pickup_detail_detail_level, _levelLabel(context, pickup?.level)),
+      (l.pickup_detail_detail_headcount, '$half v $half'),
+      (l.pickup_detail_detail_field, pickup?.fieldType ?? '—'),
     ];
     return Padding(
       padding: const EdgeInsets.all(16),
