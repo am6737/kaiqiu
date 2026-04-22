@@ -164,6 +164,64 @@ class EventsRepository {
         .map(Event.fromMap)
         .toList();
   }
+
+  Future<void> updateEventStatus(String eventId, EventStatus status) async {
+    await supabase
+        .from('events')
+        .update({'status': status.name})
+        .eq('id', eventId);
+  }
+
+  Future<void> startMatch(String matchId) async {
+    await supabase.from('matches').update({
+      'status': 'live',
+      'started_at': DateTime.now().toUtc().toIso8601String(),
+      'livekit_room': 'match_$matchId',
+    }).eq('id', matchId);
+  }
+
+  Future<void> endMatch(String matchId, int scoreA, int scoreB) async {
+    await supabase.from('matches').update({
+      'status': 'finished',
+      'done': true,
+      'ended_at': DateTime.now().toUtc().toIso8601String(),
+      'score_a': scoreA,
+      'score_b': scoreB,
+    }).eq('id', matchId);
+  }
+
+  Future<void> updateMatchScore(
+    String matchId, {
+    required int scoreA,
+    required int scoreB,
+    required int minute,
+  }) async {
+    await supabase.from('matches').update({
+      'score_a': scoreA,
+      'score_b': scoreB,
+      'minute': minute,
+    }).eq('id', matchId);
+  }
+
+  Future<List<Match>> liveMatchesForEvent(String eventId) async {
+    final rows = await supabase
+        .from('matches')
+        .select()
+        .eq('event_id', eventId)
+        .eq('status', 'live');
+    return (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map(Match.fromMap)
+        .toList();
+  }
+
+  Future<void> insertMatch(Map<String, dynamic> payload) async {
+    await supabase.from('matches').insert(payload);
+  }
+
+  Future<void> insertMatches(List<Map<String, dynamic>> rows) async {
+    await supabase.from('matches').insert(rows);
+  }
 }
 
 class _RatingAgg {
