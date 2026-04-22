@@ -54,7 +54,16 @@ class _PlayerArchiveScreenState extends ConsumerState<PlayerArchiveScreen>
       backgroundColor: context.tokens.bg,
       body: SafeArea(
         bottom: false,
-        child: ListView(
+        child: RefreshIndicator(
+          color: context.tokens.accent,
+          backgroundColor: context.tokens.elev1,
+          onRefresh: () async {
+            ref.invalidate(myProfileProvider);
+            ref.invalidate(teammatesProvider);
+            ref.invalidate(historyProvider);
+            ref.invalidate(latestUnratedMatchProvider);
+          },
+          child: ListView(
           padding: const EdgeInsets.only(bottom: 40),
           children: [
             // Top bar with back + title + share
@@ -383,6 +392,7 @@ class _PlayerArchiveScreenState extends ConsumerState<PlayerArchiveScreen>
               ),
             ),
           ],
+        ),
         ),
       ),
     );

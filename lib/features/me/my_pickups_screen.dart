@@ -120,20 +120,31 @@ class _HostedView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
     final async = ref.watch(myHostedPickupsProvider);
-    return async.when(
-      data: (list) {
-        if (list.isEmpty) {
-          return EmptyState(
-            icon: Icons.sports_soccer,
-            title: l.empty_no_pickups,
-            subtitle: l.empty_no_pickups_sub,
-          );
-        }
-        return _PickupList(items: list);
-      },
-      loading: () =>
-          Center(child: CircularProgressIndicator(color: context.tokens.accent)),
-      error: (e, _) => Center(child: Text('${l.error_load_failed}: $e')),
+    return RefreshIndicator(
+      color: context.tokens.accent,
+      backgroundColor: context.tokens.elev1,
+      onRefresh: () async => ref.invalidate(myHostedPickupsProvider),
+      child: async.when(
+        data: (list) {
+          if (list.isEmpty) {
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                const SizedBox(height: 80),
+                EmptyState(
+                  icon: Icons.sports_soccer,
+                  title: l.empty_no_pickups,
+                  subtitle: l.empty_no_pickups_sub,
+                ),
+              ],
+            );
+          }
+          return _PickupList(items: list);
+        },
+        loading: () =>
+            Center(child: CircularProgressIndicator(color: context.tokens.accent)),
+        error: (e, _) => Center(child: Text('${l.error_load_failed}: $e')),
+      ),
     );
   }
 }
@@ -143,20 +154,31 @@ class _JoinedView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
     final async = ref.watch(myJoinedPickupsProvider);
-    return async.when(
-      data: (list) {
-        if (list.isEmpty) {
-          return EmptyState(
-            icon: Icons.sports_soccer,
-            title: l.empty_no_pickups,
-            subtitle: l.empty_no_pickups_sub,
-          );
-        }
-        return _PickupList(items: list);
-      },
-      loading: () =>
-          Center(child: CircularProgressIndicator(color: context.tokens.accent)),
-      error: (e, _) => Center(child: Text('${l.error_load_failed}: $e')),
+    return RefreshIndicator(
+      color: context.tokens.accent,
+      backgroundColor: context.tokens.elev1,
+      onRefresh: () async => ref.invalidate(myJoinedPickupsProvider),
+      child: async.when(
+        data: (list) {
+          if (list.isEmpty) {
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                const SizedBox(height: 80),
+                EmptyState(
+                  icon: Icons.sports_soccer,
+                  title: l.empty_no_pickups,
+                  subtitle: l.empty_no_pickups_sub,
+                ),
+              ],
+            );
+          }
+          return _PickupList(items: list);
+        },
+        loading: () =>
+            Center(child: CircularProgressIndicator(color: context.tokens.accent)),
+        error: (e, _) => Center(child: Text('${l.error_load_failed}: $e')),
+      ),
     );
   }
 }

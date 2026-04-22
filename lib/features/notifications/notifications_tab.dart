@@ -31,36 +31,57 @@ class NotificationsTabState extends ConsumerState<NotificationsTab> {
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (_, _) => _Empty(label: l.empty_no_notifications),
       data: (items) {
-        if (items.isEmpty) return _Empty(label: l.empty_no_notifications);
-        return ListView(
-          padding: const EdgeInsets.only(bottom: 24),
-          children: [
-            for (final group in _grouped(items).entries) ...[
-              SectionHeader(title: _groupLabel(group.key)),
-              for (final n in group.value)
-                _NotifRow(
-                  item: n,
-                  onTap: () {
-                    if (!n.read) {
-                      ref.read(notificationsRepoProvider).markRead(n.id);
-                      ref.invalidate(notificationsProvider);
-                      ref.invalidate(notificationsUnreadProvider);
-                    }
-                    final route = n.route;
-                    if (route == null) return;
-                    if (route == '/messages') {
-                      context.go('/inbox?tab=messages');
-                      return;
-                    }
-                    if (_branchRoots.contains(route)) {
-                      context.go(route);
-                    } else {
-                      context.push(route);
-                    }
-                  },
-                ),
+        if (items.isEmpty) {
+          return RefreshIndicator(
+            color: context.tokens.accent,
+            backgroundColor: context.tokens.elev1,
+            onRefresh: () async {
+              ref.invalidate(notificationsProvider);
+              ref.invalidate(notificationsUnreadProvider);
+            },
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [_Empty(label: l.empty_no_notifications)],
+            ),
+          );
+        }
+        return RefreshIndicator(
+          color: context.tokens.accent,
+          backgroundColor: context.tokens.elev1,
+          onRefresh: () async {
+            ref.invalidate(notificationsProvider);
+            ref.invalidate(notificationsUnreadProvider);
+          },
+          child: ListView(
+            padding: const EdgeInsets.only(bottom: 24),
+            children: [
+              for (final group in _grouped(items).entries) ...[
+                SectionHeader(title: _groupLabel(group.key)),
+                for (final n in group.value)
+                  _NotifRow(
+                    item: n,
+                    onTap: () {
+                      if (!n.read) {
+                        ref.read(notificationsRepoProvider).markRead(n.id);
+                        ref.invalidate(notificationsProvider);
+                        ref.invalidate(notificationsUnreadProvider);
+                      }
+                      final route = n.route;
+                      if (route == null) return;
+                      if (route == '/messages') {
+                        context.go('/inbox?tab=messages');
+                        return;
+                      }
+                      if (_branchRoots.contains(route)) {
+                        context.go(route);
+                      } else {
+                        context.push(route);
+                      }
+                    },
+                  ),
+              ],
             ],
-          ],
+          ),
         );
       },
     );

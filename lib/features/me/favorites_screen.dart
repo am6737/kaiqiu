@@ -117,18 +117,28 @@ class _PickupTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
     final async = ref.watch(myFavoritePickupsProvider);
-    return async.when(
-      data: (list) {
-        if (list.isEmpty) {
-          return EmptyState(
-            icon: Icons.bookmark_border,
-            title: l.empty_no_favorites,
-            subtitle: l.empty_no_favorites_sub,
-          );
-        }
-        return ListView(
-          padding: const EdgeInsets.only(bottom: 40),
-          children: [
+    return RefreshIndicator(
+      color: context.tokens.accent,
+      backgroundColor: context.tokens.elev1,
+      onRefresh: () async => ref.invalidate(myFavoritePickupsProvider),
+      child: async.when(
+        data: (list) {
+          if (list.isEmpty) {
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                const SizedBox(height: 80),
+                EmptyState(
+                  icon: Icons.bookmark_border,
+                  title: l.empty_no_favorites,
+                  subtitle: l.empty_no_favorites_sub,
+                ),
+              ],
+            );
+          }
+          return ListView(
+            padding: const EdgeInsets.only(bottom: 40),
+            children: [
             for (final p in list)
               GestureDetector(
                 behavior: HitTestBehavior.opaque,
@@ -181,9 +191,10 @@ class _PickupTab extends ConsumerWidget {
           ],
         );
       },
-      loading: () =>
-          Center(child: CircularProgressIndicator(color: context.tokens.accent)),
-      error: (e, _) => Center(child: Text('${l.error_load_failed}: $e')),
+        loading: () =>
+            Center(child: CircularProgressIndicator(color: context.tokens.accent)),
+        error: (e, _) => Center(child: Text('${l.error_load_failed}: $e')),
+      ),
     );
   }
 }
@@ -193,48 +204,59 @@ class _EventTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
     final async = ref.watch(myFavoriteEventsProvider);
-    return async.when(
-      data: (list) {
-        if (list.isEmpty) {
-          return EmptyState(
-            icon: Icons.bookmark_border,
-            title: l.empty_no_favorites,
-          );
-        }
-        return ListView(
-          padding: const EdgeInsets.only(bottom: 40),
-          children: [
-            for (final e in list)
-              ListTile(
-                leading: Icon(Icons.emoji_events, color: context.tokens.warn),
-                title: Text(
-                  e.name,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: context.tokens.ink,
-                    fontWeight: FontWeight.w600,
+    return RefreshIndicator(
+      color: context.tokens.accent,
+      backgroundColor: context.tokens.elev1,
+      onRefresh: () async => ref.invalidate(myFavoriteEventsProvider),
+      child: async.when(
+        data: (list) {
+          if (list.isEmpty) {
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                const SizedBox(height: 80),
+                EmptyState(
+                  icon: Icons.bookmark_border,
+                  title: l.empty_no_favorites,
+                ),
+              ],
+            );
+          }
+          return ListView(
+            padding: const EdgeInsets.only(bottom: 40),
+            children: [
+              for (final e in list)
+                ListTile(
+                  leading: Icon(Icons.emoji_events, color: context.tokens.warn),
+                  title: Text(
+                    e.name,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: context.tokens.ink,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
+                  subtitle: Text(
+                    e.sub ?? (e.city ?? ''),
+                    style: TextStyle(fontSize: 12, color: context.tokens.inkSub),
+                  ),
+                  trailing: IconButton(
+                    icon: Icon(Icons.favorite, size: 18, color: context.tokens.accent),
+                    onPressed: () async {
+                      await ref
+                          .read(favoritesRepoProvider)
+                          .toggle(FavoriteEntity.event, e.id);
+                    },
+                  ),
+                  onTap: () => context.push('/event/${e.id}'),
                 ),
-                subtitle: Text(
-                  e.sub ?? (e.city ?? ''),
-                  style: TextStyle(fontSize: 12, color: context.tokens.inkSub),
-                ),
-                trailing: IconButton(
-                  icon: Icon(Icons.favorite, size: 18, color: context.tokens.accent),
-                  onPressed: () async {
-                    await ref
-                        .read(favoritesRepoProvider)
-                        .toggle(FavoriteEntity.event, e.id);
-                  },
-                ),
-                onTap: () => context.push('/event/${e.id}'),
-              ),
-          ],
-        );
-      },
-      loading: () =>
-          Center(child: CircularProgressIndicator(color: context.tokens.accent)),
-      error: (e, _) => Center(child: Text('${l.error_load_failed}: $e')),
+            ],
+          );
+        },
+        loading: () =>
+            Center(child: CircularProgressIndicator(color: context.tokens.accent)),
+        error: (e, _) => Center(child: Text('${l.error_load_failed}: $e')),
+      ),
     );
   }
 }

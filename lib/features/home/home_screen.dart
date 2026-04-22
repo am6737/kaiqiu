@@ -1,8 +1,12 @@
 // home_screen.dart — 首页 Feed, 1:1 with React prototype (screens-home.jsx).
+import 'dart:async';
+
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../data/demo_images.dart';
 import '../../l10n/l10n_extension.dart';
 import '../../models/feed.dart';
 import '../../models/live_match.dart';
@@ -34,7 +38,12 @@ class HomeScreen extends ConsumerWidget {
             child: RefreshIndicator(
               color: context.tokens.accent,
               backgroundColor: context.tokens.elev1,
-              onRefresh: () async => ref.invalidate(livePickupsProvider),
+              onRefresh: () async {
+                ref.invalidate(feedsProvider);
+                ref.invalidate(liveNowProvider);
+                ref.invalidate(livePickupsProvider);
+                ref.invalidate(latestUnratedMatchProvider);
+              },
               child: ListView(
                 padding: const EdgeInsets.only(bottom: 90),
                 children: [
@@ -292,110 +301,195 @@ class _SportPicker extends ConsumerWidget {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Live strip (horizontal scroll)
+// Live carousel (auto-paging with poster backgrounds)
 // ─────────────────────────────────────────────────────────────
-class _LiveStrip extends StatelessWidget {
+class _LiveStrip extends StatefulWidget {
   final List<LiveMatch> items;
   const _LiveStrip({required this.items});
 
   @override
+  State<_LiveStrip> createState() => _LiveStripState();
+}
+
+class _LiveStripState extends State<_LiveStrip> {
+  late final PageController _ctrl;
+  Timer? _timer;
+  int _current = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = PageController(viewportFraction: 0.88);
+    if (widget.items.length > 1) {
+      _timer = Timer.periodic(const Duration(seconds: 5), (_) {
+        _current = (_current + 1) % widget.items.length;
+        _ctrl.animateToPage(
+          _current,
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeInOut,
+        );
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 96,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
-        itemCount: items.length,
-        separatorBuilder: (_, i) => const SizedBox(width: 10),
-        itemBuilder: (context, i) {
-          final m = items[i];
-          final aWins = m.scoreA > m.scoreB;
-          final bWins = m.scoreB > m.scoreA;
-          return GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () => context.push('/worldcup/live/${m.id}'),
-            child: Container(
-            width: 180,
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: context.tokens.elev2,
-              border: Border.all(color: context.tokens.line),
-              borderRadius: BorderRadius.circular(context.tokens.r2),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const LivePill(),
-                    const Spacer(),
-                    Text(
-                      '${m.viewers} · ${m.minute}',
-                      style: TextStyle(
-                        fontFamily: context.tokens.fontMono,
-                        fontFamilyFallback: context.tokens.monoFallbacks,
-                        fontSize: 10,
-                        color: context.tokens.inkDim,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            m.teamA,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: context.tokens.ink,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            m.teamB,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: context.tokens.ink,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
+    final items = widget.items;
+    return Column(
+      children: [
+        SizedBox(
+          height: 170,
+          child: PageView.builder(
+            controller: _ctrl,
+            onPageChanged: (i) => setState(() => _current = i),
+            itemCount: items.length,
+            itemBuilder: (context, i) {
+              final m = items[i];
+              final posterUrl = m.posterUrl ?? DemoImages.pickCoverFor(m.id);
+              final aWins = m.scoreA > m.scoreB;
+              final bWins = m.scoreB > m.scoreA;
+              return GestureDetector(
+                onTap: () => context.push('/worldcup/live/${m.id}'),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(context.tokens.r3),
+                    child: Stack(
+                      fit: StackFit.expand,
                       children: [
-                        N(
-                          '${m.scoreA}',
-                          size: 18,
-                          weight: FontWeight.w600,
-                          color: aWins ? context.tokens.accent : context.tokens.inkSub,
+                        CachedNetworkImage(
+                          imageUrl: posterUrl,
+                          fit: BoxFit.cover,
+                          fadeInDuration: const Duration(milliseconds: 160),
+                          errorWidget: (_, _, _) => Container(
+                            color: context.tokens.elev2,
+                          ),
                         ),
-                        const SizedBox(height: 1),
-                        N(
-                          '${m.scoreB}',
-                          size: 18,
-                          weight: FontWeight.w600,
-                          color: bWins ? context.tokens.accent : context.tokens.inkSub,
+                        const DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Color(0x00000000),
+                                Color(0x33000000),
+                                Color(0xCC000000),
+                              ],
+                              stops: [0.0, 0.4, 1.0],
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(14),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  const LivePill(),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    '${m.viewersDisplay} 观看 · ${m.minute}',
+                                    style: TextStyle(
+                                      fontFamily: context.tokens.fontMono,
+                                      fontFamilyFallback: context.tokens.monoFallbacks,
+                                      fontSize: 11,
+                                      color: Colors.white70,
+                                      letterSpacing: 0.3,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const Spacer(),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          m.teamA,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          m.teamB,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      N(
+                                        '${m.scoreA}',
+                                        size: 24,
+                                        weight: FontWeight.w700,
+                                        color: aWins ? context.tokens.accent : Colors.white,
+                                      ),
+                                      const SizedBox(height: 2),
+                                      N(
+                                        '${m.scoreB}',
+                                        size: 24,
+                                        weight: FontWeight.w700,
+                                        color: bWins ? context.tokens.accent : Colors.white,
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
-                  ],
+                  ),
                 ),
-              ],
+              );
+            },
+          ),
+        ),
+        if (items.length > 1)
+          Padding(
+            padding: const EdgeInsets.only(top: 8, bottom: 4),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(items.length, (i) {
+                final active = i == _current;
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 250),
+                  margin: const EdgeInsets.symmetric(horizontal: 3),
+                  width: active ? 18 : 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color: active
+                        ? context.tokens.accent
+                        : context.tokens.inkMute,
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                );
+              }),
             ),
-            ),
-          );
-        },
-      ),
+          ),
+      ],
     );
   }
 }

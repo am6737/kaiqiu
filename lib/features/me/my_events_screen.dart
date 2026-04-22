@@ -111,23 +111,34 @@ class _RegisteredView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
     final async = ref.watch(myFavoriteEventsProvider);
-    return async.when(
-      data: (list) {
-        if (list.isEmpty) {
-          return EmptyState(
-            icon: Icons.event_available,
-            title: l.empty_no_events,
-            subtitle: l.empty_no_events_sub,
+    return RefreshIndicator(
+      color: context.tokens.accent,
+      backgroundColor: context.tokens.elev1,
+      onRefresh: () async => ref.invalidate(myFavoriteEventsProvider),
+      child: async.when(
+        data: (list) {
+          if (list.isEmpty) {
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                const SizedBox(height: 80),
+                EmptyState(
+                  icon: Icons.event_available,
+                  title: l.empty_no_events,
+                  subtitle: l.empty_no_events_sub,
+                ),
+              ],
+            );
+          }
+          return ListView(
+            padding: const EdgeInsets.only(bottom: 40),
+            children: [for (final e in list) _EventCard(event: e)],
           );
-        }
-        return ListView(
-          padding: const EdgeInsets.only(bottom: 40),
-          children: [for (final e in list) _EventCard(event: e)],
-        );
-      },
-      loading: () =>
-          Center(child: CircularProgressIndicator(color: context.tokens.accent)),
-      error: (e, _) => Center(child: Text('${l.error_load_failed}: $e')),
+        },
+        loading: () =>
+            Center(child: CircularProgressIndicator(color: context.tokens.accent)),
+        error: (e, _) => Center(child: Text('${l.error_load_failed}: $e')),
+      ),
     );
   }
 }
@@ -137,46 +148,57 @@ class _HostedView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
     final async = ref.watch(myHostedEventsProvider);
-    return async.when(
-      data: (list) {
-        final open = list.where((e) => e.status != EventStatus.done).toList();
-        if (open.isEmpty) {
-          return EmptyState(
-            icon: Icons.event_available,
-            title: l.empty_no_events,
-            subtitle: l.empty_no_events_sub,
-            action: GestureDetector(
-              onTap: () => context.push('/create-event'),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: context.tokens.accentSubtle,
-                  border: Border.all(color: const Color(0x6600FF85)),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Text(
-                  l.events_create,
-                  style: TextStyle(
-                    color: context.tokens.accent,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 12,
+    return RefreshIndicator(
+      color: context.tokens.accent,
+      backgroundColor: context.tokens.elev1,
+      onRefresh: () async => ref.invalidate(myHostedEventsProvider),
+      child: async.when(
+        data: (list) {
+          final open = list.where((e) => e.status != EventStatus.done).toList();
+          if (open.isEmpty) {
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                const SizedBox(height: 80),
+                EmptyState(
+                  icon: Icons.event_available,
+                  title: l.empty_no_events,
+                  subtitle: l.empty_no_events_sub,
+                  action: GestureDetector(
+                    onTap: () => context.push('/create-event'),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: context.tokens.accentSubtle,
+                        border: Border.all(color: const Color(0x6600FF85)),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        l.events_create,
+                        style: TextStyle(
+                          color: context.tokens.accent,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
+              ],
+            );
+          }
+          return ListView(
+            padding: const EdgeInsets.only(bottom: 40),
+            children: [for (final e in open) _EventCard(event: e)],
           );
-        }
-        return ListView(
-          padding: const EdgeInsets.only(bottom: 40),
-          children: [for (final e in open) _EventCard(event: e)],
-        );
-      },
-      loading: () =>
-          Center(child: CircularProgressIndicator(color: context.tokens.accent)),
-      error: (e, _) => Center(child: Text('${l.error_load_failed}: $e')),
+        },
+        loading: () =>
+            Center(child: CircularProgressIndicator(color: context.tokens.accent)),
+        error: (e, _) => Center(child: Text('${l.error_load_failed}: $e')),
+      ),
     );
   }
 }
@@ -186,20 +208,31 @@ class _DoneView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
     final async = ref.watch(myHostedEventsProvider);
-    return async.when(
-      data: (list) {
-        final done = list.where((e) => e.status == EventStatus.done).toList();
-        if (done.isEmpty) {
-          return EmptyState(icon: Icons.history, title: l.empty_no_events);
-        }
-        return ListView(
-          padding: const EdgeInsets.only(bottom: 40),
-          children: [for (final e in done) _EventCard(event: e)],
-        );
-      },
-      loading: () =>
-          Center(child: CircularProgressIndicator(color: context.tokens.accent)),
-      error: (e, _) => Center(child: Text('${l.error_load_failed}: $e')),
+    return RefreshIndicator(
+      color: context.tokens.accent,
+      backgroundColor: context.tokens.elev1,
+      onRefresh: () async => ref.invalidate(myHostedEventsProvider),
+      child: async.when(
+        data: (list) {
+          final done = list.where((e) => e.status == EventStatus.done).toList();
+          if (done.isEmpty) {
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                const SizedBox(height: 80),
+                EmptyState(icon: Icons.history, title: l.empty_no_events),
+              ],
+            );
+          }
+          return ListView(
+            padding: const EdgeInsets.only(bottom: 40),
+            children: [for (final e in done) _EventCard(event: e)],
+          );
+        },
+        loading: () =>
+            Center(child: CircularProgressIndicator(color: context.tokens.accent)),
+        error: (e, _) => Center(child: Text('${l.error_load_failed}: $e')),
+      ),
     );
   }
 }

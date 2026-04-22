@@ -28,7 +28,14 @@ class MyTeamsScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: context.tokens.bg,
       body: SafeArea(
-        child: ListView(
+        child: RefreshIndicator(
+          color: context.tokens.accent,
+          backgroundColor: context.tokens.elev1,
+          onRefresh: () async {
+            ref.invalidate(myTeamsProvider);
+            ref.invalidate(teammatesProvider);
+          },
+          child: ListView(
           padding: const EdgeInsets.only(bottom: 40),
           children: [
             PageTitleBar(
@@ -161,6 +168,7 @@ class MyTeamsScreen extends ConsumerWidget {
               error: (_, __) => [const SizedBox.shrink()],
             ),
           ],
+        ),
         ),
       ),
     );

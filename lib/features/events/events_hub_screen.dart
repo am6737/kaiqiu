@@ -43,7 +43,16 @@ class _EventsHubScreenState extends ConsumerState<EventsHubScreen> {
       backgroundColor: context.tokens.bg,
       body: SafeArea(
         bottom: false,
-        child: ListView(
+        child: RefreshIndicator(
+          color: context.tokens.accent,
+          backgroundColor: context.tokens.elev1,
+          onRefresh: () async {
+            ref.invalidate(wcMatchesProvider);
+            if (statusForTab != null) {
+              ref.invalidate(liveEventsProvider(statusForTab));
+            }
+          },
+          child: ListView(
           padding: const EdgeInsets.only(bottom: 100),
           children: [
             // Top bar
@@ -140,6 +149,7 @@ class _EventsHubScreenState extends ConsumerState<EventsHubScreen> {
             else
               ..._buildEventsList(statusForTab!),
           ],
+        ),
         ),
       ),
     );
