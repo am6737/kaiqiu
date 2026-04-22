@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 
 import '../../l10n/l10n_extension.dart';
 import '../../models/article.dart';
+import '../../repositories/likes_repository.dart';
+import '../../utils/share_helper.dart';
 import '../../models/comment.dart';
 import '../../providers.dart';
 import '../../services/supabase.dart';
@@ -186,7 +188,7 @@ class _Error extends StatelessWidget {
   }
 }
 
-class _Body extends StatelessWidget {
+class _Body extends ConsumerWidget {
   final Article article;
   final AsyncValue<List<Comment>> commentsAsync;
   const _Body({required this.article, required this.commentsAsync});
@@ -207,9 +209,11 @@ class _Body extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final t = context.tokens;
     final l = context.l10n;
+    final likedIds = ref.watch(likedArticleIdsProvider).valueOrNull ?? {};
+    final isLiked = likedIds.contains(article.id);
     final dateStr = DateFormat('yyyy-MM-dd HH:mm').format(article.createdAt);
     return CustomScrollView(
       slivers: [
@@ -305,6 +309,35 @@ class _Body extends StatelessWidget {
                     const SizedBox(width: 14),
                     Text('💬 ${article.commentCount}',
                         style: TextStyle(fontSize: 11, color: t.inkMute)),
+                    const SizedBox(width: 14),
+                    GestureDetector(
+                      onTap: () {
+                        if (!isSignedIn) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(l.like_login_required)),
+                          );
+                          return;
+                        }
+                        ref.read(likesRepoProvider).toggle('article', article.id).then((_) {
+                          ref.invalidate(likedArticleIdsProvider);
+                          ref.invalidate(articleDetailProvider(article.id));
+                        });
+                      },
+                      child: Text(
+                        '${isLiked ? "❤️" : "🤍"} ${article.likes}',
+                        style: TextStyle(fontSize: 11, color: t.inkMute),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    GestureDetector(
+                      onTap: () => shareArticle(
+                        title: article.title,
+                        category: _categoryLabel(context, article.category),
+                        summary: article.summary,
+                      ),
+                      child: Text('↗️ ${l.common_share}',
+                          style: TextStyle(fontSize: 11, color: t.inkMute)),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 20),

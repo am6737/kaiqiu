@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 
 import '../../l10n/generated/app_localizations.dart';
 import '../../l10n/l10n_extension.dart';
+import '../../repositories/likes_repository.dart';
+import '../../utils/share_helper.dart';
 import '../../models/comment.dart';
 import '../../providers.dart';
 import '../../services/supabase.dart';
@@ -167,13 +169,13 @@ class _Error extends StatelessWidget {
   }
 }
 
-class _Body extends StatelessWidget {
+class _Body extends ConsumerWidget {
   final Map<String, dynamic> data;
   final AsyncValue<List<Comment>> commentsAsync;
   const _Body({required this.data, required this.commentsAsync});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final t = context.tokens;
     final l = AppL10n.of(context);
     final author = data['author'] as Map<String, dynamic>?;
@@ -186,6 +188,10 @@ class _Body extends StatelessWidget {
     final shares = (data['shares'] as int?) ?? 0;
     final createdAt = DateTime.parse(data['created_at'] as String);
     final dateStr = DateFormat('yyyy-MM-dd HH:mm').format(createdAt);
+    final postId = data['id'] as String;
+
+    final likedIds = ref.watch(likedPostIdsProvider).valueOrNull ?? {};
+    final isLiked = likedIds.contains(postId);
 
     final matchCount = data['match_count'] as int?;
     final winCount = data['win_count'] as int?;
@@ -322,23 +328,44 @@ class _Body extends StatelessWidget {
           Divider(color: t.line, height: 1),
           const SizedBox(height: 16),
 
-          // Interaction stats
+          // Interaction stats — now interactive
           Row(
             children: [
-              _InteractionBtn(
-                  icon: Icons.favorite_border,
-                  label: '$likes',
-                  color: t.inkSub),
+              GestureDetector(
+                onTap: () {
+                  if (!isSignedIn) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(l.like_login_required)),
+                    );
+                    return;
+                  }
+                  ref.read(likesRepoProvider).toggle('post', postId).then((_) {
+                    ref.invalidate(likedPostIdsProvider);
+                    ref.invalidate(postDetailProvider(postId));
+                  });
+                },
+                child: _InteractionBtn(
+                    icon: isLiked ? Icons.favorite : Icons.favorite_border,
+                    label: '$likes',
+                    color: isLiked ? t.danger : t.inkSub),
+              ),
               const SizedBox(width: 28),
               _InteractionBtn(
                   icon: Icons.chat_bubble_outline,
                   label: '$commentCount',
                   color: t.inkSub),
               const SizedBox(width: 28),
-              _InteractionBtn(
-                  icon: Icons.share_outlined,
-                  label: '$shares',
-                  color: t.inkSub),
+              GestureDetector(
+                onTap: () => sharePost(
+                  authorName: authorName,
+                  body: body,
+                  tags: tags,
+                ),
+                child: _InteractionBtn(
+                    icon: Icons.share_outlined,
+                    label: '$shares',
+                    color: t.inkSub),
+              ),
             ],
           ),
 
