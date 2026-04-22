@@ -354,6 +354,8 @@ class _LiveEventRow extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
     final isReg = event.status == EventStatus.registering;
+    final liveAsync = ref.watch(liveMatchesForEventProvider(event.id));
+    final hasLive = liveAsync.valueOrNull?.isNotEmpty ?? false;
     final teamsMax = event.teamsMax ?? 16;
     final teams = ref.watch(eventTeamsCountProvider(event.id)).valueOrNull ?? 0;
     final progress = teamsMax > 0 ? teams / teamsMax : 0.0;
@@ -401,27 +403,29 @@ class _LiveEventRow extends ConsumerWidget {
                   Positioned(
                     top: 10,
                     left: 10,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 3,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isReg
-                            ? context.tokens.accentSubtle
-                            : (Theme.of(context).brightness == Brightness.dark
-                                ? const Color(0x80000000)
-                                : const Color(0xCCFFFFFF)),
-                        border: Border.all(color: isReg ? context.tokens.accent : context.tokens.line),
-                        borderRadius: BorderRadius.circular(3),
-                      ),
-                      child: Label(
-                        isReg
-                            ? context.l10n.events_tab_registering
-                            : context.l10n.events_tab_ongoing,
-                        color: isReg ? context.tokens.accent : context.tokens.ink,
-                      ),
-                    ),
+                    child: !isReg && hasLive
+                        ? const LivePill()
+                        : Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isReg
+                                  ? context.tokens.accentSubtle
+                                  : (Theme.of(context).brightness == Brightness.dark
+                                      ? const Color(0x80000000)
+                                      : const Color(0xCCFFFFFF)),
+                              border: Border.all(color: isReg ? context.tokens.accent : context.tokens.line),
+                              borderRadius: BorderRadius.circular(3),
+                            ),
+                            child: Label(
+                              isReg
+                                  ? context.l10n.events_tab_registering
+                                  : context.l10n.events_tab_ongoing,
+                              color: isReg ? context.tokens.accent : context.tokens.ink,
+                            ),
+                          ),
                   ),
                   Positioned(
                     top: 10,
