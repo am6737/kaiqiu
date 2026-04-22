@@ -28,6 +28,8 @@ import 'repositories/pickups_repository.dart';
 import 'repositories/predictions_repository.dart';
 import 'repositories/profiles_repository.dart';
 import 'repositories/ratings_repository.dart';
+import 'repositories/livekit_repository.dart';
+import 'models/livekit_token.dart';
 import 'repositories/reminders_repository.dart';
 import 'repositories/user_teams_repository.dart';
 import 'services/local_storage.dart';
@@ -54,6 +56,7 @@ final externalMatchesRepoProvider =
     Provider((_) => ExternalMatchesRepository());
 final notificationsRepoProvider =
     Provider((_) => NotificationsRepository());
+final livekitRepoProvider = Provider((_) => LiveKitRepository());
 
 // ─────────────────────────────────────────────────────────────
 // Local storage tick — bump whenever LocalStore changes so widgets
@@ -257,6 +260,28 @@ final eventChatMessagesProvider = StreamProvider.family<List<Message>, String>((
 ) async* {
   final convId = await ref.watch(eventChatConvProvider(eventId).future);
   yield* ref.read(messagesRepoProvider).streamMessages(convId);
+});
+
+/// LiveKit token for a match room.
+final livekitTokenProvider =
+    FutureProvider.family<LiveKitToken, String>((ref, matchId) async {
+  return ref.read(livekitRepoProvider).getToken(matchId);
+});
+
+/// Real-time match updates via Supabase Realtime (score, status, minute).
+final matchRealtimeProvider =
+    StreamProvider.family<Match, String>((ref, matchId) {
+  return supabase
+      .from('matches')
+      .stream(primaryKey: ['id'])
+      .eq('id', matchId)
+      .map((rows) => Match.fromMap(rows.first));
+});
+
+/// Live matches for a given event (status='live').
+final liveMatchesForEventProvider =
+    FutureProvider.family<List<Match>, String>((ref, eventId) async {
+  return ref.read(eventsRepoProvider).liveMatchesForEvent(eventId);
 });
 
 // ─────────────────────────────────────────────────────────────
