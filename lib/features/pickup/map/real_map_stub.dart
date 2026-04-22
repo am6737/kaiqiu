@@ -25,6 +25,7 @@ class RealPickupMap extends StatelessWidget {
   final double? centerLng;
   final int locateTrigger;
   final dynamic onUserLocationChanged;
+  final VoidCallback? onMapPanned;
 
   const RealPickupMap({
     super.key,
@@ -36,6 +37,7 @@ class RealPickupMap extends StatelessWidget {
     this.centerLng,
     this.locateTrigger = 0,
     this.onUserLocationChanged,
+    this.onMapPanned,
   });
 
   @override

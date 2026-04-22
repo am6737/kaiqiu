@@ -39,6 +39,7 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
   double _userLat = _fallbackLat;
   double _userLng = _fallbackLng;
   int _locateTrigger = 0;
+  bool _mapCentered = true;
 
   @override
   void initState() {
@@ -74,7 +75,12 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
 
   void _onLocateMe() {
     _acquireLocation().then((_) {
-      if (mounted) setState(() => _locateTrigger++);
+      if (mounted) {
+        setState(() {
+          _locateTrigger++;
+          _mapCentered = true;
+        });
+      }
     });
   }
 
@@ -323,6 +329,11 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                   });
                 }
               },
+              onMapPanned: () {
+                if (mounted && _mapCentered) {
+                  setState(() => _mapCentered = false);
+                }
+              },
               onPinTap: (id) {
                 setState(() => _activePin = id);
                 _sheetCtrl.animateTo(
@@ -467,7 +478,7 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                     ),
                   ],
                 ),
-                child: Icon(Icons.my_location, size: 20, color: context.tokens.accent),
+                child: Icon(Icons.my_location, size: 20, color: _mapCentered ? context.tokens.accent : context.tokens.inkMute),
               ),
             ),
           ),

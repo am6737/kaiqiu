@@ -19,6 +19,7 @@ class RealPickupMap extends StatefulWidget {
   final double? centerLng;
   final int locateTrigger;
   final ValueChanged<LatLng>? onUserLocationChanged;
+  final VoidCallback? onMapPanned;
 
   const RealPickupMap({
     super.key,
@@ -30,6 +31,7 @@ class RealPickupMap extends StatefulWidget {
     this.centerLng,
     this.locateTrigger = 0,
     this.onUserLocationChanged,
+    this.onMapPanned,
   });
 
   @override
@@ -40,6 +42,7 @@ class _RealPickupMapState extends State<RealPickupMap> {
   AMapController? _controller;
   LatLng? _userLocation;
   bool _initialLocateDone = false;
+  bool _programmaticMove = false;
 
   @override
   void didUpdateWidget(RealPickupMap old) {
@@ -50,6 +53,7 @@ class _RealPickupMapState extends State<RealPickupMap> {
   }
 
   Future<void> _flyToUser() async {
+    _programmaticMove = true;
     if (_userLocation != null) {
       _controller?.moveCamera(
         CameraUpdate.newLatLngZoom(_userLocation!, 15),
@@ -69,7 +73,9 @@ class _RealPickupMapState extends State<RealPickupMap> {
       _controller?.moveCamera(
         CameraUpdate.newLatLngZoom(target, 15),
       );
-    } catch (_) {}
+    } catch (_) {
+      _programmaticMove = false;
+    }
   }
 
   @override
@@ -91,11 +97,19 @@ class _RealPickupMapState extends State<RealPickupMap> {
           widget.onUserLocationChanged?.call(loc.latLng);
           if (!_initialLocateDone) {
             _initialLocateDone = true;
+            _programmaticMove = true;
             _controller?.moveCamera(
               CameraUpdate.newLatLngZoom(loc.latLng, 15),
             );
           }
         }
+      },
+      onCameraMoveEnd: (_) {
+        if (_programmaticMove) {
+          _programmaticMove = false;
+          return;
+        }
+        widget.onMapPanned?.call();
       },
     );
   }
