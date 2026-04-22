@@ -67,7 +67,7 @@ final feedsProvider = FutureProvider<List<FeedItem>>((ref) async {
 final liveNowProvider = FutureProvider<List<LiveMatch>>((ref) async {
   final rows = await supabase
       .from('matches')
-      .select('id, event_id, team_a_label, team_b_label, score_a, score_b, minute, viewers')
+      .select('id, event_id, team_a_label, team_b_label, score_a, score_b, minute, viewers, poster_url')
       .eq('is_live', true)
       .order('viewers', ascending: false);
   return (rows as List)

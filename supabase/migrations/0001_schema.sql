@@ -202,7 +202,8 @@ create table public.matches (
   done boolean default false,
   is_live boolean default false,
   minute text,
-  viewers int default 0
+  viewers int default 0,
+  poster_url text
 );
 
 create index matches_event_idx on public.matches (event_id);

@@ -9,6 +9,7 @@ class LiveMatch {
   final int scoreB;
   final String minute;
   final int viewers;
+  final String? posterUrl;
 
   const LiveMatch({
     required this.id,
@@ -19,6 +20,7 @@ class LiveMatch {
     required this.scoreB,
     required this.minute,
     required this.viewers,
+    this.posterUrl,
   });
 
   String get viewersDisplay {
@@ -35,5 +37,6 @@ class LiveMatch {
     scoreB: (m['score_b'] as int?) ?? 0,
     minute: (m['minute'] as String?) ?? '',
     viewers: (m['viewers'] as int?) ?? 0,
+    posterUrl: m['poster_url'] as String?,
   );
 }
