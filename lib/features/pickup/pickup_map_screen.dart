@@ -58,11 +58,20 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
         perm == LocationPermission.deniedForever) {
       return;
     }
+    // Try cached position first (instant, no GPS fix needed).
+    final last = await Geolocator.getLastKnownPosition();
+    if (last != null && mounted) {
+      setState(() {
+        _userLat = last.latitude;
+        _userLng = last.longitude;
+      });
+    }
+    // Then try a fresh fix; update if successful.
     try {
       final pos = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
           accuracy: LocationAccuracy.high,
-          timeLimit: Duration(seconds: 8),
+          timeLimit: Duration(seconds: 5),
         ),
       );
       if (mounted) {
@@ -325,6 +334,8 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
               pickups: pickups,
               activePinId: _activePin,
               locateTrigger: _locateTrigger,
+              centerLat: _userLat != _fallbackLat ? _userLat : null,
+              centerLng: _userLng != _fallbackLng ? _userLng : null,
               onUserLocationChanged: (pos) {
                 if (mounted) {
                   setState(() {

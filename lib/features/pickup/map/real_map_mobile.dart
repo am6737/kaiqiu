@@ -58,11 +58,29 @@ class _RealPickupMapState extends State<RealPickupMap> {
       );
       return;
     }
+    if (widget.centerLat != null && widget.centerLng != null) {
+      final target = LatLng(widget.centerLat!, widget.centerLng!);
+      _userLocation = target;
+      _controller?.moveCamera(
+        CameraUpdate.newLatLngZoom(target, 15),
+      );
+      return;
+    }
     try {
+      final last = await Geolocator.getLastKnownPosition();
+      if (last != null) {
+        final target = LatLng(last.latitude, last.longitude);
+        _userLocation = target;
+        widget.onUserLocationChanged?.call(target);
+        _controller?.moveCamera(
+          CameraUpdate.newLatLngZoom(target, 15),
+        );
+        return;
+      }
       final pos = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
           accuracy: LocationAccuracy.high,
-          timeLimit: Duration(seconds: 8),
+          timeLimit: Duration(seconds: 5),
         ),
       );
       final target = LatLng(pos.latitude, pos.longitude);
