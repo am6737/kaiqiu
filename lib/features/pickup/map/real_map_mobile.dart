@@ -20,6 +20,7 @@ class RealPickupMap extends StatefulWidget {
   final int locateTrigger;
   final ValueChanged<LatLng>? onUserLocationChanged;
   final VoidCallback? onMapPanned;
+  final VoidCallback? onMapTap;  // ← ADD
 
   const RealPickupMap({
     super.key,
@@ -32,6 +33,7 @@ class RealPickupMap extends StatefulWidget {
     this.locateTrigger = 0,
     this.onUserLocationChanged,
     this.onMapPanned,
+    this.onMapTap,  // ← ADD
   });
 
   @override
@@ -83,6 +85,7 @@ class _RealPickupMapState extends State<RealPickupMap> {
         _controller = c;
         _flyToUser();
       },
+      onTap: (LatLng _) => widget.onMapTap?.call(),  // ← ADD
       onLocationChanged: (AMapLocation loc) {
         if (isLocationValid(loc)) {
           _userLocation = loc.latLng;
