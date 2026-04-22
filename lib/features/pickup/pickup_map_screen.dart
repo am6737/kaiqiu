@@ -1,6 +1,7 @@
 // pickup_map_screen.dart — 约球地图 (stylized SVG-like) + 底部抽屉
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../l10n/l10n_extension.dart';
@@ -31,6 +32,48 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
   double _distKm = 5;
   int _maxFee = 100;
   String _level = 'any'; // any/新手/初级/中级/高级
+
+  Position? _userPos;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchLocation();
+  }
+
+  Future<void> _fetchLocation() async {
+    try {
+      final pos = await Geolocator.getLastKnownPosition();
+      if (pos != null && mounted) {
+        setState(() => _userPos = pos);
+        return;
+      }
+      if (!await Geolocator.isLocationServiceEnabled()) return;
+      var perm = await Geolocator.checkPermission();
+      if (perm == LocationPermission.denied) {
+        perm = await Geolocator.requestPermission();
+      }
+      if (perm == LocationPermission.denied ||
+          perm == LocationPermission.deniedForever) {
+        return;
+      }
+      final current = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.medium,
+          timeLimit: Duration(seconds: 6),
+        ),
+      );
+      if (mounted) setState(() => _userPos = current);
+    } catch (_) {}
+  }
+
+  String? _distanceTo(Pickup p) {
+    if (_userPos == null || p.lat == null || p.lng == null) return null;
+    final meters = Geolocator.distanceBetween(
+      _userPos!.latitude, _userPos!.longitude, p.lat!, p.lng!,
+    );
+    return (meters / 1000).toStringAsFixed(1);
+  }
 
   @override
   void dispose() {
@@ -438,6 +481,7 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                     delegate: SliverChildBuilderDelegate(
                       (_, i) => _MapListRow(
                         item: pickups[i],
+                        distanceKm: _distanceTo(pickups[i]),
                         onTap: () => context.push('/pickup/${pickups[i].id}'),
                       ),
                       childCount: pickups.length,
@@ -497,8 +541,9 @@ class _LegendRow extends StatelessWidget {
 
 class _MapListRow extends StatelessWidget {
   final Pickup item;
+  final String? distanceKm;
   final VoidCallback onTap;
-  const _MapListRow({required this.item, required this.onTap});
+  const _MapListRow({required this.item, this.distanceKm, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -555,6 +600,16 @@ class _MapListRow extends StatelessWidget {
                         size: 11,
                         color: context.tokens.inkSub,
                       ),
+                      if (distanceKm != null) ...[
+                        const SizedBox(width: 10),
+                        Icon(Icons.near_me, size: 10, color: context.tokens.inkMute),
+                        const SizedBox(width: 2),
+                        N(
+                          '${distanceKm}km',
+                          size: 11,
+                          color: context.tokens.inkMute,
+                        ),
+                      ],
                     ],
                   ),
                 ],
