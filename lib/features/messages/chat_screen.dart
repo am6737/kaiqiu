@@ -14,6 +14,7 @@ import '../../services/supabase.dart' as svc;
 import '../../services/storage.dart';
 import '../../utils/toast.dart';
 import '../../widgets/avatar.dart';
+import '../../widgets/network_avatar.dart';
 import '../../widgets/rich_input.dart';
 import '../../widgets/user_card_sheet.dart';
 import '../../theme/app_tokens.dart';
@@ -259,7 +260,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       child: Row(
                         children: [
                           if (isDm && peerProfile != null) ...[
-                            Avatar(peerProfile.name, size: 28),
+                            NetworkAvatar(peerProfile.name, url: peerProfile.avatarUrl, size: 28),
                             const SizedBox(width: 8),
                           ],
                           Expanded(
@@ -373,6 +374,7 @@ class _Bubble extends StatelessWidget {
       bubble = GestureDetector(
         onTap: () => _showFullImage(context, msg.body!),
         onLongPress: () {
+          HapticFeedback.lightImpact();
           Clipboard.setData(ClipboardData(text: msg.body!));
           showToast(context, context.l10n.chat_copied, success: true);
         },
@@ -408,6 +410,7 @@ class _Bubble extends StatelessWidget {
       bubble = GestureDetector(
         onLongPress: () {
           if (msg.body != null) {
+            HapticFeedback.lightImpact();
             Clipboard.setData(ClipboardData(text: msg.body!));
             showToast(context, context.l10n.chat_copied, success: true);
           }
@@ -510,7 +513,7 @@ class _DmEmptyState extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Avatar(profile.name, size: 72),
+                NetworkAvatar(profile.name, url: profile.avatarUrl, size: 72),
                 const SizedBox(height: 12),
                 Text(
                   profile.name,
