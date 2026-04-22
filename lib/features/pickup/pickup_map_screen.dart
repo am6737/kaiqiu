@@ -40,6 +40,7 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
   double _userLng = _fallbackLng;
   int _locateTrigger = 0;
   bool _mapCentered = true;
+  bool _isLocating = false;
 
   @override
   void initState() {
@@ -74,11 +75,14 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
   }
 
   void _onLocateMe() {
+    if (_isLocating) return;
+    setState(() => _isLocating = true);
     _acquireLocation().then((_) {
       if (mounted) {
         setState(() {
           _locateTrigger++;
           _mapCentered = true;
+          _isLocating = false;
         });
       }
     });
@@ -478,7 +482,16 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                     ),
                   ],
                 ),
-                child: Icon(Icons.my_location, size: 20, color: _mapCentered ? context.tokens.accent : context.tokens.inkMute),
+                child: _isLocating
+                    ? SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: context.tokens.accent,
+                        ),
+                      )
+                    : Icon(Icons.my_location, size: 20, color: _mapCentered ? context.tokens.accent : context.tokens.ink),
               ),
             ),
           ),
