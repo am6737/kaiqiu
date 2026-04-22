@@ -8,6 +8,8 @@ import 'features/events/event_detail_screen.dart';
 import 'features/events/events_hub_screen.dart';
 import 'features/events/match_detail_screen.dart';
 import 'features/events/match_ratings_screen.dart';
+import 'features/events/match_live_room.dart';
+import 'features/events/schedule_matches_screen.dart';
 import 'features/events/wc_live_screen.dart';
 import 'features/events/wc_predict_screen.dart';
 import 'features/events/world_cup_screen.dart';
@@ -120,6 +122,18 @@ final router = GoRouter(
         eventId: s.pathParameters['eventId']!,
         matchId: s.pathParameters['matchId']!,
       ),
+    ),
+    GoRoute(
+      path: '/event/:eventId/match/:matchId/live',
+      builder: (_, s) => MatchLiveRoom(
+        eventId: s.pathParameters['eventId']!,
+        matchId: s.pathParameters['matchId']!,
+      ),
+    ),
+    GoRoute(
+      path: '/event/:id/schedule',
+      builder: (_, s) =>
+          ScheduleMatchesScreen(eventId: s.pathParameters['id']!),
     ),
     GoRoute(path: '/worldcup', builder: (_, s) => const WorldCupScreen()),
     GoRoute(
