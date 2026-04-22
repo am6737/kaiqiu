@@ -170,3 +170,140 @@ String _relativeTime(DateTime dt) {
   if (diff.inDays < 7) return '${diff.inDays}天前';
   return DateFormat('MM-dd').format(dt);
 }
+
+class FeedPickup extends FeedItem {
+  @override final String id;
+  @override final DateTime createdAt;
+  final String venue;
+  final String? hostName;
+  final DateTime startAt;
+  final String? timeLabel;
+  final int total;
+  final int need;
+  final String? level;
+  final int feeCents;
+  final String status;
+
+  FeedPickup({
+    required this.id,
+    required this.createdAt,
+    required this.venue,
+    this.hostName,
+    required this.startAt,
+    this.timeLabel,
+    required this.total,
+    required this.need,
+    this.level,
+    this.feeCents = 0,
+    this.status = 'open',
+  });
+
+  @override String get kind => 'pickup';
+  double get feeYuan => feeCents / 100;
+  String get displayTime => timeLabel ?? '';
+  String get displayHost => hostName ?? '—';
+
+  factory FeedPickup.fromMap(Map<String, dynamic> m) => FeedPickup(
+        id: m['id'] as String,
+        createdAt: DateTime.parse(m['created_at'] as String),
+        venue: m['venue'] as String,
+        hostName: m['host_name'] as String?,
+        startAt: DateTime.parse(m['start_at'] as String),
+        timeLabel: m['time_label'] as String?,
+        total: m['total'] as int,
+        need: m['need'] as int? ?? 0,
+        level: m['level'] as String?,
+        feeCents: m['fee_cents'] as int? ?? 0,
+        status: m['status'] as String? ?? 'open',
+      );
+}
+
+class FeedArticle extends FeedItem {
+  @override final String id;
+  @override final DateTime createdAt;
+  final String title;
+  final String? summary;
+  final String? coverUrl;
+  final String category;
+  final int readTimeMin;
+  final int viewCount;
+  final int commentCount;
+
+  FeedArticle({
+    required this.id,
+    required this.createdAt,
+    required this.title,
+    this.summary,
+    this.coverUrl,
+    required this.category,
+    this.readTimeMin = 5,
+    this.viewCount = 0,
+    this.commentCount = 0,
+  });
+
+  @override String get kind => 'article';
+
+  factory FeedArticle.fromMap(Map<String, dynamic> m) => FeedArticle(
+        id: m['id'] as String,
+        createdAt: DateTime.parse(m['created_at'] as String),
+        title: m['title'] as String,
+        summary: m['summary'] as String?,
+        coverUrl: m['cover_url'] as String?,
+        category: m['category'] as String? ?? 'analysis',
+        readTimeMin: m['read_time_min'] as int? ?? 5,
+        viewCount: m['view_count'] as int? ?? 0,
+        commentCount: m['comment_count'] as int? ?? 0,
+      );
+}
+
+class FeedActivity extends FeedItem {
+  @override final String id;
+  @override final DateTime createdAt;
+  final String authorName;
+  final String body;
+  final List<String> tags;
+  final int likes;
+  final int comments;
+  final int shares;
+  final int? matchCount;
+  final int? winCount;
+  final int? playDuration;
+  final String? venue;
+
+  FeedActivity({
+    required this.id,
+    required this.createdAt,
+    required this.authorName,
+    required this.body,
+    this.tags = const [],
+    this.likes = 0,
+    this.comments = 0,
+    this.shares = 0,
+    this.matchCount,
+    this.winCount,
+    this.playDuration,
+    this.venue,
+  });
+
+  @override String get kind => 'activity';
+  bool get hasStats => matchCount != null;
+  String get displayTime => _relativeTime(createdAt);
+
+  factory FeedActivity.fromMap(Map<String, dynamic> m) {
+    final author = m['author'] as Map<String, dynamic>?;
+    return FeedActivity(
+      id: m['id'] as String,
+      createdAt: DateTime.parse(m['created_at'] as String),
+      authorName: author?['name'] as String? ?? '—',
+      body: m['body'] as String? ?? '',
+      tags: (m['tags'] as List?)?.cast<String>() ?? [],
+      likes: m['likes'] as int? ?? 0,
+      comments: m['comments'] as int? ?? 0,
+      shares: m['shares'] as int? ?? 0,
+      matchCount: m['match_count'] as int?,
+      winCount: m['win_count'] as int?,
+      playDuration: m['play_duration'] as int?,
+      venue: m['venue'] as String?,
+    );
+  }
+}
