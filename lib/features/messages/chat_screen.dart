@@ -14,6 +14,7 @@ import '../../services/storage.dart';
 import '../../utils/toast.dart';
 import '../../widgets/avatar.dart';
 import '../../widgets/rich_input.dart';
+import '../../widgets/user_card_sheet.dart';
 import '../../theme/app_tokens.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
@@ -203,7 +204,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final peerAsync = isDm
         ? ref.watch(dmPeerProfileProvider(widget.convId))
         : const AsyncValue<Profile?>.data(null);
-    // ignore: unused_local_variable — used by Task 3 (header avatar) and Task 5 (empty-state)
     final peerProfile = peerAsync.valueOrNull;
 
     String title;
@@ -250,14 +250,29 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: Text(
-                      title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: context.tokens.ink,
+                    child: GestureDetector(
+                      onTap: isDm && peerProfile != null
+                          ? () => showUserCardSheet(context, ref, userId: peerProfile.id)
+                          : null,
+                      child: Row(
+                        children: [
+                          if (isDm && peerProfile != null) ...[
+                            Avatar(peerProfile.name, size: 28),
+                            const SizedBox(width: 8),
+                          ],
+                          Expanded(
+                            child: Text(
+                              title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: context.tokens.ink,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
