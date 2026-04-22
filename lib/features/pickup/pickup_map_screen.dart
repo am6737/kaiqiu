@@ -33,7 +33,11 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
   int _maxFee = 100;
   String _level = 'any'; // any/新手/初级/中级/高级
 
-  Position? _userPos;
+  // User location for distance calculation; falls back to 龙岗大运 area.
+  static const _fallbackLat = 22.7272;
+  static const _fallbackLng = 114.2099;
+  double _userLat = _fallbackLat;
+  double _userLng = _fallbackLng;
 
   @override
   void initState() {
@@ -45,7 +49,10 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
     try {
       final pos = await Geolocator.getLastKnownPosition();
       if (pos != null && mounted) {
-        setState(() => _userPos = pos);
+        setState(() {
+          _userLat = pos.latitude;
+          _userLng = pos.longitude;
+        });
         return;
       }
       if (!await Geolocator.isLocationServiceEnabled()) return;
@@ -63,14 +70,19 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
           timeLimit: Duration(seconds: 6),
         ),
       );
-      if (mounted) setState(() => _userPos = current);
+      if (mounted) {
+        setState(() {
+          _userLat = current.latitude;
+          _userLng = current.longitude;
+        });
+      }
     } catch (_) {}
   }
 
   String? _distanceTo(Pickup p) {
-    if (_userPos == null || p.lat == null || p.lng == null) return null;
+    if (p.lat == null || p.lng == null) return null;
     final meters = Geolocator.distanceBetween(
-      _userPos!.latitude, _userPos!.longitude, p.lat!, p.lng!,
+      _userLat, _userLng, p.lat!, p.lng!,
     );
     return (meters / 1000).toStringAsFixed(1);
   }
