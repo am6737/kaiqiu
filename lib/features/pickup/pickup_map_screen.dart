@@ -40,8 +40,24 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
   double _userLng = _fallbackLng;
   int _locateTrigger = 0;
 
+  @override
+  void initState() {
+    super.initState();
+    _requestLocationPermission();
+  }
+
+  Future<void> _requestLocationPermission() async {
+    if (!await Geolocator.isLocationServiceEnabled()) return;
+    var perm = await Geolocator.checkPermission();
+    if (perm == LocationPermission.denied) {
+      perm = await Geolocator.requestPermission();
+    }
+  }
+
   void _onLocateMe() {
-    setState(() => _locateTrigger++);
+    _requestLocationPermission().then((_) {
+      setState(() => _locateTrigger++);
+    });
   }
 
   String? _distanceTo(Pickup p) {
