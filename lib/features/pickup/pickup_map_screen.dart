@@ -46,6 +46,7 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
   void initState() {
     super.initState();
     _acquireLocation();
+    _sheetCtrl.addListener(_onSheetChanged);
   }
 
   Future<void> _acquireLocation() async {
@@ -112,8 +113,27 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
     return (meters / 1000).toStringAsFixed(1);
   }
 
+  void _dismissCard() {
+    if (_activePin == null) return;
+    setState(() => _activePin = null);
+    _sheetCtrl.animateTo(
+      0.55,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+    );
+  }
+
+  void _onSheetChanged() {
+    if (!_sheetCtrl.isAttached) return;
+    final minSize = 80 / MediaQuery.of(context).size.height;
+    if (_activePin != null && _sheetCtrl.size > minSize + 0.01) {
+      setState(() => _activePin = null);
+    }
+  }
+
   @override
   void dispose() {
+    _sheetCtrl.removeListener(_onSheetChanged);
     _sheetCtrl.dispose();
     super.dispose();
   }
@@ -355,15 +375,18 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                 if (mounted && _mapCentered) {
                   setState(() => _mapCentered = false);
                 }
+                _dismissCard();
               },
               onPinTap: (id) {
                 setState(() => _activePin = id);
+                final minSize = 80 / MediaQuery.of(context).size.height;
                 _sheetCtrl.animateTo(
-                  0.55,
+                  minSize,
                   duration: const Duration(milliseconds: 300),
                   curve: Curves.easeOut,
                 );
               },
+              onMapTap: _dismissCard,
             ),
           ),
           // Top bar (gradient fade) — Positioned + mainAxisSize.min so the
@@ -394,11 +417,6 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                   children: [
                   Row(
                     children: [
-                      _CircleBtn(
-                        icon: Icons.arrow_back_ios_new,
-                        onTap: () => context.pop(),
-                      ),
-                      const SizedBox(width: 10),
                       Text(
                         context.l10n.pickup_map_title_city(LocalStore.city),
                         style: TextStyle(
@@ -587,6 +605,45 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
               ),
             ),
           ),
+          // Floating pickup card
+          Positioned(
+            left: 16,
+            right: 16,
+            bottom: MediaQuery.of(context).padding.bottom + 16,
+            child: AnimatedSlide(
+              offset: _activePin != null ? Offset.zero : const Offset(0, 2),
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+              child: AnimatedOpacity(
+                opacity: _activePin != null ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOut,
+                child: IgnorePointer(
+                  ignoring: _activePin == null,
+                  child: Builder(
+                    builder: (context) {
+                      final pickup = _activePin != null
+                          ? pickups.cast<Pickup?>().firstWhere(
+                              (p) => p!.id == _activePin,
+                              orElse: () => null,
+                            )
+                          : null;
+                      if (pickup == null) return const SizedBox.shrink();
+                      return AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 200),
+                        child: _PickupFloatingCard(
+                          key: ValueKey(pickup.id),
+                          pickup: pickup,
+                          distanceKm: _distanceTo(pickup),
+                          onTap: () => context.push('/pickup/${pickup.id}'),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -728,6 +785,156 @@ class _MapListRow extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _PickupFloatingCard extends StatelessWidget {
+  final Pickup pickup;
+  final String? distanceKm;
+  final VoidCallback onTap;
+  const _PickupFloatingCard({
+    super.key,
+    required this.pickup,
+    this.distanceKm,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final need = pickup.displayNeed;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: t.elev2,
+          borderRadius: BorderRadius.circular(t.r3),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.12),
+              blurRadius: 12,
+              offset: const Offset(0, -2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Venue photo or sport icon placeholder
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: pickup.venuePhotoUrl != null
+                  ? Image.network(
+                      pickup.venuePhotoUrl!,
+                      width: 56,
+                      height: 56,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => _placeholder(t),
+                    )
+                  : _placeholder(t),
+            ),
+            const SizedBox(width: 10),
+            // Info columns
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    pickup.venue,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: t.ink,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    [pickup.displayTime, pickup.formation]
+                        .where((s) => s.isNotEmpty)
+                        .join(' · '),
+                    style: TextStyle(fontSize: 11, color: t.inkSub),
+                  ),
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      Text(
+                        '¥${pickup.feeYuan.toStringAsFixed(0)}',
+                        style: TextStyle(fontSize: 11, color: t.inkSub),
+                      ),
+                      if (distanceKm != null) ...[
+                        const SizedBox(width: 8),
+                        Icon(Icons.near_me, size: 10, color: t.inkMute),
+                        const SizedBox(width: 2),
+                        Text(
+                          '${distanceKm}km',
+                          style: TextStyle(fontSize: 11, color: t.inkMute),
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            // Status badge + chevron
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                _badge(t, need),
+                const SizedBox(height: 4),
+                Icon(Icons.chevron_right, size: 18, color: t.inkMute),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _placeholder(AppTokens t) {
+    return Container(
+      width: 56,
+      height: 56,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: t.elev3,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: SportIcon(Sport.football, size: 22, color: t.inkSub),
+    );
+  }
+
+  Widget _badge(AppTokens t, int needed) {
+    final Color bg, fg;
+    final String text;
+    if (needed > 2) {
+      bg = const Color(0xFF4CAF50).withValues(alpha: 0.15);
+      fg = const Color(0xFF4CAF50);
+      text = '有位';
+    } else if (needed > 0) {
+      bg = t.warn.withValues(alpha: 0.15);
+      fg = t.warn;
+      text = '快满了';
+    } else {
+      bg = t.inkMute.withValues(alpha: 0.15);
+      fg = t.inkMute;
+      text = '已满';
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: fg),
       ),
     );
   }
