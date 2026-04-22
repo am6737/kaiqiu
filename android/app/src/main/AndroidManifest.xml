@@ -8,13 +8,10 @@
         android:label="开球"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
-        <!-- S2 · Google Maps API key. Empty placeholder lets the app build
-             without a key; the map widget simply renders a gray tile until
-             GMAPS_API_KEY is supplied via CI secret (-P...) or local
-             ~/.gradle/gradle.properties. -->
+        <!-- S2 · AMap (高德地图) API key -->
         <meta-data
-            android:name="com.google.android.geo.API_KEY"
-            android:value="${GMAPS_ANDROID_KEY}"/>
+            android:name="com.amap.api.v2.apikey"
+            android:value="320ae72b5f24ee9d84f966cb2c9ecd98"/>
         <activity
             android:name=".MainActivity"
             android:exported="true"

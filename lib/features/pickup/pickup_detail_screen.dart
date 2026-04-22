@@ -766,41 +766,33 @@ class _Details extends StatelessWidget {
         children: [
           Label(l.pickup_detail_details),
           const SizedBox(height: 10),
-          GridView.count(
-            crossAxisCount: 2,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            mainAxisSpacing: 10,
-            crossAxisSpacing: 10,
-            childAspectRatio: 2.4,
-            children: [
-              for (final (k, v) in items)
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: context.tokens.elev2,
-                    border: Border.all(color: context.tokens.line),
-                    borderRadius: BorderRadius.circular(context.tokens.r2),
+          for (var i = 0; i < items.length; i++) ...[
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 13),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    items[i].$1,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: context.tokens.inkSub,
+                    ),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Label(k),
-                      const SizedBox(height: 4),
-                      Text(
-                        v,
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          color: context.tokens.ink,
-                        ),
-                      ),
-                    ],
+                  Text(
+                    items[i].$2,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: context.tokens.ink,
+                    ),
                   ),
-                ),
-            ],
-          ),
+                ],
+              ),
+            ),
+            if (i < items.length - 1)
+              Divider(height: 1, color: context.tokens.line),
+          ],
         ],
       ),
     );

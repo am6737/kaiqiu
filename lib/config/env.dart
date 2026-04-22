@@ -38,8 +38,9 @@ class Env {
   static bool get isFirebaseConfigured =>
       firebaseApiKey.isNotEmpty && firebaseAppId.isNotEmpty;
 
-  // Maps (S2). Google Maps API key, injected via --dart-define /
-  // native manifest placeholder / web index.html script tag. Without a
-  // key the widget renders a gray tile but the build still succeeds.
-  static const gmapsApiKey = String.fromEnvironment('GMAPS_API_KEY');
+  // Maps (S2). AMap (高德地图) API key.
+  static const amapKey = String.fromEnvironment(
+    'AMAP_KEY',
+    defaultValue: '320ae72b5f24ee9d84f966cb2c9ecd98',
+  );
 }
