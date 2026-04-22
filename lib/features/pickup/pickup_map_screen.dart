@@ -123,9 +123,12 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
     );
   }
 
+  double _sheetMinSize(BuildContext context) =>
+      80 / MediaQuery.of(context).size.height;
+
   void _onSheetChanged() {
     if (!_sheetCtrl.isAttached) return;
-    final minSize = 80 / MediaQuery.of(context).size.height;
+    final minSize = _sheetMinSize(context);
     if (_activePin != null && _sheetCtrl.size > minSize + 0.01) {
       setState(() => _activePin = null);
     }
@@ -379,9 +382,8 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
               },
               onPinTap: (id) {
                 setState(() => _activePin = id);
-                final minSize = 80 / MediaQuery.of(context).size.height;
                 _sheetCtrl.animateTo(
-                  minSize,
+                  _sheetMinSize(context),
                   duration: const Duration(milliseconds: 300),
                   curve: Curves.easeOut,
                 );
@@ -535,7 +537,7 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
           DraggableScrollableSheet(
             controller: _sheetCtrl,
             initialChildSize: 0.55,
-            minChildSize: 80 / MediaQuery.of(context).size.height,
+            minChildSize: _sheetMinSize(context),
             maxChildSize: 0.55,
             snap: true,
             snapSizes: const [0.55],
@@ -623,10 +625,7 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                   child: Builder(
                     builder: (context) {
                       final pickup = _activePin != null
-                          ? pickups.cast<Pickup?>().firstWhere(
-                              (p) => p!.id == _activePin,
-                              orElse: () => null,
-                            )
+                          ? pickups.where((p) => p.id == _activePin).firstOrNull
                           : null;
                       if (pickup == null) return const SizedBox.shrink();
                       return AnimatedSwitcher(
@@ -886,7 +885,7 @@ class _PickupFloatingCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                _badge(t, need),
+                _badge(context, t, need),
                 const SizedBox(height: 4),
                 Icon(Icons.chevron_right, size: 18, color: t.inkMute),
               ],
@@ -910,21 +909,22 @@ class _PickupFloatingCard extends StatelessWidget {
     );
   }
 
-  Widget _badge(AppTokens t, int needed) {
+  Widget _badge(BuildContext context, AppTokens t, int needed) {
+    final l = context.l10n;
     final Color bg, fg;
     final String text;
     if (needed > 2) {
       bg = const Color(0xFF4CAF50).withValues(alpha: 0.15);
       fg = const Color(0xFF4CAF50);
-      text = '有位';
+      text = l.pickup_status_open;
     } else if (needed > 0) {
       bg = t.warn.withValues(alpha: 0.15);
       fg = t.warn;
-      text = '快满了';
+      text = l.pickup_status_almost;
     } else {
       bg = t.inkMute.withValues(alpha: 0.15);
       fg = t.inkMute;
-      text = '已满';
+      text = l.pickup_status_full;
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
