@@ -114,7 +114,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
         return Stack(
           children: [
             SingleChildScrollView(
-              padding: const EdgeInsets.only(bottom: 110),
+              padding: EdgeInsets.only(bottom: _tab == 'chat' ? 166 : 110),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -142,6 +142,13 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                 ],
               ),
             ),
+            if (_tab == 'chat')
+              Positioned(
+                bottom: 96,
+                left: 0,
+                right: 0,
+                child: _ChatInput(eventId: event.id),
+              ),
             Positioned(
               bottom: 0,
               left: 0,
@@ -368,14 +375,12 @@ class _Tabs extends StatelessWidget {
       decoration: BoxDecoration(
         border: Border(bottom: BorderSide(color: context.tokens.line, width: 1)),
       ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
         child: Row(
           children: [
             for (final t in tabs)
-              Padding(
-                padding: const EdgeInsets.only(right: 16),
+              Expanded(
                 child: GestureDetector(
                   onTap: () => onChange(t.$1),
                   child: Container(
@@ -390,6 +395,7 @@ class _Tabs extends StatelessWidget {
                     ),
                     child: Text(
                       t.$2,
+                      textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: current == t.$1
@@ -2152,15 +2158,64 @@ class _InlineStat extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────
 // Chat — realtime via Supabase conversations (one per event)
 // ─────────────────────────────────────────────────────────────
-class _ChatPanel extends ConsumerStatefulWidget {
+class _ChatPanel extends ConsumerWidget {
   final String eventId;
   const _ChatPanel({required this.eventId});
 
   @override
-  ConsumerState<_ChatPanel> createState() => _ChatPanelState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = context.l10n;
+    final async = ref.watch(eventChatMessagesProvider(eventId));
+    return Container(
+      padding: const EdgeInsets.all(14),
+      color: context.tokens.elev1,
+      child: async.when(
+        data: (msgs) {
+          if (msgs.isEmpty) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 40),
+              child: Center(
+                child: Text(
+                  l.empty_no_messages,
+                  style: TextStyle(color: context.tokens.inkDim, fontSize: 13),
+                ),
+              ),
+            );
+          }
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [for (final m in msgs.reversed) _Msg(msg: m)],
+          );
+        },
+        loading: () => Padding(
+          padding: EdgeInsets.symmetric(vertical: 20),
+          child: Center(
+            child: CircularProgressIndicator(color: context.tokens.accent, strokeWidth: 2),
+          ),
+        ),
+        error: (e, _) => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          child: Center(
+            child: Text(
+              '${l.error_load_failed}: $e',
+              style: TextStyle(color: context.tokens.inkSub, fontSize: 12),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
-class _ChatPanelState extends ConsumerState<_ChatPanel> {
+class _ChatInput extends ConsumerStatefulWidget {
+  final String eventId;
+  const _ChatInput({required this.eventId});
+
+  @override
+  ConsumerState<_ChatInput> createState() => _ChatInputState();
+}
+
+class _ChatInputState extends ConsumerState<_ChatInput> {
   final _inputC = TextEditingController();
   bool _sending = false;
 
@@ -2192,95 +2247,54 @@ class _ChatPanelState extends ConsumerState<_ChatPanel> {
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
-    final async = ref.watch(eventChatMessagesProvider(widget.eventId));
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.fromLTRB(14, 10, 14, 0),
       color: context.tokens.elev1,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          async.when(
-            data: (msgs) {
-              if (msgs.isEmpty) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 40),
-                  child: Center(
-                    child: Text(
-                      l.empty_no_messages,
-                      style: TextStyle(color: context.tokens.inkDim, fontSize: 13),
-                    ),
-                  ),
-                );
-              }
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [for (final m in msgs.reversed) _Msg(msg: m)],
-              );
-            },
-            loading: () => Padding(
-              padding: EdgeInsets.symmetric(vertical: 20),
-              child: Center(
-                child: CircularProgressIndicator(color: context.tokens.accent, strokeWidth: 2),
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              decoration: BoxDecoration(
+                color: context.tokens.elev2,
+                borderRadius: BorderRadius.circular(18),
               ),
-            ),
-            error: (e, _) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 20),
-              child: Center(
-                child: Text(
-                  '${l.error_load_failed}: $e',
-                  style: TextStyle(color: context.tokens.inkSub, fontSize: 12),
+              child: TextField(
+                controller: _inputC,
+                onSubmitted: (_) => _send(),
+                style: TextStyle(color: context.tokens.ink, fontSize: 14),
+                decoration: InputDecoration(
+                  hintText: l.event_chat_hint,
+                  hintStyle: TextStyle(color: context.tokens.inkDim, fontSize: 13),
+                  border: InputBorder.none,
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 10),
                 ),
               ),
             ),
           ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  decoration: BoxDecoration(
-                    color: context.tokens.elev2,
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                  child: TextField(
-                    controller: _inputC,
-                    onSubmitted: (_) => _send(),
-                    style: TextStyle(color: context.tokens.ink, fontSize: 14),
-                    decoration: InputDecoration(
-                      hintText: l.event_chat_hint,
-                      hintStyle: TextStyle(color: context.tokens.inkDim, fontSize: 13),
-                      border: InputBorder.none,
-                      isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                    ),
-                  ),
-                ),
+          const SizedBox(width: 8),
+          GestureDetector(
+            onTap: _sending ? null : _send,
+            child: Container(
+              width: 36,
+              height: 36,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: context.tokens.accent,
+                shape: BoxShape.circle,
               ),
-              const SizedBox(width: 8),
-              GestureDetector(
-                onTap: _sending ? null : _send,
-                child: Container(
-                  width: 36,
-                  height: 36,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: context.tokens.accent,
-                    shape: BoxShape.circle,
-                  ),
-                  child: _sending
-                      ? const SizedBox(
-                          width: 14,
-                          height: 14,
-                          child: CircularProgressIndicator(
-                            color: Colors.black,
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : const Icon(Icons.send, size: 14, color: Colors.black),
-                ),
-              ),
-            ],
+              child: _sending
+                  ? const SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(
+                        color: Colors.black,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : const Icon(Icons.send, size: 14, color: Colors.black),
+            ),
           ),
         ],
       ),
