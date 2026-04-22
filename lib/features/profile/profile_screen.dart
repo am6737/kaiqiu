@@ -79,6 +79,9 @@ class ProfileScreen extends ConsumerWidget {
       ),
     ];
 
+    final followingCount = ref.watch(followingCountProvider);
+    final followersCount = ref.watch(followersCountProvider).valueOrNull ?? 0;
+
     return Scaffold(
       backgroundColor: context.tokens.bg,
       body: SafeArea(
@@ -86,60 +89,115 @@ class ProfileScreen extends ConsumerWidget {
         child: ListView(
           padding: const EdgeInsets.only(bottom: 100),
           children: [
-            // Title
+            // Title row
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 6, 16, 14),
-              child: Text(
-                l.profile_title,
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w800,
-                  color: context.tokens.ink,
-                  letterSpacing: -0.5,
+              padding: const EdgeInsets.fromLTRB(16, 6, 16, 8),
+              child: Row(
+                children: [
+                  Text(
+                    l.profile_title,
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w800,
+                      color: context.tokens.ink,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () => context.push('/settings/account'),
+                    child: Container(
+                      width: 36,
+                      height: 36,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: context.tokens.elev2,
+                        border: Border.all(color: context.tokens.line),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.settings_outlined,
+                        size: 18,
+                        color: context.tokens.inkSub,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Centered avatar
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Center(child: Avatar(u?.name ?? '新球友', size: 72)),
+            ),
+            // Name
+            Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: Center(
+                child: Text(
+                  u?.name ?? '新球友',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: context.tokens.ink,
+                    letterSpacing: -0.3,
+                  ),
                 ),
               ),
             ),
-            // Identity strip (avatar + name + @handle + 编辑)
+            // Handle
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 18),
+              padding: const EdgeInsets.only(top: 4),
+              child: Center(
+                child: Text(
+                  u?.handle ?? '',
+                  style: TextStyle(
+                    fontFamily: context.tokens.fontMono,
+                    fontFamilyFallback: context.tokens.monoFallbacks,
+                    fontSize: 13,
+                    color: context.tokens.inkSub,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+              ),
+            ),
+            // Stats row: Following | Followers
+            Padding(
+              padding: const EdgeInsets.fromLTRB(40, 20, 40, 0),
               child: Row(
                 children: [
-                  Avatar(u?.name ?? '新球友', size: 56),
-                  const SizedBox(width: 14),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          u?.name ?? '新球友',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            color: context.tokens.ink,
-                            letterSpacing: -0.3,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          u?.handle ?? '',
-                          style: TextStyle(
-                            fontFamily: context.tokens.fontMono,
-                            fontFamilyFallback: context.tokens.monoFallbacks,
-                            fontSize: 12,
-                            color: context.tokens.inkSub,
-                            letterSpacing: 0.2,
-                          ),
-                        ),
-                      ],
+                    child: GestureDetector(
+                      onTap: () => context.push('/me/favorites'),
+                      child: _StatColumn(
+                        count: followingCount,
+                        label: l.profile_following,
+                      ),
                     ),
                   ),
-                  PrimaryButton(
-                    label: l.profile_edit_btn,
-                    variant: BtnVariant.ghost,
-                    size: BtnSize.sm,
-                    onPressed: () => context.push('/profile/edit'),
+                  Container(
+                    width: 1,
+                    height: 32,
+                    color: context.tokens.line,
+                  ),
+                  Expanded(
+                    child: _StatColumn(
+                      count: followersCount,
+                      label: l.profile_followers,
+                    ),
                   ),
                 ],
+              ),
+            ),
+            // Edit profile button
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
+              child: PrimaryButton(
+                label: l.profile_edit_btn,
+                variant: BtnVariant.ghost,
+                size: BtnSize.md,
+                full: true,
+                onPressed: () => context.push('/profile/edit'),
               ),
             ),
             // Archive entry card
@@ -360,6 +418,35 @@ class _MenuItem {
     this.trailing,
     this.onTap,
   });
+}
+
+class _StatColumn extends StatelessWidget {
+  final int count;
+  final String label;
+  const _StatColumn({required this.count, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        N(
+          '$count',
+          size: 20,
+          weight: FontWeight.w800,
+          color: context.tokens.ink,
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: context.tokens.inkSub,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 class _MiniStat extends StatelessWidget {

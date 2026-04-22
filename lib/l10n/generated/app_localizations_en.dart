@@ -1028,6 +1028,12 @@ class AppL10nEn extends AppL10n {
   String get profile_menu_about => 'About';
 
   @override
+  String get profile_following => 'Following';
+
+  @override
+  String get profile_followers => 'Followers';
+
+  @override
   String get profile_logout => 'Sign out';
 
   @override
@@ -2240,4 +2246,11 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get messages_new_dm_cant_self => 'Can\'t DM yourself';
+
+  @override
+  String get pickup_map_location_disabled => 'Location services are disabled';
+
+  @override
+  String get pickup_map_location_denied =>
+      'Location permission denied. Please enable it in Settings.';
 }

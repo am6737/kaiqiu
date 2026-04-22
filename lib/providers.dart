@@ -363,3 +363,25 @@ final myProfileProvider = FutureProvider<PlayerProfile?>((ref) async {
   if (uid == null) return null;
   return ref.read(profilesRepoProvider).fetchFullProfile(uid);
 });
+
+/// Number of users the current user follows (local cache).
+final followingCountProvider = Provider<int>((ref) {
+  ref.watch(localStoreProvider);
+  return LocalStore.followedUsers.length;
+});
+
+/// Number of users who follow the current user (Supabase RPC).
+final followersCountProvider = FutureProvider<int>((ref) async {
+  ref.watch(localStoreProvider);
+  final profile = await ref.watch(myProfileProvider.future);
+  if (profile == null) return 0;
+  try {
+    final result = await supabase.rpc(
+      'followers_count',
+      params: {'target_name': profile.name},
+    );
+    return (result as num?)?.toInt() ?? 0;
+  } catch (_) {
+    return 0;
+  }
+});

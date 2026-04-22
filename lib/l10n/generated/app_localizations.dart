@@ -2035,6 +2035,18 @@ abstract class AppL10n {
   /// **'关于开球'**
   String get profile_menu_about;
 
+  /// No description provided for @profile_following.
+  ///
+  /// In zh, this message translates to:
+  /// **'关注'**
+  String get profile_following;
+
+  /// No description provided for @profile_followers.
+  ///
+  /// In zh, this message translates to:
+  /// **'粉丝'**
+  String get profile_followers;
+
   /// No description provided for @profile_logout.
   ///
   /// In zh, this message translates to:
@@ -4266,6 +4278,18 @@ abstract class AppL10n {
   /// In zh, this message translates to:
   /// **'不能和自己私聊'**
   String get messages_new_dm_cant_self;
+
+  /// No description provided for @pickup_map_location_disabled.
+  ///
+  /// In zh, this message translates to:
+  /// **'定位服务未开启'**
+  String get pickup_map_location_disabled;
+
+  /// No description provided for @pickup_map_location_denied.
+  ///
+  /// In zh, this message translates to:
+  /// **'定位权限被拒绝，请在设置中开启'**
+  String get pickup_map_location_denied;
 }
 
 class _AppL10nDelegate extends LocalizationsDelegate<AppL10n> {

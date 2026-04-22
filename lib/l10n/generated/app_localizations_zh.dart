@@ -1018,6 +1018,12 @@ class AppL10nZh extends AppL10n {
   String get profile_menu_about => '关于开球';
 
   @override
+  String get profile_following => '关注';
+
+  @override
+  String get profile_followers => '粉丝';
+
+  @override
   String get profile_logout => '退出登录';
 
   @override
@@ -2210,4 +2216,10 @@ class AppL10nZh extends AppL10n {
 
   @override
   String get messages_new_dm_cant_self => '不能和自己私聊';
+
+  @override
+  String get pickup_map_location_disabled => '定位服务未开启';
+
+  @override
+  String get pickup_map_location_denied => '定位权限被拒绝，请在设置中开启';
 }

@@ -395,6 +395,8 @@
   "profile_menu_notif": "Notifications",
   "profile_menu_help": "Help & Feedback",
   "profile_menu_about": "About",
+  "profile_following": "Following",
+  "profile_followers": "Followers",
   "profile_logout": "Sign out",
   "profile_logout_confirm": "Sign out of GameOn?",
 
@@ -866,5 +868,7 @@
   "messages_new_dm": "Start DM",
   "messages_new_dm_hint": "Enter the user's handle",
   "messages_new_dm_not_found": "User not found",
-  "messages_new_dm_cant_self": "Can't DM yourself"
+  "messages_new_dm_cant_self": "Can't DM yourself",
+  "pickup_map_location_disabled": "Location services are disabled",
+  "pickup_map_location_denied": "Location permission denied. Please enable it in Settings."
 }

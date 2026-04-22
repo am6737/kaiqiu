@@ -395,6 +395,8 @@
   "profile_menu_notif": "通知与消息",
   "profile_menu_help": "帮助与反馈",
   "profile_menu_about": "关于开球",
+  "profile_following": "关注",
+  "profile_followers": "粉丝",
   "profile_logout": "退出登录",
   "profile_logout_confirm": "确认退出登录？",
 
@@ -866,5 +868,7 @@
   "messages_new_dm": "发起私聊",
   "messages_new_dm_hint": "输入对方 @handle",
   "messages_new_dm_not_found": "用户不存在",
-  "messages_new_dm_cant_self": "不能和自己私聊"
+  "messages_new_dm_cant_self": "不能和自己私聊",
+  "pickup_map_location_disabled": "定位服务未开启",
+  "pickup_map_location_denied": "定位权限被拒绝，请在设置中开启"
 }
