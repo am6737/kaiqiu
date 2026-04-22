@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 
 import '../../l10n/l10n_extension.dart';
 import '../../models/message.dart';
+import '../../models/profile.dart';
 import '../../providers.dart';
 import '../../services/local_storage.dart';
 import '../../services/supabase.dart' as svc;
@@ -198,12 +199,24 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final me = svc.currentUserId;
 
     final conv = ref.watch(conversationByIdProvider(widget.convId));
+    final isDm = conv?.kind == 'dm';
+    final peerAsync = isDm
+        ? ref.watch(dmPeerProfileProvider(widget.convId))
+        : const AsyncValue<Profile?>.data(null);
+    // ignore: unused_local_variable — used by Task 3 (header avatar) and Task 5 (empty-state)
+    final peerProfile = peerAsync.valueOrNull;
+
     String title;
-    if (conv?.kind == 'dm') {
-      final peer = ref.watch(dmPeerProfileProvider(widget.convId)).valueOrNull;
-      title = peer?.name ?? context.l10n.chat_default_group_title;
+    if (conv == null) {
+      title = '…';
+    } else if (isDm) {
+      title = peerAsync.when(
+        data: (p) => p?.name ?? '…',
+        loading: () => '…',
+        error: (_, _) => '…',
+      );
     } else {
-      title = conv?.title ?? context.l10n.chat_default_group_title;
+      title = conv.title ?? context.l10n.chat_default_group_title;
     }
 
     // Auto-scroll to bottom when new data arrives.
