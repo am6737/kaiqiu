@@ -26,6 +26,7 @@ class RealPickupMap extends StatelessWidget {
   final int locateTrigger;
   final dynamic onUserLocationChanged;
   final VoidCallback? onMapPanned;
+  final VoidCallback? onMapTap;
 
   const RealPickupMap({
     super.key,
@@ -38,6 +39,7 @@ class RealPickupMap extends StatelessWidget {
     this.locateTrigger = 0,
     this.onUserLocationChanged,
     this.onMapPanned,
+    this.onMapTap,
   });
 
   @override
@@ -48,28 +50,31 @@ class RealPickupMap extends StatelessWidget {
     final mapPark   = isDark ? const Color(0xFF142219) : const Color(0xFFC8E0D0);
     final mapStreet = isDark ? const Color(0xFF1D2A24) : const Color(0xFFD8DCD9);
     final mapRiver  = isDark ? const Color(0xFF13212B) : const Color(0xFFB8D4E2);
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        Container(
-          color: mapBg,
-          child: CustomPaint(
-            painter: _MapStubPainter(
-              parkColor:   mapPark,
-              streetColor: mapStreet,
-              riverColor:  mapRiver,
-              bgColor:     mapBg,
+    return GestureDetector(
+      onTap: onMapTap,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Container(
+            color: mapBg,
+            child: CustomPaint(
+              painter: _MapStubPainter(
+                parkColor:   mapPark,
+                streetColor: mapStreet,
+                riverColor:  mapRiver,
+                bgColor:     mapBg,
+              ),
             ),
           ),
-        ),
-        for (final p in pickups)
-          _Pin(
-            pickup: p,
-            size: size,
-            isActive: activePinId == p.id,
-            onTap: () => onPinTap(p.id),
-          ),
-      ],
+          for (final p in pickups)
+            _Pin(
+              pickup: p,
+              size: size,
+              isActive: activePinId == p.id,
+              onTap: () => onPinTap(p.id),
+            ),
+        ],
+      ),
     );
   }
 }
