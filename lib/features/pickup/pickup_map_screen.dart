@@ -43,20 +43,38 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
   @override
   void initState() {
     super.initState();
-    _requestLocationPermission();
+    _acquireLocation();
   }
 
-  Future<void> _requestLocationPermission() async {
+  Future<void> _acquireLocation() async {
     if (!await Geolocator.isLocationServiceEnabled()) return;
     var perm = await Geolocator.checkPermission();
     if (perm == LocationPermission.denied) {
       perm = await Geolocator.requestPermission();
     }
+    if (perm == LocationPermission.denied ||
+        perm == LocationPermission.deniedForever) {
+      return;
+    }
+    try {
+      final pos = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 8),
+        ),
+      );
+      if (mounted) {
+        setState(() {
+          _userLat = pos.latitude;
+          _userLng = pos.longitude;
+        });
+      }
+    } catch (_) {}
   }
 
   void _onLocateMe() {
-    _requestLocationPermission().then((_) {
-      setState(() => _locateTrigger++);
+    _acquireLocation().then((_) {
+      if (mounted) setState(() => _locateTrigger++);
     });
   }
 

@@ -18,7 +18,7 @@ class _FakeMessagesRepo extends MessagesRepository {
   @override
   Future<List<Message>> listMessages(String convId) async => const [];
   @override
-  Future<Message> send(String convId, String body) =>
+  Future<Message> send(String convId, String body, {String kind = 'text'}) =>
       throw UnimplementedError();
   @override
   Stream<List<Message>> streamMessages(String convId) => const Stream.empty();

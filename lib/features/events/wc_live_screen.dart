@@ -17,6 +17,7 @@ import '../../widgets/live_predict_strip.dart';
 import '../../widgets/live_stream_player.dart';
 import '../../widgets/typography.dart';
 import '../../theme/app_tokens.dart';
+import '../../widgets/rich_input.dart';
 
 class WcLiveScreen extends ConsumerStatefulWidget {
   final String matchId;
@@ -335,60 +336,10 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
                       ),
               ),
             ),
-            Container(
-              padding: const EdgeInsets.fromLTRB(12, 10, 12, 28),
-              decoration: BoxDecoration(
-                color: context.tokens.elev1,
-                border: Border(top: BorderSide(color: context.tokens.line, width: 1)),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                      decoration: BoxDecoration(
-                        color: context.tokens.elev2,
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      child: TextField(
-                        controller: _inputC,
-                        onSubmitted: (_) => _send(),
-                        style: TextStyle(color: context.tokens.ink, fontSize: 14),
-                        decoration: InputDecoration(
-                          hintText: l.wc_live_input_hint,
-                          hintStyle: TextStyle(
-                            color: context.tokens.inkDim,
-                            fontSize: 13,
-                          ),
-                          border: InputBorder.none,
-                          isDense: true,
-                          contentPadding: const EdgeInsets.symmetric(
-                            vertical: 10,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: _send,
-                    child: Container(
-                      width: 42,
-                      height: 42,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: context.tokens.accent,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.send,
-                        size: 16,
-                        color: Colors.black,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+            RichInput(
+              controller: _inputC,
+              onSend: _send,
+              hintText: l.wc_live_input_hint,
             ),
           ],
         ),

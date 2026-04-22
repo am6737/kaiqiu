@@ -28,6 +28,9 @@ import '../../widgets/avatar.dart';
 import '../../widgets/network_avatar.dart';
 import '../../widgets/network_cover.dart';
 import '../../widgets/primary_button.dart';
+import '../../services/storage.dart';
+import '../../widgets/rich_input.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../widgets/team_badge.dart';
 import '../../widgets/typography.dart';
 import '../../theme/app_tokens.dart';
@@ -2244,60 +2247,34 @@ class _ChatInputState extends ConsumerState<_ChatInput> {
     }
   }
 
+  Future<void> _pickAndSendImage() async {
+    final convId = await ref.read(
+      eventChatConvProvider(widget.eventId).future,
+    );
+    final url = await StorageService().pickCropCompressAndUpload(
+      bucket: 'chat-images',
+      pathPrefix: convId,
+      square: false,
+    );
+    if (url == null || !mounted) return;
+    try {
+      await ref.read(messagesRepoProvider).send(convId, url, kind: 'image');
+    } catch (e) {
+      if (mounted) {
+        showToast(context, context.l10n.chat_send_failed, error: true);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final l = context.l10n;
-    return Container(
-      padding: const EdgeInsets.fromLTRB(14, 10, 14, 0),
-      color: context.tokens.elev1,
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              decoration: BoxDecoration(
-                color: context.tokens.elev2,
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: TextField(
-                controller: _inputC,
-                onSubmitted: (_) => _send(),
-                style: TextStyle(color: context.tokens.ink, fontSize: 14),
-                decoration: InputDecoration(
-                  hintText: l.event_chat_hint,
-                  hintStyle: TextStyle(color: context.tokens.inkDim, fontSize: 13),
-                  border: InputBorder.none,
-                  isDense: true,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          GestureDetector(
-            onTap: _sending ? null : _send,
-            child: Container(
-              width: 36,
-              height: 36,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: context.tokens.accent,
-                shape: BoxShape.circle,
-              ),
-              child: _sending
-                  ? const SizedBox(
-                      width: 14,
-                      height: 14,
-                      child: CircularProgressIndicator(
-                        color: Colors.black,
-                        strokeWidth: 2,
-                      ),
-                    )
-                  : const Icon(Icons.send, size: 14, color: Colors.black),
-            ),
-          ),
-        ],
-      ),
+    return RichInput(
+      controller: _inputC,
+      onSend: _send,
+      sending: _sending,
+      showAttachments: true,
+      onPickImage: _pickAndSendImage,
+      hintText: context.l10n.event_chat_hint,
     );
   }
 }
@@ -2339,14 +2316,46 @@ class _Msg extends StatelessWidget {
                     Label('$hh:$mm'),
                   ],
                 ),
-                Text(
-                  msg.body ?? '',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: context.tokens.ink,
-                    height: 1.5,
+                if (msg.kind == 'image' && msg.body != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 180, maxHeight: 220),
+                        child: CachedNetworkImage(
+                          imageUrl: msg.body!,
+                          fit: BoxFit.cover,
+                          placeholder: (_, _) => Container(
+                            width: 140,
+                            height: 100,
+                            color: context.tokens.elev3,
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                color: context.tokens.accent,
+                                strokeWidth: 2,
+                              ),
+                            ),
+                          ),
+                          errorWidget: (_, _, _) => Container(
+                            width: 140,
+                            height: 60,
+                            color: context.tokens.elev3,
+                            child: Icon(Icons.broken_image, color: context.tokens.inkDim),
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                else
+                  Text(
+                    msg.body ?? '',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: context.tokens.ink,
+                      height: 1.5,
+                    ),
                   ),
-                ),
               ],
             ),
           ),

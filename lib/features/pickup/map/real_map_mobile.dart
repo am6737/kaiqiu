@@ -2,6 +2,7 @@
 
 import 'package:amap_map/amap_map.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:x_amap_base/x_amap_base.dart';
 
 import '../../../models/pickup.dart';
@@ -38,15 +39,37 @@ class RealPickupMap extends StatefulWidget {
 class _RealPickupMapState extends State<RealPickupMap> {
   AMapController? _controller;
   LatLng? _userLocation;
+  bool _initialLocateDone = false;
 
   @override
   void didUpdateWidget(RealPickupMap old) {
     super.didUpdateWidget(old);
-    if (widget.locateTrigger != old.locateTrigger && _userLocation != null) {
+    if (widget.locateTrigger != old.locateTrigger) {
+      _flyToUser();
+    }
+  }
+
+  Future<void> _flyToUser() async {
+    if (_userLocation != null) {
       _controller?.moveCamera(
         CameraUpdate.newLatLngZoom(_userLocation!, 15),
       );
+      return;
     }
+    try {
+      final pos = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 8),
+        ),
+      );
+      final target = LatLng(pos.latitude, pos.longitude);
+      _userLocation = target;
+      widget.onUserLocationChanged?.call(target);
+      _controller?.moveCamera(
+        CameraUpdate.newLatLngZoom(target, 15),
+      );
+    } catch (_) {}
   }
 
   @override
@@ -58,11 +81,20 @@ class _RealPickupMapState extends State<RealPickupMap> {
       ),
       markers: _buildMarkers(),
       myLocationStyleOptions: MyLocationStyleOptions(true),
-      onMapCreated: (c) => _controller = c,
+      onMapCreated: (c) {
+        _controller = c;
+        _flyToUser();
+      },
       onLocationChanged: (AMapLocation loc) {
         if (isLocationValid(loc)) {
           _userLocation = loc.latLng;
           widget.onUserLocationChanged?.call(loc.latLng);
+          if (!_initialLocateDone) {
+            _initialLocateDone = true;
+            _controller?.moveCamera(
+              CameraUpdate.newLatLngZoom(loc.latLng, 15),
+            );
+          }
         }
       },
     );

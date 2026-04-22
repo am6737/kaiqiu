@@ -13,6 +13,8 @@ import '../../widgets/avatar.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/typography.dart';
 import '../../theme/app_tokens.dart';
+import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
 
 class PostMatchRatingScreen extends ConsumerStatefulWidget {
   final String matchId;
@@ -30,6 +32,9 @@ class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
   bool _done = false;
   bool _submitting = false;
   bool _loading = true;
+  bool _emojiOpen = false;
+  final _commentFocus = FocusNode();
+  final _commentControllers = <String, TextEditingController>{};
 
   List<MatchParticipant> _players = [];
   Match? _match;
@@ -38,6 +43,23 @@ class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
   void initState() {
     super.initState();
     _load();
+  }
+
+  @override
+  void dispose() {
+    _commentFocus.dispose();
+    for (final c in _commentControllers.values) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  TextEditingController _commentCtrlFor(String name) {
+    return _commentControllers.putIfAbsent(name, () {
+      final ctrl = TextEditingController(text: _comments[name] ?? '');
+      ctrl.addListener(() => _comments[name] = ctrl.text);
+      return ctrl;
+    });
   }
 
   Future<void> _load() async {
@@ -328,9 +350,13 @@ class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
                         const SizedBox(height: 6),
                         TextField(
                           key: ValueKey('comment-${p.displayName}'),
+                          controller: _commentCtrlFor(p.displayName),
+                          focusNode: _commentFocus,
+                          onTap: () {
+                            if (_emojiOpen) setState(() => _emojiOpen = false);
+                          },
                           minLines: 3,
                           maxLines: 4,
-                          onChanged: (v) => _comments[p.displayName] = v,
                           style: TextStyle(
                             fontSize: 13,
                             color: context.tokens.ink,
@@ -344,6 +370,27 @@ class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
                             filled: true,
                             fillColor: context.tokens.elev3,
                             contentPadding: const EdgeInsets.all(12),
+                            suffixIcon: GestureDetector(
+                              onTap: () {
+                                if (_emojiOpen) {
+                                  setState(() => _emojiOpen = false);
+                                  _commentFocus.requestFocus();
+                                } else {
+                                  _commentFocus.unfocus();
+                                  setState(() => _emojiOpen = true);
+                                }
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.all(8),
+                                child: Icon(
+                                  _emojiOpen
+                                      ? Icons.keyboard
+                                      : Icons.emoji_emotions_outlined,
+                                  size: 22,
+                                  color: context.tokens.inkSub,
+                                ),
+                              ),
+                            ),
                             border: OutlineInputBorder(
                               borderSide: BorderSide(color: context.tokens.line),
                               borderRadius: BorderRadius.circular(context.tokens.r2),
@@ -393,6 +440,41 @@ class _PostMatchRatingScreenState extends ConsumerState<PostMatchRatingScreen> {
               ),
             ),
           ),
+          if (_emojiOpen)
+            SizedBox(
+              height: 260,
+              child: EmojiPicker(
+                textEditingController: _commentCtrlFor(
+                  _players[_idx].displayName,
+                ),
+                onEmojiSelected: (_, _) {},
+                config: Config(
+                  height: 260,
+                  checkPlatformCompatibility: true,
+                  emojiViewConfig: EmojiViewConfig(
+                    columns: 8,
+                    emojiSizeMax: 28 *
+                        (defaultTargetPlatform == TargetPlatform.iOS
+                            ? 1.2
+                            : 1.0),
+                    backgroundColor: context.tokens.elev1,
+                  ),
+                  categoryViewConfig: CategoryViewConfig(
+                    indicatorColor: context.tokens.accent,
+                    iconColorSelected: context.tokens.accent,
+                    iconColor: context.tokens.inkDim,
+                    backgroundColor: context.tokens.elev1,
+                  ),
+                  bottomActionBarConfig: const BottomActionBarConfig(
+                    enabled: false,
+                  ),
+                  searchViewConfig: SearchViewConfig(
+                    backgroundColor: context.tokens.elev1,
+                    buttonIconColor: context.tokens.inkSub,
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
       bottomSheet: _BottomNav(

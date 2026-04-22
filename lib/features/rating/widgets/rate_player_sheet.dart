@@ -1,4 +1,6 @@
 // rate_player_sheet.dart — 底部抽屉：对某位球员打分
+import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 
 import '../../../l10n/l10n_extension.dart';
@@ -39,6 +41,8 @@ class RatePlayerSheet extends StatefulWidget {
 class _RatePlayerSheetState extends State<RatePlayerSheet> {
   late double _score;
   late final TextEditingController _commentCtrl;
+  bool _emojiOpen = false;
+  final _commentFocus = FocusNode();
 
   @override
   void initState() {
@@ -49,6 +53,7 @@ class _RatePlayerSheetState extends State<RatePlayerSheet> {
 
   @override
   void dispose() {
+    _commentFocus.dispose();
     _commentCtrl.dispose();
     super.dispose();
   }
@@ -190,6 +195,10 @@ class _RatePlayerSheetState extends State<RatePlayerSheet> {
               // comment
               TextField(
                 controller: _commentCtrl,
+                focusNode: _commentFocus,
+                onTap: () {
+                  if (_emojiOpen) setState(() => _emojiOpen = false);
+                },
                 minLines: 2,
                 maxLines: 3,
                 style: TextStyle(
@@ -203,6 +212,27 @@ class _RatePlayerSheetState extends State<RatePlayerSheet> {
                   filled: true,
                   fillColor: context.tokens.elev3,
                   contentPadding: const EdgeInsets.all(12),
+                  suffixIcon: GestureDetector(
+                    onTap: () {
+                      if (_emojiOpen) {
+                        setState(() => _emojiOpen = false);
+                        _commentFocus.requestFocus();
+                      } else {
+                        _commentFocus.unfocus();
+                        setState(() => _emojiOpen = true);
+                      }
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Icon(
+                        _emojiOpen
+                            ? Icons.keyboard
+                            : Icons.emoji_emotions_outlined,
+                        size: 22,
+                        color: context.tokens.inkSub,
+                      ),
+                    ),
+                  ),
                   border: OutlineInputBorder(
                     borderSide: BorderSide(color: context.tokens.line),
                     borderRadius: BorderRadius.circular(context.tokens.r2),
@@ -226,6 +256,41 @@ class _RatePlayerSheetState extends State<RatePlayerSheet> {
                 full: true,
                 onPressed: () => widget.onSave(_score, _commentCtrl.text),
               ),
+              if (_emojiOpen) ...[
+                const SizedBox(height: 8),
+                SizedBox(
+                  height: 220,
+                  child: EmojiPicker(
+                    textEditingController: _commentCtrl,
+                    onEmojiSelected: (_, _) {},
+                    config: Config(
+                      height: 220,
+                      checkPlatformCompatibility: true,
+                      emojiViewConfig: EmojiViewConfig(
+                        columns: 8,
+                        emojiSizeMax: 28 *
+                            (defaultTargetPlatform == TargetPlatform.iOS
+                                ? 1.2
+                                : 1.0),
+                        backgroundColor: context.tokens.elev1,
+                      ),
+                      categoryViewConfig: CategoryViewConfig(
+                        indicatorColor: context.tokens.accent,
+                        iconColorSelected: context.tokens.accent,
+                        iconColor: context.tokens.inkDim,
+                        backgroundColor: context.tokens.elev1,
+                      ),
+                      bottomActionBarConfig: const BottomActionBarConfig(
+                        enabled: false,
+                      ),
+                      searchViewConfig: SearchViewConfig(
+                        backgroundColor: context.tokens.elev1,
+                        buttonIconColor: context.tokens.inkSub,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ),

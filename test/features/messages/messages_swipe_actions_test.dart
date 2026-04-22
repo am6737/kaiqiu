@@ -28,7 +28,7 @@ class _FakeMessagesRepo extends MessagesRepository {
       throw UnimplementedError('not used by messages_swipe_actions_test');
 
   @override
-  Future<Message> send(String convId, String body) =>
+  Future<Message> send(String convId, String body, {String kind = 'text'}) =>
       throw UnimplementedError('not used by messages_swipe_actions_test');
 
   @override

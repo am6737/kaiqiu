@@ -9,9 +9,12 @@ import '../../models/message.dart';
 import '../../providers.dart';
 import '../../services/local_storage.dart';
 import '../../services/supabase.dart' as svc;
+import '../../services/storage.dart';
 import '../../utils/toast.dart';
 import '../../widgets/avatar.dart';
+import '../../widgets/rich_input.dart';
 import '../../theme/app_tokens.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   final String convId;
@@ -165,80 +168,28 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     );
   }
 
-  Future<void> _showAttachmentSheet() async {
-    final l = context.l10n;
-    await showModalBottomSheet(
-      context: context,
-      backgroundColor: context.tokens.elev1,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 12),
-            Center(
-              child: Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: context.tokens.inkMute,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _AttBtn(
-                  icon: Icons.image_outlined,
-                  label: l.chat_attachment_image,
-                  onTap: () {
-                    Navigator.of(ctx).pop();
-                    _sendSystem(
-                      '${l.chat_attachment_system_placeholder} · ${l.chat_attachment_image}',
-                    );
-                  },
-                ),
-                _AttBtn(
-                  icon: Icons.location_on_outlined,
-                  label: l.chat_attachment_location,
-                  onTap: () {
-                    Navigator.of(ctx).pop();
-                    _sendSystem(
-                      '${l.chat_attachment_system_placeholder} · ${l.chat_attachment_location}',
-                    );
-                  },
-                ),
-                _AttBtn(
-                  icon: Icons.sports_soccer,
-                  label: l.chat_attachment_invite,
-                  onTap: () {
-                    Navigator.of(ctx).pop();
-                    _sendSystem(
-                      '${l.chat_attachment_system_placeholder} · ${l.chat_attachment_invite}',
-                    );
-                  },
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-          ],
-        ),
-      ),
+  Future<void> _pickAndSendImage() async {
+    final url = await StorageService().pickCropCompressAndUpload(
+      bucket: 'chat-images',
+      pathPrefix: widget.convId,
+      square: false,
     );
-  }
-
-  Future<void> _sendSystem(String body) async {
+    if (url == null || !mounted) return;
     try {
-      await ref.read(messagesRepoProvider).send(widget.convId, body);
+      await ref.read(messagesRepoProvider).send(widget.convId, url, kind: 'image');
     } catch (e) {
       if (mounted) {
-        showToast(context, '${context.l10n.chat_send_failed}: $e', error: true);
+        showToast(context, '${context.l10n.chat_send_failed}：$e', error: true);
       }
     }
+  }
+
+  void _sendPlaceholder(String label) {
+    final l = context.l10n;
+    ref.read(messagesRepoProvider).send(
+      widget.convId,
+      '${l.chat_attachment_system_placeholder} · $label',
+    );
   }
 
   @override
@@ -334,119 +285,18 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               ),
             ),
             // Send bar
-            Container(
-              padding: const EdgeInsets.fromLTRB(12, 10, 12, 24),
-              decoration: BoxDecoration(
-                color: context.tokens.elev1,
-                border: Border(top: BorderSide(color: context.tokens.line, width: 1)),
-              ),
-              child: Row(
-                children: [
-                  GestureDetector(
-                    onTap: _showAttachmentSheet,
-                    child: Container(
-                      width: 34,
-                      height: 34,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: context.tokens.elev2,
-                        border: Border.all(color: context.tokens.line),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(Icons.add, size: 18, color: context.tokens.inkSub),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                      decoration: BoxDecoration(
-                        color: context.tokens.elev2,
-                        borderRadius: BorderRadius.circular(22),
-                      ),
-                      child: TextField(
-                        controller: _input,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: context.tokens.ink,
-                          height: 1.4,
-                        ),
-                        minLines: 1,
-                        maxLines: 4,
-                        onSubmitted: (_) => _send(),
-                        decoration: InputDecoration(
-                          hintText: context.l10n.chat_hint,
-                          hintStyle: TextStyle(color: context.tokens.inkDim),
-                          border: InputBorder.none,
-                          isDense: true,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: _send,
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: _sending ? context.tokens.elev3 : context.tokens.accent,
-                        shape: BoxShape.circle,
-                      ),
-                      child: _sending
-                          ? SizedBox(
-                              width: 14,
-                              height: 14,
-                              child: CircularProgressIndicator(
-                                color: context.tokens.inkSub,
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : const Icon(
-                              Icons.send,
-                              size: 16,
-                              color: Colors.black,
-                            ),
-                    ),
-                  ),
-                ],
-              ),
+            RichInput(
+              controller: _input,
+              onSend: _send,
+              sending: _sending,
+              showAttachments: true,
+              onPickImage: _pickAndSendImage,
+              onPickLocation: () => _sendPlaceholder(context.l10n.chat_attachment_location),
+              onInvite: () => _sendPlaceholder(context.l10n.chat_attachment_invite),
+              hintText: context.l10n.chat_hint,
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _AttBtn extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-  const _AttBtn({required this.icon, required this.label, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 54,
-            height: 54,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: context.tokens.elev2,
-              border: Border.all(color: context.tokens.line),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(icon, size: 22, color: context.tokens.ink),
-          ),
-          const SizedBox(height: 6),
-          Text(label, style: TextStyle(fontSize: 11, color: context.tokens.inkSub)),
-        ],
       ),
     );
   }
@@ -483,22 +333,56 @@ class _Bubble extends StatelessWidget {
         ? msg.senderId!.substring(0, 4)
         : context.l10n.chat_sender_system;
 
-    final bubble = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      constraints: const BoxConstraints(maxWidth: 260),
-      decoration: BoxDecoration(
-        color: isMe ? context.tokens.accent : context.tokens.elev2,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Text(
-        msg.body ?? '',
-        style: TextStyle(
-          fontSize: 14,
-          color: isMe ? Colors.black : context.tokens.ink,
-          height: 1.4,
+    final Widget bubble;
+    if (msg.kind == 'image' && msg.body != null) {
+      bubble = GestureDetector(
+        onTap: () => _showFullImage(context, msg.body!),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 200, maxHeight: 260),
+            child: CachedNetworkImage(
+              imageUrl: msg.body!,
+              fit: BoxFit.cover,
+              placeholder: (_, _) => Container(
+                width: 160,
+                height: 120,
+                color: context.tokens.elev3,
+                child: Center(
+                  child: CircularProgressIndicator(
+                    color: context.tokens.accent,
+                    strokeWidth: 2,
+                  ),
+                ),
+              ),
+              errorWidget: (_, _, _) => Container(
+                width: 160,
+                height: 80,
+                color: context.tokens.elev3,
+                child: Icon(Icons.broken_image, color: context.tokens.inkDim),
+              ),
+            ),
+          ),
         ),
-      ),
-    );
+      );
+    } else {
+      bubble = Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        constraints: const BoxConstraints(maxWidth: 260),
+        decoration: BoxDecoration(
+          color: isMe ? context.tokens.accent : context.tokens.elev2,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Text(
+          msg.body ?? '',
+          style: TextStyle(
+            fontSize: 14,
+            color: isMe ? Colors.black : context.tokens.ink,
+            height: 1.4,
+          ),
+        ),
+      );
+    }
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -529,6 +413,22 @@ class _Bubble extends StatelessWidget {
           ),
           if (isMe) const SizedBox(width: 8),
         ],
+      ),
+    );
+  }
+
+  static void _showFullImage(BuildContext context, String url) {
+    showDialog(
+      context: context,
+      builder: (_) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(16),
+        child: GestureDetector(
+          onTap: () => Navigator.of(context).pop(),
+          child: InteractiveViewer(
+            child: CachedNetworkImage(imageUrl: url, fit: BoxFit.contain),
+          ),
+        ),
       ),
     );
   }

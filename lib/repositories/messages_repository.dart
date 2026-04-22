@@ -69,11 +69,16 @@ class MessagesRepository {
         .toList();
   }
 
-  /// Insert a text message. Returns the new row.
-  Future<Message> send(String convId, String body) async {
+  /// Insert a message. Returns the new row.
+  Future<Message> send(String convId, String body, {String kind = 'text'}) async {
     final row = await supabase
         .from('messages')
-        .insert({'conv_id': convId, 'sender_id': currentUserId, 'body': body})
+        .insert({
+          'conv_id': convId,
+          'sender_id': currentUserId,
+          'body': body,
+          'kind': kind,
+        })
         .select()
         .single();
     return Message.fromMap(row);

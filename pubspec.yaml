@@ -35,6 +35,9 @@ dependencies:
   flutter_image_compress: ^2.3.0
   cached_network_image: ^3.4.1
 
+  # Emoji picker (rich input MVP)
+  emoji_picker_flutter: ^4.3.0
+
   # Swipeable list actions (messages screen).
   flutter_slidable: ^3.1.2
 
