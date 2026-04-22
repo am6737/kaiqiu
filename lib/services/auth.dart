@@ -17,9 +17,16 @@ final authStateProvider = StreamProvider<AuthState>((ref) {
 /// GoRouter's `refreshListenable` so redirects fire on sign-in/out.
 class AuthRefresh extends ChangeNotifier {
   StreamSubscription<AuthState>? _sub;
+  bool _wasSignedIn;
 
-  AuthRefresh() {
-    _sub = supabase.auth.onAuthStateChange.listen((_) => notifyListeners());
+  AuthRefresh() : _wasSignedIn = supabase.auth.currentUser != null {
+    _sub = supabase.auth.onAuthStateChange.listen((state) {
+      final isSignedIn = supabase.auth.currentUser != null;
+      if (isSignedIn != _wasSignedIn) {
+        _wasSignedIn = isSignedIn;
+        notifyListeners();
+      }
+    });
   }
 
   @override
