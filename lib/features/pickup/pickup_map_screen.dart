@@ -38,6 +38,8 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
   static const _fallbackLng = 108.3665;
   double _userLat = _fallbackLat;
   double _userLng = _fallbackLng;
+  int _locateTrigger = 0;
+  bool _locating = false;
 
   @override
   void initState() {
@@ -45,38 +47,47 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
     _fetchLocation();
   }
 
-  Future<void> _fetchLocation() async {
+  Future<void> _fetchLocation({bool centerMap = false}) async {
+    if (_locating) return;
+    setState(() => _locating = true);
     try {
-      final pos = await Geolocator.getLastKnownPosition();
-      if (pos != null && mounted) {
-        setState(() {
-          _userLat = pos.latitude;
-          _userLng = pos.longitude;
-        });
+      if (!await Geolocator.isLocationServiceEnabled()) {
+        if (centerMap && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(context.l10n.pickup_map_location_disabled)),
+          );
+        }
         return;
       }
-      if (!await Geolocator.isLocationServiceEnabled()) return;
       var perm = await Geolocator.checkPermission();
       if (perm == LocationPermission.denied) {
         perm = await Geolocator.requestPermission();
       }
-      if (perm == LocationPermission.denied ||
-          perm == LocationPermission.deniedForever) {
+      if (perm == LocationPermission.deniedForever && centerMap && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.pickup_map_location_denied)),
+        );
         return;
       }
+      if (perm == LocationPermission.denied) return;
+
       final current = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.medium,
-          timeLimit: Duration(seconds: 6),
+          accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 8),
         ),
       );
       if (mounted) {
         setState(() {
           _userLat = current.latitude;
           _userLng = current.longitude;
+          if (centerMap) _locateTrigger++;
         });
       }
-    } catch (_) {}
+    } catch (_) {
+    } finally {
+      if (mounted) setState(() => _locating = false);
+    }
   }
 
   String? _distanceTo(Pickup p) {
@@ -315,6 +326,9 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
             child: RealPickupMap(
               pickups: pickups,
               activePinId: _activePin,
+              centerLat: _userLat,
+              centerLng: _userLng,
+              locateTrigger: _locateTrigger,
               onPinTap: (id) {
                 setState(() => _activePin = id);
                 _sheetCtrl.animateTo(
@@ -426,6 +440,41 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                     label: context.l10n.pickup_map_legend_full,
                   ),
                 ],
+              ),
+            ),
+          ),
+          // Locate-me button
+          Positioned(
+            right: 14,
+            bottom: MediaQuery.of(context).size.height * 0.55 + 16,
+            child: GestureDetector(
+              onTap: () => _fetchLocation(centerMap: true),
+              child: Container(
+                width: 44,
+                height: 44,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: context.tokens.elev2,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: context.tokens.line),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.12),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: _locating
+                    ? SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: context.tokens.accent,
+                        ),
+                      )
+                    : Icon(Icons.my_location, size: 20, color: context.tokens.accent),
               ),
             ),
           ),

@@ -21,6 +21,9 @@ class RealPickupMap extends StatelessWidget {
   final String? activePinId;
   final ValueChanged<String> onPinTap;
   final VoidCallback? onLocateMe;
+  final double? centerLat;
+  final double? centerLng;
+  final int locateTrigger;
 
   const RealPickupMap({
     super.key,
@@ -28,6 +31,9 @@ class RealPickupMap extends StatelessWidget {
     required this.onPinTap,
     this.activePinId,
     this.onLocateMe,
+    this.centerLat,
+    this.centerLng,
+    this.locateTrigger = 0,
   });
 
   @override

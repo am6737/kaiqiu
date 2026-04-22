@@ -14,6 +14,9 @@ class RealPickupMap extends StatefulWidget {
   final String? activePinId;
   final ValueChanged<String> onPinTap;
   final VoidCallback? onLocateMe;
+  final double? centerLat;
+  final double? centerLng;
+  final int locateTrigger;
 
   const RealPickupMap({
     super.key,
@@ -21,6 +24,9 @@ class RealPickupMap extends StatefulWidget {
     required this.onPinTap,
     this.activePinId,
     this.onLocateMe,
+    this.centerLat,
+    this.centerLng,
+    this.locateTrigger = 0,
   });
 
   @override
@@ -28,6 +34,23 @@ class RealPickupMap extends StatefulWidget {
 }
 
 class _RealPickupMapState extends State<RealPickupMap> {
+  AMapController? _controller;
+
+  @override
+  void didUpdateWidget(RealPickupMap old) {
+    super.didUpdateWidget(old);
+    if (widget.locateTrigger != old.locateTrigger &&
+        widget.centerLat != null &&
+        widget.centerLng != null) {
+      _controller?.moveCamera(
+        CameraUpdate.newLatLngZoom(
+          LatLng(widget.centerLat!, widget.centerLng!),
+          15,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return AMapWidget(
@@ -37,6 +60,7 @@ class _RealPickupMapState extends State<RealPickupMap> {
       ),
       markers: _buildMarkers(),
       myLocationStyleOptions: MyLocationStyleOptions(true),
+      onMapCreated: (c) => _controller = c,
     );
   }
 
