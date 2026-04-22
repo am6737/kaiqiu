@@ -83,18 +83,25 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
     } catch (_) {}
   }
 
-  void _onLocateMe() {
+  Future<void> _onLocateMe() async {
     if (_isLocating) return;
     setState(() => _isLocating = true);
-    _acquireLocation().then((_) {
-      if (mounted) {
+    try {
+      final last = await Geolocator.getLastKnownPosition();
+      if (last != null && mounted) {
         setState(() {
-          _locateTrigger++;
-          _mapCentered = true;
-          _isLocating = false;
+          _userLat = last.latitude;
+          _userLng = last.longitude;
         });
       }
-    });
+    } catch (_) {}
+    if (mounted) {
+      setState(() {
+        _locateTrigger++;
+        _mapCentered = true;
+        _isLocating = false;
+      });
+    }
   }
 
   String? _distanceTo(Pickup p) {

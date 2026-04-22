@@ -42,6 +42,7 @@ class _RealPickupMapState extends State<RealPickupMap> {
   AMapController? _controller;
   LatLng? _userLocation;
   bool _initialLocateDone = false;
+  bool _pendingLocate = false;
 
   @override
   void didUpdateWidget(RealPickupMap old) {
@@ -51,7 +52,7 @@ class _RealPickupMapState extends State<RealPickupMap> {
     }
   }
 
-  Future<void> _flyToUser() async {
+  void _flyToUser() {
     if (_userLocation != null) {
       _controller?.moveCamera(
         CameraUpdate.newLatLngZoom(_userLocation!, 15),
@@ -66,30 +67,7 @@ class _RealPickupMapState extends State<RealPickupMap> {
       );
       return;
     }
-    try {
-      final last = await Geolocator.getLastKnownPosition();
-      if (last != null) {
-        final target = LatLng(last.latitude, last.longitude);
-        _userLocation = target;
-        widget.onUserLocationChanged?.call(target);
-        _controller?.moveCamera(
-          CameraUpdate.newLatLngZoom(target, 15),
-        );
-        return;
-      }
-      final pos = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.medium,
-          timeLimit: Duration(seconds: 5),
-        ),
-      );
-      final target = LatLng(pos.latitude, pos.longitude);
-      _userLocation = target;
-      widget.onUserLocationChanged?.call(target);
-      _controller?.moveCamera(
-        CameraUpdate.newLatLngZoom(target, 15),
-      );
-    } catch (_) {}
+    _pendingLocate = true;
   }
 
   @override
@@ -109,8 +87,9 @@ class _RealPickupMapState extends State<RealPickupMap> {
         if (isLocationValid(loc)) {
           _userLocation = loc.latLng;
           widget.onUserLocationChanged?.call(loc.latLng);
-          if (!_initialLocateDone) {
+          if (!_initialLocateDone || _pendingLocate) {
             _initialLocateDone = true;
+            _pendingLocate = false;
             _controller?.moveCamera(
               CameraUpdate.newLatLngZoom(loc.latLng, 15),
             );
