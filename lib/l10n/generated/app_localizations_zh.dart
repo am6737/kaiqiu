@@ -1307,7 +1307,7 @@ class AppL10nZh extends AppL10n {
   String get appearance_preview_card_title => '周三晚 7:30  五人足球';
 
   @override
-  String get appearance_preview_card_meta => '深圳南山·星空足球公园';
+  String get appearance_preview_card_meta => '南宁青秀·星空足球公园';
 
   @override
   String get appearance_preview_card_cta => '立即报名';

@@ -16,8 +16,8 @@ class PickupMiniMap extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Shenzhen fallback when the pickup has no coords yet.
-    final target = LatLng(lat ?? 22.5431, lng ?? 114.0579);
+    // Nanning fallback when the pickup has no coords yet.
+    final target = LatLng(lat ?? 22.8170, lng ?? 108.3665);
     return SizedBox(
       height: height,
       child: AbsorbPointer(

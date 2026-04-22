@@ -8,9 +8,9 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../models/pickup.dart';
 
-/// Shenzhen default center.
-const double defaultCenterLat = 22.5431;
-const double defaultCenterLng = 114.0579;
+/// Nanning default center.
+const double defaultCenterLat = 22.8170;
+const double defaultCenterLng = 108.3665;
 
 class RealPickupMap extends StatefulWidget {
   final List<Pickup> pickups;
@@ -53,7 +53,7 @@ class _RealPickupMapState extends State<RealPickupMap> {
       final latRaw = p.lat;
       final lngRaw = p.lng;
       if (latRaw == null || lngRaw == null) continue;
-      final (la, ln) = _normaliseToShenzhen(latRaw, lngRaw);
+      final (la, ln) = _normaliseToNanning(latRaw, lngRaw);
       out.add(
         Marker(
           markerId: MarkerId(p.id),
@@ -70,14 +70,14 @@ class _RealPickupMapState extends State<RealPickupMap> {
   }
 
   /// Seed data may still carry normalised 0-1 coords; scatter them into a
-  /// plausible Shenzhen bounding box so pins aren't all pinned at (0, 0).
-  (double, double) _normaliseToShenzhen(double lat, double lng) {
+  /// plausible Nanning bounding box so pins aren't all pinned at (0, 0).
+  (double, double) _normaliseToNanning(double lat, double lng) {
     final looksNormalised = lat >= 0 && lat <= 1 && lng >= 0 && lng <= 1;
     if (!looksNormalised) return (lat, lng);
-    const lngMin = 113.9;
-    const lngMax = 114.2;
-    const latMin = 22.5;
-    const latMax = 22.7;
+    const lngMin = 108.2;
+    const lngMax = 108.5;
+    const latMin = 22.7;
+    const latMax = 22.9;
     final la = latMin + (latMax - latMin) * lat;
     final ln = lngMin + (lngMax - lngMin) * lng;
     return (la, ln);

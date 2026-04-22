@@ -136,7 +136,7 @@ class LocalStore {
   }
 
   // ─── city
-  static String get city => _prefs.getString(_kCity) ?? '深圳';
+  static String get city => _prefs.getString(_kCity) ?? '南宁';
   static Future<void> setCity(String city) async {
     await _prefs.setString(_kCity, city);
     localStoreNotifier.bump();

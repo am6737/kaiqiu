@@ -2596,7 +2596,7 @@ abstract class AppL10n {
   /// No description provided for @appearance_preview_card_meta.
   ///
   /// In zh, this message translates to:
-  /// **'深圳南山·星空足球公园'**
+  /// **'南宁青秀·星空足球公园'**
   String get appearance_preview_card_meta;
 
   /// No description provided for @appearance_preview_card_cta.

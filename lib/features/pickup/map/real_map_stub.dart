@@ -11,10 +11,10 @@ import '../../../models/pickup.dart';
 import '../../../widgets/sport_icon.dart';
 import '../../../theme/app_tokens.dart';
 
-/// Shenzhen default center — used by the mobile map, surfaced here so the
+/// Nanning default center — used by the mobile map, surfaced here so the
 /// web stub can fake-scale pins around the same reference point.
-const double defaultCenterLat = 22.5431;
-const double defaultCenterLng = 114.0579;
+const double defaultCenterLat = 22.8170;
+const double defaultCenterLng = 108.3665;
 
 class RealPickupMap extends StatelessWidget {
   final List<Pickup> pickups;
@@ -140,11 +140,11 @@ class _Pin extends StatelessWidget {
     if (lng >= 0 && lng <= 1 && lat >= 0 && lat <= 1) {
       return (lng, lat);
     }
-    // Real lat/lng (assume Shenzhen window). Map to 0-1.
-    const lngMin = 113.7;
-    const lngMax = 114.5;
-    const latMin = 22.4;
-    const latMax = 22.8;
+    // Real lat/lng (assume Nanning window). Map to 0-1.
+    const lngMin = 108.1;
+    const lngMax = 108.6;
+    const latMin = 22.6;
+    const latMax = 22.95;
     final nx = ((lng - lngMin) / (lngMax - lngMin)).clamp(0.02, 0.98);
     final ny = ((latMax - lat) / (latMax - latMin)).clamp(0.02, 0.98);
     return (nx.toDouble(), ny.toDouble());

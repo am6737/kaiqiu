@@ -33,9 +33,9 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
   int _maxFee = 100;
   String _level = 'any'; // any/新手/初级/中级/高级
 
-  // User location for distance calculation; falls back to 龙岗大运 area.
-  static const _fallbackLat = 22.7272;
-  static const _fallbackLng = 114.2099;
+  // User location for distance calculation; falls back to 南宁青秀 area.
+  static const _fallbackLat = 22.8170;
+  static const _fallbackLng = 108.3665;
   double _userLat = _fallbackLat;
   double _userLng = _fallbackLng;
 
