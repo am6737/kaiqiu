@@ -1525,6 +1525,168 @@ abstract class AppL10n {
   /// **'0/{max} 已报名 · 截止 {deadline}'**
   String create_event_preview_registered_of_max(String max, String deadline);
 
+  /// No description provided for @event_status_draft.
+  ///
+  /// In zh, this message translates to:
+  /// **'草稿'**
+  String get event_status_draft;
+
+  /// No description provided for @event_status_scheduling.
+  ///
+  /// In zh, this message translates to:
+  /// **'编排中'**
+  String get event_status_scheduling;
+
+  /// No description provided for @event_status_completed.
+  ///
+  /// In zh, this message translates to:
+  /// **'已结束'**
+  String get event_status_completed;
+
+  /// No description provided for @match_status_live.
+  ///
+  /// In zh, this message translates to:
+  /// **'进行中'**
+  String get match_status_live;
+
+  /// No description provided for @match_status_upcoming.
+  ///
+  /// In zh, this message translates to:
+  /// **'未开始'**
+  String get match_status_upcoming;
+
+  /// No description provided for @match_status_finished.
+  ///
+  /// In zh, this message translates to:
+  /// **'已结束'**
+  String get match_status_finished;
+
+  /// No description provided for @live_room_title.
+  ///
+  /// In zh, this message translates to:
+  /// **'直播间'**
+  String get live_room_title;
+
+  /// No description provided for @live_room_join.
+  ///
+  /// In zh, this message translates to:
+  /// **'进入直播间'**
+  String get live_room_join;
+
+  /// No description provided for @live_room_start.
+  ///
+  /// In zh, this message translates to:
+  /// **'开始比赛'**
+  String get live_room_start;
+
+  /// No description provided for @live_room_end.
+  ///
+  /// In zh, this message translates to:
+  /// **'结束比赛'**
+  String get live_room_end;
+
+  /// No description provided for @live_room_end_confirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认结束比赛并提交最终比分？'**
+  String get live_room_end_confirm;
+
+  /// No description provided for @live_room_reconnecting.
+  ///
+  /// In zh, this message translates to:
+  /// **'重新连接中…'**
+  String get live_room_reconnecting;
+
+  /// No description provided for @live_room_participants.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 人在线'**
+  String live_room_participants(int count);
+
+  /// No description provided for @live_room_mic_on.
+  ///
+  /// In zh, this message translates to:
+  /// **'麦克风已开启'**
+  String get live_room_mic_on;
+
+  /// No description provided for @live_room_mic_off.
+  ///
+  /// In zh, this message translates to:
+  /// **'麦克风已关闭'**
+  String get live_room_mic_off;
+
+  /// No description provided for @live_room_camera_on.
+  ///
+  /// In zh, this message translates to:
+  /// **'摄像头已开启'**
+  String get live_room_camera_on;
+
+  /// No description provided for @live_room_camera_off.
+  ///
+  /// In zh, this message translates to:
+  /// **'摄像头已关闭'**
+  String get live_room_camera_off;
+
+  /// No description provided for @match_control_score.
+  ///
+  /// In zh, this message translates to:
+  /// **'记分'**
+  String get match_control_score;
+
+  /// No description provided for @match_control_add_goal.
+  ///
+  /// In zh, this message translates to:
+  /// **'记录进球'**
+  String get match_control_add_goal;
+
+  /// No description provided for @match_control_minute.
+  ///
+  /// In zh, this message translates to:
+  /// **'比赛分钟'**
+  String get match_control_minute;
+
+  /// No description provided for @match_control_end_match.
+  ///
+  /// In zh, this message translates to:
+  /// **'结束比赛'**
+  String get match_control_end_match;
+
+  /// No description provided for @schedule_title.
+  ///
+  /// In zh, this message translates to:
+  /// **'编排赛程'**
+  String get schedule_title;
+
+  /// No description provided for @schedule_generate.
+  ///
+  /// In zh, this message translates to:
+  /// **'生成赛程'**
+  String get schedule_generate;
+
+  /// No description provided for @schedule_confirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认赛程'**
+  String get schedule_confirm;
+
+  /// No description provided for @schedule_auto_hint.
+  ///
+  /// In zh, this message translates to:
+  /// **'根据 {template} 模板自动生成'**
+  String schedule_auto_hint(String template);
+
+  /// No description provided for @schedule_set_time.
+  ///
+  /// In zh, this message translates to:
+  /// **'设置比赛时间'**
+  String get schedule_set_time;
+
+  /// No description provided for @schedule_assign_teams.
+  ///
+  /// In zh, this message translates to:
+  /// **'指定对阵队伍'**
+  String get schedule_assign_teams;
+
   /// No description provided for @wc_title.
   ///
   /// In zh, this message translates to:
@@ -4434,18 +4596,6 @@ abstract class AppL10n {
   /// In zh, this message translates to:
   /// **'比赛详情'**
   String get match_detail_title;
-
-  /// No description provided for @match_status_upcoming.
-  ///
-  /// In zh, this message translates to:
-  /// **'未开始'**
-  String get match_status_upcoming;
-
-  /// No description provided for @match_status_live.
-  ///
-  /// In zh, this message translates to:
-  /// **'进行中'**
-  String get match_status_live;
 
   /// No description provided for @match_status_done.
   ///

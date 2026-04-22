@@ -757,6 +757,92 @@ class AppL10nEn extends AppL10n {
   }
 
   @override
+  String get event_status_draft => 'Draft';
+
+  @override
+  String get event_status_scheduling => 'Scheduling';
+
+  @override
+  String get event_status_completed => 'Completed';
+
+  @override
+  String get match_status_live => 'Live';
+
+  @override
+  String get match_status_upcoming => 'Upcoming';
+
+  @override
+  String get match_status_finished => 'Finished';
+
+  @override
+  String get live_room_title => 'Live Room';
+
+  @override
+  String get live_room_join => 'Join Live Room';
+
+  @override
+  String get live_room_start => 'Start Match';
+
+  @override
+  String get live_room_end => 'End Match';
+
+  @override
+  String get live_room_end_confirm =>
+      'Confirm end match and submit final score?';
+
+  @override
+  String get live_room_reconnecting => 'Reconnecting…';
+
+  @override
+  String live_room_participants(int count) {
+    return '$count online';
+  }
+
+  @override
+  String get live_room_mic_on => 'Mic on';
+
+  @override
+  String get live_room_mic_off => 'Mic off';
+
+  @override
+  String get live_room_camera_on => 'Camera on';
+
+  @override
+  String get live_room_camera_off => 'Camera off';
+
+  @override
+  String get match_control_score => 'Score';
+
+  @override
+  String get match_control_add_goal => 'Record Goal';
+
+  @override
+  String get match_control_minute => 'Match Minute';
+
+  @override
+  String get match_control_end_match => 'End Match';
+
+  @override
+  String get schedule_title => 'Schedule Matches';
+
+  @override
+  String get schedule_generate => 'Generate Schedule';
+
+  @override
+  String get schedule_confirm => 'Confirm Schedule';
+
+  @override
+  String schedule_auto_hint(String template) {
+    return 'Auto-generated from $template template';
+  }
+
+  @override
+  String get schedule_set_time => 'Set match time';
+
+  @override
+  String get schedule_assign_teams => 'Assign teams';
+
+  @override
   String get wc_title => 'World Cup';
 
   @override
@@ -2318,12 +2404,6 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get match_detail_title => 'Match';
-
-  @override
-  String get match_status_upcoming => 'Upcoming';
-
-  @override
-  String get match_status_live => 'Live';
 
   @override
   String get match_status_done => 'Finished';

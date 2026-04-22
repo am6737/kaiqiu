@@ -748,6 +748,91 @@ class AppL10nZh extends AppL10n {
   }
 
   @override
+  String get event_status_draft => '草稿';
+
+  @override
+  String get event_status_scheduling => '编排中';
+
+  @override
+  String get event_status_completed => '已结束';
+
+  @override
+  String get match_status_live => '进行中';
+
+  @override
+  String get match_status_upcoming => '未开始';
+
+  @override
+  String get match_status_finished => '已结束';
+
+  @override
+  String get live_room_title => '直播间';
+
+  @override
+  String get live_room_join => '进入直播间';
+
+  @override
+  String get live_room_start => '开始比赛';
+
+  @override
+  String get live_room_end => '结束比赛';
+
+  @override
+  String get live_room_end_confirm => '确认结束比赛并提交最终比分？';
+
+  @override
+  String get live_room_reconnecting => '重新连接中…';
+
+  @override
+  String live_room_participants(int count) {
+    return '$count 人在线';
+  }
+
+  @override
+  String get live_room_mic_on => '麦克风已开启';
+
+  @override
+  String get live_room_mic_off => '麦克风已关闭';
+
+  @override
+  String get live_room_camera_on => '摄像头已开启';
+
+  @override
+  String get live_room_camera_off => '摄像头已关闭';
+
+  @override
+  String get match_control_score => '记分';
+
+  @override
+  String get match_control_add_goal => '记录进球';
+
+  @override
+  String get match_control_minute => '比赛分钟';
+
+  @override
+  String get match_control_end_match => '结束比赛';
+
+  @override
+  String get schedule_title => '编排赛程';
+
+  @override
+  String get schedule_generate => '生成赛程';
+
+  @override
+  String get schedule_confirm => '确认赛程';
+
+  @override
+  String schedule_auto_hint(String template) {
+    return '根据 $template 模板自动生成';
+  }
+
+  @override
+  String get schedule_set_time => '设置比赛时间';
+
+  @override
+  String get schedule_assign_teams => '指定对阵队伍';
+
+  @override
   String get wc_title => '世界杯专区';
 
   @override
@@ -2294,12 +2379,6 @@ class AppL10nZh extends AppL10n {
 
   @override
   String get match_detail_title => '比赛详情';
-
-  @override
-  String get match_status_upcoming => '未开始';
-
-  @override
-  String get match_status_live => '进行中';
 
   @override
   String get match_status_done => '已结束';
