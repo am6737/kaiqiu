@@ -248,7 +248,7 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
                             )
                           : ListView.separated(
                               itemCount: _searchResults.length,
-                              separatorBuilder: (_, __) => Divider(
+                              separatorBuilder: (_, _) => Divider(
                                 height: 1,
                                 color: context.tokens.line,
                               ),
