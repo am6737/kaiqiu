@@ -118,49 +118,52 @@ class _LiveMatchCarouselState extends State<LiveMatchCarousel> {
                               Row(
                                 children: [
                                   Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          m.teamA,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          m.teamB,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ],
+                                    child: Text(
+                                      m.teamA,
+                                      textAlign: TextAlign.center,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontSize: 15,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
                                   ),
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      N(
-                                        '${m.scoreA}',
-                                        size: 24,
-                                        weight: FontWeight.w700,
-                                        color: aWins ? t.accent : Colors.white,
+                                  N(
+                                    '${m.scoreA}',
+                                    size: 28,
+                                    weight: FontWeight.w700,
+                                    color: aWins ? t.accent : Colors.white,
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8),
+                                    child: Text(
+                                      ':',
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w300,
+                                        color: Colors.white54,
                                       ),
-                                      const SizedBox(height: 2),
-                                      N(
-                                        '${m.scoreB}',
-                                        size: 24,
-                                        weight: FontWeight.w700,
-                                        color: bWins ? t.accent : Colors.white,
+                                    ),
+                                  ),
+                                  N(
+                                    '${m.scoreB}',
+                                    size: 28,
+                                    weight: FontWeight.w700,
+                                    color: bWins ? t.accent : Colors.white,
+                                  ),
+                                  Expanded(
+                                    child: Text(
+                                      m.teamB,
+                                      textAlign: TextAlign.center,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontSize: 15,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w600,
                                       ),
-                                    ],
+                                    ),
                                   ),
                                 ],
                               ),
