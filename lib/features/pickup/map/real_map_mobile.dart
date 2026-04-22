@@ -17,6 +17,7 @@ class RealPickupMap extends StatefulWidget {
   final double? centerLat;
   final double? centerLng;
   final int locateTrigger;
+  final ValueChanged<LatLng>? onUserLocationChanged;
 
   const RealPickupMap({
     super.key,
@@ -27,6 +28,7 @@ class RealPickupMap extends StatefulWidget {
     this.centerLat,
     this.centerLng,
     this.locateTrigger = 0,
+    this.onUserLocationChanged,
   });
 
   @override
@@ -35,18 +37,14 @@ class RealPickupMap extends StatefulWidget {
 
 class _RealPickupMapState extends State<RealPickupMap> {
   AMapController? _controller;
+  LatLng? _userLocation;
 
   @override
   void didUpdateWidget(RealPickupMap old) {
     super.didUpdateWidget(old);
-    if (widget.locateTrigger != old.locateTrigger &&
-        widget.centerLat != null &&
-        widget.centerLng != null) {
+    if (widget.locateTrigger != old.locateTrigger && _userLocation != null) {
       _controller?.moveCamera(
-        CameraUpdate.newLatLngZoom(
-          LatLng(widget.centerLat!, widget.centerLng!),
-          15,
-        ),
+        CameraUpdate.newLatLngZoom(_userLocation!, 15),
       );
     }
   }
@@ -61,6 +59,12 @@ class _RealPickupMapState extends State<RealPickupMap> {
       markers: _buildMarkers(),
       myLocationStyleOptions: MyLocationStyleOptions(true),
       onMapCreated: (c) => _controller = c,
+      onLocationChanged: (AMapLocation loc) {
+        if (isLocationValid(loc)) {
+          _userLocation = loc.latLng;
+          widget.onUserLocationChanged?.call(loc.latLng);
+        }
+      },
     );
   }
 

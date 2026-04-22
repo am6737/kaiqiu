@@ -39,55 +39,9 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
   double _userLat = _fallbackLat;
   double _userLng = _fallbackLng;
   int _locateTrigger = 0;
-  bool _locating = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _fetchLocation();
-  }
-
-  Future<void> _fetchLocation({bool centerMap = false}) async {
-    if (_locating) return;
-    setState(() => _locating = true);
-    try {
-      if (!await Geolocator.isLocationServiceEnabled()) {
-        if (centerMap && mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(context.l10n.pickup_map_location_disabled)),
-          );
-        }
-        return;
-      }
-      var perm = await Geolocator.checkPermission();
-      if (perm == LocationPermission.denied) {
-        perm = await Geolocator.requestPermission();
-      }
-      if (perm == LocationPermission.deniedForever && centerMap && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.pickup_map_location_denied)),
-        );
-        return;
-      }
-      if (perm == LocationPermission.denied) return;
-
-      final current = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-          timeLimit: Duration(seconds: 8),
-        ),
-      );
-      if (mounted) {
-        setState(() {
-          _userLat = current.latitude;
-          _userLng = current.longitude;
-          if (centerMap) _locateTrigger++;
-        });
-      }
-    } catch (_) {
-    } finally {
-      if (mounted) setState(() => _locating = false);
-    }
+  void _onLocateMe() {
+    setState(() => _locateTrigger++);
   }
 
   String? _distanceTo(Pickup p) {
@@ -326,9 +280,15 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
             child: RealPickupMap(
               pickups: pickups,
               activePinId: _activePin,
-              centerLat: _userLat,
-              centerLng: _userLng,
               locateTrigger: _locateTrigger,
+              onUserLocationChanged: (pos) {
+                if (mounted) {
+                  setState(() {
+                    _userLat = pos.latitude;
+                    _userLng = pos.longitude;
+                  });
+                }
+              },
               onPinTap: (id) {
                 setState(() => _activePin = id);
                 _sheetCtrl.animateTo(
@@ -448,7 +408,7 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
             right: 14,
             bottom: 100,
             child: GestureDetector(
-              onTap: () => _fetchLocation(centerMap: true),
+              onTap: _onLocateMe,
               child: Container(
                 width: 44,
                 height: 44,
@@ -465,16 +425,7 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                     ),
                   ],
                 ),
-                child: _locating
-                    ? SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: context.tokens.accent,
-                        ),
-                      )
-                    : Icon(Icons.my_location, size: 20, color: context.tokens.accent),
+                child: Icon(Icons.my_location, size: 20, color: context.tokens.accent),
               ),
             ),
           ),
