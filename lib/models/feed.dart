@@ -174,6 +174,7 @@ String _relativeTime(DateTime dt) {
 class FeedPickup extends FeedItem {
   @override final String id;
   @override final DateTime createdAt;
+  final String? title;
   final String venue;
   final String? hostName;
   final DateTime startAt;
@@ -187,6 +188,7 @@ class FeedPickup extends FeedItem {
   FeedPickup({
     required this.id,
     required this.createdAt,
+    this.title,
     required this.venue,
     this.hostName,
     required this.startAt,
@@ -206,6 +208,7 @@ class FeedPickup extends FeedItem {
   factory FeedPickup.fromMap(Map<String, dynamic> m) => FeedPickup(
         id: m['id'] as String,
         createdAt: DateTime.parse(m['created_at'] as String),
+        title: m['title'] as String?,
         venue: m['venue'] as String,
         hostName: m['host_name'] as String?,
         startAt: DateTime.parse(m['start_at'] as String),
