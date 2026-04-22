@@ -570,6 +570,7 @@
   "notif_group_match": "Match",
   "notif_group_pickup": "Pickup",
   "notif_group_rating": "Rating",
+  "notif_group_follow": "Follow",
   "notif_demo_welcome_t": "Welcome to GameOn ⚽",
   "notif_demo_welcome_b": "Complete your archive to start the season.",
   "notif_demo_rate_t": "A match is waiting for your rating",

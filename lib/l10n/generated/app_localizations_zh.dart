@@ -1472,6 +1472,9 @@ class AppL10nZh extends AppL10n {
   String get notif_group_rating => '评分';
 
   @override
+  String get notif_group_follow => '关注';
+
+  @override
   String get notif_demo_welcome_t => '欢迎来到开球 ⚽';
 
   @override

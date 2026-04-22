@@ -2911,6 +2911,12 @@ abstract class AppL10n {
   /// **'评分'**
   String get notif_group_rating;
 
+  /// No description provided for @notif_group_follow.
+  ///
+  /// In zh, this message translates to:
+  /// **'关注'**
+  String get notif_group_follow;
+
   /// No description provided for @notif_demo_welcome_t.
   ///
   /// In zh, this message translates to:

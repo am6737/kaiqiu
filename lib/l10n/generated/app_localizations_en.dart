@@ -1491,6 +1491,9 @@ class AppL10nEn extends AppL10n {
   String get notif_group_rating => 'Rating';
 
   @override
+  String get notif_group_follow => 'Follow';
+
+  @override
   String get notif_demo_welcome_t => 'Welcome to GameOn ⚽';
 
   @override

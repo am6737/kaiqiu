@@ -102,6 +102,7 @@ class NotificationsTabState extends ConsumerState<NotificationsTab> {
       'match' => l.notif_group_match,
       'pickup' => l.notif_group_pickup,
       'rating' => l.notif_group_rating,
+      'follow' => l.notif_group_follow,
       _ => key,
     };
   }
