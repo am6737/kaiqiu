@@ -189,6 +189,22 @@ class _Header extends StatelessWidget {
           height: 240,
           hue: hue,
         ),
+        const Positioned.fill(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                stops: [0.0, 0.45, 1.0],
+                colors: [
+                  Color(0x33000000),
+                  Color(0x66000000),
+                  Color(0xCC000000),
+                ],
+              ),
+            ),
+          ),
+        ),
         Positioned(
           top: 12,
           left: 12,
@@ -231,22 +247,6 @@ class _Header extends StatelessWidget {
                   size: 16,
                   color: Color(0xFFFFFFFF),
                 ),
-              ),
-            ),
-          ),
-        ),
-        const Positioned.fill(
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                stops: [0.0, 0.45, 1.0],
-                colors: [
-                  Color(0x33000000),
-                  Color(0x66000000),
-                  Color(0xCC000000),
-                ],
               ),
             ),
           ),
