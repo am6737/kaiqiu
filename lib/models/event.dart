@@ -1,9 +1,11 @@
 // event.dart — 赛事 + 比赛
-enum EventStatus { registering, ongoing, done }
+enum EventStatus { draft, registering, scheduling, ongoing, completed }
 
 EventStatus _parseEventStatus(String? s) => switch (s) {
+  'draft' => EventStatus.draft,
+  'scheduling' => EventStatus.scheduling,
   'ongoing' => EventStatus.ongoing,
-  'done' => EventStatus.done,
+  'completed' || 'done' => EventStatus.completed,
   _ => EventStatus.registering,
 };
 
@@ -61,6 +63,14 @@ class Event {
   );
 }
 
+enum MatchStatus { upcoming, live, finished }
+
+MatchStatus _parseMatchStatus(String? s, bool done) => switch (s) {
+  'live' => MatchStatus.live,
+  'finished' => MatchStatus.finished,
+  _ => done ? MatchStatus.finished : MatchStatus.upcoming,
+};
+
 class Match {
   final String id;
   final String eventId;
@@ -74,6 +84,12 @@ class Match {
   final String? pkScore;
   final DateTime? playedAt;
   final bool done;
+  final MatchStatus status;
+  final String? livekitRoom;
+  final DateTime? startedAt;
+  final DateTime? endedAt;
+  final int? minute;
+  final int viewers;
 
   const Match({
     required this.id,
@@ -88,22 +104,37 @@ class Match {
     this.pkScore,
     this.playedAt,
     this.done = false,
+    this.status = MatchStatus.upcoming,
+    this.livekitRoom,
+    this.startedAt,
+    this.endedAt,
+    this.minute,
+    this.viewers = 0,
   });
 
-  factory Match.fromMap(Map<String, dynamic> m) => Match(
-    id: m['id'] as String,
-    eventId: m['event_id'] as String,
-    round: m['round'] as String?,
-    teamAId: m['team_a_id'] as String?,
-    teamBId: m['team_b_id'] as String?,
-    teamALabel: m['team_a_label'] as String?,
-    teamBLabel: m['team_b_label'] as String?,
-    scoreA: m['score_a'] as int?,
-    scoreB: m['score_b'] as int?,
-    pkScore: m['pk_score'] as String?,
-    playedAt: m['played_at'] != null ? DateTime.parse(m['played_at']) : null,
-    done: (m['done'] as bool?) ?? false,
-  );
+  factory Match.fromMap(Map<String, dynamic> m) {
+    final done = (m['done'] as bool?) ?? false;
+    return Match(
+      id: m['id'] as String,
+      eventId: m['event_id'] as String,
+      round: m['round'] as String?,
+      teamAId: m['team_a_id'] as String?,
+      teamBId: m['team_b_id'] as String?,
+      teamALabel: m['team_a_label'] as String?,
+      teamBLabel: m['team_b_label'] as String?,
+      scoreA: m['score_a'] as int?,
+      scoreB: m['score_b'] as int?,
+      pkScore: m['pk_score'] as String?,
+      playedAt: m['played_at'] != null ? DateTime.parse(m['played_at']) : null,
+      done: done,
+      status: _parseMatchStatus(m['status'] as String?, done),
+      livekitRoom: m['livekit_room'] as String?,
+      startedAt: m['started_at'] != null ? DateTime.parse(m['started_at']) : null,
+      endedAt: m['ended_at'] != null ? DateTime.parse(m['ended_at']) : null,
+      minute: m['minute'] as int?,
+      viewers: (m['viewers'] as int?) ?? 0,
+    );
+  }
 }
 
 /// Which side of a match a player is on — derived heuristically from goals.
