@@ -177,7 +177,8 @@ class _Header extends StatelessWidget {
     final (dotColor, pillColor, pillText) = switch (event.status) {
       EventStatus.ongoing => (context.tokens.accent, context.tokens.accent, l.event_status_ongoing),
       EventStatus.registering => (context.tokens.warn, context.tokens.warn, l.event_status_registering),
-      EventStatus.done => (context.tokens.inkDim, context.tokens.inkSub, l.event_status_done),
+      EventStatus.completed => (context.tokens.inkDim, context.tokens.inkSub, l.event_status_done),
+      _ => (context.tokens.inkDim, context.tokens.inkSub, l.event_status_done),
     };
     return Stack(
       children: [
@@ -305,7 +306,7 @@ class _KpiStrip extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final matchesAsync = ref.watch(eventMatchesProvider(eventId));
     final matchesStr = matchesAsync.maybeWhen(
-      data: (list) => '${list.where((m) => m.done).length}/${list.length}',
+      data: (list) => '${list.where((m) => m.status == MatchStatus.finished).length}/${list.length}',
       orElse: () => '-',
     );
     final l = context.l10n;
@@ -690,8 +691,8 @@ class _MatchCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final sa = m.scoreA;
     final sb = m.scoreB;
-    final aWins = m.done && sa != null && sb != null && sa > sb;
-    final bWins = m.done && sa != null && sb != null && sb > sa;
+    final aWins = m.status == MatchStatus.finished && sa != null && sb != null && sa > sb;
+    final bWins = m.status == MatchStatus.finished && sa != null && sb != null && sb > sa;
     final timeStr = m.playedAt != null
         ? '${m.playedAt!.month.toString().padLeft(2, '0')}-${m.playedAt!.day.toString().padLeft(2, '0')} ${m.playedAt!.hour.toString().padLeft(2, '0')}:${m.playedAt!.minute.toString().padLeft(2, '0')}'
         : null;
@@ -709,7 +710,13 @@ class _MatchCard extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () => context.push('/event/$eventId/match/${m.id}'),
+          onTap: () {
+            if (m.status == MatchStatus.live) {
+              context.push('/event/$eventId/match/${m.id}/live');
+            } else {
+              context.push('/event/$eventId/match/${m.id}');
+            }
+          },
           child: Padding(
             padding: EdgeInsets.all(isFinal ? 0 : 10),
             child: Column(
@@ -745,6 +752,29 @@ class _MatchCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      if (m.status == MatchStatus.live)
+                        Row(
+                          children: [
+                            Container(
+                              width: 8,
+                              height: 8,
+                              margin: const EdgeInsets.only(right: 6),
+                              decoration: const BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            Text(
+                              'LIVE',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.red,
+                              ),
+                            ),
+                          ],
+                        ),
+                      if (m.status == MatchStatus.live) const SizedBox(height: 4),
                       _teamLine(
                         context,
                         m.teamALabel ?? 'TBD',
@@ -809,7 +839,7 @@ class _MatchCard extends StatelessWidget {
     required bool won,
     bool showWinnerIcon = false,
   }) {
-    final nameColor = m.done ? (won ? context.tokens.ink : context.tokens.inkSub) : context.tokens.inkSub;
+    final nameColor = m.status == MatchStatus.finished ? (won ? context.tokens.ink : context.tokens.inkSub) : context.tokens.inkSub;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -834,7 +864,7 @@ class _MatchCard extends StatelessWidget {
             ],
           ),
         ),
-        if (m.done && score != null)
+        if (m.status == MatchStatus.finished && score != null)
           N(
             '$score',
             size: 13,
@@ -861,7 +891,7 @@ List<StandingRow> computeStandings(List<Match> matches) {
   final agg = <String, StandingRow>{};
   StandingRow bump(String k) => agg.putIfAbsent(k, () => StandingRow(team: k));
   for (final m in matches) {
-    if (!m.done || m.scoreA == null || m.scoreB == null) continue;
+    if (m.status != MatchStatus.finished || m.scoreA == null || m.scoreB == null) continue;
     final a = bump(m.teamALabel ?? 'TBD');
     final b = bump(m.teamBLabel ?? 'TBD');
     a.gf += m.scoreA!;
@@ -1271,7 +1301,7 @@ class _TeamMatchRow extends StatelessWidget {
 
     String? resultLabel;
     Color? resultColor;
-    if (match.done && ownScore != null && oppScore != null) {
+    if (match.status == MatchStatus.finished && ownScore != null && oppScore != null) {
       if (ownScore > oppScore) {
         resultLabel = l.event_standings_wins;
         resultColor = context.tokens.accent;
@@ -1331,7 +1361,7 @@ class _TeamMatchRow extends StatelessWidget {
               ),
             ),
           ),
-          if (match.done && ownScore != null && oppScore != null)
+          if (match.status == MatchStatus.finished && ownScore != null && oppScore != null)
             N(
               '$ownScore - $oppScore',
               size: 13,
@@ -2383,43 +2413,57 @@ class _BottomCta extends ConsumerWidget {
         color: context.tokens.elev1,
         border: Border(top: BorderSide(color: context.tokens.line, width: 1)),
       ),
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Expanded(
-            child: PrimaryButton(
-              variant: BtnVariant.ghost,
-              size: BtnSize.lg,
+          if (event.status == EventStatus.scheduling && event.creatorId == currentUserId) ...[
+            PrimaryButton(
+              label: l.schedule_generate,
               full: true,
-              onPressed: () => context.push('/worldcup/live/${event.id}'),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.tv, size: 16, color: context.tokens.ink),
-                  const SizedBox(width: 6),
-                  Text(
-                    l.event_cta_watch_live,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: context.tokens.ink,
-                    ),
+              size: BtnSize.lg,
+              onPressed: () => context.push('/event/${event.id}/schedule'),
+            ),
+            const SizedBox(height: 10),
+          ],
+          Row(
+            children: [
+              Expanded(
+                child: PrimaryButton(
+                  variant: BtnVariant.ghost,
+                  size: BtnSize.lg,
+                  full: true,
+                  onPressed: () => context.push('/worldcup/live/${event.id}'),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.tv, size: 16, color: context.tokens.ink),
+                      const SizedBox(width: 6),
+                      Text(
+                        l.event_cta_watch_live,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: context.tokens.ink,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: PrimaryButton(
-              label: registered ? l.event_cta_registered : l.event_cta_register,
-              variant: registered ? BtnVariant.secondary : BtnVariant.primary,
-              size: BtnSize.lg,
-              full: true,
-              onPressed: registered
-                  ? null
-                  : () => _showRegisterSheet(context, ref),
-            ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: PrimaryButton(
+                  label: registered ? l.event_cta_registered : l.event_cta_register,
+                  variant: registered ? BtnVariant.secondary : BtnVariant.primary,
+                  size: BtnSize.lg,
+                  full: true,
+                  onPressed: registered
+                      ? null
+                      : () => _showRegisterSheet(context, ref),
+                ),
+              ),
+            ],
           ),
         ],
       ),
