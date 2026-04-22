@@ -299,25 +299,32 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
               },
             ),
           ),
-          // Top bar (gradient fade)
-          SafeArea(
-            bottom: false,
-            child: Container(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    context.tokens.bg.withValues(alpha: 0.9),
-                    context.tokens.bg.withValues(alpha: 0),
-                  ],
-                  stops: const [0.5, 1.0],
+          // Top bar (gradient fade) — Positioned + mainAxisSize.min so the
+          // gradient container only covers the actual bar, leaving the map
+          // Platform View free to receive touch/pan gestures.
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: SafeArea(
+              bottom: false,
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      context.tokens.bg.withValues(alpha: 0.9),
+                      context.tokens.bg.withValues(alpha: 0),
+                    ],
+                    stops: const [0.5, 1.0],
+                  ),
                 ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                   Row(
                     children: [
                       _CircleBtn(
@@ -367,7 +374,8 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                       );
                     },
                   ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
