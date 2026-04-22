@@ -24,23 +24,32 @@ class ProfileScreen extends ConsumerWidget {
     final teammatesAsync = ref.watch(teammatesProvider);
     ref.watch(localStoreProvider);
 
+    final regEventsCount = ref.watch(myRegisteredEventsProvider).valueOrNull?.length ?? 0;
+    final hostedEventsCount = ref.watch(myHostedEventsProvider).valueOrNull?.length ?? 0;
+    final eventsCount = regEventsCount + hostedEventsCount;
+    final hostedPickupsCount = ref.watch(myHostedPickupsProvider).valueOrNull?.length ?? 0;
+    final joinedPickupsCount = ref.watch(myJoinedPickupsProvider).valueOrNull?.length ?? 0;
+    final pickupsCount = hostedPickupsCount + joinedPickupsCount;
+
     final activity = <_MenuItem>[
       _MenuItem(
         icon: Icons.calendar_today,
         label: l.profile_menu_my_events,
-        badge: '2',
+        badge: eventsCount > 0 ? '$eventsCount' : null,
         onTap: () => context.push('/me/events'),
       ),
       _MenuItem(
         icon: Icons.map_outlined,
         label: l.profile_menu_my_pickups,
-        badge: '1',
+        badge: pickupsCount > 0 ? '$pickupsCount' : null,
         onTap: () => context.push('/me/pickups'),
       ),
       _MenuItem(
         icon: Icons.person_outline,
         label: l.profile_menu_my_teams,
-        badge: '${teammatesAsync.valueOrNull?.length ?? 0}',
+        badge: (teammatesAsync.valueOrNull?.length ?? 0) > 0
+            ? '${teammatesAsync.valueOrNull?.length ?? 0}'
+            : null,
         onTap: () => context.push('/me/teams'),
       ),
       _MenuItem(
@@ -168,7 +177,7 @@ class ProfileScreen extends ConsumerWidget {
                 children: [
                   Expanded(
                     child: GestureDetector(
-                      onTap: () => context.push('/me/favorites'),
+                      onTap: () => context.push('/me/following'),
                       child: _StatColumn(
                         count: followingCount,
                         label: l.profile_following,
@@ -181,9 +190,12 @@ class ProfileScreen extends ConsumerWidget {
                     color: context.tokens.line,
                   ),
                   Expanded(
-                    child: _StatColumn(
-                      count: followersCount,
-                      label: l.profile_followers,
+                    child: GestureDetector(
+                      onTap: () => context.push('/me/following?tab=1'),
+                      child: _StatColumn(
+                        count: followersCount,
+                        label: l.profile_followers,
+                      ),
                     ),
                   ),
                 ],

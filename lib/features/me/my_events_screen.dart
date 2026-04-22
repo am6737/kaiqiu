@@ -110,11 +110,11 @@ class _RegisteredView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
-    final async = ref.watch(myFavoriteEventsProvider);
+    final async = ref.watch(myRegisteredEventsProvider);
     return RefreshIndicator(
       color: context.tokens.accent,
       backgroundColor: context.tokens.elev1,
-      onRefresh: () async => ref.invalidate(myFavoriteEventsProvider),
+      onRefresh: () async => ref.invalidate(myRegisteredEventsProvider),
       child: async.when(
         data: (list) {
           if (list.isEmpty) {
@@ -207,14 +207,23 @@ class _DoneView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
-    final async = ref.watch(myHostedEventsProvider);
+    final hostedAsync = ref.watch(myHostedEventsProvider);
+    final registeredAsync = ref.watch(myRegisteredEventsProvider);
     return RefreshIndicator(
       color: context.tokens.accent,
       backgroundColor: context.tokens.elev1,
-      onRefresh: () async => ref.invalidate(myHostedEventsProvider),
-      child: async.when(
-        data: (list) {
-          final done = list.where((e) => e.status == EventStatus.done).toList();
+      onRefresh: () async {
+        ref.invalidate(myHostedEventsProvider);
+        ref.invalidate(myRegisteredEventsProvider);
+      },
+      child: hostedAsync.when(
+        data: (hosted) {
+          final registered = registeredAsync.valueOrNull ?? [];
+          final ids = <String>{};
+          final done = <Event>[];
+          for (final e in [...hosted, ...registered]) {
+            if (e.status == EventStatus.done && ids.add(e.id)) done.add(e);
+          }
           if (done.isEmpty) {
             return ListView(
               physics: const AlwaysScrollableScrollPhysics(),

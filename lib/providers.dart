@@ -1,6 +1,8 @@
 // providers.dart — Riverpod providers (Supabase-backed).
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'models/article.dart';
+import 'models/comment.dart';
 import 'models/event.dart';
 import 'models/external_match.dart';
 import 'models/feed.dart';
@@ -13,6 +15,7 @@ import 'models/pickup_filter.dart';
 import 'models/player_profile.dart';
 import 'models/profile.dart';
 import 'models/teammate.dart';
+import 'repositories/comments_repository.dart';
 import 'repositories/events_repository.dart';
 import 'repositories/external_matches_repository.dart';
 import 'repositories/favorites_repository.dart';
@@ -28,6 +31,7 @@ import 'repositories/ratings_repository.dart';
 import 'repositories/reminders_repository.dart';
 import 'repositories/user_teams_repository.dart';
 import 'services/local_storage.dart';
+import 'services/location.dart';
 import 'services/supabase.dart';
 
 // ─────────────────────────────────────────────────────────────
@@ -45,6 +49,7 @@ final remindersRepoProvider = Provider((_) => RemindersRepository());
 final favoritesRepoProvider = Provider((_) => FavoritesRepository());
 final feedbackRepoProvider = Provider((_) => FeedbackRepository());
 final feedRepoProvider = Provider((_) => FeedRepository());
+final commentsRepoProvider = Provider((_) => CommentsRepository());
 final externalMatchesRepoProvider =
     Provider((_) => ExternalMatchesRepository());
 final notificationsRepoProvider =
@@ -171,6 +176,11 @@ final pickupSlotsProvider = FutureProvider.family<List<PickupSlot>, String>((
   return ref.read(pickupsRepoProvider).slotsFor(id);
 });
 
+/// Selected (but not yet confirmed) position on the formation.
+/// Value is (position, x, y) or null when nothing is selected.
+final selectedSlotProvider =
+    StateProvider.family<(String, int, int)?, String>((ref, pickupId) => null);
+
 /// Conversations the current user belongs to (Messages tab root).
 final conversationsProvider = FutureProvider<List<ConversationRow>>((
   ref,
@@ -271,20 +281,26 @@ final myHostedEventsProvider = FutureProvider<List<Event>>((ref) async {
   return ref.read(eventsRepoProvider).listByCreator(uid);
 });
 
+final myRegisteredEventsProvider = FutureProvider<List<Event>>((ref) async {
+  final uid = currentUserId;
+  if (uid == null) return [];
+  return ref.read(eventsRepoProvider).listRegisteredByUser(uid);
+});
+
 final myFavoriteEventsProvider = FutureProvider<List<Event>>((ref) async {
-  ref.watch(localStoreProvider);
-  final ids = LocalStore.favoriteEvents.toList();
+  final uid = currentUserId;
+  if (uid == null) return [];
+  final ids = await ref.read(favoritesRepoProvider).list(FavoriteEntity.event);
   if (ids.isEmpty) return [];
   return ref.read(eventsRepoProvider).listByIds(ids);
 });
 
 final myFavoritePickupsProvider = FutureProvider<List<Pickup>>((ref) async {
-  ref.watch(localStoreProvider);
-  final ids = LocalStore.favoritePickups;
+  final uid = currentUserId;
+  if (uid == null) return [];
+  final ids = await ref.read(favoritesRepoProvider).list(FavoriteEntity.pickup);
   if (ids.isEmpty) return [];
-  // Filter from the full list to avoid needing a dedicated RPC.
-  final all = await ref.read(pickupsRepoProvider).listAll();
-  return all.where((p) => ids.contains(p.id)).toList();
+  return ref.read(pickupsRepoProvider).listByIds(ids);
 });
 
 // ─────────────────────────────────────────────────────────────
@@ -387,6 +403,28 @@ final followersCountProvider = FutureProvider<int>((ref) async {
   }
 });
 
+/// List of user names the current user follows.
+final myFollowingListProvider = FutureProvider<List<String>>((ref) async {
+  ref.watch(localStoreProvider);
+  return ref.read(favoritesRepoProvider).list(FavoriteEntity.user);
+});
+
+/// List of user names who follow the current user.
+final myFollowersListProvider = FutureProvider<List<String>>((ref) async {
+  ref.watch(localStoreProvider);
+  final profile = await ref.watch(myProfileProvider.future);
+  if (profile == null) return [];
+  try {
+    final rows = await supabase.rpc(
+      'followers_list',
+      params: {'target_name': profile.name},
+    );
+    return (rows as List).map((r) => r['follower_name'] as String).toList();
+  } catch (_) {
+    return [];
+  }
+});
+
 // ── Home Tab Providers ──────────────────────────────────
 
 /// 推荐 Tab — mixed feed of all content types
@@ -397,6 +435,37 @@ final recommendFeedProvider = FutureProvider<List<FeedItem>>((ref) async {
 /// 发现 Tab — posts (with activity) + articles
 final discoverFeedProvider = FutureProvider<List<FeedItem>>((ref) async {
   return ref.read(feedRepoProvider).buildDiscoverFeed();
+});
+
+/// Single article detail by id.
+final articleDetailProvider = FutureProvider.family<Article, String>((
+  ref,
+  id,
+) async {
+  final row = await supabase.from('articles').select().eq('id', id).single();
+  return Article.fromMap(row);
+});
+
+/// Single post detail by id (posts + activity fields).
+final postDetailProvider =
+    FutureProvider.family<Map<String, dynamic>, String>((ref, id) async {
+  final row = await supabase
+      .from('posts')
+      .select('*, author:profiles!author_id(name)')
+      .eq('id', id)
+      .single();
+  return row;
+});
+
+/// Comments for a given target (article or post).
+final commentsProvider =
+    FutureProvider.family<List<Comment>, ({String type, String id})>((
+  ref,
+  target,
+) async {
+  return ref
+      .read(commentsRepoProvider)
+      .listFor(targetType: target.type, targetId: target.id);
 });
 
 /// 赛事 Tab — events grouped by status
@@ -414,4 +483,9 @@ final pickupFilterProvider = StateProvider<PickupFilter>(
 final filteredPickupsProvider = FutureProvider<List<Pickup>>((ref) async {
   final filter = ref.watch(pickupFilterProvider);
   return ref.read(pickupsRepoProvider).listFiltered(filter);
+});
+
+/// User device position (for distance calc)
+final userPositionProvider = FutureProvider((ref) async {
+  return LocationService().currentPosition();
 });

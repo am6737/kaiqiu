@@ -1,7 +1,6 @@
 // pickup_detail_screen.dart — 球局详情 + 阵型图 (real slots + tap-to-join)
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../l10n/l10n_extension.dart';
@@ -12,7 +11,6 @@ import '../../services/local_storage.dart';
 import '../../services/map_launcher.dart';
 import '../../services/supabase.dart' as svc;
 import '../../theme/app_tokens.dart';
-import 'map/mini_map.dart';
 import '../../utils/share_helper.dart';
 import '../../utils/toast.dart';
 import '../../widgets/avatar.dart';
@@ -64,6 +62,7 @@ class PickupDetailScreen extends ConsumerWidget {
                   pickupId: id,
                 ),
                 _VenueInfo(
+                  title: pickupAsync.valueOrNull?.displayTitle ?? '',
                   venue: pickupAsync.valueOrNull?.venue ?? '',
                   address: pickupAsync.valueOrNull?.address,
                   lat: pickupAsync.valueOrNull?.lat,
@@ -84,12 +83,6 @@ class PickupDetailScreen extends ConsumerWidget {
                   ),
                 ),
                 _Details(pickup: pickupAsync.valueOrNull),
-                _MiniMap(
-                  venue: pickupAsync.valueOrNull?.venue ?? '',
-                  address: pickupAsync.valueOrNull?.address,
-                  lat: pickupAsync.valueOrNull?.lat,
-                  lng: pickupAsync.valueOrNull?.lng,
-                ),
               ],
             ),
           ),
@@ -191,6 +184,7 @@ class _CircleBtn extends StatelessWidget {
 }
 
 class _VenueInfo extends StatelessWidget {
+  final String title;
   final String venue;
   final String? address;
   final double? lat;
@@ -201,6 +195,7 @@ class _VenueInfo extends StatelessWidget {
   final int durationMin;
   final double feeYuan;
   const _VenueInfo({
+    required this.title,
     required this.venue,
     this.address,
     this.lat,
@@ -226,6 +221,12 @@ class _VenueInfo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final locationText = [
+      venue,
+      if (address != null && address!.trim().isNotEmpty && address != venue)
+        address!,
+    ].join(' · ');
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
       child: Column(
@@ -239,25 +240,34 @@ class _VenueInfo extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+              color: context.tokens.ink,
+              letterSpacing: -0.4,
+            ),
+          ),
+          const SizedBox(height: 8),
           Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              Icon(Icons.near_me, size: 14, color: context.tokens.accent),
+              const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  venue,
+                  locationText,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w700,
-                    color: context.tokens.ink,
-                    letterSpacing: -0.4,
+                    fontSize: 13,
+                    color: context.tokens.inkSub,
                   ),
                 ),
               ),
               const SizedBox(width: 8),
-              TextButton.icon(
+              TextButton(
                 onPressed: _canNavigate ? () => _openNav(context) : null,
-                icon: const Icon(Icons.near_me, size: 16),
-                label: Text(context.l10n.pickup_detail_navigate),
                 style: TextButton.styleFrom(
                   foregroundColor: context.tokens.accent,
                   disabledForegroundColor: context.tokens.inkMute,
@@ -272,6 +282,7 @@ class _VenueInfo extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
+                child: Text(context.l10n.pickup_detail_navigate),
               ),
             ],
           ),
@@ -388,40 +399,14 @@ class _Formation extends ConsumerWidget {
     return null;
   }
 
-  Future<void> _join(
-    BuildContext ctx,
-    WidgetRef ref, {
-    required String position,
-    required int x,
-    required int y,
-  }) async {
-    final uid = svc.currentUserId;
-    if (uid == null) {
-      showToast(ctx, ctx.l10n.pickup_detail_not_signed_in, error: true);
-      return;
-    }
-    try {
-      await ref
-          .read(pickupsRepoProvider)
-          .join(
-            pickupId: pickupId,
-            userId: uid,
-            position: position,
-            x: x,
-            y: y,
-          );
-      ref.invalidate(pickupSlotsProvider(pickupId));
-    } catch (e) {
-      if (!ctx.mounted) return;
-      showToast(ctx, ctx.l10n.pickup_detail_join_failed('$e'), error: true);
-    }
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final filledCount = _formation
         .where((p) => _slotAt(p.$2, p.$3) != null)
         .length;
+    final uid = svc.currentUserId;
+    final alreadyJoined = slots.any((s) => s.userId == uid);
+    final selected = ref.watch(selectedSlotProvider(pickupId));
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
@@ -537,13 +522,17 @@ class _Formation extends ConsumerWidget {
                         child: _PlayerDot(
                           pos: p.$1,
                           slot: _slotAt(p.$2, p.$3),
-                          onJoin: () => _join(
-                            context,
-                            ref,
-                            position: p.$1,
-                            x: p.$2,
-                            y: p.$3,
-                          ),
+                          selected: selected == (p.$1, p.$2, p.$3),
+                          enabled: !alreadyJoined,
+                          onTap: () {
+                            if (alreadyJoined) return;
+                            final current = ref.read(selectedSlotProvider(pickupId));
+                            if (current == (p.$1, p.$2, p.$3)) {
+                              ref.read(selectedSlotProvider(pickupId).notifier).state = null;
+                            } else {
+                              ref.read(selectedSlotProvider(pickupId).notifier).state = (p.$1, p.$2, p.$3);
+                            }
+                          },
                         ),
                       ),
                   ],
@@ -619,11 +608,15 @@ class _FieldPainter extends CustomPainter {
 class _PlayerDot extends StatelessWidget {
   final String pos;
   final PickupSlot? slot;
-  final VoidCallback onJoin;
+  final bool selected;
+  final bool enabled;
+  final VoidCallback onTap;
   const _PlayerDot({
     required this.pos,
     required this.slot,
-    required this.onJoin,
+    required this.selected,
+    required this.enabled,
+    required this.onTap,
   });
 
   @override
@@ -631,20 +624,39 @@ class _PlayerDot extends StatelessWidget {
     final filled = slot != null;
     final uid = svc.currentUserId;
     final label = filled ? slot!.initial(uid) : '+';
+    final canTap = !filled && enabled;
+
+    final Color circleColor;
+    final Color borderColor;
+    final Color textColor;
+    if (filled) {
+      circleColor = context.tokens.elev1;
+      borderColor = context.tokens.line;
+      textColor = context.tokens.ink;
+    } else if (selected) {
+      circleColor = context.tokens.accent;
+      borderColor = context.tokens.accent;
+      textColor = context.tokens.accentInk;
+    } else {
+      circleColor = Colors.transparent;
+      borderColor = context.tokens.accent;
+      textColor = context.tokens.accent;
+    }
 
     return GestureDetector(
-      onTap: filled ? null : onJoin,
+      onTap: canTap ? onTap : null,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
             width: 36,
             height: 36,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: filled ? context.tokens.elev1 : Colors.transparent,
+              color: circleColor,
               shape: BoxShape.circle,
-              border: Border.all(color: filled ? context.tokens.line : context.tokens.accent, width: 1.5),
+              border: Border.all(color: borderColor, width: selected ? 2.5 : 1.5),
             ),
             child: Text(
               label,
@@ -653,7 +665,7 @@ class _PlayerDot extends StatelessWidget {
                 fontFamilyFallback: context.tokens.monoFallbacks,
                 fontSize: label.length > 1 ? 9 : 10,
                 fontWeight: FontWeight.w600,
-                color: filled ? context.tokens.ink : context.tokens.accent,
+                color: textColor,
               ),
             ),
           ),
@@ -832,115 +844,114 @@ class _Details extends StatelessWidget {
   }
 }
 
-class _MiniMap extends StatefulWidget {
-  final String venue;
-  final String? address;
-  final double? lat;
-  final double? lng;
-  const _MiniMap({
-    required this.venue,
-    this.address,
-    this.lat,
-    this.lng,
-  });
 
-  @override
-  State<_MiniMap> createState() => _MiniMapState();
-}
-
-class _MiniMapState extends State<_MiniMap> {
-  String? _distanceKm;
-
-  @override
-  void initState() {
-    super.initState();
-    _computeDistance();
-  }
-
-  Future<void> _computeDistance() async {
-    if (widget.lat == null || widget.lng == null) return;
-    try {
-      final pos = await Geolocator.getLastKnownPosition();
-      if (pos == null || !mounted) return;
-      final meters = Geolocator.distanceBetween(
-        pos.latitude, pos.longitude, widget.lat!, widget.lng!,
-      );
-      if (mounted) {
-        setState(() => _distanceKm = (meters / 1000).toStringAsFixed(1));
-      }
-    } catch (_) {}
-  }
-
-  String get venue => widget.venue;
-  String? get address => widget.address;
-  double? get lat => widget.lat;
-  double? get lng => widget.lng;
-  bool get _canNavigate => lat != null && lng != null;
-
-  void _openNav(BuildContext context) {
-    if (!_canNavigate) return;
-    MapLauncher.openNavigation(
-      context: context,
-      lat: lat!,
-      lng: lng!,
-      name: venue.isEmpty ? (address ?? '') : venue,
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l = context.l10n;
-    final detailText = (address != null && address!.trim().isNotEmpty)
-        ? address!
-        : venue;
-    final distLabel = _distanceKm != null
-        ? l.pickup_detail_location_km(_distanceKm!)
-        : l.pickup_detail_location;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Label(distLabel),
-          if (detailText.trim().isNotEmpty) ...[
-            const SizedBox(height: 4),
-            Text(
-              detailText,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 13,
-                color: context.tokens.inkSub,
-                height: 1.35,
-              ),
-            ),
-          ],
-          const SizedBox(height: 10),
-          GestureDetector(
-            onTap: _canNavigate ? () => _openNav(context) : null,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(context.tokens.r2),
-              child: PickupMiniMap(lat: lat, lng: lng),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _BottomCta extends ConsumerWidget {
+class _BottomCta extends ConsumerStatefulWidget {
   final String pickupId;
   const _BottomCta({required this.pickupId});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final slotsAsync = ref.watch(pickupSlotsProvider(pickupId));
+  ConsumerState<_BottomCta> createState() => _BottomCtaState();
+}
+
+class _BottomCtaState extends ConsumerState<_BottomCta> {
+  bool _joining = false;
+
+  Future<void> _confirmJoin() async {
+    final selected = ref.read(selectedSlotProvider(widget.pickupId));
+    if (selected == null) return;
+    final uid = svc.currentUserId;
+    if (uid == null) {
+      showToast(context, context.l10n.pickup_detail_not_signed_in, error: true);
+      return;
+    }
+
+    setState(() => _joining = true);
+    try {
+      await ref.read(pickupsRepoProvider).join(
+            pickupId: widget.pickupId,
+            userId: uid,
+            position: selected.$1,
+            x: selected.$2,
+            y: selected.$3,
+          );
+      ref.read(selectedSlotProvider(widget.pickupId).notifier).state = null;
+      ref.invalidate(pickupSlotsProvider(widget.pickupId));
+    } catch (e) {
+      if (!mounted) return;
+      showToast(context, context.l10n.pickup_detail_join_failed('$e'), error: true);
+    } finally {
+      if (mounted) setState(() => _joining = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final slotsAsync = ref.watch(pickupSlotsProvider(widget.pickupId));
     final uid = svc.currentUserId;
     final joined = slotsAsync.maybeWhen(
       data: (slots) => slots.any((s) => s.userId == uid),
       orElse: () => false,
     );
+    final selected = ref.watch(selectedSlotProvider(widget.pickupId));
+
+    final Widget buttonChild;
+    final VoidCallback? onPressed;
+    final BtnVariant variant;
+    final bool disabled;
+
+    if (joined) {
+      variant = BtnVariant.secondary;
+      disabled = true;
+      onPressed = null;
+      buttonChild = Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.check, size: 16, color: context.tokens.ink),
+          const SizedBox(width: 6),
+          Text(
+            context.l10n.pickup_detail_already_joined,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: context.tokens.ink,
+            ),
+          ),
+        ],
+      );
+    } else if (selected != null) {
+      variant = BtnVariant.primary;
+      disabled = _joining;
+      onPressed = _joining ? null : _confirmJoin;
+      buttonChild = _joining
+          ? const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+            )
+          : Text(
+              context.l10n.pickup_detail_confirm_position(selected.$1),
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: context.tokens.accentInk,
+              ),
+            );
+    } else {
+      variant = BtnVariant.primary;
+      disabled = false;
+      onPressed = () {
+        showToast(context, context.l10n.pickup_detail_tap_empty_slot);
+      };
+      buttonChild = Text(
+        context.l10n.pickup_detail_select_position,
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          color: context.tokens.accentInk,
+        ),
+      );
+    }
 
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 32),
@@ -970,42 +981,11 @@ class _BottomCta extends ConsumerWidget {
           SizedBox(
             width: 180,
             child: PrimaryButton(
-              onPressed: joined
-                  ? null
-                  : () {
-                      showToast(
-                        context,
-                        context.l10n.pickup_detail_tap_empty_slot,
-                      );
-                    },
-              disabled: joined,
-              variant: joined ? BtnVariant.secondary : BtnVariant.primary,
+              onPressed: onPressed,
+              disabled: disabled,
+              variant: variant,
               size: BtnSize.lg,
-              child: joined
-                  ? Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.check, size: 16, color: context.tokens.ink),
-                        const SizedBox(width: 6),
-                        Text(
-                          context.l10n.pickup_detail_already_joined,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: context.tokens.ink,
-                          ),
-                        ),
-                      ],
-                    )
-                  : Text(
-                      context.l10n.pickup_detail_select_position,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: context.tokens.accentInk,
-                      ),
-                    ),
+              child: buttonChild,
             ),
           ),
         ],

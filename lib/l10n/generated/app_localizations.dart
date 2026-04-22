@@ -811,6 +811,12 @@ abstract class AppL10n {
   /// **'选位置报名'**
   String get pickup_detail_select_position;
 
+  /// No description provided for @pickup_detail_confirm_position.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认 {pos}'**
+  String pickup_detail_confirm_position(String pos);
+
   /// No description provided for @pickup_detail_already_joined.
   ///
   /// In zh, this message translates to:
@@ -2046,6 +2052,36 @@ abstract class AppL10n {
   /// In zh, this message translates to:
   /// **'粉丝'**
   String get profile_followers;
+
+  /// No description provided for @me_following_title.
+  ///
+  /// In zh, this message translates to:
+  /// **'关注与粉丝'**
+  String get me_following_title;
+
+  /// No description provided for @me_following_empty.
+  ///
+  /// In zh, this message translates to:
+  /// **'还没有关注任何人'**
+  String get me_following_empty;
+
+  /// No description provided for @me_following_empty_sub.
+  ///
+  /// In zh, this message translates to:
+  /// **'去发现更多球友吧'**
+  String get me_following_empty_sub;
+
+  /// No description provided for @me_followers_empty.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂时还没有粉丝'**
+  String get me_followers_empty;
+
+  /// No description provided for @me_followers_empty_sub.
+  ///
+  /// In zh, this message translates to:
+  /// **'多参与活动认识更多球友'**
+  String get me_followers_empty_sub;
 
   /// No description provided for @profile_logout.
   ///
@@ -3594,6 +3630,114 @@ abstract class AppL10n {
   /// In zh, this message translates to:
   /// **'分享'**
   String get home_discover_share;
+
+  /// No description provided for @article_detail_title.
+  ///
+  /// In zh, this message translates to:
+  /// **'文章详情'**
+  String get article_detail_title;
+
+  /// No description provided for @article_category_match_report.
+  ///
+  /// In zh, this message translates to:
+  /// **'战报'**
+  String get article_category_match_report;
+
+  /// No description provided for @article_category_preview.
+  ///
+  /// In zh, this message translates to:
+  /// **'前瞻'**
+  String get article_category_preview;
+
+  /// No description provided for @article_category_tactics.
+  ///
+  /// In zh, this message translates to:
+  /// **'战术'**
+  String get article_category_tactics;
+
+  /// No description provided for @article_category_interview.
+  ///
+  /// In zh, this message translates to:
+  /// **'专访'**
+  String get article_category_interview;
+
+  /// No description provided for @article_category_analysis.
+  ///
+  /// In zh, this message translates to:
+  /// **'分析'**
+  String get article_category_analysis;
+
+  /// No description provided for @article_category_fitness.
+  ///
+  /// In zh, this message translates to:
+  /// **'健身'**
+  String get article_category_fitness;
+
+  /// No description provided for @article_category_gear.
+  ///
+  /// In zh, this message translates to:
+  /// **'装备'**
+  String get article_category_gear;
+
+  /// No description provided for @article_category_pickup_guide.
+  ///
+  /// In zh, this message translates to:
+  /// **'约球'**
+  String get article_category_pickup_guide;
+
+  /// No description provided for @article_no_body.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无正文内容'**
+  String get article_no_body;
+
+  /// No description provided for @post_detail_title.
+  ///
+  /// In zh, this message translates to:
+  /// **'帖子详情'**
+  String get post_detail_title;
+
+  /// No description provided for @activity_detail_title.
+  ///
+  /// In zh, this message translates to:
+  /// **'动态详情'**
+  String get activity_detail_title;
+
+  /// No description provided for @post_comments_title.
+  ///
+  /// In zh, this message translates to:
+  /// **'评论'**
+  String get post_comments_title;
+
+  /// No description provided for @post_no_comments.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无评论'**
+  String get post_no_comments;
+
+  /// No description provided for @comment_hint.
+  ///
+  /// In zh, this message translates to:
+  /// **'写评论…'**
+  String get comment_hint;
+
+  /// No description provided for @comment_empty_toast.
+  ///
+  /// In zh, this message translates to:
+  /// **'评论内容不能为空'**
+  String get comment_empty_toast;
+
+  /// No description provided for @comment_send_failed.
+  ///
+  /// In zh, this message translates to:
+  /// **'发送失败，请重试'**
+  String get comment_send_failed;
+
+  /// No description provided for @comment_login_required.
+  ///
+  /// In zh, this message translates to:
+  /// **'请先登录后再评论'**
+  String get comment_login_required;
 
   /// No description provided for @rate_panel_title.
   ///

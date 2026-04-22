@@ -3,6 +3,7 @@ class Article {
   final String? authorId;
   final String title;
   final String? summary;
+  final String? body;
   final String? coverUrl;
   final String category;
   final int readTimeMin;
@@ -15,6 +16,7 @@ class Article {
     this.authorId,
     required this.title,
     this.summary,
+    this.body,
     this.coverUrl,
     required this.category,
     this.readTimeMin = 5,
@@ -28,6 +30,7 @@ class Article {
         authorId: m['author_id'] as String?,
         title: m['title'] as String,
         summary: m['summary'] as String?,
+        body: m['body'] as String?,
         coverUrl: m['cover_url'] as String?,
         category: m['category'] as String? ?? 'analysis',
         readTimeMin: m['read_time_min'] as int? ?? 5,

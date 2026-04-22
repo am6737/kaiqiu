@@ -10,8 +10,9 @@ PickupStatus _parseStatus(String? s) => switch (s) {
 
 class Pickup {
   final String id;
-  final String? hostId; // nullable: seed data has no host yet
-  final String? hostName; // display-only fallback when hostId is null
+  final String? hostId;
+  final String? hostName;
+  final String? title;
   final String venue;
   final String? address;
   final String? venuePhotoUrl;
@@ -33,6 +34,7 @@ class Pickup {
     required this.id,
     this.hostId,
     this.hostName,
+    this.title,
     required this.venue,
     this.address,
     this.venuePhotoUrl,
@@ -55,6 +57,7 @@ class Pickup {
     id: m['id'] as String,
     hostId: m['host_id'] as String?,
     hostName: m['host_name'] as String?,
+    title: m['title'] as String?,
     venue: m['venue'] as String,
     address: m['address'] as String?,
     venuePhotoUrl: m['venue_photo_url'] as String?,
@@ -74,6 +77,7 @@ class Pickup {
   );
 
   double get feeYuan => feeCents / 100;
+  String get displayTitle => title ?? venue;
   String get displayHost => hostName ?? '—';
   String get displayTime => timeLabel ?? '';
   int get displayNeed => need ?? 0;

@@ -57,7 +57,7 @@ create policy "profiles self update" on public.profiles for update using (auth.u
 -- handle_new_user: SECURITY DEFINER 必须设 search_path，否则找不到 public.profiles；
 -- insert 用 on conflict 保证幂等（重复触发或手动 backfill 后不会报错）；
 -- 外层再兜一次 exception，防止 profile 创建意外阻塞 auth.users 的注册流程。
-create function public.handle_new_user()
+create or replace function public.handle_new_user()
   returns trigger
   language plpgsql
   security definer
@@ -109,6 +109,7 @@ create table public.pickups (
   host_name text,                       -- demo 模式下直接展示的主办人名
   time_label text,                      -- demo 模式下直接展示的时间文案 "今晚 19:30"
   need int,                             -- demo 模式下直接展示的 "缺 N 人"
+  title text,                           -- 个性化标题（为空时 fallback 到 venue）
   created_at timestamptz default now()
 );
 
@@ -129,7 +130,8 @@ create table public.pickup_slots (
   x int,                                -- 0-100 on formation grid
   y int,
   joined_at timestamptz default now(),
-  unique (pickup_id, position, x, y)
+  unique (pickup_id, position, x, y),
+  unique (pickup_id, user_id)
 );
 
 create index pickup_slots_pickup_idx on public.pickup_slots (pickup_id);
@@ -394,7 +396,7 @@ create policy "messages member write" on public.messages for insert with check (
   )
 );
 
-create function public.on_message_created() returns trigger language plpgsql as $$
+create or replace function public.on_message_created() returns trigger language plpgsql as $$
 begin
   update public.conversations set updated_at = now() where id = new.conv_id;
   update public.conversation_members
@@ -413,7 +415,7 @@ alter publication supabase_realtime add table public.messages;
 
 -- ensure_demo_conversation: 每个匿名用户首次打开 Messages tab 时调用 rpc，
 -- 已在任意会话里则 no-op 返回现有 conv_id，否则建 "球局 · 新手大厅" + 欢迎消息。
-create function public.ensure_demo_conversation()
+create or replace function public.ensure_demo_conversation()
   returns uuid
   language plpgsql
   security definer
@@ -460,9 +462,83 @@ $$;
 
 grant execute on function public.ensure_demo_conversation() to authenticated, anon;
 
+-- seed_demo_inbox: 为当前用户播种 demo 通知 + 消息数据（幂等）。
+-- 由客户端首次打开收件箱时调用，SECURITY DEFINER 绕过 RLS INSERT 限制。
+create or replace function public.seed_demo_inbox()
+  returns void
+  language plpgsql
+  security definer
+  set search_path = public
+as $$
+declare
+  v_user uuid := auth.uid();
+  v_conv1 uuid;
+  v_conv2 uuid;
+begin
+  if v_user is null then
+    raise exception 'Not authenticated';
+  end if;
+
+  -- 自愈 profile
+  insert into profiles (id, name)
+  select u.id, coalesce(u.raw_user_meta_data->>'name', '新球友')
+  from auth.users u where u.id = v_user
+  on conflict (id) do nothing;
+
+  -- 已有通知则跳过
+  if exists (select 1 from notifications where user_id = v_user limit 1) then
+    return;
+  end if;
+
+  -- ── 通知 ──────────────────────────────────────────────
+  insert into notifications (user_id, type, title, body, icon, route, read, created_at) values
+    (v_user, 'match',  '比赛即将开始', '村超小组赛第5轮 · 今天 19:30 · 请提前到场',  'timer',        '/events', false, now() - interval '20 minutes'),
+    (v_user, 'match',  '赛程更新', '你关注的赛事第 3 轮对阵已公布',                    'schedule',     '/events', false, now() - interval '3 hours'),
+    (v_user, 'rating', '你被评为全场最佳', '获得 8.7 均分，142 次评分',                 'star',         '/events', false, now() - interval '30 minutes'),
+    (v_user, 'rating', '收到新的赛后评分', '队友给你打了 8.5 分："前插跑位意识很好"',   'star',         '/archive', false, now() - interval '5 hours'),
+    (v_user, 'pickup', '有人发起了新约球', '体育中心 3号场 · 今晚 19:30 · 缺3人',       'sports_soccer','/pickup',  false, now() - interval '2 hours'),
+    (v_user, 'pickup', '你报名的约球人满了', '足球场 · 明天 07:00 · 12/12 已满员',       'check_circle', '/pickup',  false, now() - interval '1 hour'),
+    (v_user, 'follow', '有人开始关注你', '你们有 3 个共同好友',                          'person_add',   null,       false, now() - interval '45 minutes'),
+    (v_user, 'match',  '比赛结果：3-1 获胜', '小组赛第4轮 · 你贡献 1 球 1 助攻',        'emoji_events', '/events',  true,  now() - interval '2 days'),
+    (v_user, 'match',  '新赛事报名已开放', '7v7 业余联赛 · 报名截止还剩 11 天',          'how_to_reg',   '/events',  true,  now() - interval '3 days'),
+    (v_user, 'rating', '上轮比赛评分已出炉', '获得 7.9 分，排名队内第 2',                'star',         '/archive', true,  now() - interval '2 days 4 hours'),
+    (v_user, 'pickup', '周末训练发起了', '体育公园 · 周六 15:00 · 欢迎各水平球友',       'sports_soccer','/pickup',  true,  now() - interval '1 day'),
+    (v_user, 'pickup', '一场约球取消了', '因场地维护临时取消',                            'cancel',       '/pickup',  true,  now() - interval '4 days'),
+    (v_user, 'follow', '新关注者', '你现在有 1 位关注者',                                 'person_add',   null,       true,  now() - interval '5 days'),
+    (v_user, 'system', '你的球员档案已更新', '赛季数据同步完成：12 场 · 8 球 · 5 助攻',  'sync',         '/archive', true,  now() - interval '1 day 6 hours'),
+    (v_user, 'system', '社区公约提醒', '请遵守球场礼仪，尊重裁判和对手',                  'info',         null,       true,  now() - interval '5 days'),
+    (v_user, 'system', '欢迎加入球局', '你已成功注册球局账号，快去找场球踢吧！',          'celebration',  null,       true,  now() - interval '14 days');
+
+  -- ── 会话 + 消息 ──────────────────────────────────────
+  -- 群聊：球局 · 新手大厅
+  insert into conversations (kind, title, updated_at)
+  values ('group', '球局 · 新手大厅', now() - interval '1 hour')
+  returning id into v_conv1;
+
+  insert into conversation_members (conv_id, user_id, unread) values (v_conv1, v_user, 1);
+
+  insert into messages (conv_id, sender_id, body, kind, created_at) values
+    (v_conv1, null, '欢迎来到球局！这里是新手大厅，有什么问题都可以问。', 'system', now() - interval '2 hours'),
+    (v_conv1, null, '周末约球记得提前报名，热门场地很快就满了。',         'system', now() - interval '1 hour');
+
+  -- 系统通知会话
+  insert into conversations (kind, title, updated_at)
+  values ('group', '系统通知', now() - interval '6 hours')
+  returning id into v_conv2;
+
+  insert into conversation_members (conv_id, user_id, unread) values (v_conv2, v_user, 0);
+
+  insert into messages (conv_id, sender_id, body, kind, created_at) values
+    (v_conv2, null, '你报名的队伍已通过审核，请准时参加比赛。',       'system', now() - interval '6 hours'),
+    (v_conv2, null, '第 5 轮赛程已公布，请查看最新对阵安排。',        'system', now() - interval '3 days');
+end;
+$$;
+
+grant execute on function public.seed_demo_inbox() to authenticated;
+
 -- ensure_event_conversation: 打开赛事讨论 tab 时调用；
 -- 原子地查找或创建 title='event:{id}' 的群组会话，并保证当前用户是成员。
-create function public.ensure_event_conversation(p_event_id text)
+create or replace function public.ensure_event_conversation(p_event_id text)
   returns uuid
   language plpgsql
   security definer
@@ -508,7 +584,7 @@ grant execute on function public.ensure_event_conversation(text) to authenticate
 
 drop function if exists public.ensure_dm_conversation(uuid);
 
-create function public.ensure_dm_conversation(p_other_user_id uuid)
+create or replace function public.ensure_dm_conversation(p_other_user_id uuid)
   returns uuid
   language plpgsql
   security definer
@@ -829,6 +905,10 @@ create table public.posts (
   likes int default 0,
   comments int default 0,
   shares int default 0,
+  match_count int,                       -- Strava 风格运动数据
+  win_count int,
+  play_duration int,                     -- minutes
+  venue text,
   created_at timestamptz default now()
 );
 
@@ -1091,6 +1171,122 @@ create policy rating_likes_read on public.rating_likes
 create policy rating_likes_self_write on public.rating_likes
   for all using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
+
+
+-- ═══════════════════════════════════════════════════════════════
+-- 22. followers_count — 关注者计数 RPC
+-- ═══════════════════════════════════════════════════════════════
+
+create or replace function public.followers_count(target_name text)
+returns bigint
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select count(*)
+  from public.favorites
+  where entity_type = 'user'
+    and entity_id = target_name;
+$$;
+
+
+-- ═══════════════════════════════════════════════════════════════
+-- 23. articles — 文章（资讯、战报、战术分析等）
+-- ═══════════════════════════════════════════════════════════════
+
+drop table if exists public.articles cascade;
+
+create table public.articles (
+  id uuid primary key default gen_random_uuid(),
+  author_id uuid references public.profiles(id),
+  title text not null,
+  summary text,
+  body text,
+  cover_url text,
+  category text not null default 'analysis',
+  read_time_min int default 5,
+  view_count int default 0,
+  comment_count int default 0,
+  created_at timestamptz default now()
+);
+
+alter table public.articles enable row level security;
+create policy "articles public read" on public.articles for select using (true);
+
+create or replace function public.increment_article_views(article_id uuid)
+returns void as $$
+begin
+  update public.articles set view_count = view_count + 1 where id = article_id;
+end;
+$$ language plpgsql security definer;
+
+grant execute on function public.increment_article_views(uuid) to authenticated, anon;
+
+
+-- ═══════════════════════════════════════════════════════════════
+-- 24. comments — 统一评论表（文章 / 帖子）
+-- ═══════════════════════════════════════════════════════════════
+
+drop table if exists public.comments cascade;
+
+create table public.comments (
+  id uuid primary key default gen_random_uuid(),
+  target_type text not null check (target_type in ('article', 'post')),
+  target_id uuid not null,
+  author_id uuid references public.profiles(id),
+  author_name text not null default '匿名球友',
+  body text not null,
+  likes int default 0,
+  created_at timestamptz default now()
+);
+
+create index comments_target_idx on public.comments(target_type, target_id, created_at desc);
+
+alter table public.comments enable row level security;
+create policy "comments public read" on public.comments for select using (true);
+create policy "comments self insert" on public.comments for insert
+  with check (true);
+
+create or replace function public.update_comment_count()
+returns trigger as $$
+declare
+  _type text;
+  _id   uuid;
+begin
+  if tg_op = 'DELETE' then
+    _type := OLD.target_type;
+    _id   := OLD.target_id;
+  else
+    _type := NEW.target_type;
+    _id   := NEW.target_id;
+  end if;
+
+  if _type = 'article' then
+    update public.articles
+       set comment_count = (
+             select count(*) from public.comments
+              where target_type = 'article' and target_id = _id
+           )
+     where id = _id;
+  elsif _type = 'post' then
+    update public.posts
+       set comments = (
+             select count(*) from public.comments
+              where target_type = 'post' and target_id = _id
+           )
+     where id = _id;
+  end if;
+
+  return coalesce(NEW, OLD);
+end;
+$$ language plpgsql security definer;
+
+drop trigger if exists trg_comment_count on public.comments;
+create trigger trg_comment_count
+  after insert or delete on public.comments
+  for each row
+  execute function public.update_comment_count();
 
 
 -- ═══════════════════════════════════════════════════════════════

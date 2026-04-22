@@ -166,6 +166,20 @@ class PickupsRepository {
         .toList();
   }
 
+  /// List pickups by a list of ids (used for favorites).
+  Future<List<Pickup>> listByIds(List<String> ids) async {
+    if (ids.isEmpty) return [];
+    final rows = await supabase
+        .from('pickups')
+        .select()
+        .inFilter('id', ids)
+        .order('start_at', ascending: true);
+    return (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map(Pickup.fromMap)
+        .toList();
+  }
+
   /// Insert a pickup along with [totalSlots] empty `pickup_slots` rows laid
   /// out in the given [formation]. Returns the new pickup id.
   Future<String> createWithSlots({

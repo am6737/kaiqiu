@@ -2,9 +2,20 @@ import '../models/notification_item.dart';
 import '../services/supabase.dart';
 
 class NotificationsRepository {
+  bool _seeded = false;
+
+  Future<void> _ensureDemoData() async {
+    if (_seeded || currentUserId == null) return;
+    _seeded = true;
+    try {
+      await supabase.rpc('seed_demo_inbox');
+    } catch (_) {}
+  }
+
   Future<List<NotificationItem>> listMine() async {
     final uid = currentUserId;
     if (uid == null) return [];
+    await _ensureDemoData();
     final rows = await supabase
         .from('notifications')
         .select()

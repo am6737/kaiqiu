@@ -380,6 +380,11 @@ class AppL10nZh extends AppL10n {
   String get pickup_detail_select_position => '选位置报名';
 
   @override
+  String pickup_detail_confirm_position(String pos) {
+    return '确认 $pos';
+  }
+
+  @override
   String get pickup_detail_already_joined => '已报名';
 
   @override
@@ -1022,6 +1027,21 @@ class AppL10nZh extends AppL10n {
 
   @override
   String get profile_followers => '粉丝';
+
+  @override
+  String get me_following_title => '关注与粉丝';
+
+  @override
+  String get me_following_empty => '还没有关注任何人';
+
+  @override
+  String get me_following_empty_sub => '去发现更多球友吧';
+
+  @override
+  String get me_followers_empty => '暂时还没有粉丝';
+
+  @override
+  String get me_followers_empty_sub => '多参与活动认识更多球友';
 
   @override
   String get profile_logout => '退出登录';
@@ -1830,6 +1850,60 @@ class AppL10nZh extends AppL10n {
 
   @override
   String get home_discover_share => '分享';
+
+  @override
+  String get article_detail_title => '文章详情';
+
+  @override
+  String get article_category_match_report => '战报';
+
+  @override
+  String get article_category_preview => '前瞻';
+
+  @override
+  String get article_category_tactics => '战术';
+
+  @override
+  String get article_category_interview => '专访';
+
+  @override
+  String get article_category_analysis => '分析';
+
+  @override
+  String get article_category_fitness => '健身';
+
+  @override
+  String get article_category_gear => '装备';
+
+  @override
+  String get article_category_pickup_guide => '约球';
+
+  @override
+  String get article_no_body => '暂无正文内容';
+
+  @override
+  String get post_detail_title => '帖子详情';
+
+  @override
+  String get activity_detail_title => '动态详情';
+
+  @override
+  String get post_comments_title => '评论';
+
+  @override
+  String get post_no_comments => '暂无评论';
+
+  @override
+  String get comment_hint => '写评论…';
+
+  @override
+  String get comment_empty_toast => '评论内容不能为空';
+
+  @override
+  String get comment_send_failed => '发送失败，请重试';
+
+  @override
+  String get comment_login_required => '请先登录后再评论';
 
   @override
   String get rate_panel_title => '赛后评分';

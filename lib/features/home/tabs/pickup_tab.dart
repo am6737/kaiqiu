@@ -1,6 +1,7 @@
 // lib/features/home/tabs/pickup_tab.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
 
 import '../../../models/pickup_filter.dart';
 import '../../../providers.dart';
@@ -17,6 +18,7 @@ class PickupTab extends ConsumerWidget {
     final l = AppL10n.of(context);
     final filter = ref.watch(pickupFilterProvider);
     final pickupsAsync = ref.watch(filteredPickupsProvider);
+    final userPos = ref.watch(userPositionProvider).valueOrNull;
 
     return RefreshIndicator(
       color: t.accent,
@@ -88,8 +90,26 @@ class PickupTab extends ConsumerWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 4),
                       itemCount: pickups.length,
-                      itemBuilder: (ctx, i) =>
-                          PickupFeedCard(pickup: pickups[i]),
+                      itemBuilder: (ctx, i) {
+                        final p = pickups[i];
+                        double? distKm;
+                        if (userPos != null &&
+                            p.lat != null &&
+                            p.lng != null) {
+                          distKm = Geolocator.distanceBetween(
+                                userPos.latitude,
+                                userPos.longitude,
+                                p.lat!,
+                                p.lng!,
+                              ) /
+                              1000;
+                        }
+                        return PickupFeedCard(
+                          pickup: p,
+                          distanceKm: distKm,
+                          locationAvailable: userPos != null,
+                        );
+                      },
                     ),
             ),
           ),

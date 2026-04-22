@@ -1,6 +1,7 @@
 // routes.dart — go_router config with auth redirect + 4-tab shell
 import 'package:go_router/go_router.dart';
 
+import 'features/article/article_detail_screen.dart';
 import 'features/auth/sign_in_screen.dart';
 import 'features/create_event/create_event_screen.dart';
 import 'features/events/event_detail_screen.dart';
@@ -14,6 +15,7 @@ import 'features/home/city_picker_screen.dart';
 import 'features/home/home_screen.dart';
 import 'features/inbox/inbox_screen.dart';
 import 'features/me/favorites_screen.dart';
+import 'features/me/following_screen.dart';
 import 'features/me/my_events_screen.dart';
 import 'features/me/my_pickups_screen.dart';
 import 'features/me/my_teams_screen.dart';
@@ -21,6 +23,7 @@ import 'features/messages/chat_screen.dart';
 import 'features/pickup/create_pickup_screen.dart';
 import 'features/pickup/pickup_detail_screen.dart';
 import 'features/pickup/pickup_map_screen.dart';
+import 'features/post/post_detail_screen.dart';
 import 'features/profile/player_archive_screen.dart';
 import 'features/profile/profile_edit_screen.dart';
 import 'features/profile/profile_screen.dart';
@@ -93,6 +96,14 @@ final router = GoRouter(
       builder: (_, s) => PickupDetailScreen(id: s.pathParameters['id']!),
     ),
     GoRoute(
+      path: '/article/:id',
+      builder: (_, s) => ArticleDetailScreen(id: s.pathParameters['id']!),
+    ),
+    GoRoute(
+      path: '/post/:id',
+      builder: (_, s) => PostDetailScreen(id: s.pathParameters['id']!),
+    ),
+    GoRoute(
       path: '/event/:id',
       builder: (_, s) => EventDetailScreen(id: s.pathParameters['id']!),
     ),
@@ -163,6 +174,13 @@ final router = GoRouter(
     GoRoute(path: '/me/pickups', builder: (_, s) => const MyPickupsScreen()),
     GoRoute(path: '/me/teams', builder: (_, s) => const MyTeamsScreen()),
     GoRoute(path: '/me/favorites', builder: (_, s) => const FavoritesScreen()),
+    GoRoute(
+      path: '/me/following',
+      builder: (_, s) {
+        final tab = int.tryParse(s.uri.queryParameters['tab'] ?? '') ?? 0;
+        return FollowingScreen(initialTab: tab);
+      },
+    ),
     // Profile edit
     GoRoute(
       path: '/profile/edit',

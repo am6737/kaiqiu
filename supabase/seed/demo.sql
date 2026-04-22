@@ -53,7 +53,9 @@ delete from public.conversations where id in (
   '44444444-4444-4444-4444-000000000006'
 );
 
-delete from public.posts where author_id::text like '10000000-0000-0000-0000-%';
+delete from public.comments;
+delete from public.articles where author_id is null or author_id::text like '10000000-0000-0000-0000-%';
+delete from public.posts where author_id is null or author_id::text like '10000000-0000-0000-0000-%';
 delete from public.player_honors where user_id::text like '10000000-0000-0000-0000-%';
 delete from public.player_attributes where user_id::text like '10000000-0000-0000-0000-%';
 
@@ -184,36 +186,36 @@ insert into player_honors (user_id, year, title, meta) values
 -- 3. Pickups — 6 场约球
 -- ═══════════════════════════════════════════════════════════════
 
-insert into pickups (id, venue, host_id, host_name, time_label, need, total, level, fee_cents,
+insert into pickups (id, title, venue, host_id, host_name, time_label, need, total, level, fee_cents,
   duration_min, status, formation, lat, lng, start_at, venue_photo_url
 ) values
   ('40000000-0000-0000-0000-000000000001',
-   '广西体育中心 5号场', '10000000-0000-0000-0000-000000000002', '老王',
+   '周中夜战，缺前锋速来', '广西体育中心 5号场', '10000000-0000-0000-0000-000000000002', '老王',
    '今晚 19:30', 3, 10, '中级', 5000, 120, 'open', '4-3-3',
    22.7680, 108.2870, now() + interval '4 hours',
    'https://images.unsplash.com/photo-1529900748604-07564a03e7a6?auto=format&fit=crop&w=1200&h=600&q=70'),
   ('40000000-0000-0000-0000-000000000002',
-   '李宁体育园足球场', '10000000-0000-0000-0000-000000000006', 'Kevin',
+   '早起踢球精神一整天', '李宁体育园足球场', '10000000-0000-0000-0000-000000000006', 'Kevin',
    '明天 07:00', 1, 12, '高级', 4000, 90, 'almost', '4-4-2',
    22.8450, 108.3900, now() + interval '1 day',
    'https://images.unsplash.com/photo-1459865264687-595d652de67e?auto=format&fit=crop&w=1200&h=600&q=70'),
   ('40000000-0000-0000-0000-000000000003',
-   '南宁市体育场', '10000000-0000-0000-0000-000000000007', '张教练',
+   '新手友好局，来就完了', '南宁市体育场', '10000000-0000-0000-0000-000000000007', '张教练',
    '周六 15:00', 5, 10, '初级', 3000, 120, 'open', '4-3-3',
    22.8130, 108.3200, now() + interval '3 days',
    'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=1200&h=600&q=70'),
   ('40000000-0000-0000-0000-000000000004',
-   '五象湖足球场', '10000000-0000-0000-0000-000000000009', '阿泽',
+   '阿泽的周末对抗赛', '五象湖足球场', '10000000-0000-0000-0000-000000000009', '阿泽',
    '周日 20:00', 0, 10, '中级', 4500, 120, 'full', '4-3-3',
    22.7550, 108.3200, now() + interval '4 days',
    'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=1200&h=600&q=70'),
   ('40000000-0000-0000-0000-000000000005',
-   '人民公园足球场', '10000000-0000-0000-0000-000000000004', '林帅',
+   '下班后来出出汗！', '人民公园足球场', '10000000-0000-0000-0000-000000000004', '林帅',
    '今晚 21:00', 4, 10, '初级', 3500, 90, 'open', '4-3-3',
    22.8250, 108.3350, now() + interval '6 hours',
    'https://images.unsplash.com/photo-1551958219-acbc608c6377?auto=format&fit=crop&w=1200&h=600&q=70'),
   ('40000000-0000-0000-0000-000000000006',
-   '西乡塘体育中心', '10000000-0000-0000-0000-000000000003', '徐铮',
+   '铮哥组局，老面孔集合', '西乡塘体育中心', '10000000-0000-0000-0000-000000000003', '徐铮',
    '周三 19:00', 2, 12, '中级', 6000, 120, 'almost', '4-4-2',
    22.8400, 108.2700, now() + interval '2 days',
    'https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=1200&h=600&q=70');
@@ -837,18 +839,480 @@ union all select 'messages',      count(*)::text from messages where conv_id::te
 union all select 'notifications', count(*)::text from notifications where user_id = '10000000-0000-0000-0000-000000000001'
 union all select 'predictions',   count(*)::text from predictions where user_id::text like '10000000-%';
 
--- ===== Articles seed =====
-INSERT INTO articles (id, author_id, title, summary, category, read_time_min, view_count, comment_count, created_at) VALUES
-  ('a0000000-0000-0000-0000-000000000001', (SELECT id FROM profiles LIMIT 1),
-   '春季联赛8强前瞻：飞虎 vs 雷霆', '深度解析两队战术体系与关键球员对位分析',
-   'analysis', 5, 326, 18, now() - interval '2 hours'),
-  ('a0000000-0000-0000-0000-000000000002', (SELECT id FROM profiles LIMIT 1),
-   '提升反手高远球的5个关键要点', '从握拍到发力，系统讲解反手技术提升路径',
-   'tutorial', 8, 1200, 45, now() - interval '6 hours'),
-  ('a0000000-0000-0000-0000-000000000003', (SELECT id FROM profiles LIMIT 1),
-   '业余选手体能训练指南', '科学的体能训练方案，帮助你在场上保持竞技状态',
-   'tutorial', 10, 890, 32, now() - interval '1 day');
+-- ═══════════════════════════════════════════════════════════════
+-- Articles seed — 赛事文章
+-- ═══════════════════════════════════════════════════════════════
 
--- ===== Update existing posts with activity data =====
-UPDATE posts SET match_count = 3, win_count = 3, play_duration = 90, venue = '南山体育中心'
-WHERE id = (SELECT id FROM posts ORDER BY created_at DESC LIMIT 1);
+INSERT INTO articles (title, summary, body, category, read_time_min, view_count, comment_count, cover_url, created_at) VALUES
+
+('村超小组赛第5轮战报：红星队3-1逆转取胜',
+ '下半场连进三球，红星队完成惊天逆转晋级八强',
+ '今晚的村超小组赛第5轮上演了一场荡气回肠的逆转好戏。红星队在上半场0-1落后的不利局面下，下半场凭借王磊的梅开二度和李浩的世界波，以3-1逆转击败蓝月队，提前一轮锁定小组第一。
+
+第23分钟，蓝月队利用角球机会由中后卫张强头球破门，率先打破僵局。此后红星队虽然控球率占优，但始终无法突破对方密集防守。
+
+易边再战，红星队换上速度型边锋刘飞，局面立刻改观。第52分钟，刘飞右路突破传中，王磊禁区内凌空抽射扳平比分。第67分钟，王磊再次接到队友直塞球，单刀破门将比分反超。第78分钟，李浩在禁区外一脚远射直挂死角，彻底杀死比赛悬念。
+
+赛后，红星队主帅表示："球员们展现了顽强的斗志，下半场的调整非常成功。"',
+ 'match_report', 6, 2341, 87,
+ 'https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?w=400',
+ now() - interval '2 hours'),
+
+('龙岗杯半决赛前瞻：两强对决谁将率先晋级',
+ '实力接近的两支球队将在周六展开巅峰对决',
+ '本周六下午，龙岗杯半决赛将迎来焦点之战——上赛季亚军猛虎队将对阵本赛季黑马雄鹰队。两支球队在小组赛和淘汰赛阶段都展现了极强的竞争力，这场比赛有望成为本届龙岗杯最精彩的对决之一。
+
+猛虎队方面，核心前锋陈威本赛季已打进8球，是赛事金靴的有力竞争者。后防线由经验丰富的老将赵刚坐镇，目前仅丢3球，是失球最少的球队。
+
+雄鹰队则以整体打法见长，中场三人组的配合行云流水。特别值得关注的是他们的高位逼抢体系，在前几轮比赛中多次制造对手失误并快速转化为进球。
+
+两队本赛季曾在小组赛阶段交手一次，当时以1-1握手言和。这一次，谁能率先打破僵局，将成为比赛的关键。',
+ 'preview', 5, 1876, 63,
+ 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=400',
+ now() - interval '8 hours'),
+
+('深度分析：业余球队如何打好4-3-3阵型',
+ '从站位到跑动，4-3-3在业余赛场的实用指南',
+ '4-3-3阵型是目前世界足坛最流行的阵型之一，从巴塞罗那到利物浦都在使用。但在业余赛场上，这个阵型的使用需要一些特殊的调整。
+
+首先是边锋的站位问题。职业比赛中边锋通常紧贴边线拉开宽度，但业余比赛中由于场地尺寸和球员体能限制，边锋的位置可以适当内收，形成类似4-3-2-1的变阵。
+
+其次是中场三角的构建。单后腰+双前腰的配置要求后腰有较强的位置感和出球能力。如果球队缺乏这样的球员，可以考虑双后腰+单前腰的稳健配置。
+
+第三是前场逼抢的组织。4-3-3最大的优势在于前场三人可以形成第一道防线。但业余比赛中，持续的高位逼抢对体能消耗极大，建议在上半场和比赛关键时段有选择地使用。
+
+最后要注意两个肋部空间的保护。当边锋前压时，边后卫和中场球员要及时补位，避免被对方打反击时暴露身后空间。',
+ 'tactics', 8, 3542, 126,
+ 'https://images.unsplash.com/photo-1517466787929-bc90951d0974?w=400',
+ now() - interval '1 day'),
+
+('角球战术详解：如何在定位球中创造威胁',
+ '三种实用角球配合，提升你的球队得分效率',
+ '在业余足球比赛中，定位球是最容易通过训练提升效率的得分手段。据统计，业余比赛中约30%的进球来自定位球，其中角球占比最高。
+
+战术一：前点甩头摆渡。安排一名身高优势明显的球员站在前点，不以直接攻门为目的，而是将球甩向后点。后点埋伏的球员在无人盯防的情况下完成射门，成功率远高于直接头球攻门。
+
+战术二：短角球配合。发角球的球员将球传给站在角球区附近的队友，然后快速向前跑，接回传球后起高球或低平球传中。这种战术可以打乱对方防守站位，制造禁区内的混乱。
+
+战术三：前插埋伏。在角球开出前，安排一名球员退到禁区外围。角球开出的同时，这名球员高速前插，在对方防守球员注意力集中在禁区内时，获得禁区前沿的射门机会。
+
+每种战术都需要在训练中反复演练，确保每个球员都知道自己的跑位和职责。建议每周至少安排一次定位球专项训练。',
+ 'tactics', 7, 2108, 95,
+ 'https://images.unsplash.com/photo-1553778263-73a83bab9b0c?w=400',
+ now() - interval '2 days'),
+
+('专访｜王磊：从工厂车间到赛场MVP的蜕变之路',
+ '白天是流水线工人，周末是球场上的进球机器',
+ '在刚刚结束的村超小组赛中，红星队前锋王磊以8粒进球高居射手榜首位。很少有人知道，这位赛场上的"杀手"平时是一名电子工厂的流水线工人。
+
+"我从小就喜欢踢球，但家里条件不允许走专业路线。"王磊说，"进工厂后，我每天下班都会去附近的球场练一个小时。周末就去参加各种野球局，慢慢认识了现在的队友们。"
+
+谈到本赛季的出色表现，王磊归功于球队的整体配合："我的进球都是队友们创造的机会，我只是完成了最后一脚。特别是刘飞和李浩，他们在边路的突破为我拉开了很多空间。"
+
+关于未来的目标，王磊表示希望能带领红星队夺得村超冠军："我们这批人踢了三年了，感情很深。大家都在努力，希望今年能拿到一个冠军作为回报。"
+
+在采访的最后，王磊还透露了自己的一个小秘密："其实我射门前都会下意识看一眼守门员的站位，这是我在网上看职业球员教学视频学来的。没想到还挺管用。"',
+ 'interview', 10, 5123, 234,
+ 'https://images.unsplash.com/photo-1526232761682-d26e03ac148e?w=400',
+ now() - interval '3 days'),
+
+('2026赛季深圳业余联赛中期盘点：格局已变',
+ '新军崛起、豪门沉寂，本赛季充满了意想不到的故事',
+ '2026赛季深圳业余联赛进行到第10轮，积分榜的格局与赛前预测大相径庭。让我们来盘点一下上半赛季的亮点与意外。
+
+最大的惊喜无疑是雄鹰队的崛起。这支上赛季才刚升级的球队，目前以7胜2平1负积23分高居榜首。他们的成功秘诀在于一套行之有效的高位逼抢体系和团队篮球——哦不，团队足球理念。全队没有特别突出的球星，但每个位置都很均衡。
+
+最大的意外则是卫冕冠军铁锤队的低迷。目前他们仅列第6位，距离前四还有4分差距。休赛期核心球员的流失是主要原因，三名主力因工作调动离开深圳，球队重建需要时间。
+
+本赛季的进球王争夺战同样精彩。猛虎队的陈威和红星队的王磊各打进8球并列射手榜首位，身后还有三名球员打进6球紧追不舍。
+
+下半赛季的看点将集中在：雄鹰队能否保持势头一路夺冠？铁锤队能否触底反弹重回争冠行列？射手王之争最终鹿死谁手？让我们拭目以待。',
+ 'analysis', 9, 4210, 178,
+ 'https://images.unsplash.com/photo-1459865264687-595d652de67e?w=400',
+ now() - interval '5 days'),
+
+('世界杯预选赛亚洲区前瞻：中国队的挑战与机遇',
+ '关键客场之战即将打响，国足能否拿到关键三分',
+ '北京时间本周四凌晨，中国男足将在世界杯预选赛亚洲区第8轮比赛中客场挑战对手。这场比赛对于国足的出线形势至关重要。
+
+目前中国队在小组中排名第三，落后第二名2分。根据赛程安排，接下来的两场客场比赛将是最艰难的考验。如果能在这两场比赛中至少拿到4分，国足将在最后两个主场占据出线主动权。
+
+从战术层面来看，客场作战需要更加注重防守的稳固性。主教练在赛前新闻发布会上也强调了"先不丢球"的重要性。预计国足将采用5-4-1或4-5-1的保守阵型，以反击作为主要进攻手段。
+
+值得关注的是，这场比赛将是多名海归球员的联袂演出。他们在欧洲联赛积累的经验和对抗强度，将成为国足客场取分的重要筹码。
+
+对于广大球迷而言，无论结果如何，我们都应该给予球队最大的支持。毕竟，每一场世预赛都是中国足球宝贵的成长经历。',
+ 'preview', 7, 8934, 456,
+ 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=400',
+ now() - interval '6 hours'),
+
+('业余球员赛前热身指南：15分钟激活全身状态',
+ '科学热身降低受伤风险，提升比赛表现',
+ '很多业余球员到了球场就直接开踢，忽略了赛前热身的重要性。研究表明，充分的热身可以降低60%以上的运动损伤风险，同时提升比赛初段的状态。
+
+以下是一套经过验证的15分钟热身方案：
+
+第一阶段（5分钟）—— 慢跑与动态拉伸：
+- 绕半场慢跑2圈
+- 高抬腿30秒 × 2组
+- 踢臀跑30秒 × 2组
+- 侧滑步各方向20秒
+
+第二阶段（5分钟）—— 球感训练：
+- 短距离传接球（5-10米）
+- 带球小范围变向
+- 脚弓拨球30次
+
+第三阶段（5分钟）—— 速度激活：
+- 30米冲刺 × 3组（60%→80%→90%强度递增）
+- 急停变向 × 4次
+- 模拟射门5-8脚
+
+注意事项：
+- 热身强度应逐渐递增，避免一开始就进行高强度活动
+- 冬季或气温较低时适当延长热身时间
+- 如有旧伤部位，需额外进行针对性的活动和保护
+- 热身后到比赛开始不宜超过10分钟，否则效果会打折扣',
+ 'fitness', 5, 6712, 89,
+ 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400',
+ now() - interval '4 days'),
+
+('2026年业余足球鞋选购指南：AG钉还是TF碎钉？',
+ '根据场地类型选择合适的球鞋，避免踩坑',
+ '对于业余球员来说，选择一双合适的足球鞋可能比任何战术训练都重要。穿错鞋不仅影响发挥，更容易导致受伤。本文将从场地适配角度出发，帮你选到最合适的战靴。
+
+AG（Artificial Ground）人造草专用钉：
+- 适用场景：长草人造草坪、质量较好的人造草场地
+- 特点：鞋钉较短且数量多，抓地力均匀
+- 推荐指数：★★★★★（深圳大部分球场都是人造草）
+
+TF（Turf）碎钉：
+- 适用场景：短草人造草、水泥地上铺草皮、较硬的场地
+- 特点：橡胶碎钉，缓冲好，适应性最广
+- 推荐指数：★★★★☆（万金油选择）
+
+FG（Firm Ground）天然草钉：
+- 适用场景：天然草坪
+- 特点：鞋钉长且硬，在人造草上容易导致膝盖受伤
+- 推荐指数：★★☆☆☆（除非你经常踢天然草，否则不推荐）
+
+选购建议：
+1. 深圳球友首选AG钉，搭配一双TF碎钉备用
+2. 预算有限的话，一双TF碎钉可以应付90%的场地
+3. 试鞋时穿上比赛用的球袜，确保脚感准确
+4. 新鞋至少磨合2-3次训练再穿上赛场',
+ 'gear', 6, 4567, 203,
+ 'https://images.unsplash.com/photo-1511886929837-354d827aae26?w=400',
+ now() - interval '1 week'),
+
+('周末约球精选：深圳本周末5场高质量球局推荐',
+ '从新手友好场到高水平对抗，总有一场适合你',
+ '又到周末了！为大家精选了本周末深圳地区5场值得参加的约球活动：
+
+1️⃣ 莲花山体育中心 · 周六 15:00
+- 级别：中级
+- 人数：5v5
+- 费用：40元/人
+- 亮点：室内空调场，不怕天气影响
+
+2️⃣ 深圳湾体育公园 · 周六 19:30
+- 级别：中高级
+- 人数：8v8
+- 费用：35元/人
+- 亮点：夜场灯光好，海风吹着踢球超舒服
+
+3️⃣ 龙岗大运中心 · 周日 09:00
+- 级别：新手友好
+- 人数：6v6
+- 费用：25元/人
+- 亮点：教练带场，适合刚入门的球友
+
+4️⃣ 南山科技园球场 · 周日 16:00
+- 级别：高级
+- 人数：11v11
+- 费用：50元/人
+- 亮点：全场正规比赛，有裁判执法
+
+5️⃣ 福田梅林球场 · 周日 19:00
+- 级别：中级
+- 人数：7v7
+- 费用：30元/人
+- 亮点：老牌球场，氛围好，赛后聚餐传统
+
+以上球局均可在球局APP中搜索报名，名额有限先到先得！',
+ 'pickup_guide', 4, 3289, 67,
+ 'https://images.unsplash.com/photo-1529900748604-07564a03e7a6?w=400',
+ now() - interval '10 hours'),
+
+('赛后复盘：为什么你的球队总在下半场崩盘',
+ '体能管理、换人策略和心理调节，三个维度解决下半场难题',
+ '很多业余球队都有这样的困扰：上半场踢得不错，一到下半场就体能下降、注意力涣散，最终被对手翻盘。这不仅仅是体能问题，背后有更深层的原因。
+
+体能管理方面：
+业余球员普遍缺乏系统训练，下半场体能断崖式下降是常态。建议球队在平时增加有球跑动训练，每周至少安排一次3公里以上的间歇跑。比赛中也要注意节奏控制，不要在上半场就把体能耗尽。
+
+换人策略方面：
+很多业余球队只有13-14人的大名单，换人空间有限。建议在第55-60分钟进行第一次换人，主要替换体能消耗最大的中场球员。如果领先，可以用防守球员换下进攻球员；如果落后，则反之。
+
+心理调节方面：
+下半场心态失衡往往是崩盘的导火索。当比分被追平或反超时，球员容易焦虑、互相指责。队长和核心球员要在这个时候站出来稳定军心，提醒大家专注于当下的每一个球。
+
+最后一个容易被忽视的因素是中场休息的利用。不要只是坐着喝水闲聊，花2-3分钟简单复盘上半场的问题，明确下半场的重点。这几分钟的沟通比任何战术调整都有效。',
+ 'analysis', 8, 5678, 312,
+ 'https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=400',
+ now() - interval '3 days 6 hours');
+
+
+-- ═══════════════════════════════════════════════════════════════
+-- Comments seed — 文章评论
+-- ═══════════════════════════════════════════════════════════════
+
+-- 文章1: 村超小组赛第5轮战报
+INSERT INTO comments (target_type, target_id, author_name, body, likes, created_at)
+SELECT 'article', id, name, body, likes, ts FROM (VALUES
+  ('球迷老张', '王磊这个逆转太燃了！下半场完全变了个队', 12, now() - interval '1 hour 30 minutes'),
+  ('绿茵小王子', '红星队下半场的换人调整真的是神来之笔', 8, now() - interval '1 hour 20 minutes'),
+  ('深圳踢球人', '现场看的，那个远射简直了！全场都沸腾了', 23, now() - interval '58 minutes'),
+  ('足球评论员阿杰', '红星队今年状态确实好，小组第一实至名归', 5, now() - interval '45 minutes'),
+  ('蓝月球迷', '我们上半场明明领先来着😭下半场防线崩了', 3, now() - interval '30 minutes')
+) AS t(name, body, likes, ts)
+CROSS JOIN (SELECT id FROM articles WHERE title LIKE '村超小组赛第5轮%' LIMIT 1) a;
+
+-- 文章2: 龙岗杯半决赛前瞻
+INSERT INTO comments (target_type, target_id, author_name, body, likes, created_at)
+SELECT 'article', id, name, body, likes, ts FROM (VALUES
+  ('猛虎铁粉', '陈威本赛季状态太好了，8球不是终点', 15, now() - interval '7 hours'),
+  ('雄鹰加油', '我们雄鹰的整体配合不是吹的，等着看吧', 11, now() - interval '6 hours 40 minutes'),
+  ('中立球迷', '两队都很强，希望是一场精彩的比赛', 4, now() - interval '6 hours'),
+  ('战术迷老李', '雄鹰的高位逼抢是关键，猛虎后场出球要小心', 9, now() - interval '5 hours 30 minutes')
+) AS t(name, body, likes, ts)
+CROSS JOIN (SELECT id FROM articles WHERE title LIKE '龙岗杯半决赛%' LIMIT 1) a;
+
+-- 文章3: 4-3-3阵型分析
+INSERT INTO comments (target_type, target_id, author_name, body, likes, created_at)
+SELECT 'article', id, name, body, likes, ts FROM (VALUES
+  ('业余教练王哥', '写得非常实用！边锋内收这个点很多人忽略了', 31, now() - interval '23 hours'),
+  ('新手小白', '我们队刚开始踢4-3-3，后腰确实是最难找的位置', 7, now() - interval '22 hours'),
+  ('老球骨', '补充一点：业余比赛中4-3-3对边后卫的体能要求太高了', 18, now() - interval '20 hours'),
+  ('战术板研究员', '双后腰+单前腰的变阵确实更适合业余队，稳', 14, now() - interval '18 hours'),
+  ('南山踢球群主', '分享给我们群了，下次训练试试文中说的变阵思路', 6, now() - interval '15 hours'),
+  ('足球老炮儿', '高位逼抢在业余赛场确实不现实，体能跟不上', 22, now() - interval '12 hours')
+) AS t(name, body, likes, ts)
+CROSS JOIN (SELECT id FROM articles WHERE title LIKE '%业余球队如何打好4-3-3%' LIMIT 1) a;
+
+-- 文章4: 角球战术
+INSERT INTO comments (target_type, target_id, author_name, body, likes, created_at)
+SELECT 'article', id, name, body, likes, ts FROM (VALUES
+  ('定位球专家', '前点甩头这招我们队用过，确实好使', 16, now() - interval '1 day 20 hours'),
+  ('门将视角', '作为门将，最怕的就是短角球配合，防不胜防', 12, now() - interval '1 day 18 hours'),
+  ('周末球员', '每周练一次定位球这个建议很好，我们队要安排上', 8, now() - interval '1 day 15 hours'),
+  ('进球机器', '第三种前插埋伏的战术我们队长就爱用，屡试不爽', 20, now() - interval '1 day 10 hours')
+) AS t(name, body, likes, ts)
+CROSS JOIN (SELECT id FROM articles WHERE title LIKE '角球战术%' LIMIT 1) a;
+
+-- 文章5: 专访王磊
+INSERT INTO comments (target_type, target_id, author_name, body, likes, created_at)
+SELECT 'article', id, name, body, likes, ts FROM (VALUES
+  ('追梦人', '太励志了！白天上班晚上练球，这才是真正热爱足球的人', 45, now() - interval '2 days 22 hours'),
+  ('同行球友', '我也是工厂的，每天下班踢球是一天中最开心的时光', 28, now() - interval '2 days 20 hours'),
+  ('红星队友刘飞', '磊哥人好球也好，跟他搭档踢球太舒服了', 67, now() - interval '2 days 18 hours'),
+  ('足球记者小周', '好文章！基层足球需要更多这样的报道', 15, now() - interval '2 days 15 hours'),
+  ('村超组委会', '感谢王磊对村超的热爱和付出，加油！', 33, now() - interval '2 days 12 hours'),
+  ('看视频学射门', '哈哈看守门员站位这个技巧我也是网上学的', 9, now() - interval '2 days 8 hours')
+) AS t(name, body, likes, ts)
+CROSS JOIN (SELECT id FROM articles WHERE title LIKE '专访｜王磊%' LIMIT 1) a;
+
+-- 文章6: 赛季中期盘点
+INSERT INTO comments (target_type, target_id, author_name, body, likes, created_at)
+SELECT 'article', id, name, body, likes, ts FROM (VALUES
+  ('雄鹰球迷', '没有球星但每个位置都均衡，这就是团队足球的魅力', 21, now() - interval '4 days 20 hours'),
+  ('铁锤老球迷', '唉，三个主力走了确实伤筋动骨，希望下半赛季能好起来', 14, now() - interval '4 days 16 hours'),
+  ('数据控', '射手榜并列第一有意思，金靴争夺战值得关注', 8, now() - interval '4 days 12 hours'),
+  ('深圳球评', '分析得很到位，下半赛季看点确实多', 11, now() - interval '4 days 8 hours'),
+  ('新球队队长', '我们队刚组建，希望下赛季也能参加', 3, now() - interval '4 days 4 hours')
+) AS t(name, body, likes, ts)
+CROSS JOIN (SELECT id FROM articles WHERE title LIKE '2026赛季深圳业余联赛%' LIMIT 1) a;
+
+-- 文章7: 世界杯预选赛前瞻
+INSERT INTO comments (target_type, target_id, author_name, body, likes, created_at)
+SELECT 'article', id, name, body, likes, ts FROM (VALUES
+  ('国足死忠', '不管怎样都支持国足，加油！', 56, now() - interval '5 hours 30 minutes'),
+  ('理性球迷', '客场保守一点没问题，先拿1分也行', 18, now() - interval '5 hours'),
+  ('海归球迷', '终于有海归球员了，希望能带来质变', 24, now() - interval '4 hours 30 minutes'),
+  ('战术分析师', '5-4-1打反击是正确的选择，客场不能太冒进', 32, now() - interval '4 hours'),
+  ('老球迷', '看了二十年国足了，这次真的有希望吗', 41, now() - interval '3 hours 30 minutes'),
+  ('乐观派', '相信球员们，这批人的能力是历史最强的一批', 13, now() - interval '3 hours'),
+  ('深夜看球', '定好闹钟了，凌晨一起看！', 7, now() - interval '2 hours')
+) AS t(name, body, likes, ts)
+CROSS JOIN (SELECT id FROM articles WHERE title LIKE '世界杯预选赛%' LIMIT 1) a;
+
+-- 文章8: 热身指南
+INSERT INTO comments (target_type, target_id, author_name, body, likes, created_at)
+SELECT 'article', id, name, body, likes, ts FROM (VALUES
+  ('受伤过的人', '之前不热身直接踢，拉伤了大腿休息了两个月，血的教训', 35, now() - interval '3 days 20 hours'),
+  ('运动康复师', '这套热身方案很专业，特别是强度递增的设计很合理', 19, now() - interval '3 days 16 hours'),
+  ('懒人球员', '说实话每次到球场都想直接开踢，看完这篇决定改了', 8, now() - interval '3 days 12 hours'),
+  ('队医小陈', '建议加上泡沫轴放松的环节，对预防损伤很有帮助', 14, now() - interval '3 days 8 hours')
+) AS t(name, body, likes, ts)
+CROSS JOIN (SELECT id FROM articles WHERE title LIKE '%赛前热身指南%' LIMIT 1) a;
+
+-- 文章9: 足球鞋选购
+INSERT INTO comments (target_type, target_id, author_name, body, likes, created_at)
+SELECT 'article', id, name, body, likes, ts FROM (VALUES
+  ('装备党', 'AG钉+TF碎钉的组合确实是深圳球友的最优解', 26, now() - interval '6 days 20 hours'),
+  ('血泪经验', '穿FG钉踢人草膝盖疼了一个月，千万别试', 42, now() - interval '6 days 16 hours'),
+  ('性价比选手', '预算有限就买TF碎钉，真的能应付90%的场地', 15, now() - interval '6 days 12 hours'),
+  ('鞋控', '新鞋磨合这个提醒太重要了，我比赛穿新鞋磨出血泡过', 11, now() - interval '6 days 8 hours'),
+  ('求推荐', '有没有具体品牌和型号推荐啊？', 7, now() - interval '6 days 4 hours')
+) AS t(name, body, likes, ts)
+CROSS JOIN (SELECT id FROM articles WHERE title LIKE '%足球鞋选购%' LIMIT 1) a;
+
+-- 文章10: 周末约球精选
+INSERT INTO comments (target_type, target_id, author_name, body, likes, created_at)
+SELECT 'article', id, name, body, likes, ts FROM (VALUES
+  ('深圳湾常客', '深圳湾那个场地确实不错，海风吹着踢球特别爽', 17, now() - interval '9 hours'),
+  ('新手求组', '龙岗大运那个新手场有人一起去吗？我刚开始踢', 9, now() - interval '8 hours 30 minutes'),
+  ('南山码农', '科技园那个11v11的场我去过，裁判很专业', 13, now() - interval '8 hours'),
+  ('福田球友', '梅林球场赛后聚餐是传统了哈哈，氛围超好', 8, now() - interval '7 hours')
+) AS t(name, body, likes, ts)
+CROSS JOIN (SELECT id FROM articles WHERE title LIKE '周末约球精选%' LIMIT 1) a;
+
+-- 文章11: 下半场崩盘分析
+INSERT INTO comments (target_type, target_id, author_name, body, likes, created_at)
+SELECT 'article', id, name, body, likes, ts FROM (VALUES
+  ('被翻盘过的队长', '说的就是我们队啊😭上半场2-0下半场被追3个', 38, now() - interval '3 days 4 hours'),
+  ('体能教练', '间歇跑训练真的很重要，每周3km起步，坚持一个月就能看到效果', 24, now() - interval '3 days 2 hours'),
+  ('心理学爱好者', '心态那段说得好，领先被追平时互相指责是最致命的', 16, now() - interval '3 days'),
+  ('实战派', '中场休息那2-3分钟的复盘太关键了，我们队以前就是瞎聊天', 19, now() - interval '2 days 22 hours'),
+  ('万年替补', '第55-60分钟换人这个节点很准，换上生力军确实能改变局面', 11, now() - interval '2 days 18 hours')
+) AS t(name, body, likes, ts)
+CROSS JOIN (SELECT id FROM articles WHERE title LIKE '%下半场崩盘%' LIMIT 1) a;
+
+-- 更新文章的 comment_count 为实际评论数
+UPDATE articles SET comment_count = (
+  SELECT COUNT(*) FROM comments
+  WHERE comments.target_type = 'article' AND comments.target_id = articles.id
+);
+
+-- ═══════════════════════════════════════════════════════════════
+-- Posts seed — 帖子（普通 + 运动动态）及评论
+-- ═══════════════════════════════════════════════════════════════
+
+INSERT INTO posts (body, tags, likes, shares, created_at) VALUES
+(
+  '深圳湾体育中心的草皮翻新了，踢起来太舒服了！周末来的人也不多，推荐大家来试试。五人场和七人场都有空位。',
+  ARRAY['深圳湾', '球场推荐'],
+  28, 5,
+  now() - interval '6 hours'
+),
+(
+  '今天在龙岗大运踢了一场，对方前锋速度真的快，三次反越位都成功了。最后2-3惜败，不过我们后防线确实需要加强沟通。下周继续练！',
+  ARRAY['龙岗大运', '比赛记录'],
+  15, 2,
+  now() - interval '1 day 3 hours'
+),
+(
+  '有没有南山科技园附近的球友？我们队周三晚上固定踢球，长期缺人，水平业余偏上，欢迎来玩！微信群已经建好了。',
+  ARRAY['约球', '南山', '招人'],
+  42, 12,
+  now() - interval '2 days 8 hours'
+),
+(
+  '分享一个业余球员提升射门精度的方法：每次训练花15分钟对着球门六个区域轮流射，坚持一个月你会发现进球率明显提高。亲测有效！',
+  ARRAY['训练技巧', '射门'],
+  67, 18,
+  now() - interval '3 days 2 hours'
+);
+
+INSERT INTO posts (body, tags, likes, shares, match_count, win_count, play_duration, venue, created_at) VALUES
+(
+  '四月第三周运动总结！这周踢了三场比赛，状态不错，两胜一平。周二那场帽子戏法是本月高光时刻，继续保持💪',
+  ARRAY['运动记录', '周报'],
+  35, 8,
+  3, 2, 270, '深圳湾体育中心',
+  now() - interval '10 hours'
+),
+(
+  '连续踢球一个月了，体能明显提升。从刚开始跑不到60分钟到现在全场不下来，坚持就是胜利！',
+  ARRAY['运动记录', '坚持'],
+  53, 10,
+  5, 3, 450, '龙岗大运中心',
+  now() - interval '1 day 14 hours'
+),
+(
+  '本月挑战：每周至少踢3场。目前进度2/3，今晚还有一场。虽然腿有点酸但就是停不下来，足球的魅力太大了。',
+  ARRAY['月度挑战', '运动记录'],
+  24, 3,
+  2, 1, 180, '梅林足球场',
+  now() - interval '4 hours'
+);
+
+-- 帖子评论
+INSERT INTO comments (target_type, target_id, author_name, body, likes, created_at)
+SELECT 'post', id, name, body, likes, ts FROM (VALUES
+  ('深圳湾老球友', '终于翻新了！之前那个草皮踢着跟水泥地一样', 8, now() - interval '5 hours'),
+  ('周末踢球人', '请问五人场多少钱一小时？', 2, now() - interval '4 hours 30 minutes'),
+  ('南山铁腿', '上周去过，确实不错，草皮软硬适中', 6, now() - interval '3 hours'),
+  ('深圳球探', '这个场地灯光也换了，晚上踢视野很好', 4, now() - interval '2 hours')
+) AS t(name, body, likes, ts)
+CROSS JOIN (SELECT id FROM posts WHERE body LIKE '深圳湾体育中心的草皮%' LIMIT 1) p;
+
+INSERT INTO comments (target_type, target_id, author_name, body, likes, created_at)
+SELECT 'post', id, name, body, likes, ts FROM (VALUES
+  ('对面前锋本人', '哈哈我就是那个前锋，你们后卫其实挺强的，下次再约', 25, now() - interval '22 hours'),
+  ('中立观众', '在旁边看了一会，确实踢得不错，比分很焦灼', 5, now() - interval '20 hours'),
+  ('业余教练', '建议后防线练练对角线换位，反越位就没那么容易了', 12, now() - interval '18 hours')
+) AS t(name, body, likes, ts)
+CROSS JOIN (SELECT id FROM posts WHERE body LIKE '今天在龙岗大运踢了%' LIMIT 1) p;
+
+INSERT INTO comments (target_type, target_id, author_name, body, likes, created_at)
+SELECT 'post', id, name, body, likes, ts FROM (VALUES
+  ('科技园码农', '我！每周三正好有空，怎么加群？', 9, now() - interval '2 days 5 hours'),
+  ('也在南山', '水平一般可以来吗？主要想锻炼身体', 4, now() - interval '2 days 3 hours'),
+  ('前队友', '这个队氛围很好，推荐！我之前跟他们踢过', 13, now() - interval '2 days 1 hour'),
+  ('附近球友', '终于有南山的组织了，果断加入', 7, now() - interval '1 day 22 hours'),
+  ('女足球员', '请问收女球员吗？', 11, now() - interval '1 day 18 hours')
+) AS t(name, body, likes, ts)
+CROSS JOIN (SELECT id FROM posts WHERE body LIKE '有没有南山科技园%' LIMIT 1) p;
+
+INSERT INTO comments (target_type, target_id, author_name, body, likes, created_at)
+SELECT 'post', id, name, body, likes, ts FROM (VALUES
+  ('进球困难户', '收藏了！我每次射门不是打飞就是正中门将', 18, now() - interval '2 days 20 hours'),
+  ('青训教练', '补充一下：射门前抬头看门将站位也很重要，不能光低头看球', 26, now() - interval '2 days 16 hours'),
+  ('试过的人', '练了两周了，确实有提升！尤其是打远角的精度', 14, now() - interval '2 days 10 hours'),
+  ('技术流', '推荐加上弧线球练习，内脚背搓射是大杀器', 8, now() - interval '1 day 20 hours')
+) AS t(name, body, likes, ts)
+CROSS JOIN (SELECT id FROM posts WHERE body LIKE '分享一个业余球员提升射门%' LIMIT 1) p;
+
+INSERT INTO comments (target_type, target_id, author_name, body, likes, created_at)
+SELECT 'post', id, name, body, likes, ts FROM (VALUES
+  ('羡慕哥', '帽子戏法！太强了吧，我踢了一年才进过5个球', 15, now() - interval '8 hours'),
+  ('运动达人', '一周三场节奏很好，注意休息别受伤', 7, now() - interval '7 hours'),
+  ('老球友', '深圳湾那边确实适合踢球，海风吹着舒服', 4, now() - interval '5 hours'),
+  ('数据控', '两胜一平，胜率67%，保持住！', 9, now() - interval '3 hours')
+) AS t(name, body, likes, ts)
+CROSS JOIN (SELECT id FROM posts WHERE body LIKE '四月第三周运动总结%' LIMIT 1) p;
+
+INSERT INTO comments (target_type, target_id, author_name, body, likes, created_at)
+SELECT 'post', id, name, body, likes, ts FROM (VALUES
+  ('同道中人', '我也是从喘不上气到现在全场奔跑，坚持真的有效', 22, now() - interval '1 day 10 hours'),
+  ('刚入坑', '请问体能提升有什么技巧吗？我现在20分钟就不行了', 6, now() - interval '1 day 6 hours'),
+  ('膝盖提醒', '注意膝盖保护，强度上来之后护膝很有必要', 18, now() - interval '1 day 2 hours'),
+  ('打卡爱好者', '向你学习！我也要开始记录运动数据', 8, now() - interval '20 hours'),
+  ('运动康复师', '建议搭配拉伸和泡沫轴放松，恢复跟训练一样重要', 14, now() - interval '16 hours')
+) AS t(name, body, likes, ts)
+CROSS JOIN (SELECT id FROM posts WHERE body LIKE '连续踢球一个月了%' LIMIT 1) p;
+
+INSERT INTO comments (target_type, target_id, author_name, body, likes, created_at)
+SELECT 'post', id, name, body, likes, ts FROM (VALUES
+  ('加油', '今晚加油！完成挑战！', 5, now() - interval '3 hours'),
+  ('过来人', '腿酸的话踢完记得冰敷，别硬撑', 10, now() - interval '2 hours 30 minutes'),
+  ('也在挑战', '我的目标是每周2场，一起加油💪', 7, now() - interval '1 hour 30 minutes')
+) AS t(name, body, likes, ts)
+CROSS JOIN (SELECT id FROM posts WHERE body LIKE '本月挑战：每周至少踢3场%' LIMIT 1) p;
+
+-- 更新帖子的评论计数
+UPDATE posts SET comments = (
+  SELECT COUNT(*) FROM comments
+  WHERE comments.target_type = 'post' AND comments.target_id = posts.id
+);

@@ -383,6 +383,11 @@ class AppL10nEn extends AppL10n {
   String get pickup_detail_select_position => 'Pick Position';
 
   @override
+  String pickup_detail_confirm_position(String pos) {
+    return 'Confirm $pos';
+  }
+
+  @override
   String get pickup_detail_already_joined => 'Joined';
 
   @override
@@ -1032,6 +1037,21 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get profile_followers => 'Followers';
+
+  @override
+  String get me_following_title => 'Following & Followers';
+
+  @override
+  String get me_following_empty => 'Not following anyone yet';
+
+  @override
+  String get me_following_empty_sub => 'Discover more players';
+
+  @override
+  String get me_followers_empty => 'No followers yet';
+
+  @override
+  String get me_followers_empty_sub => 'Join more activities to meet players';
 
   @override
   String get profile_logout => 'Sign out';
@@ -1854,6 +1874,60 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get home_discover_share => 'Share';
+
+  @override
+  String get article_detail_title => 'Article';
+
+  @override
+  String get article_category_match_report => 'Match Report';
+
+  @override
+  String get article_category_preview => 'Preview';
+
+  @override
+  String get article_category_tactics => 'Tactics';
+
+  @override
+  String get article_category_interview => 'Interview';
+
+  @override
+  String get article_category_analysis => 'Analysis';
+
+  @override
+  String get article_category_fitness => 'Fitness';
+
+  @override
+  String get article_category_gear => 'Gear';
+
+  @override
+  String get article_category_pickup_guide => 'Pickup Guide';
+
+  @override
+  String get article_no_body => 'No content available';
+
+  @override
+  String get post_detail_title => 'Post';
+
+  @override
+  String get activity_detail_title => 'Activity';
+
+  @override
+  String get post_comments_title => 'Comments';
+
+  @override
+  String get post_no_comments => 'No comments yet';
+
+  @override
+  String get comment_hint => 'Write a comment…';
+
+  @override
+  String get comment_empty_toast => 'Comment cannot be empty';
+
+  @override
+  String get comment_send_failed => 'Failed to send, please retry';
+
+  @override
+  String get comment_login_required => 'Please sign in to comment';
 
   @override
   String get rate_panel_title => 'Post-match rating';

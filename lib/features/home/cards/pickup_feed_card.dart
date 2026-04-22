@@ -6,7 +6,14 @@ import '../../../l10n/generated/app_localizations.dart';
 
 class PickupFeedCard extends StatelessWidget {
   final Pickup pickup;
-  const PickupFeedCard({super.key, required this.pickup});
+  final double? distanceKm;
+  final bool locationAvailable;
+  const PickupFeedCard({
+    super.key,
+    required this.pickup,
+    this.distanceKm,
+    this.locationAvailable = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -22,10 +29,21 @@ class PickupFeedCard extends StatelessWidget {
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(pickup.venue, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: t.ink)),
+              Text(pickup.displayTitle, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: t.ink)),
               const SizedBox(height: 3),
-              Text('🕐 ${pickup.displayTime} · 💰 ¥${pickup.feeYuan.toStringAsFixed(0)} · ${pickup.level ?? ""}',
-                  style: TextStyle(fontSize: 11, color: t.inkDim)),
+              Text(
+                [
+                  pickup.venue,
+                  pickup.displayTime,
+                  if (distanceKm != null)
+                    distanceKm! < 1
+                        ? '${(distanceKm! * 1000).round()}m'
+                        : '${distanceKm!.toStringAsFixed(1)}km'
+                  else
+                    '距离未知',
+                ].where((s) => s.isNotEmpty).join(' · '),
+                style: TextStyle(fontSize: 11, color: t.inkDim),
+              ),
             ])),
             _urgencyBadge(t, l, needed),
           ]),

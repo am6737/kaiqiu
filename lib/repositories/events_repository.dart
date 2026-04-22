@@ -142,6 +142,19 @@ class EventsRepository {
         .toList();
   }
 
+  /// List events where [userId] is captain of a registered team.
+  Future<List<Event>> listRegisteredByUser(String userId) async {
+    final rows = await supabase
+        .from('teams')
+        .select('event:events(*)')
+        .eq('captain_id', userId)
+        .order('created_at', ascending: false);
+    return (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map((r) => Event.fromMap((r['event'] as Map).cast<String, dynamic>()))
+        .toList();
+  }
+
   /// List events by a list of ids (used for favorites).
   Future<List<Event>> listByIds(List<String> ids) async {
     if (ids.isEmpty) return [];
