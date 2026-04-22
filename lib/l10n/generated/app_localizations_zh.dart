@@ -1054,6 +1054,15 @@ class AppL10nZh extends AppL10n {
   String get chat_cleared => '已清空';
 
   @override
+  String get chat_dm_empty_title => '你们还没聊过';
+
+  @override
+  String get chat_dm_empty_subtitle => '打个招呼吧';
+
+  @override
+  String get chat_copied => '已复制';
+
+  @override
   String get profile_title => '我的';
 
   @override
@@ -1253,7 +1262,13 @@ class AppL10nZh extends AppL10n {
   String get profile_edit_avatar => '头像';
 
   @override
-  String get profile_edit_avatar_hint => '点击更换头像（暂用首字母）';
+  String get profile_edit_avatar_hint => '点击选择或上传头像';
+
+  @override
+  String get avatar_picker_title => '选择头像';
+
+  @override
+  String get avatar_picker_upload => '上传自定义头像';
 
   @override
   String get profile_edit_save_ok => '已保存';

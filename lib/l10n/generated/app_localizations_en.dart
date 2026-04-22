@@ -1065,6 +1065,15 @@ class AppL10nEn extends AppL10n {
   String get chat_cleared => 'Cleared';
 
   @override
+  String get chat_dm_empty_title => 'Haven\'t chatted yet';
+
+  @override
+  String get chat_dm_empty_subtitle => 'Say hello!';
+
+  @override
+  String get chat_copied => 'Copied';
+
+  @override
   String get profile_title => 'Me';
 
   @override
@@ -1264,8 +1273,13 @@ class AppL10nEn extends AppL10n {
   String get profile_edit_avatar => 'Avatar';
 
   @override
-  String get profile_edit_avatar_hint =>
-      'Tap to change (initials used for now)';
+  String get profile_edit_avatar_hint => 'Tap to choose or upload';
+
+  @override
+  String get avatar_picker_title => 'Choose Avatar';
+
+  @override
+  String get avatar_picker_upload => 'Upload Custom';
 
   @override
   String get profile_edit_save_ok => 'Saved';
