@@ -42,7 +42,6 @@ class _RealPickupMapState extends State<RealPickupMap> {
   AMapController? _controller;
   LatLng? _userLocation;
   bool _initialLocateDone = false;
-  bool _programmaticMove = false;
 
   @override
   void didUpdateWidget(RealPickupMap old) {
@@ -53,7 +52,6 @@ class _RealPickupMapState extends State<RealPickupMap> {
   }
 
   Future<void> _flyToUser() async {
-    _programmaticMove = true;
     if (_userLocation != null) {
       _controller?.moveCamera(
         CameraUpdate.newLatLngZoom(_userLocation!, 15),
@@ -73,9 +71,7 @@ class _RealPickupMapState extends State<RealPickupMap> {
       _controller?.moveCamera(
         CameraUpdate.newLatLngZoom(target, 15),
       );
-    } catch (_) {
-      _programmaticMove = false;
-    }
+    } catch (_) {}
   }
 
   @override
@@ -97,19 +93,21 @@ class _RealPickupMapState extends State<RealPickupMap> {
           widget.onUserLocationChanged?.call(loc.latLng);
           if (!_initialLocateDone) {
             _initialLocateDone = true;
-            _programmaticMove = true;
             _controller?.moveCamera(
               CameraUpdate.newLatLngZoom(loc.latLng, 15),
             );
           }
         }
       },
-      onCameraMoveEnd: (_) {
-        if (_programmaticMove) {
-          _programmaticMove = false;
-          return;
+      onCameraMoveEnd: (pos) {
+        if (_userLocation == null) return;
+        final meters = Geolocator.distanceBetween(
+          pos.target.latitude, pos.target.longitude,
+          _userLocation!.latitude, _userLocation!.longitude,
+        );
+        if (meters > 50) {
+          widget.onMapPanned?.call();
         }
-        widget.onMapPanned?.call();
       },
     );
   }
