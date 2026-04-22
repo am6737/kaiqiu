@@ -1,5 +1,6 @@
 // chat_screen.dart — 单会话聊天 (real-time via Supabase)
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -371,6 +372,10 @@ class _Bubble extends StatelessWidget {
     if (msg.kind == 'image' && msg.body != null) {
       bubble = GestureDetector(
         onTap: () => _showFullImage(context, msg.body!),
+        onLongPress: () {
+          Clipboard.setData(ClipboardData(text: msg.body!));
+          showToast(context, context.l10n.chat_copied, success: true);
+        },
         child: ClipRRect(
           borderRadius: BorderRadius.circular(10),
           child: ConstrainedBox(
@@ -400,19 +405,27 @@ class _Bubble extends StatelessWidget {
         ),
       );
     } else {
-      bubble = Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        constraints: const BoxConstraints(maxWidth: 260),
-        decoration: BoxDecoration(
-          color: isMe ? context.tokens.accent : context.tokens.elev2,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Text(
-          msg.body ?? '',
-          style: TextStyle(
-            fontSize: 14,
-            color: isMe ? Colors.black : context.tokens.ink,
-            height: 1.4,
+      bubble = GestureDetector(
+        onLongPress: () {
+          if (msg.body != null) {
+            Clipboard.setData(ClipboardData(text: msg.body!));
+            showToast(context, context.l10n.chat_copied, success: true);
+          }
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          constraints: const BoxConstraints(maxWidth: 260),
+          decoration: BoxDecoration(
+            color: isMe ? context.tokens.accent : context.tokens.elev2,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Text(
+            msg.body ?? '',
+            style: TextStyle(
+              fontSize: 14,
+              color: isMe ? Colors.black : context.tokens.ink,
+              height: 1.4,
+            ),
           ),
         ),
       );
