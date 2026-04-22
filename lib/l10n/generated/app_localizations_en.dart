@@ -1844,7 +1844,7 @@ class AppL10nEn extends AppL10n {
   String get home_full => 'Full';
 
   @override
-  String get home_join_cta => 'Join →';
+  String get home_join_cta => 'Join';
 
   @override
   String get home_rate_banner_title => 'Rate yesterday\'s match';
@@ -1871,7 +1871,7 @@ class AppL10nEn extends AppL10n {
   String get home_event_kickoff => 'Kickoff';
 
   @override
-  String get home_event_register_now => 'Register →';
+  String get home_event_register_now => 'Register';
 
   @override
   String get home_pickups_load_failed => 'Failed to load pickups';
@@ -1911,6 +1911,12 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get home_events_register => 'Register';
+
+  @override
+  String get home_events_teams => 'Teams';
+
+  @override
+  String get home_events_spots_left => 'Spots left';
 
   @override
   String get home_pickup_filter_all => 'All';
@@ -2014,6 +2020,9 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get comment_login_required => 'Please sign in to comment';
+
+  @override
+  String get like_login_required => 'Please sign in to like';
 
   @override
   String get rate_panel_title => 'Post-match rating';

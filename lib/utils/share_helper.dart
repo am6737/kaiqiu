@@ -53,6 +53,32 @@ Future<void> shareText(String text, {String? subject}) async {
   await Share.share(text, subject: subject);
 }
 
+Future<void> sharePost({
+  required String authorName,
+  required String body,
+  List<String> tags = const [],
+}) async {
+  final preview = body.length > 150 ? '${body.substring(0, 150)}...' : body;
+  final text = [
+    '\u{1F4DD} $authorName 的动态',
+    preview,
+    if (tags.isNotEmpty) tags.map((t) => '#$t').join(' '),
+  ].join('\n');
+  await Share.share(text, subject: '开球·动态');
+}
+
+Future<void> shareArticle({
+  required String title,
+  required String category,
+  String? summary,
+}) async {
+  final text = [
+    '\u{1F4F0} $category | $title',
+    if (summary != null) summary,
+  ].join('\n');
+  await Share.share(text, subject: '开球·文章');
+}
+
 String _fmt(DateTime d) {
   String two(int n) => n.toString().padLeft(2, '0');
   return '${d.year}-${two(d.month)}-${two(d.day)} ${two(d.hour)}:${two(d.minute)}';

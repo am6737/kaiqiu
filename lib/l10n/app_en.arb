@@ -709,7 +709,7 @@
   "home_need_n": "{n} needed",
   "@home_need_n": { "placeholders": { "n": { "type": "int" } } },
   "home_full": "Full",
-  "home_join_cta": "Join →",
+  "home_join_cta": "Join",
   "home_rate_banner_title": "Rate yesterday's match",
   "home_rate_banner_sub": "Longgang Cun-Chao · QF · 9 players to rate",
   "home_host_pickup": "Host pickup",
@@ -718,7 +718,7 @@
   "home_event_teaser": "Upcoming event",
   "home_event_registered_label": "Teams registered",
   "home_event_kickoff": "Kickoff",
-  "home_event_register_now": "Register →",
+  "home_event_register_now": "Register",
   "home_pickups_load_failed": "Failed to load pickups",
 
   "home_tab_recommend": "For You",
@@ -734,6 +734,8 @@
   "home_events_view": "View",
   "home_events_coming_soon": "Stay tuned",
   "home_events_register": "Register",
+  "home_events_teams": "Teams",
+  "home_events_spots_left": "Spots left",
 
   "home_pickup_filter_all": "All",
   "home_pickup_filter_distance": "Distance",
@@ -776,6 +778,7 @@
   "comment_empty_toast": "Comment cannot be empty",
   "comment_send_failed": "Failed to send, please retry",
   "comment_login_required": "Please sign in to comment",
+  "like_login_required": "Please sign in to like",
 
   "rate_panel_title": "Post-match rating",
   "rate_say_optional": "Say something · optional",

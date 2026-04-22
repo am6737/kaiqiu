@@ -709,7 +709,7 @@
   "home_need_n": "缺 {n}人",
   "@home_need_n": { "placeholders": { "n": { "type": "int" } } },
   "home_full": "已满",
-  "home_join_cta": "一键报名 →",
+  "home_join_cta": "一键报名",
   "home_rate_banner_title": "给昨天的比赛打个分",
   "home_rate_banner_sub": "龙岗村超 · 1/4决赛 · 9 位球员待评",
   "home_host_pickup": "发起约球",
@@ -718,7 +718,7 @@
   "home_event_teaser": "赛事预告",
   "home_event_registered_label": "已报名队伍",
   "home_event_kickoff": "开赛",
-  "home_event_register_now": "立即报名 →",
+  "home_event_register_now": "立即报名",
   "home_pickups_load_failed": "加载约球数据失败",
 
   "home_tab_recommend": "推荐",
@@ -734,6 +734,8 @@
   "home_events_view": "查看",
   "home_events_coming_soon": "敬请期待",
   "home_events_register": "报名",
+  "home_events_teams": "队伍",
+  "home_events_spots_left": "剩余名额",
 
   "home_pickup_filter_all": "全部",
   "home_pickup_filter_distance": "距离",
@@ -776,6 +778,7 @@
   "comment_empty_toast": "评论内容不能为空",
   "comment_send_failed": "发送失败，请重试",
   "comment_login_required": "请先登录后再评论",
+  "like_login_required": "请先登录后再点赞",
 
   "rate_panel_title": "赛后评分",
   "rate_say_optional": "说两句 · 选填",

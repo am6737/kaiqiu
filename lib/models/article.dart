@@ -9,6 +9,7 @@ class Article {
   final int readTimeMin;
   final int viewCount;
   final int commentCount;
+  final int likes;
   final DateTime createdAt;
 
   const Article({
@@ -22,6 +23,7 @@ class Article {
     this.readTimeMin = 5,
     this.viewCount = 0,
     this.commentCount = 0,
+    this.likes = 0,
     required this.createdAt,
   });
 
@@ -36,6 +38,7 @@ class Article {
         readTimeMin: m['read_time_min'] as int? ?? 5,
         viewCount: m['view_count'] as int? ?? 0,
         commentCount: m['comment_count'] as int? ?? 0,
+        likes: m['likes'] as int? ?? 0,
         createdAt: DateTime.parse(m['created_at'] as String),
       );
 }

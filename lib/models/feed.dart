@@ -231,6 +231,7 @@ class FeedArticle extends FeedItem {
   final int readTimeMin;
   final int viewCount;
   final int commentCount;
+  final int likes;
 
   FeedArticle({
     required this.id,
@@ -242,6 +243,7 @@ class FeedArticle extends FeedItem {
     this.readTimeMin = 5,
     this.viewCount = 0,
     this.commentCount = 0,
+    this.likes = 0,
   });
 
   @override String get kind => 'article';
@@ -256,6 +258,7 @@ class FeedArticle extends FeedItem {
         readTimeMin: m['read_time_min'] as int? ?? 5,
         viewCount: m['view_count'] as int? ?? 0,
         commentCount: m['comment_count'] as int? ?? 0,
+        likes: m['likes'] as int? ?? 0,
       );
 }
 

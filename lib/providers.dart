@@ -28,6 +28,7 @@ import 'repositories/pickups_repository.dart';
 import 'repositories/predictions_repository.dart';
 import 'repositories/profiles_repository.dart';
 import 'repositories/ratings_repository.dart';
+import 'repositories/likes_repository.dart';
 import 'repositories/livekit_repository.dart';
 import 'models/livekit_token.dart';
 import 'repositories/reminders_repository.dart';
@@ -56,7 +57,16 @@ final externalMatchesRepoProvider =
     Provider((_) => ExternalMatchesRepository());
 final notificationsRepoProvider =
     Provider((_) => NotificationsRepository());
+final likesRepoProvider = Provider((_) => LikesRepository());
 final livekitRepoProvider = Provider((_) => LiveKitRepository());
+
+final likedPostIdsProvider = FutureProvider<Set<String>>((ref) async {
+  return ref.read(likesRepoProvider).likedIds('post');
+});
+
+final likedArticleIdsProvider = FutureProvider<Set<String>>((ref) async {
+  return ref.read(likesRepoProvider).likedIds('article');
+});
 
 // ─────────────────────────────────────────────────────────────
 // Local storage tick — bump whenever LocalStore changes so widgets

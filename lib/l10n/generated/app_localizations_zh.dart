@@ -1820,7 +1820,7 @@ class AppL10nZh extends AppL10n {
   String get home_full => '已满';
 
   @override
-  String get home_join_cta => '一键报名 →';
+  String get home_join_cta => '一键报名';
 
   @override
   String get home_rate_banner_title => '给昨天的比赛打个分';
@@ -1846,7 +1846,7 @@ class AppL10nZh extends AppL10n {
   String get home_event_kickoff => '开赛';
 
   @override
-  String get home_event_register_now => '立即报名 →';
+  String get home_event_register_now => '立即报名';
 
   @override
   String get home_pickups_load_failed => '加载约球数据失败';
@@ -1886,6 +1886,12 @@ class AppL10nZh extends AppL10n {
 
   @override
   String get home_events_register => '报名';
+
+  @override
+  String get home_events_teams => '队伍';
+
+  @override
+  String get home_events_spots_left => '剩余名额';
 
   @override
   String get home_pickup_filter_all => '全部';
@@ -1989,6 +1995,9 @@ class AppL10nZh extends AppL10n {
 
   @override
   String get comment_login_required => '请先登录后再评论';
+
+  @override
+  String get like_login_required => '请先登录后再点赞';
 
   @override
   String get rate_panel_title => '赛后评分';

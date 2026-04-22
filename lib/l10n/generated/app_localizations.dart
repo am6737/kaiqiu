@@ -3574,7 +3574,7 @@ abstract class AppL10n {
   /// No description provided for @home_join_cta.
   ///
   /// In zh, this message translates to:
-  /// **'一键报名 →'**
+  /// **'一键报名'**
   String get home_join_cta;
 
   /// No description provided for @home_rate_banner_title.
@@ -3622,7 +3622,7 @@ abstract class AppL10n {
   /// No description provided for @home_event_register_now.
   ///
   /// In zh, this message translates to:
-  /// **'立即报名 →'**
+  /// **'立即报名'**
   String get home_event_register_now;
 
   /// No description provided for @home_pickups_load_failed.
@@ -3702,6 +3702,18 @@ abstract class AppL10n {
   /// In zh, this message translates to:
   /// **'报名'**
   String get home_events_register;
+
+  /// No description provided for @home_events_teams.
+  ///
+  /// In zh, this message translates to:
+  /// **'队伍'**
+  String get home_events_teams;
+
+  /// No description provided for @home_events_spots_left.
+  ///
+  /// In zh, this message translates to:
+  /// **'剩余名额'**
+  String get home_events_spots_left;
 
   /// No description provided for @home_pickup_filter_all.
   ///
@@ -3900,6 +3912,12 @@ abstract class AppL10n {
   /// In zh, this message translates to:
   /// **'请先登录后再评论'**
   String get comment_login_required;
+
+  /// No description provided for @like_login_required.
+  ///
+  /// In zh, this message translates to:
+  /// **'请先登录后再点赞'**
+  String get like_login_required;
 
   /// No description provided for @rate_panel_title.
   ///
