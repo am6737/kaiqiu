@@ -3433,6 +3433,168 @@ abstract class AppL10n {
   /// **'加载约球数据失败'**
   String get home_pickups_load_failed;
 
+  /// No description provided for @home_tab_recommend.
+  ///
+  /// In zh, this message translates to:
+  /// **'推荐'**
+  String get home_tab_recommend;
+
+  /// No description provided for @home_tab_events.
+  ///
+  /// In zh, this message translates to:
+  /// **'赛事'**
+  String get home_tab_events;
+
+  /// No description provided for @home_tab_pickup.
+  ///
+  /// In zh, this message translates to:
+  /// **'约球'**
+  String get home_tab_pickup;
+
+  /// No description provided for @home_tab_discover.
+  ///
+  /// In zh, this message translates to:
+  /// **'发现'**
+  String get home_tab_discover;
+
+  /// No description provided for @home_all_events.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部赛事'**
+  String get home_all_events;
+
+  /// No description provided for @home_events_live.
+  ///
+  /// In zh, this message translates to:
+  /// **'正在直播'**
+  String get home_events_live;
+
+  /// No description provided for @home_events_registering.
+  ///
+  /// In zh, this message translates to:
+  /// **'报名中'**
+  String get home_events_registering;
+
+  /// No description provided for @home_events_ongoing.
+  ///
+  /// In zh, this message translates to:
+  /// **'进行中'**
+  String get home_events_ongoing;
+
+  /// No description provided for @home_events_upcoming.
+  ///
+  /// In zh, this message translates to:
+  /// **'即将开始'**
+  String get home_events_upcoming;
+
+  /// No description provided for @home_events_view.
+  ///
+  /// In zh, this message translates to:
+  /// **'查看'**
+  String get home_events_view;
+
+  /// No description provided for @home_events_coming_soon.
+  ///
+  /// In zh, this message translates to:
+  /// **'敬请期待'**
+  String get home_events_coming_soon;
+
+  /// No description provided for @home_events_register.
+  ///
+  /// In zh, this message translates to:
+  /// **'报名'**
+  String get home_events_register;
+
+  /// No description provided for @home_pickup_filter_all.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部'**
+  String get home_pickup_filter_all;
+
+  /// No description provided for @home_pickup_filter_distance.
+  ///
+  /// In zh, this message translates to:
+  /// **'距离'**
+  String get home_pickup_filter_distance;
+
+  /// No description provided for @home_pickup_filter_today.
+  ///
+  /// In zh, this message translates to:
+  /// **'今天'**
+  String get home_pickup_filter_today;
+
+  /// No description provided for @home_pickup_filter_tomorrow.
+  ///
+  /// In zh, this message translates to:
+  /// **'明天'**
+  String get home_pickup_filter_tomorrow;
+
+  /// No description provided for @home_pickup_filter_week.
+  ///
+  /// In zh, this message translates to:
+  /// **'本周'**
+  String get home_pickup_filter_week;
+
+  /// No description provided for @home_pickup_filter_beginner.
+  ///
+  /// In zh, this message translates to:
+  /// **'初级'**
+  String get home_pickup_filter_beginner;
+
+  /// No description provided for @home_pickup_filter_intermediate.
+  ///
+  /// In zh, this message translates to:
+  /// **'中级'**
+  String get home_pickup_filter_intermediate;
+
+  /// No description provided for @home_pickup_filter_advanced.
+  ///
+  /// In zh, this message translates to:
+  /// **'高级'**
+  String get home_pickup_filter_advanced;
+
+  /// No description provided for @home_pickup_slots_available.
+  ///
+  /// In zh, this message translates to:
+  /// **'名额充足'**
+  String get home_pickup_slots_available;
+
+  /// No description provided for @home_activity_matches.
+  ///
+  /// In zh, this message translates to:
+  /// **'局数'**
+  String get home_activity_matches;
+
+  /// No description provided for @home_activity_record.
+  ///
+  /// In zh, this message translates to:
+  /// **'胜负'**
+  String get home_activity_record;
+
+  /// No description provided for @home_activity_duration.
+  ///
+  /// In zh, this message translates to:
+  /// **'时长'**
+  String get home_activity_duration;
+
+  /// No description provided for @home_article_read_time.
+  ///
+  /// In zh, this message translates to:
+  /// **'{min}分钟阅读'**
+  String home_article_read_time(int min);
+
+  /// No description provided for @home_viewers_count.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 观看'**
+  String home_viewers_count(String count);
+
+  /// No description provided for @home_discover_share.
+  ///
+  /// In zh, this message translates to:
+  /// **'分享'**
+  String get home_discover_share;
+
   /// No description provided for @rate_panel_title.
   ///
   /// In zh, this message translates to:

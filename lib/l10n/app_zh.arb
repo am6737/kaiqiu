@@ -684,6 +684,42 @@
   "home_event_register_now": "立即报名 →",
   "home_pickups_load_failed": "加载约球数据失败",
 
+  "home_tab_recommend": "推荐",
+  "home_tab_events": "赛事",
+  "home_tab_pickup": "约球",
+  "home_tab_discover": "发现",
+
+  "home_all_events": "全部赛事",
+  "home_events_live": "正在直播",
+  "home_events_registering": "报名中",
+  "home_events_ongoing": "进行中",
+  "home_events_upcoming": "即将开始",
+  "home_events_view": "查看",
+  "home_events_coming_soon": "敬请期待",
+  "home_events_register": "报名",
+
+  "home_pickup_filter_all": "全部",
+  "home_pickup_filter_distance": "距离",
+  "home_pickup_filter_today": "今天",
+  "home_pickup_filter_tomorrow": "明天",
+  "home_pickup_filter_week": "本周",
+  "home_pickup_filter_beginner": "初级",
+  "home_pickup_filter_intermediate": "中级",
+  "home_pickup_filter_advanced": "高级",
+  "home_pickup_slots_available": "名额充足",
+
+  "home_activity_matches": "局数",
+  "home_activity_record": "胜负",
+  "home_activity_duration": "时长",
+
+  "home_article_read_time": "{min}分钟阅读",
+  "@home_article_read_time": { "placeholders": { "min": { "type": "int" } } },
+
+  "home_viewers_count": "{count} 观看",
+  "@home_viewers_count": { "placeholders": { "count": { "type": "String" } } },
+
+  "home_discover_share": "分享",
+
   "rate_panel_title": "赛后评分",
   "rate_say_optional": "说两句 · 选填",
   "rate_self_hint": "自评一下？",

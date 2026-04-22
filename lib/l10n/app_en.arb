@@ -684,6 +684,42 @@
   "home_event_register_now": "Register →",
   "home_pickups_load_failed": "Failed to load pickups",
 
+  "home_tab_recommend": "For You",
+  "home_tab_events": "Events",
+  "home_tab_pickup": "Pickup",
+  "home_tab_discover": "Discover",
+
+  "home_all_events": "All events",
+  "home_events_live": "Live now",
+  "home_events_registering": "Registering",
+  "home_events_ongoing": "In progress",
+  "home_events_upcoming": "Coming soon",
+  "home_events_view": "View",
+  "home_events_coming_soon": "Stay tuned",
+  "home_events_register": "Register",
+
+  "home_pickup_filter_all": "All",
+  "home_pickup_filter_distance": "Distance",
+  "home_pickup_filter_today": "Today",
+  "home_pickup_filter_tomorrow": "Tomorrow",
+  "home_pickup_filter_week": "This week",
+  "home_pickup_filter_beginner": "Beginner",
+  "home_pickup_filter_intermediate": "Intermediate",
+  "home_pickup_filter_advanced": "Advanced",
+  "home_pickup_slots_available": "Spots available",
+
+  "home_activity_matches": "Matches",
+  "home_activity_record": "Record",
+  "home_activity_duration": "Duration",
+
+  "home_article_read_time": "{min} min read",
+  "@home_article_read_time": { "placeholders": { "min": { "type": "int" } } },
+
+  "home_viewers_count": "{count} watching",
+  "@home_viewers_count": { "placeholders": { "count": { "type": "String" } } },
+
+  "home_discover_share": "Share",
+
   "rate_panel_title": "Post-match rating",
   "rate_say_optional": "Say something · optional",
   "rate_self_hint": "Rate yourself?",

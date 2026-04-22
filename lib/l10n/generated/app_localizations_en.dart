@@ -1771,6 +1771,91 @@ class AppL10nEn extends AppL10n {
   String get home_pickups_load_failed => 'Failed to load pickups';
 
   @override
+  String get home_tab_recommend => 'For You';
+
+  @override
+  String get home_tab_events => 'Events';
+
+  @override
+  String get home_tab_pickup => 'Pickup';
+
+  @override
+  String get home_tab_discover => 'Discover';
+
+  @override
+  String get home_all_events => 'All events';
+
+  @override
+  String get home_events_live => 'Live now';
+
+  @override
+  String get home_events_registering => 'Registering';
+
+  @override
+  String get home_events_ongoing => 'In progress';
+
+  @override
+  String get home_events_upcoming => 'Coming soon';
+
+  @override
+  String get home_events_view => 'View';
+
+  @override
+  String get home_events_coming_soon => 'Stay tuned';
+
+  @override
+  String get home_events_register => 'Register';
+
+  @override
+  String get home_pickup_filter_all => 'All';
+
+  @override
+  String get home_pickup_filter_distance => 'Distance';
+
+  @override
+  String get home_pickup_filter_today => 'Today';
+
+  @override
+  String get home_pickup_filter_tomorrow => 'Tomorrow';
+
+  @override
+  String get home_pickup_filter_week => 'This week';
+
+  @override
+  String get home_pickup_filter_beginner => 'Beginner';
+
+  @override
+  String get home_pickup_filter_intermediate => 'Intermediate';
+
+  @override
+  String get home_pickup_filter_advanced => 'Advanced';
+
+  @override
+  String get home_pickup_slots_available => 'Spots available';
+
+  @override
+  String get home_activity_matches => 'Matches';
+
+  @override
+  String get home_activity_record => 'Record';
+
+  @override
+  String get home_activity_duration => 'Duration';
+
+  @override
+  String home_article_read_time(int min) {
+    return '$min min read';
+  }
+
+  @override
+  String home_viewers_count(String count) {
+    return '$count watching';
+  }
+
+  @override
+  String get home_discover_share => 'Share';
+
+  @override
   String get rate_panel_title => 'Post-match rating';
 
   @override

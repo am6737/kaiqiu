@@ -1747,6 +1747,91 @@ class AppL10nZh extends AppL10n {
   String get home_pickups_load_failed => '加载约球数据失败';
 
   @override
+  String get home_tab_recommend => '推荐';
+
+  @override
+  String get home_tab_events => '赛事';
+
+  @override
+  String get home_tab_pickup => '约球';
+
+  @override
+  String get home_tab_discover => '发现';
+
+  @override
+  String get home_all_events => '全部赛事';
+
+  @override
+  String get home_events_live => '正在直播';
+
+  @override
+  String get home_events_registering => '报名中';
+
+  @override
+  String get home_events_ongoing => '进行中';
+
+  @override
+  String get home_events_upcoming => '即将开始';
+
+  @override
+  String get home_events_view => '查看';
+
+  @override
+  String get home_events_coming_soon => '敬请期待';
+
+  @override
+  String get home_events_register => '报名';
+
+  @override
+  String get home_pickup_filter_all => '全部';
+
+  @override
+  String get home_pickup_filter_distance => '距离';
+
+  @override
+  String get home_pickup_filter_today => '今天';
+
+  @override
+  String get home_pickup_filter_tomorrow => '明天';
+
+  @override
+  String get home_pickup_filter_week => '本周';
+
+  @override
+  String get home_pickup_filter_beginner => '初级';
+
+  @override
+  String get home_pickup_filter_intermediate => '中级';
+
+  @override
+  String get home_pickup_filter_advanced => '高级';
+
+  @override
+  String get home_pickup_slots_available => '名额充足';
+
+  @override
+  String get home_activity_matches => '局数';
+
+  @override
+  String get home_activity_record => '胜负';
+
+  @override
+  String get home_activity_duration => '时长';
+
+  @override
+  String home_article_read_time(int min) {
+    return '$min分钟阅读';
+  }
+
+  @override
+  String home_viewers_count(String count) {
+    return '$count 观看';
+  }
+
+  @override
+  String get home_discover_share => '分享';
+
+  @override
   String get rate_panel_title => '赛后评分';
 
   @override
