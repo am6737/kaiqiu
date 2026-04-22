@@ -154,7 +154,7 @@ class _HostedView extends ConsumerWidget {
       onRefresh: () async => ref.invalidate(myHostedEventsProvider),
       child: async.when(
         data: (list) {
-          final open = list.where((e) => e.status != EventStatus.done).toList();
+          final open = list.where((e) => e.status != EventStatus.completed).toList();
           if (open.isEmpty) {
             return ListView(
               physics: const AlwaysScrollableScrollPhysics(),
@@ -222,7 +222,7 @@ class _DoneView extends ConsumerWidget {
           final ids = <String>{};
           final done = <Event>[];
           for (final e in [...hosted, ...registered]) {
-            if (e.status == EventStatus.done && ids.add(e.id)) done.add(e);
+            if (e.status == EventStatus.completed && ids.add(e.id)) done.add(e);
           }
           if (done.isEmpty) {
             return ListView(
