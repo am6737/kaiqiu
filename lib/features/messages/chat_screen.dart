@@ -289,16 +289,21 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             ),
             Expanded(
               child: messagesAsync.when(
-                data: (list) => ListView.builder(
-                  controller: _scroll,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 12,
-                  ),
-                  itemCount: list.length,
-                  itemBuilder: (_, i) =>
-                      _Bubble(msg: list[i], isMe: list[i].senderId == me),
-                ),
+                data: (list) {
+                  if (isDm && list.isEmpty) {
+                    return _DmEmptyState(peerAsync: peerAsync);
+                  }
+                  return ListView.builder(
+                    controller: _scroll,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
+                    itemCount: list.length,
+                    itemBuilder: (_, i) =>
+                        _Bubble(msg: list[i], isMe: list[i].senderId == me),
+                  );
+                },
                 loading: () => Center(
                   child: CircularProgressIndicator(
                     color: context.tokens.accent,
@@ -459,6 +464,80 @@ class _Bubble extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _DmEmptyState extends StatelessWidget {
+  final AsyncValue<Profile?> peerAsync;
+  const _DmEmptyState({required this.peerAsync});
+
+  @override
+  Widget build(BuildContext context) {
+    return peerAsync.when(
+      loading: () => Center(
+        child: CircularProgressIndicator(
+          color: context.tokens.accent,
+          strokeWidth: 2,
+        ),
+      ),
+      error: (_, _) => const SizedBox.shrink(),
+      data: (profile) {
+        if (profile == null) return const SizedBox.shrink();
+        final metaParts = [
+          if ((profile.position ?? '').isNotEmpty) profile.position!,
+          if ((profile.city ?? '').isNotEmpty) profile.city!,
+          if ((profile.district ?? '').isNotEmpty) profile.district!,
+        ];
+        final metaLine = metaParts.isNotEmpty ? metaParts.join(' · ') : null;
+
+        return Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Avatar(profile.name, size: 72),
+                const SizedBox(height: 12),
+                Text(
+                  profile.name,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: context.tokens.ink,
+                  ),
+                ),
+                if (metaLine != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    metaLine,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: context.tokens.inkDim,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 16),
+                Text(
+                  context.l10n.chat_dm_empty_title,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: context.tokens.inkSub,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  context.l10n.chat_dm_empty_subtitle,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: context.tokens.inkDim,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
