@@ -619,7 +619,7 @@
   "auth_signup_toggle_old": "已有账号，去登录",
   "auth_login_btn": "登录",
   "auth_signup_btn": "注册",
-  "auth_anon_btn": "匿名体验",
+  "auth_anon_btn": "游客登录",
   "auth_or": "或",
   "auth_reset_title": "重置密码",
   "auth_reset_sub": "输入你的邮箱，我们会发送重置链接",
@@ -628,7 +628,7 @@
   "auth_reset_failed": "发送失败",
   "auth_signin_failed": "登录失败",
   "auth_signup_failed": "注册失败",
-  "auth_anon_failed": "匿名登录失败",
+  "auth_anon_failed": "游客登录失败",
 
   "rate_title": "赛后评分",
   "rate_progress": "{cur}/{total} 人",

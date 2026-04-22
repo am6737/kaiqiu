@@ -1610,7 +1610,7 @@ class AppL10nZh extends AppL10n {
   String get auth_signup_btn => '注册';
 
   @override
-  String get auth_anon_btn => '匿名体验';
+  String get auth_anon_btn => '游客登录';
 
   @override
   String get auth_or => '或';
@@ -1637,7 +1637,7 @@ class AppL10nZh extends AppL10n {
   String get auth_signup_failed => '注册失败';
 
   @override
-  String get auth_anon_failed => '匿名登录失败';
+  String get auth_anon_failed => '游客登录失败';
 
   @override
   String get rate_title => '赛后评分';

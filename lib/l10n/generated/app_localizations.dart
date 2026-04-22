@@ -3190,7 +3190,7 @@ abstract class AppL10n {
   /// No description provided for @auth_anon_btn.
   ///
   /// In zh, this message translates to:
-  /// **'匿名体验'**
+  /// **'游客登录'**
   String get auth_anon_btn;
 
   /// No description provided for @auth_or.
@@ -3244,7 +3244,7 @@ abstract class AppL10n {
   /// No description provided for @auth_anon_failed.
   ///
   /// In zh, this message translates to:
-  /// **'匿名登录失败'**
+  /// **'游客登录失败'**
   String get auth_anon_failed;
 
   /// No description provided for @rate_title.

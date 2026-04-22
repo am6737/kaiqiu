@@ -1633,7 +1633,7 @@ class AppL10nEn extends AppL10n {
   String get auth_signup_btn => 'Sign up';
 
   @override
-  String get auth_anon_btn => 'Continue anonymously';
+  String get auth_anon_btn => 'Guest Login';
 
   @override
   String get auth_or => 'OR';
@@ -1660,7 +1660,7 @@ class AppL10nEn extends AppL10n {
   String get auth_signup_failed => 'Sign up failed';
 
   @override
-  String get auth_anon_failed => 'Anonymous sign-in failed';
+  String get auth_anon_failed => 'Guest login failed';
 
   @override
   String get rate_title => 'Post-match Rating';
