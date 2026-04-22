@@ -53,7 +53,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     }
   }
 
-  Future<void> _showMoreMenu() async {
+  Future<void> _showMoreMenu({required bool isDm}) async {
     final l = context.l10n;
     await showModalBottomSheet(
       context: context,
@@ -76,17 +76,18 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 ),
               ),
             ),
-            ListTile(
-              leading: Icon(Icons.people_outline, color: context.tokens.inkSub),
-              title: Text(
-                l.chat_more_members,
-                style: TextStyle(color: context.tokens.ink),
+            if (!isDm)
+              ListTile(
+                leading: Icon(Icons.people_outline, color: context.tokens.inkSub),
+                title: Text(
+                  l.chat_more_members,
+                  style: TextStyle(color: context.tokens.ink),
+                ),
+                onTap: () {
+                  Navigator.of(ctx).pop();
+                  showToast(context, l.chat_more_members);
+                },
               ),
-              onTap: () {
-                Navigator.of(ctx).pop();
-                showToast(context, l.chat_more_members);
-              },
-            ),
             ListTile(
               leading: Icon(
                 LocalStore.isMuted(widget.convId)
@@ -277,7 +278,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     ),
                   ),
                   GestureDetector(
-                    onTap: _showMoreMenu,
+                    onTap: () => _showMoreMenu(isDm: isDm),
                     child: Padding(
                       padding: EdgeInsets.all(6),
                       child: Icon(Icons.more_horiz, size: 20, color: context.tokens.inkSub),
