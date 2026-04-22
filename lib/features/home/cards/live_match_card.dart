@@ -26,7 +26,7 @@ class _LiveMatchCarouselState extends State<LiveMatchCarousel> {
   @override
   void initState() {
     super.initState();
-    _ctrl = PageController(viewportFraction: 0.88);
+    _ctrl = PageController();
     if (widget.items.length > 1) {
       _timer = Timer.periodic(const Duration(seconds: 5), (_) {
         _current = (_current + 1) % widget.items.length;
@@ -66,7 +66,7 @@ class _LiveMatchCarouselState extends State<LiveMatchCarousel> {
               return GestureDetector(
                 onTap: () => context.push('/worldcup/live/${m.id}'),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(t.r3),
                     child: Stack(
