@@ -70,7 +70,7 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
     try {
       final pos = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
+          accuracy: LocationAccuracy.medium,
           timeLimit: Duration(seconds: 5),
         ),
       );

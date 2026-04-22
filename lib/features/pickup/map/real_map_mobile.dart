@@ -79,7 +79,7 @@ class _RealPickupMapState extends State<RealPickupMap> {
       }
       final pos = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
+          accuracy: LocationAccuracy.medium,
           timeLimit: Duration(seconds: 5),
         ),
       );
