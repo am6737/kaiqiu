@@ -16,9 +16,11 @@ delete from events where id in (
   '11111111-1111-1111-1111-111111111111',
   '11111111-1111-1111-1111-222222222222',
   '11111111-1111-1111-1111-333333333333',
-  '11111111-1111-1111-1111-444444444444'
+  '11111111-1111-1111-1111-444444444444',
+  '11111111-1111-1111-1111-555555555555'
 );
 
+delete from events where id = '11111111-1111-1111-1111-555555555555';
 delete from external_matches where id in (
   '33333333-3333-3333-3333-000000000001',
   '33333333-3333-3333-3333-000000000002',
@@ -271,6 +273,15 @@ insert into events (id, creator_id, name, sub, city, status, template, team_size
    'https://images.unsplash.com/photo-1560272564-c83b66b1ad12?auto=format&fit=crop&w=1200&h=600&q=70');
 
 
+-- 赛事直播观赛（承载首页直播条的国际比赛）
+insert into events (id, name, sub, city, status, template, teams_max, starts_at, cover_url)
+values (
+  '11111111-1111-1111-1111-555555555555',
+  '国际赛事直播', '世界杯 · 欧冠转播', '全球', 'ongoing', null, null,
+  now() - interval '30 days', null
+);
+
+
 -- ═══════════════════════════════════════════════════════════════
 -- 6. Teams
 -- ═══════════════════════════════════════════════════════════════
@@ -325,10 +336,17 @@ insert into matches (id, event_id, round, team_a_label, team_b_label,
   ('22222222-2222-2222-2222-222222222222',
    '11111111-1111-1111-1111-111111111111', 'qf', '龙岗狼队', 'FC 黑马',
    3, 1, null, now() - interval '4 days', true, false, null, 0),
-  -- 一场正在直播的小组赛
+  -- 正在直播的小组赛
   ('22222222-2222-2222-2222-111111111111',
    '11111111-1111-1111-1111-111111111111', 'group', '龙岗狼队', 'FC 黑马',
-   0, 0, null, now(), false, true, '12''', 842);
+   0, 0, null, now(), false, true, '12''', 842),
+  -- 国际赛事直播（首页直播条）
+  ('22222222-2222-2222-2222-aaaaaaaaaaaa',
+   '11111111-1111-1111-1111-555555555555', null, '阿根廷', '巴西',
+   2, 1, null, now() - interval '67 minutes', false, true, '67''', 128000),
+  ('22222222-2222-2222-2222-bbbbbbbbbbbb',
+   '11111111-1111-1111-1111-555555555555', null, '皇家马德里', '巴塞罗那',
+   1, 3, null, now() - interval '45 minutes', false, true, '半场', 94000);
 
 insert into matches (event_id, round, team_a_label, team_b_label,
   score_a, score_b, pk_score, played_at, done
