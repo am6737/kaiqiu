@@ -836,3 +836,19 @@ union all select 'conversations', count(*)::text from conversations where id::te
 union all select 'messages',      count(*)::text from messages where conv_id::text like '44444444-%'
 union all select 'notifications', count(*)::text from notifications where user_id = '10000000-0000-0000-0000-000000000001'
 union all select 'predictions',   count(*)::text from predictions where user_id::text like '10000000-%';
+
+-- ===== Articles seed =====
+INSERT INTO articles (id, author_id, title, summary, category, read_time_min, view_count, comment_count, created_at) VALUES
+  ('a0000000-0000-0000-0000-000000000001', (SELECT id FROM profiles LIMIT 1),
+   '春季联赛8强前瞻：飞虎 vs 雷霆', '深度解析两队战术体系与关键球员对位分析',
+   'analysis', 5, 326, 18, now() - interval '2 hours'),
+  ('a0000000-0000-0000-0000-000000000002', (SELECT id FROM profiles LIMIT 1),
+   '提升反手高远球的5个关键要点', '从握拍到发力，系统讲解反手技术提升路径',
+   'tutorial', 8, 1200, 45, now() - interval '6 hours'),
+  ('a0000000-0000-0000-0000-000000000003', (SELECT id FROM profiles LIMIT 1),
+   '业余选手体能训练指南', '科学的体能训练方案，帮助你在场上保持竞技状态',
+   'tutorial', 10, 890, 32, now() - interval '1 day');
+
+-- ===== Update existing posts with activity data =====
+UPDATE posts SET match_count = 3, win_count = 3, play_duration = 90, venue = '南山体育中心'
+WHERE id = (SELECT id FROM posts ORDER BY created_at DESC LIMIT 1);
