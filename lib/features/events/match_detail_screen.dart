@@ -85,7 +85,7 @@ class _MatchDetailBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final goalsAsync = ref.watch(matchGoalsProvider(match.id));
-    final status = _statusFor(match);
+    final status = match.status;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.only(bottom: 120),
@@ -94,7 +94,7 @@ class _MatchDetailBody extends ConsumerWidget {
         children: [
           _HeaderCard(match: match, status: status),
           const SizedBox(height: 8),
-          if (match.done)
+          if (match.status == MatchStatus.finished)
             goalsAsync.when(
               loading: () => const _GoalsLoading(),
               error: (e, _) => _GoalsError(error: e),
@@ -113,7 +113,7 @@ class _MatchDetailBody extends ConsumerWidget {
 // ─────────────────────────────────────────────────────────────
 class _HeaderCard extends StatelessWidget {
   final Match match;
-  final _MatchStatus status;
+  final MatchStatus status;
   const _HeaderCard({required this.match, required this.status});
 
   @override
@@ -121,8 +121,8 @@ class _HeaderCard extends StatelessWidget {
     final l = context.l10n;
     final sa = match.scoreA;
     final sb = match.scoreB;
-    final aWins = match.done && sa != null && sb != null && sa > sb;
-    final bWins = match.done && sa != null && sb != null && sb > sa;
+    final aWins = match.status == MatchStatus.finished && sa != null && sb != null && sa > sb;
+    final bWins = match.status == MatchStatus.finished && sa != null && sb != null && sb > sa;
     final timeStr = _formatPlayedAt(match.playedAt);
 
     return Container(
@@ -239,16 +239,16 @@ class _TeamRow extends StatelessWidget {
 }
 
 class _StatusChip extends StatelessWidget {
-  final _MatchStatus status;
+  final MatchStatus status;
   const _StatusChip({required this.status});
 
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
     final (bg, fg, text) = switch (status) {
-      _MatchStatus.upcoming => (context.tokens.elev3, context.tokens.inkSub, l.match_status_upcoming),
-      _MatchStatus.live => (context.tokens.accentSubtle, context.tokens.accent, l.match_status_live),
-      _MatchStatus.done => (context.tokens.elev3, context.tokens.inkDim, l.match_status_done),
+      MatchStatus.upcoming => (context.tokens.elev3, context.tokens.inkSub, l.match_status_upcoming),
+      MatchStatus.live => (context.tokens.accentSubtle, context.tokens.accent, l.match_status_live),
+      MatchStatus.finished => (context.tokens.elev3, context.tokens.inkDim, l.match_status_done),
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -400,7 +400,7 @@ class _GoalTag extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────
 class _BottomCtaArea extends ConsumerStatefulWidget {
   final Match match;
-  final _MatchStatus status;
+  final MatchStatus status;
   final String eventId;
   const _BottomCtaArea({
     required this.match,
@@ -446,7 +446,7 @@ class _BottomCtaAreaState extends ConsumerState<_BottomCtaArea> {
     final l = context.l10n;
     ref.watch(localStoreProvider);
 
-    if (widget.status == _MatchStatus.done) {
+    if (widget.status == MatchStatus.finished) {
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: PrimaryButton(
@@ -460,7 +460,7 @@ class _BottomCtaAreaState extends ConsumerState<_BottomCtaArea> {
       );
     }
 
-    if (widget.status == _MatchStatus.upcoming) {
+    if (widget.status == MatchStatus.upcoming) {
       final set = LocalStore.hasReminder(widget.match.id);
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -474,7 +474,20 @@ class _BottomCtaAreaState extends ConsumerState<_BottomCtaArea> {
       );
     }
 
-    // Live (kicked off but not done) — no CTA for now.
+    if (widget.status == MatchStatus.live) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: PrimaryButton(
+          label: l.live_room_join,
+          full: true,
+          size: BtnSize.lg,
+          onPressed: () => context.push(
+            '/event/${widget.eventId}/match/${widget.match.id}/live',
+          ),
+        ),
+      );
+    }
+
     return const SizedBox.shrink();
   }
 }
@@ -541,15 +554,6 @@ class _GoalsError extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────────────────────
-enum _MatchStatus { upcoming, live, done }
-
-_MatchStatus _statusFor(Match m) {
-  if (m.done) return _MatchStatus.done;
-  final at = m.playedAt;
-  if (at != null && at.isAfter(DateTime.now())) return _MatchStatus.upcoming;
-  return _MatchStatus.live;
-}
-
 String _roundLabel(AppL10n l, String? round) => switch (round) {
   'qf' => l.event_bracket_qf,
   'sf' => l.event_bracket_sf,

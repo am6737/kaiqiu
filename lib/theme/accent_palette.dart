@@ -25,7 +25,7 @@ class AccentPaletteResolver {
   // Hand-tuned preset values (spec §5.2).
   static const _presets = <PresetAccent, _PresetTuning>{
     PresetAccent.green: _PresetTuning(
-      darkAccent: Color(0xFF00FF85),
+      darkAccent: Color(0xFF34D399),
       darkInk: Color(0xFF000000),
       lightAccent: Color(0xFF00A864),
       lightInk: Color(0xFFFFFFFF),

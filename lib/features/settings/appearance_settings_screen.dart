@@ -182,7 +182,7 @@ class _AccentSelector extends StatelessWidget {
   Color _resolvePresetColor(PresetAccent p, Brightness brightness) {
     // Mirror the spec §5.2 hand-tuned values for swatch display.
     return switch ((p, brightness)) {
-      (PresetAccent.green, Brightness.dark) => const Color(0xFF00FF85),
+      (PresetAccent.green, Brightness.dark) => const Color(0xFF34D399),
       (PresetAccent.green, Brightness.light) => const Color(0xFF00A864),
       (PresetAccent.orange, Brightness.dark) => const Color(0xFFFF8A3D),
       (PresetAccent.orange, Brightness.light) => const Color(0xFFE25A0A),
