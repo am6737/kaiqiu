@@ -5,7 +5,6 @@ import 'package:intl/intl.dart';
 
 import '../../l10n/l10n_extension.dart';
 import '../../models/article.dart';
-import '../../repositories/likes_repository.dart';
 import '../../utils/share_helper.dart';
 import '../../models/comment.dart';
 import '../../providers.dart';

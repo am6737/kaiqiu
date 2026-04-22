@@ -74,7 +74,7 @@ Future<void> shareArticle({
 }) async {
   final text = [
     '\u{1F4F0} $category | $title',
-    if (summary != null) summary,
+    ?summary,
   ].join('\n');
   await Share.share(text, subject: '开球·文章');
 }
