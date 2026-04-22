@@ -446,7 +446,7 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
           // Locate-me button
           Positioned(
             right: 14,
-            bottom: MediaQuery.of(context).size.height * 0.55 + 16,
+            bottom: 100,
             child: GestureDetector(
               onTap: () => _fetchLocation(centerMap: true),
               child: Container(
