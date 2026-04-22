@@ -9,6 +9,7 @@ import 'models/match_history.dart';
 import 'models/message.dart';
 import 'models/notification_item.dart';
 import 'models/pickup.dart';
+import 'models/pickup_filter.dart';
 import 'models/player_profile.dart';
 import 'models/profile.dart';
 import 'models/teammate.dart';
@@ -384,4 +385,33 @@ final followersCountProvider = FutureProvider<int>((ref) async {
   } catch (_) {
     return 0;
   }
+});
+
+// ── Home Tab Providers ──────────────────────────────────
+
+/// 推荐 Tab — mixed feed of all content types
+final recommendFeedProvider = FutureProvider<List<FeedItem>>((ref) async {
+  return ref.read(feedRepoProvider).buildRecommendFeed();
+});
+
+/// 发现 Tab — posts (with activity) + articles
+final discoverFeedProvider = FutureProvider<List<FeedItem>>((ref) async {
+  return ref.read(feedRepoProvider).buildDiscoverFeed();
+});
+
+/// 赛事 Tab — events grouped by status
+final eventsByStatusProvider =
+    FutureProvider<Map<String, List<FeedEvent>>>((ref) async {
+  return ref.read(feedRepoProvider).eventsByStatus();
+});
+
+/// 约球 Tab — pickup filter state
+final pickupFilterProvider = StateProvider<PickupFilter>(
+  (_) => const PickupFilter(),
+);
+
+/// 约球 Tab — filtered pickup list (reacts to filter changes)
+final filteredPickupsProvider = FutureProvider<List<Pickup>>((ref) async {
+  final filter = ref.watch(pickupFilterProvider);
+  return ref.read(pickupsRepoProvider).listFiltered(filter);
 });

@@ -4,6 +4,91 @@ import '../models/feed.dart';
 import '../services/supabase.dart';
 
 class FeedRepository {
+  /// Mixed feed for 推荐 Tab — all content types, sorted by time.
+  Future<List<FeedItem>> buildRecommendFeed({int limit = 20}) async {
+    final results = await Future.wait([
+      _recentResults(limit: limit),
+      _recentPosts(limit: limit),
+      _registeringEvents(limit: limit),
+      _recentPickups(limit: limit),
+      _recentArticles(limit: limit),
+    ]);
+    final items = <FeedItem>[
+      ...results[0],
+      ...results[1],
+      ...results[2],
+      ...results[3],
+      ...results[4],
+    ];
+    items.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    if (items.length > limit) return items.sublist(0, limit);
+    return items;
+  }
+
+  /// Mixed feed for 发现 Tab — posts (with activity data) + articles.
+  Future<List<FeedItem>> buildDiscoverFeed({int limit = 20}) async {
+    final results = await Future.wait([
+      _recentActivities(limit: limit),
+      _recentArticles(limit: limit),
+    ]);
+    final items = <FeedItem>[...results[0], ...results[1]];
+    items.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    if (items.length > limit) return items.sublist(0, limit);
+    return items;
+  }
+
+  /// Grouped events for 赛事 Tab, keyed by status.
+  Future<Map<String, List<FeedEvent>>> eventsByStatus() async {
+    final rows = await supabase
+        .from('events')
+        .select()
+        .order('created_at', ascending: false);
+    final all = (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map(FeedEvent.fromMap)
+        .toList();
+    return {
+      'registering': all.where((e) => e.kind == 'event').toList(),
+    };
+  }
+
+  Future<List<FeedPickup>> _recentPickups({required int limit}) async {
+    final rows = await supabase
+        .from('pickups')
+        .select()
+        .neq('status', 'done')
+        .order('start_at', ascending: true)
+        .limit(limit);
+    return (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map(FeedPickup.fromMap)
+        .toList();
+  }
+
+  Future<List<FeedArticle>> _recentArticles({required int limit}) async {
+    final rows = await supabase
+        .from('articles')
+        .select()
+        .order('created_at', ascending: false)
+        .limit(limit);
+    return (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map(FeedArticle.fromMap)
+        .toList();
+  }
+
+  Future<List<FeedActivity>> _recentActivities({required int limit}) async {
+    final rows = await supabase
+        .from('posts')
+        .select('*, author:profiles!author_id(name)')
+        .order('created_at', ascending: false)
+        .limit(limit);
+    return (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map(FeedActivity.fromMap)
+        .toList();
+  }
+
   /// Fetches recent feed items from multiple sources, merged and sorted by
   /// time descending. Returns up to [limit] items.
   Future<List<FeedItem>> buildFeed({int limit = 20}) async {

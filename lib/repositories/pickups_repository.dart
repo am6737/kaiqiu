@@ -1,5 +1,6 @@
 // pickups_repository.dart — thin wrapper around Supabase queries
 import '../models/pickup.dart';
+import '../models/pickup_filter.dart';
 import '../services/supabase.dart';
 
 class PickupsRepository {
@@ -71,6 +72,60 @@ class PickupsRepository {
 
   Future<void> leave({required String slotId}) async {
     await supabase.from('pickup_slots').delete().eq('id', slotId);
+  }
+
+  Future<List<Pickup>> listFiltered(PickupFilter filter, {int limit = 50}) async {
+    var query = supabase
+        .from('pickups')
+        .select()
+        .neq('status', 'done');
+
+    final now = DateTime.now();
+    switch (filter.dateRange) {
+      case PickupDateRange.today:
+        final todayEnd = DateTime(now.year, now.month, now.day, 23, 59, 59);
+        query = query
+            .gte('start_at', now.toIso8601String())
+            .lte('start_at', todayEnd.toIso8601String());
+        break;
+      case PickupDateRange.tomorrow:
+        final tomorrowStart = DateTime(now.year, now.month, now.day + 1);
+        final tomorrowEnd = DateTime(now.year, now.month, now.day + 1, 23, 59, 59);
+        query = query
+            .gte('start_at', tomorrowStart.toIso8601String())
+            .lte('start_at', tomorrowEnd.toIso8601String());
+        break;
+      case PickupDateRange.thisWeek:
+        final weekEnd = now.add(const Duration(days: 7));
+        query = query
+            .gte('start_at', now.toIso8601String())
+            .lte('start_at', weekEnd.toIso8601String());
+        break;
+      case PickupDateRange.all:
+        query = query.gte('start_at', now.toIso8601String());
+        break;
+    }
+
+    if (filter.level != PickupLevel.all) {
+      final levelStr = switch (filter.level) {
+        PickupLevel.beginner => 'beginner',
+        PickupLevel.intermediate => 'intermediate',
+        PickupLevel.advanced => 'advanced',
+        _ => '',
+      };
+      if (levelStr.isNotEmpty) {
+        query = query.eq('level', levelStr);
+      }
+    }
+
+    final rows = await query
+        .order('start_at', ascending: true)
+        .limit(limit);
+
+    return (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map(Pickup.fromMap)
+        .toList();
   }
 
   /// List pickups hosted by [userId]. Soonest first.
