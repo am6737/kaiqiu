@@ -1,95 +1,201 @@
+import 'dart:async';
+
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../../data/demo_images.dart';
 import '../../../models/live_match.dart';
 import '../../../theme/app_tokens.dart';
-import '../../../l10n/generated/app_localizations.dart';
+import '../../../widgets/live_pill.dart';
+import '../../../widgets/typography.dart';
 
-class LiveMatchCard extends StatelessWidget {
-  final LiveMatch match;
-  const LiveMatchCard({super.key, required this.match});
+class LiveMatchCarousel extends StatefulWidget {
+  final List<LiveMatch> items;
+  const LiveMatchCarousel({super.key, required this.items});
 
   @override
-  Widget build(BuildContext context) {
-    final t = context.tokens;
-    final l = AppL10n.of(context);
-    return GestureDetector(
-      onTap: () => context.push('/worldcup/live/${match.id}'),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [t.accent.withValues(alpha: 0.25), t.danger.withValues(alpha: 0.15)],
-          ),
-          borderRadius: BorderRadius.circular(t.r3),
-          border: Border.all(color: t.accent.withValues(alpha: 0.2)),
-        ),
-        child: Column(children: [
-          // LIVE badge row
-          Row(children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: t.danger.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Row(mainAxisSize: MainAxisSize.min, children: [
-                _PulseDot(color: t.danger),
-                const SizedBox(width: 4),
-                Text('LIVE · ${match.minute}\'',
-                    style: TextStyle(color: t.danger, fontSize: 10, fontWeight: FontWeight.w600)),
-              ]),
-            ),
-            const Spacer(),
-            Text(l.home_viewers_count(match.viewersDisplay),
-                style: TextStyle(fontSize: 10, color: t.inkDim)),
-          ]),
-          const SizedBox(height: 12),
-          // Score row
-          Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Expanded(child: Text(match.teamA, textAlign: TextAlign.right,
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: t.ink))),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Text('${match.scoreA} : ${match.scoreB}',
-                  style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800,
-                      fontFamily: t.fontMono, fontFamilyFallback: t.monoFallbacks,
-                      color: t.ink, letterSpacing: 2)),
-            ),
-            Expanded(child: Text(match.teamB,
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: t.ink))),
-          ]),
-        ]),
-      ),
-    );
-  }
+  State<LiveMatchCarousel> createState() => _LiveMatchCarouselState();
 }
 
-class _PulseDot extends StatefulWidget {
-  final Color color;
-  const _PulseDot({required this.color});
-  @override State<_PulseDot> createState() => _PulseDotState();
-}
-
-class _PulseDotState extends State<_PulseDot> with SingleTickerProviderStateMixin {
-  late final AnimationController _ctrl;
+class _LiveMatchCarouselState extends State<LiveMatchCarousel> {
+  late final PageController _ctrl;
+  Timer? _timer;
+  int _current = 0;
 
   @override
   void initState() {
     super.initState();
-    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 1500))
-      ..repeat(reverse: true);
+    _ctrl = PageController(viewportFraction: 0.88);
+    if (widget.items.length > 1) {
+      _timer = Timer.periodic(const Duration(seconds: 5), (_) {
+        _current = (_current + 1) % widget.items.length;
+        _ctrl.animateToPage(
+          _current,
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeInOut,
+        );
+      });
+    }
   }
 
   @override
-  void dispose() { _ctrl.dispose(); super.dispose(); }
+  void dispose() {
+    _timer?.cancel();
+    _ctrl.dispose();
+    super.dispose();
+  }
 
   @override
-  Widget build(BuildContext context) => FadeTransition(
-    opacity: Tween(begin: 0.3, end: 1.0).animate(_ctrl),
-    child: Container(width: 6, height: 6,
-        decoration: BoxDecoration(color: widget.color, shape: BoxShape.circle)),
-  );
+  Widget build(BuildContext context) {
+    final items = widget.items;
+    final t = context.tokens;
+    return Column(
+      children: [
+        SizedBox(
+          height: 170,
+          child: PageView.builder(
+            controller: _ctrl,
+            onPageChanged: (i) => setState(() => _current = i),
+            itemCount: items.length,
+            itemBuilder: (context, i) {
+              final m = items[i];
+              final posterUrl = m.posterUrl ?? DemoImages.pickCoverFor(m.id);
+              final aWins = m.scoreA > m.scoreB;
+              final bWins = m.scoreB > m.scoreA;
+              return GestureDetector(
+                onTap: () => context.push('/worldcup/live/${m.id}'),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(t.r3),
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        CachedNetworkImage(
+                          imageUrl: posterUrl,
+                          fit: BoxFit.cover,
+                          fadeInDuration: const Duration(milliseconds: 160),
+                          errorWidget: (_, _, _) =>
+                              Container(color: t.elev2),
+                        ),
+                        const DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Color(0x00000000),
+                                Color(0x33000000),
+                                Color(0xCC000000),
+                              ],
+                              stops: [0.0, 0.4, 1.0],
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(14),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  const LivePill(),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    '${m.viewersDisplay} 观看 · ${m.minute}',
+                                    style: TextStyle(
+                                      fontFamily: t.fontMono,
+                                      fontFamilyFallback: t.monoFallbacks,
+                                      fontSize: 11,
+                                      color: Colors.white70,
+                                      letterSpacing: 0.3,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const Spacer(),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          m.teamA,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          m.teamB,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      N(
+                                        '${m.scoreA}',
+                                        size: 24,
+                                        weight: FontWeight.w700,
+                                        color: aWins ? t.accent : Colors.white,
+                                      ),
+                                      const SizedBox(height: 2),
+                                      N(
+                                        '${m.scoreB}',
+                                        size: 24,
+                                        weight: FontWeight.w700,
+                                        color: bWins ? t.accent : Colors.white,
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        if (items.length > 1)
+          Padding(
+            padding: const EdgeInsets.only(top: 8, bottom: 4),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(items.length, (i) {
+                final active = i == _current;
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 250),
+                  margin: const EdgeInsets.symmetric(horizontal: 3),
+                  width: active ? 18 : 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color: active ? t.accent : t.inkMute,
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                );
+              }),
+            ),
+          ),
+      ],
+    );
+  }
 }

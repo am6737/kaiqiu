@@ -7,7 +7,7 @@ import '../../../models/feed.dart';
 import '../../../providers.dart';
 import '../../../theme/app_tokens.dart';
 import '../../../l10n/generated/app_localizations.dart';
-import '../cards/live_match_card.dart';
+import '../cards/live_match_card.dart';  // LiveMatchCarousel
 
 class EventsTab extends ConsumerWidget {
   const EventsTab({super.key});
@@ -44,8 +44,10 @@ class EventsTab extends ConsumerWidget {
                   color: t.danger,
                   hasPulse: true,
                 ),
-                ...liveMatches.map((m) => LiveMatchCard(match: m)),
-                const SizedBox(height: 8),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: LiveMatchCarousel(items: liveMatches),
+                ),
               ],
               // Registering section
               if (registering.isNotEmpty) ...[

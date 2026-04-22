@@ -34,15 +34,22 @@ class RecommendTab extends ConsumerWidget {
         error: (e, _) => Center(child: Text('$e')),
         data: (items) {
           final liveMatches = liveAsync.valueOrNull ?? [];
+          final hasLive = liveMatches.isNotEmpty;
           return ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            itemCount: liveMatches.length + items.length,
+            padding: const EdgeInsets.only(top: 8, bottom: 16),
+            itemCount: (hasLive ? 1 : 0) + items.length,
             itemBuilder: (ctx, i) {
-              if (i < liveMatches.length) {
-                return LiveMatchCard(match: liveMatches[i]);
+              if (hasLive && i == 0) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: LiveMatchCarousel(items: liveMatches),
+                );
               }
-              final item = items[i - liveMatches.length];
-              return _buildCard(item);
+              final item = items[i - (hasLive ? 1 : 0)];
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: _buildCard(item),
+              );
             },
           );
         },
