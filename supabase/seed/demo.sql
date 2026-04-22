@@ -1,38 +1,71 @@
--- demo.sql — 完整 demo fixture
---   pickups + 阵型 + 赛事（16 队 + 15 场 bracket）+ 进球 + 评分 + 世界杯竞猜
+-- demo.sql — 完整 demo fixture（对应原 mock.dart 全部数据）
 --
 -- Prereqs: migrations/0001_schema.sql 已应用。
 -- Safe to re-run: 每个 section 先 DELETE 再 INSERT。
---
--- 与客户端的隐式约定：
---   - lib/providers.dart → demoMatchId = '22222222-2222-2222-2222-222222222222'
---   - lib/data/mock.dart 的 pickups/lineup 与本文件镜像
---   - 首场 pickup venue = '龙岗体育中心 3号场'（section 2 的 lineup 引用）
---   - 世界杯竞猜 match_id 用 'wc-focus'/'w1'..'w5'（lib/features/events/world_cup_screen.dart）
+-- 在 Supabase SQL Editor 以 postgres 身份执行。
 
 -- ═══════════════════════════════════════════════════════════════
--- 0. Demo profiles — 9 位出镜主力球员（评分 / 射手 / 进球明细）
---    写 auth.users 会触发 handle_new_user → 自动建 profiles 行，
---    再 UPDATE 回填 avatar_url / position / handle。
---    与 lib/data/demo_images.dart 的 playerAvatarByName 一一对应。
+-- 0. Cleanup — 删除旧 demo 数据（级联清理）
 -- ═══════════════════════════════════════════════════════════════
 
--- 先清掉旧 demo 账号：profiles.id ON DELETE CASCADE 联动；
--- 同时级联清除 ratings（ratee_id cascade）/ goals.scorer_id 被 set null。
-delete from auth.users where id in (
-  '10000000-0000-0000-0000-000000000001',
-  '10000000-0000-0000-0000-000000000002',
-  '10000000-0000-0000-0000-000000000003',
-  '10000000-0000-0000-0000-000000000004',
-  '10000000-0000-0000-0000-000000000005',
-  '10000000-0000-0000-0000-000000000006',
-  '10000000-0000-0000-0000-000000000007',
-  '10000000-0000-0000-0000-000000000008',
-  '10000000-0000-0000-0000-000000000009'
+delete from public.rating_likes where user_id::text like '10000000-0000-0000-0000-%';
+delete from public.notifications where user_id::text like '10000000-0000-0000-0000-%';
+delete from public.predictions   where user_id::text like '10000000-0000-0000-0000-%';
+
+delete from events where id in (
+  '11111111-1111-1111-1111-111111111111',
+  '11111111-1111-1111-1111-222222222222',
+  '11111111-1111-1111-1111-333333333333',
+  '11111111-1111-1111-1111-444444444444'
 );
 
--- 写 auth.users 最小可用字段集：encrypted_password 用 crypt() 兜底非空，
--- raw_user_meta_data.name 交给 trigger 回灌 profiles.name。
+delete from external_matches where id in (
+  '33333333-3333-3333-3333-000000000001',
+  '33333333-3333-3333-3333-000000000002',
+  '33333333-3333-3333-3333-000000000003',
+  '33333333-3333-3333-3333-000000000004'
+);
+
+delete from public.messages where conv_id in (
+  '44444444-4444-4444-4444-000000000001',
+  '44444444-4444-4444-4444-000000000002',
+  '44444444-4444-4444-4444-000000000003',
+  '44444444-4444-4444-4444-000000000004'
+);
+delete from public.conversation_members where conv_id in (
+  '44444444-4444-4444-4444-000000000001',
+  '44444444-4444-4444-4444-000000000002',
+  '44444444-4444-4444-4444-000000000003',
+  '44444444-4444-4444-4444-000000000004'
+);
+delete from public.conversations where id in (
+  '44444444-4444-4444-4444-000000000001',
+  '44444444-4444-4444-4444-000000000002',
+  '44444444-4444-4444-4444-000000000003',
+  '44444444-4444-4444-4444-000000000004'
+);
+
+delete from public.posts where author_id::text like '10000000-0000-0000-0000-%';
+delete from public.player_honors where user_id::text like '10000000-0000-0000-0000-%';
+delete from public.player_attributes where user_id::text like '10000000-0000-0000-0000-%';
+
+delete from pickup_slots where pickup_id in (
+  select id from pickups where venue in (
+    '龙岗体育中心 3号场', '大运公园足球场', '平湖体育公园', '坂田足球场'
+  )
+);
+delete from pickups where venue in (
+  '龙岗体育中心 3号场', '大运公园足球场', '平湖体育公园', '坂田足球场'
+);
+
+delete from auth.users where id::text like '10000000-0000-0000-0000-%';
+
+
+-- ═══════════════════════════════════════════════════════════════
+-- 1. Demo users — 13 位出镜球员
+--    auth.users → trigger handle_new_user → profiles(id, name)
+-- ═══════════════════════════════════════════════════════════════
+
 insert into auth.users (
   instance_id, id, aud, role, email, encrypted_password,
   email_confirmed_at, raw_app_meta_data, raw_user_meta_data,
@@ -40,8 +73,7 @@ insert into auth.users (
 )
 select
   '00000000-0000-0000-0000-000000000000'::uuid,
-  dp.id::uuid,
-  'authenticated', 'authenticated',
+  dp.id::uuid, 'authenticated', 'authenticated',
   dp.email,
   crypt('demo-password', gen_salt('bf')),
   now(),
@@ -57,378 +89,601 @@ from (values
   ('10000000-0000-0000-0000-000000000006', 'demo-kevin@qiuju.local',     'Kevin'),
   ('10000000-0000-0000-0000-000000000007', 'demo-coach@qiuju.local',     '张教练'),
   ('10000000-0000-0000-0000-000000000008', 'demo-xiaozhao@qiuju.local',  '小赵'),
-  ('10000000-0000-0000-0000-000000000009', 'demo-aze@qiuju.local',       '阿泽')
+  ('10000000-0000-0000-0000-000000000009', 'demo-aze@qiuju.local',       '阿泽'),
+  ('10000000-0000-0000-0000-00000000000a', 'demo-lurenjia@qiuju.local',  '路人甲'),
+  ('10000000-0000-0000-0000-00000000000b', 'demo-lurenyi@qiuju.local',   '路人乙'),
+  ('10000000-0000-0000-0000-00000000000c', 'demo-lurenbing@qiuju.local', '路人丙'),
+  ('10000000-0000-0000-0000-00000000000d', 'demo-lurending@qiuju.local', '路人丁')
 ) as dp(id, email, name);
 
--- 回填 avatar_url / position / handle（trigger 只给了 id+name）。
+-- auth.identities（部分 Supabase 版本登录需要）
+insert into auth.identities (id, user_id, identity_data, provider, provider_id, last_sign_in_at, created_at, updated_at)
+select
+  dp.id::uuid, dp.id::uuid,
+  jsonb_build_object('sub', dp.id, 'email', dp.email),
+  'email', dp.id,
+  now(), now(), now()
+from (values
+  ('10000000-0000-0000-0000-000000000001', 'demo-chenzirui@qiuju.local'),
+  ('10000000-0000-0000-0000-000000000002', 'demo-laowang@qiuju.local'),
+  ('10000000-0000-0000-0000-000000000003', 'demo-xuzheng@qiuju.local'),
+  ('10000000-0000-0000-0000-000000000004', 'demo-linshuai@qiuju.local'),
+  ('10000000-0000-0000-0000-000000000005', 'demo-jiangbei@qiuju.local'),
+  ('10000000-0000-0000-0000-000000000006', 'demo-kevin@qiuju.local'),
+  ('10000000-0000-0000-0000-000000000007', 'demo-coach@qiuju.local'),
+  ('10000000-0000-0000-0000-000000000008', 'demo-xiaozhao@qiuju.local'),
+  ('10000000-0000-0000-0000-000000000009', 'demo-aze@qiuju.local'),
+  ('10000000-0000-0000-0000-00000000000a', 'demo-lurenjia@qiuju.local'),
+  ('10000000-0000-0000-0000-00000000000b', 'demo-lurenyi@qiuju.local'),
+  ('10000000-0000-0000-0000-00000000000c', 'demo-lurenbing@qiuju.local'),
+  ('10000000-0000-0000-0000-00000000000d', 'demo-lurending@qiuju.local')
+) as dp(id, email)
+on conflict do nothing;
+
+-- 回填 profiles 完整字段
 update public.profiles p set
   name = dp.name,
+  handle = dp.handle,
+  city = dp.city,
+  district = dp.district,
   position = dp.position,
-  avatar_url = dp.avatar_url,
-  handle = dp.handle
+  height = dp.height,
+  foot = dp.foot,
+  avatar_url = dp.avatar_url
 from (values
-  ('10000000-0000-0000-0000-000000000001'::uuid, '陈子睿',   'ST', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&h=400&q=70', 'demo-chenzirui'),
-  ('10000000-0000-0000-0000-000000000002'::uuid, '老王',     'GK', 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=400&h=400&q=70', 'demo-laowang'),
-  ('10000000-0000-0000-0000-000000000003'::uuid, '徐铮',     'LW', 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&h=400&q=70', 'demo-xuzheng'),
-  ('10000000-0000-0000-0000-000000000004'::uuid, '林帅',     'CM', 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=400&h=400&q=70', 'demo-linshuai'),
-  ('10000000-0000-0000-0000-000000000005'::uuid, '江北',     'CB', 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=400&h=400&q=70', 'demo-jiangbei'),
-  ('10000000-0000-0000-0000-000000000006'::uuid, 'Kevin',    'LB', 'https://images.unsplash.com/photo-1552058544-f2b08422138a?auto=format&fit=crop&w=400&h=400&q=70', 'demo-kevin'),
-  ('10000000-0000-0000-0000-000000000007'::uuid, '张教练',   'CM', 'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=400&h=400&q=70', 'demo-coach'),
-  ('10000000-0000-0000-0000-000000000008'::uuid, '小赵',     'CM', 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=400&h=400&q=70', 'demo-xiaozhao'),
-  ('10000000-0000-0000-0000-000000000009'::uuid, '阿泽',     'RB', 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&h=400&q=70', 'demo-aze')
-) as dp(id, name, position, avatar_url, handle)
+  ('10000000-0000-0000-0000-000000000001'::uuid, '陈子睿', 'chenzirui', '深圳', '龙岗', 'CF', 178, '右脚',
+   'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&h=400&q=70'),
+  ('10000000-0000-0000-0000-000000000002'::uuid, '老王', 'laowang', '深圳', '龙岗', 'GK', 185, '右脚',
+   'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=400&h=400&q=70'),
+  ('10000000-0000-0000-0000-000000000003'::uuid, '徐铮', 'xuzheng', '深圳', '龙岗', 'LW', 175, '左脚',
+   'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&h=400&q=70'),
+  ('10000000-0000-0000-0000-000000000004'::uuid, '林帅', 'linshuai', '深圳', '南山', 'CM', 180, '右脚',
+   'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=400&h=400&q=70'),
+  ('10000000-0000-0000-0000-000000000005'::uuid, '江北', 'jiangbei', '深圳', '龙岗', 'RW', 173, '右脚',
+   'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=400&h=400&q=70'),
+  ('10000000-0000-0000-0000-000000000006'::uuid, 'Kevin', 'kevin', '深圳', '龙岗', 'LB', 176, '右脚',
+   'https://images.unsplash.com/photo-1552058544-f2b08422138a?auto=format&fit=crop&w=400&h=400&q=70'),
+  ('10000000-0000-0000-0000-000000000007'::uuid, '张教练', 'coach-zhang', '深圳', '龙岗', 'CM', 175, '右脚',
+   'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=400&h=400&q=70'),
+  ('10000000-0000-0000-0000-000000000008'::uuid, '小赵', 'xiaozhao', '深圳', '龙岗', 'CM', 172, '右脚',
+   'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=400&h=400&q=70'),
+  ('10000000-0000-0000-0000-000000000009'::uuid, '阿泽', 'aze', '深圳', '龙岗', 'CB', 182, '右脚',
+   'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&h=400&q=70'),
+  ('10000000-0000-0000-0000-00000000000a'::uuid, '路人甲', null, '深圳', '龙岗', 'GK', 180, '右脚', null),
+  ('10000000-0000-0000-0000-00000000000b'::uuid, '路人乙', null, '深圳', '龙岗', 'CB', 183, '右脚', null),
+  ('10000000-0000-0000-0000-00000000000c'::uuid, '路人丙', null, '深圳', '龙岗', 'CM', 174, '左脚', null),
+  ('10000000-0000-0000-0000-00000000000d'::uuid, '路人丁', null, '深圳', '龙岗', 'CF', 177, '右脚', null)
+) as dp(id, name, handle, city, district, position, height, foot, avatar_url)
 where p.id = dp.id;
 
+
 -- ═══════════════════════════════════════════════════════════════
--- 1. Pickups — 4 场约球，坐标用 0-1 归一化后再映射到深圳经纬度窗口
+-- 2. Player attributes + honors（陈子睿 — 个人档案雷达图 + 荣誉）
 -- ═══════════════════════════════════════════════════════════════
 
-delete from pickup_slots where pickup_id in (
-  select id from pickups where venue in (
-    '龙岗体育中心 3号场',
-    '大运公园足球场',
-    '平湖体育公园',
-    '坂田足球场',
-    '华南城五人制',
-    '大鹏海滨球场'
-  )
-);
+insert into player_attributes (user_id, speed, shooting, passing, defense, stamina, technique)
+values ('10000000-0000-0000-0000-000000000001', 86, 84, 72, 58, 79, 81)
+on conflict (user_id) do update set
+  speed=86, shooting=84, passing=72, defense=58, stamina=79, technique=81;
 
-delete from pickups where venue in (
-  '龙岗体育中心 3号场',
-  '大运公园足球场',
-  '平湖体育公园',
-  '坂田足球场',
-  '华南城五人制',
-  '大鹏海滨球场'
-);
+insert into player_honors (user_id, year, title, meta) values
+  ('10000000-0000-0000-0000-000000000001', '2026', '龙岗村超 · 金靴', '14球'),
+  ('10000000-0000-0000-0000-000000000001', '2025', '深企联赛 · 最佳球员', '腾讯队'),
+  ('10000000-0000-0000-0000-000000000001', '2025', '南山夜场联赛 · 亚军', '淘汰赛');
 
--- start_at uses relative dates so "今晚 19:30", "明天 07:00" stay meaningful.
--- The client still displays `time_label` directly, so these timestamps are
--- just for sort order.
-insert into pickups (
-  venue, host_name, time_label, need, total, level, fee_cents,
-  duration_min, status, lat, lng, start_at, venue_photo_url
+
+-- ═══════════════════════════════════════════════════════════════
+-- 3. Pickups — 4 场约球
+-- ═══════════════════════════════════════════════════════════════
+
+insert into pickups (id, venue, host_id, host_name, time_label, need, total, level, fee_cents,
+  duration_min, status, formation, lat, lng, start_at, venue_photo_url
 ) values
-  ('龙岗体育中心 3号场', '老王',    '今晚 19:30',   3, 10, '中级', 5000, 120, 'open',   0.40, 0.35, now() + interval '8 hours',
+  ('40000000-0000-0000-0000-000000000001',
+   '龙岗体育中心 3号场', '10000000-0000-0000-0000-000000000002', '老王',
+   '今晚 19:30', 3, 10, '中级', 5000, 120, 'open', '4-3-3',
+   22.7206, 114.2469, now() + interval '4 hours',
    'https://images.unsplash.com/photo-1529900748604-07564a03e7a6?auto=format&fit=crop&w=1200&h=600&q=70'),
-  ('大运公园足球场',    'Kevin',   '明天 07:00',   1, 12, '高级', 4000,  90, 'almost', 0.60, 0.50, now() + interval '1 day',
+  ('40000000-0000-0000-0000-000000000002',
+   '大运公园足球场', '10000000-0000-0000-0000-000000000006', 'Kevin',
+   '明天 07:00', 1, 12, '高级', 4000, 90, 'almost', '4-4-2',
+   22.7272, 114.2099, now() + interval '1 day',
    'https://images.unsplash.com/photo-1459865264687-595d652de67e?auto=format&fit=crop&w=1200&h=600&q=70'),
-  ('平湖体育公园',      '张教练',  '周六 15:00',   5, 10, '初级', 3000, 120, 'open',   0.30, 0.65, now() + interval '3 days',
+  ('40000000-0000-0000-0000-000000000003',
+   '平湖体育公园', '10000000-0000-0000-0000-000000000007', '张教练',
+   '周六 15:00', 5, 10, '初级', 3000, 120, 'open', '4-3-3',
+   22.6898, 114.1245, now() + interval '3 days',
    'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=1200&h=600&q=70'),
-  ('坂田足球场',        '阿泽',    '周日 20:00',   0, 10, '中级', 4500, 120, 'full',   0.70, 0.30, now() + interval '4 days',
+  ('40000000-0000-0000-0000-000000000004',
+   '坂田足球场', '10000000-0000-0000-0000-000000000009', '阿泽',
+   '周日 20:00', 0, 10, '中级', 4500, 120, 'full', '4-3-3',
+   22.6350, 114.0652, now() + interval '4 days',
    'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=1200&h=600&q=70');
 
--- 把归一化 (0-1) 坐标映射到真实深圳经纬度（lat ≈ 22.5, lng ≈ 114.0）。
--- 条件 lat <= 1 and lng <= 1 保证只动种子数据，不会误伤真实 pickup。
-update public.pickups
-   set lat = 22.5 + (lat * 0.2),
-       lng = 113.9 + (lng * 0.3)
- where lat is not null
-   and lng is not null
-   and lat <= 1
-   and lng <= 1;
 
 -- ═══════════════════════════════════════════════════════════════
--- 2. Lineup — 首场 pickup 的 4-3-3 阵型（8 填 / 3 空）
---    空位不存行，客户端按 canonical layout 渲染虚线占位
+-- 4. Pickup slots — 4-3-3 阵型 with user_id（for my_teammates 视图）
 -- ═══════════════════════════════════════════════════════════════
 
-with target as (
-  select id from pickups where venue = '龙岗体育中心 3号场' limit 1
-)
-delete from pickup_slots
-  where pickup_id = (select id from target)
-    and user_id is null
-    and display_name is not null;
+-- p1: 龙岗体育中心（8填 / 3空）
+insert into pickup_slots (pickup_id, user_id, display_name, position, x, y) values
+  ('40000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000002', '老王',   'GK', 50, 92),
+  ('40000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000006', 'Kevin',  'LB', 18, 72),
+  ('40000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000009', '阿泽',   'CB', 38, 72),
+  ('40000000-0000-0000-0000-000000000001', null,                                   null,     'CB', 62, 72),
+  ('40000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000005', '江北',   'RB', 82, 72),
+  ('40000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000004', '林帅',   'CM', 30, 48),
+  ('40000000-0000-0000-0000-000000000001', null,                                   null,     'CM', 50, 48),
+  ('40000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000008', '小赵',   'CM', 70, 48),
+  ('40000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000003', '徐铮',   'LW', 20, 22),
+  ('40000000-0000-0000-0000-000000000001', null,                                   null,     'ST', 50, 14),
+  ('40000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001', '陈子睿', 'RW', 80, 22);
 
-insert into pickup_slots (pickup_id, user_id, display_name, position, x, y)
-select t.id, null, n.display_name, n.position, n.x, n.y
-from (select id from pickups where venue = '龙岗体育中心 3号场' limit 1) t
-cross join (values
-  ('老王',   'GK', 50, 92),
-  ('Kevin',  'LB', 18, 72),
-  ('阿泽',   'CB', 38, 72),
-  ('江北',   'RB', 82, 72),
-  ('林帅',   'CM', 30, 48),
-  ('小赵',   'CM', 70, 48),
-  ('徐铮',   'LW', 20, 22),
-  ('陈子睿', 'RW', 80, 22)
-) as n(display_name, position, x, y);
+-- p2: 大运公园（部分球员共享 → 增加 teammates 匹配数）
+insert into pickup_slots (pickup_id, user_id, display_name, position, x, y) values
+  ('40000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000001', '陈子睿', 'CF', 50, 14),
+  ('40000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000006', 'Kevin',  'LB', 18, 72),
+  ('40000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000004', '林帅',   'CM', 50, 48),
+  ('40000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000002', '老王',   'GK', 50, 92);
+
+-- p3: 平湖体育公园
+insert into pickup_slots (pickup_id, user_id, display_name, position, x, y) values
+  ('40000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000001', '陈子睿', 'CF', 50, 14),
+  ('40000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000009', '阿泽',   'CB', 38, 72),
+  ('40000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000007', '张教练', 'CM', 50, 48),
+  ('40000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000005', '江北',   'RW', 80, 22),
+  ('40000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000002', '老王',   'GK', 50, 92);
+
+-- p4: 坂田足球场（已满）
+insert into pickup_slots (pickup_id, user_id, display_name, position, x, y) values
+  ('40000000-0000-0000-0000-000000000004', '10000000-0000-0000-0000-000000000001', '陈子睿', 'CF', 50, 14),
+  ('40000000-0000-0000-0000-000000000004', '10000000-0000-0000-0000-000000000009', '阿泽',   'CB', 38, 72),
+  ('40000000-0000-0000-0000-000000000004', '10000000-0000-0000-0000-000000000003', '徐铮',   'LW', 20, 22),
+  ('40000000-0000-0000-0000-000000000004', '10000000-0000-0000-0000-000000000008', '小赵',   'CM', 70, 48);
+
 
 -- ═══════════════════════════════════════════════════════════════
--- 3. Event + 16 队 + 完整 knockout16 Bracket（15 场）
---    删 event 级联删 teams / matches / goals / ratings
---    (teams.event_id, matches.event_id, goals.match_id, ratings.match_id
---     都是 ON DELETE CASCADE)
+-- 5. Events — 4 场赛事
 -- ═══════════════════════════════════════════════════════════════
 
-delete from events where id = '11111111-1111-1111-1111-111111111111';
+insert into events (id, creator_id, name, sub, city, status, template, team_size, teams_max,
+  prize_cents, deadline, starts_at, cover_url
+) values
+  ('11111111-1111-1111-1111-111111111111',
+   '10000000-0000-0000-0000-000000000001',
+   '2026 龙岗村超', '第三届社区联赛', '深圳 · 龙岗区', 'ongoing', 'knockout16', 11, 16,
+   5000000, now() - interval '10 days', now() - interval '6 days',
+   'https://images.unsplash.com/photo-1654462977797-a349656aadcf?auto=format&fit=crop&w=1200&h=600&q=70'),
+  ('11111111-1111-1111-1111-222222222222',
+   null,
+   '深企杯 · 春季', '企业员工八人制', '深圳 · 南山区', 'ongoing', 'group8', 8, 24,
+   3000000, now() - interval '20 days', now() - interval '14 days',
+   'https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&w=1200&h=600&q=70'),
+  ('11111111-1111-1111-1111-333333333333',
+   null,
+   '大运夜联赛', '7v7 业余联赛', '深圳 · 龙岗', 'registering', 'league', 7, 12,
+   2000000, now() + interval '11 days', now() + interval '14 days',
+   'https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?auto=format&fit=crop&w=1200&h=600&q=70'),
+  ('11111111-1111-1111-1111-444444444444',
+   null,
+   '华南区校友杯', '高校校友足球赛', '广州 · 天河', 'ongoing', 'knockout16', 11, 16,
+   1500000, now() - interval '30 days', now() - interval '21 days',
+   'https://images.unsplash.com/photo-1560272564-c83b66b1ad12?auto=format&fit=crop&w=1200&h=600&q=70');
 
-insert into events (id, name, sub, city, status, template, teams_max, prize_cents, starts_at, cover_url)
-values (
-  '11111111-1111-1111-1111-111111111111',
-  '2026 龙岗村超',
-  '第三届社区联赛',
-  '深圳 · 龙岗区',
-  'ongoing',
-  'knockout16',
-  16,
-  5000000,
-  now() - interval '6 days',
-  'https://images.unsplash.com/photo-1654462977797-a349656aadcf?auto=format&fit=crop&w=1200&h=600&q=70'
-);
 
--- 16 支参赛队（approved 全为 true，captain_id 暂不绑定）。
--- logo_url 留空：demo 的球队是虚构的（"龙岗狼队" 等社区队伍），没有真正的
--- 联赛队徽，客户端改用 TeamBadge widget 生成方形 chip（名字哈希 → 颜色
--- + 首字母），风格参考世界杯 flag chip。真队伍上传后再回填 logo_url。
+-- ═══════════════════════════════════════════════════════════════
+-- 6. Teams
+-- ═══════════════════════════════════════════════════════════════
+
+-- e1: 龙岗村超 16 队
+insert into teams (event_id, name, captain_id, approved) values
+  ('11111111-1111-1111-1111-111111111111', '龙岗狼队', '10000000-0000-0000-0000-000000000001', true),
+  ('11111111-1111-1111-1111-111111111111', 'FC 黑马',  '10000000-0000-0000-0000-000000000003', true),
+  ('11111111-1111-1111-1111-111111111111', '平湖闪电',  null, true),
+  ('11111111-1111-1111-1111-111111111111', '坂田联',    null, true),
+  ('11111111-1111-1111-1111-111111111111', '大鹏渔民',  null, true),
+  ('11111111-1111-1111-1111-111111111111', '华南城 FC', null, true),
+  ('11111111-1111-1111-1111-111111111111', '布吉联队',  null, true),
+  ('11111111-1111-1111-1111-111111111111', '大运雄鹰',  null, true),
+  ('11111111-1111-1111-1111-111111111111', '横岗野牛',  null, true),
+  ('11111111-1111-1111-1111-111111111111', '园山猛虎',  null, true),
+  ('11111111-1111-1111-1111-111111111111', '宝龙雷霆',  null, true),
+  ('11111111-1111-1111-1111-111111111111', '同乐雄狮',  null, true),
+  ('11111111-1111-1111-1111-111111111111', '爱联骑士',  null, true),
+  ('11111111-1111-1111-1111-111111111111', '盐田航海',  null, true),
+  ('11111111-1111-1111-1111-111111111111', '南联铁骑',  null, true),
+  ('11111111-1111-1111-1111-111111111111', '低碳城飞翼', null, true);
+
+-- e2: 深企杯 24 队
 insert into teams (event_id, name, approved) values
-  ('11111111-1111-1111-1111-111111111111', '龙岗狼队',     true),
-  ('11111111-1111-1111-1111-111111111111', 'FC 黑马',      true),
-  ('11111111-1111-1111-1111-111111111111', '布吉联队',     true),
-  ('11111111-1111-1111-1111-111111111111', '大运雄鹰',     true),
-  ('11111111-1111-1111-1111-111111111111', '坂田红军',     true),
-  ('11111111-1111-1111-1111-111111111111', '华南城FC',     true),
-  ('11111111-1111-1111-1111-111111111111', '平湖流星',     true),
-  ('11111111-1111-1111-1111-111111111111', '大鹏海军',     true),
-  ('11111111-1111-1111-1111-111111111111', '横岗野牛',     true),
-  ('11111111-1111-1111-1111-111111111111', '园山猛虎',     true),
-  ('11111111-1111-1111-1111-111111111111', '宝龙雷霆',     true),
-  ('11111111-1111-1111-1111-111111111111', '同乐雄狮',     true),
-  ('11111111-1111-1111-1111-111111111111', '爱联骑士',     true),
-  ('11111111-1111-1111-1111-111111111111', '盐田航海',     true),
-  ('11111111-1111-1111-1111-111111111111', '南联铁骑',     true),
-  ('11111111-1111-1111-1111-111111111111', '低碳城飞翼',   true);
+  ('11111111-1111-1111-1111-222222222222', '南山电竞', true),
+  ('11111111-1111-1111-1111-222222222222', '华为鹏城', true);
+insert into teams (event_id, name, approved)
+select '11111111-1111-1111-1111-222222222222', '深企队' || n, true
+from generate_series(1, 22) n;
 
--- 首场 QF 用稳定 UUID（客户端 demoMatchId 引用）。其余 matches 默认 gen_random_uuid。
+-- e3: 大运夜联赛 8 队
+insert into teams (event_id, name, approved)
+select '11111111-1111-1111-1111-333333333333', '大运队' || n, true
+from generate_series(1, 8) n;
+
+-- e4: 华南区校友杯 12 队
+insert into teams (event_id, name, approved)
+select '11111111-1111-1111-1111-444444444444', '校友队' || n, true
+from generate_series(1, 12) n;
+
+
+-- ═══════════════════════════════════════════════════════════════
+-- 7. Matches — 内部赛事比赛（含 live 状态）
+-- ═══════════════════════════════════════════════════════════════
+
+-- e1 龙岗村超: QF（demoMatchId）+ bracket + 1 live
 insert into matches (id, event_id, round, team_a_label, team_b_label,
-                     score_a, score_b, pk_score, played_at, done) values
+  score_a, score_b, pk_score, played_at, done, is_live, minute, viewers
+) values
+  -- QF1（demoMatchId）
   ('22222222-2222-2222-2222-222222222222',
-   '11111111-1111-1111-1111-111111111111', 'qf',    '龙岗狼队', 'FC 黑马',   3, 1, null,  now() - interval '3 days', true);
+   '11111111-1111-1111-1111-111111111111', 'qf', '龙岗狼队', 'FC 黑马',
+   3, 1, null, now() - interval '4 days', true, false, null, 0),
+  -- 一场正在直播的小组赛
+  ('22222222-2222-2222-2222-111111111111',
+   '11111111-1111-1111-1111-111111111111', 'group', '龙岗狼队', 'FC 黑马',
+   0, 0, null, now(), false, true, '12''', 842);
 
 insert into matches (event_id, round, team_a_label, team_b_label,
-                     score_a, score_b, pk_score, played_at, done) values
-  -- R16 — 全部已完赛
-  ('11111111-1111-1111-1111-111111111111', 'r16',   '龙岗狼队', '低碳城飞翼', 4, 0, null,  now() - interval '6 days', true),
-  ('11111111-1111-1111-1111-111111111111', 'r16',   'FC 黑马',  '南联铁骑',   2, 1, null,  now() - interval '6 days', true),
-  ('11111111-1111-1111-1111-111111111111', 'r16',   '布吉联队', '盐田航海',   3, 1, null,  now() - interval '6 days', true),
-  ('11111111-1111-1111-1111-111111111111', 'r16',   '大运雄鹰', '爱联骑士',   2, 2, '5-3', now() - interval '5 days', true),
-  ('11111111-1111-1111-1111-111111111111', 'r16',   '坂田红军', '同乐雄狮',   1, 0, null,  now() - interval '5 days', true),
-  ('11111111-1111-1111-1111-111111111111', 'r16',   '华南城FC', '宝龙雷霆',   3, 2, null,  now() - interval '5 days', true),
-  ('11111111-1111-1111-1111-111111111111', 'r16',   '平湖流星', '园山猛虎',   5, 1, null,  now() - interval '5 days', true),
-  ('11111111-1111-1111-1111-111111111111', 'r16',   '大鹏海军', '横岗野牛',   2, 1, null,  now() - interval '4 days', true),
-  -- 余下 3 QF — 全部已完赛
-  ('11111111-1111-1111-1111-111111111111', 'qf',    '布吉联队', '大运雄鹰',   2, 1, null,  now() - interval '3 days', true),
-  ('11111111-1111-1111-1111-111111111111', 'qf',    '坂田红军', '华南城FC',   0, 0, '5-4', now() - interval '2 days', true),
-  ('11111111-1111-1111-1111-111111111111', 'qf',    '平湖流星', '大鹏海军',   4, 2, null,  now() - interval '2 days', true),
-  -- SF — SF1 已完赛（龙岗狼队晋级决赛），SF2 待打
-  ('11111111-1111-1111-1111-111111111111', 'sf',    '龙岗狼队', '布吉联队',   2, 0, null,  now() - interval '1 day',  true),
-  ('11111111-1111-1111-1111-111111111111', 'sf',    '坂田红军', '平湖流星',   null, null, null, now() + interval '2 days', false),
-  -- Final — 龙岗狼队 已锁定一席，另一席 TBD
-  ('11111111-1111-1111-1111-111111111111', 'final', '龙岗狼队', 'TBD',        null, null, null, now() + interval '5 days', false);
-
--- 把 matches 的 team_a_id / team_b_id 按 label 回填到 teams FK
--- label='TBD' 的行无匹配 team，team_b_id 保持 null
-update matches m
-   set team_a_id = ta.id,
-       team_b_id = tb.id
-  from teams ta, teams tb
- where m.event_id = '11111111-1111-1111-1111-111111111111'
-   and ta.event_id = m.event_id and ta.name = m.team_a_label
-   and tb.event_id = m.event_id and tb.name = m.team_b_label;
-
--- ═══════════════════════════════════════════════════════════════
--- 4. Goals — 已完赛场次的进球明细
---    scorer_id 留 null，仅 scorer_name 用于 event_scorers 视图聚合
---    (视图内 coalesce(profiles.name, scorer_name) 会落到 scorer_name)
--- ═══════════════════════════════════════════════════════════════
-
--- QF1（demoMatchId）: 龙岗狼队 3-1 FC 黑马
-insert into goals (match_id, scorer_name, minute, is_penalty, is_own_goal) values
-  ('22222222-2222-2222-2222-222222222222', '陈子睿', 15, false, false),
-  ('22222222-2222-2222-2222-222222222222', '老王',   34, true,  false),
-  ('22222222-2222-2222-2222-222222222222', '徐铮',   78, false, false),
-  ('22222222-2222-2222-2222-222222222222', 'Kevin',  58, false, false);
-
--- 其余 matches 按 (round, team_a_label) 定位 match_id 后插入进球
--- 每行元组：(round, team_a_label, scorer_name, minute, is_penalty, is_own_goal)
--- 其中 scorer 属于哪支队不需要在 goals 表里记，客户端只按 scorer_name 聚合射手榜
-insert into goals (match_id, scorer_name, minute, is_penalty, is_own_goal)
-select m.id, g.scorer_name, g.minute, g.is_penalty, g.is_own_goal
-from matches m
-cross join (values
+  score_a, score_b, pk_score, played_at, done
+) values
   -- R16
-  ('r16', '龙岗狼队', '陈子睿',  8, false, false),
-  ('r16', '龙岗狼队', '徐铮',   29, false, false),
-  ('r16', '龙岗狼队', '林帅',   51, false, false),
-  ('r16', '龙岗狼队', '陈子睿', 72, false, false),
-  ('r16', 'FC 黑马',  'Kevin',  19, false, false),
-  ('r16', 'FC 黑马',  '黑马小将', 44, false, false),
-  ('r16', 'FC 黑马',  '铁骑 7 号', 66, false, false),
-  ('r16', '布吉联队', '阿泽',   12, false, false),
-  ('r16', '布吉联队', '阿泽',   47, false, false),
-  ('r16', '布吉联队', '小赵',   85, false, false),
-  ('r16', '布吉联队', '航海 9 号', 58, false, false),
-  ('r16', '大运雄鹰', '张教练',  33, false, false),
-  ('r16', '大运雄鹰', '雄鹰 10 号', 78, false, false),
-  ('r16', '大运雄鹰', '骑士 3 号', 21, false, false),
-  ('r16', '大运雄鹰', '骑士 11 号', 90, false, false),
-  ('r16', '坂田红军', '江北',   68, false, false),
-  ('r16', '华南城FC', '陈子睿', 25, false, false),
-  ('r16', '华南城FC', '华南 8 号', 50, true,  false),
-  ('r16', '华南城FC', '林帅',   81, false, false),
-  ('r16', '华南城FC', '雷霆 6 号', 13, false, false),
-  ('r16', '华南城FC', '雷霆 9 号', 73, false, false),
-  ('r16', '平湖流星', '林帅',    6, false, false),
-  ('r16', '平湖流星', '徐铮',   22, false, false),
-  ('r16', '平湖流星', '小赵',   41, false, false),
-  ('r16', '平湖流星', '陈子睿', 63, false, false),
-  ('r16', '平湖流星', '林帅',   88, false, false),
-  ('r16', '平湖流星', '猛虎 5 号', 54, false, false),
-  ('r16', '大鹏海军', '老王',   36, false, false),
-  ('r16', '大鹏海军', '江北',   77, false, false),
-  ('r16', '大鹏海军', '野牛 4 号', 62, false, false),
-  -- QF (QF1 already inserted above, skip it)
-  ('qf',  '布吉联队', '阿泽',   22, false, false),
-  ('qf',  '布吉联队', '小赵',   67, false, false),
-  ('qf',  '布吉联队', '张教练', 45, false, false),
-  ('qf',  '平湖流星', '林帅',   10, false, false),
-  ('qf',  '平湖流星', '陈子睿', 38, false, false),
-  ('qf',  '平湖流星', '徐铮',   72, false, false),
-  ('qf',  '平湖流星', '江北',   88, false, false),
-  ('qf',  '平湖流星', '阿泽',   25, false, false),
-  ('qf',  '平湖流星', '老王',   55, false, false),
-  -- SF1: 龙岗狼队 2-0 布吉联队
-  ('sf',  '龙岗狼队', '陈子睿', 33, false, false),
-  ('sf',  '龙岗狼队', '徐铮',   76, false, false)
-) as g(round, team_a_label, scorer_name, minute, is_penalty, is_own_goal)
+  ('11111111-1111-1111-1111-111111111111', 'r16', '龙岗狼队', '低碳城飞翼', 4, 0, null, now()-interval '10 days', true),
+  ('11111111-1111-1111-1111-111111111111', 'r16', 'FC 黑马',  '南联铁骑',   2, 1, null, now()-interval '10 days', true),
+  ('11111111-1111-1111-1111-111111111111', 'r16', '布吉联队', '盐田航海',   3, 1, null, now()-interval '10 days', true),
+  ('11111111-1111-1111-1111-111111111111', 'r16', '大运雄鹰', '爱联骑士',   2, 2, '5-3', now()-interval '9 days', true),
+  ('11111111-1111-1111-1111-111111111111', 'r16', '坂田联',   '同乐雄狮',   1, 0, null, now()-interval '9 days', true),
+  ('11111111-1111-1111-1111-111111111111', 'r16', '华南城 FC', '宝龙雷霆',  3, 2, null, now()-interval '9 days', true),
+  ('11111111-1111-1111-1111-111111111111', 'r16', '平湖闪电', '园山猛虎',   5, 1, null, now()-interval '9 days', true),
+  ('11111111-1111-1111-1111-111111111111', 'r16', '大鹏渔民', '横岗野牛',   2, 1, null, now()-interval '8 days', true),
+  -- 余下 QF
+  ('11111111-1111-1111-1111-111111111111', 'qf', '布吉联队', '大运雄鹰', 2, 1, null, now()-interval '4 days', true),
+  ('11111111-1111-1111-1111-111111111111', 'qf', '坂田联',   '华南城 FC', 0, 0, '5-4', now()-interval '3 days', true),
+  ('11111111-1111-1111-1111-111111111111', 'qf', '平湖闪电', '大鹏渔民', 4, 2, null, now()-interval '3 days', true),
+  -- SF
+  ('11111111-1111-1111-1111-111111111111', 'sf', '龙岗狼队', '布吉联队', 2, 0, null, now()-interval '1 day', true),
+  ('11111111-1111-1111-1111-111111111111', 'sf', '坂田联',   '平湖闪电', null, null, null, now()+interval '2 days', false),
+  -- Final
+  ('11111111-1111-1111-1111-111111111111', 'final', '龙岗狼队', 'TBD', null, null, null, now()+interval '5 days', false);
+
+-- e2 深企杯: 2 场已完赛（Feed + 比赛历史）
+insert into matches (event_id, round, team_a_label, team_b_label,
+  score_a, score_b, played_at, done
+) values
+  ('11111111-1111-1111-1111-222222222222', 'group', '南山电竞', '华为鹏城', 1, 1, now()-interval '5 days', true),
+  ('11111111-1111-1111-1111-222222222222', 'group', '华为鹏城', '深企队1',  2, 0, now()-interval '12 days', true);
+
+-- 回填 team_a_id / team_b_id
+update matches m
+  set team_a_id = ta.id
+from teams ta
+where ta.event_id = m.event_id and ta.name = m.team_a_label and m.team_a_id is null;
+
+update matches m
+  set team_b_id = tb.id
+from teams tb
+where tb.event_id = m.event_id and tb.name = m.team_b_label and m.team_b_id is null;
+
+
+-- ═══════════════════════════════════════════════════════════════
+-- 8. External matches — 世界杯专区
+-- ═══════════════════════════════════════════════════════════════
+
+insert into external_matches (id, team_a, team_b, flag_a, flag_b, competition,
+  kick_off, is_live, score_a, score_b, minute, viewers, status
+) values
+  ('33333333-3333-3333-3333-000000000001',
+   '阿根廷', '巴西', 'AR', 'BR', '2026 世界杯 · 半决赛',
+   now() - interval '67 minutes', true, 2, 1, '67''', 128000, 'live'),
+  ('33333333-3333-3333-3333-000000000002',
+   '法国', '英格兰', 'FR', 'EN', '2026 世界杯 · 半决赛',
+   now()::date + interval '21 hours', false, null, null, null, 0, '今晚'),
+  ('33333333-3333-3333-3333-000000000003',
+   '德国', '西班牙', 'DE', 'ES', '2026 世界杯 · 1/4决赛',
+   now()::date + interval '1 day 30 minutes', false, null, null, null, 0, '明日'),
+  ('33333333-3333-3333-3333-000000000004',
+   '荷兰', '葡萄牙', 'NL', 'PT', '2026 世界杯 · 1/4决赛',
+   now()::date + interval '1 day 3 hours', false, null, null, null, 0, '明日');
+
+
+-- ═══════════════════════════════════════════════════════════════
+-- 9. Goals
+-- ═══════════════════════════════════════════════════════════════
+
+-- QF1 龙岗狼队 3-1 FC 黑马
+insert into goals (match_id, scorer_id, scorer_name, assist_id, minute, is_penalty, is_own_goal) values
+  ('22222222-2222-2222-2222-222222222222',
+   '10000000-0000-0000-0000-000000000001', '陈子睿',
+   '10000000-0000-0000-0000-000000000004', 15, false, false),
+  ('22222222-2222-2222-2222-222222222222',
+   '10000000-0000-0000-0000-000000000001', '陈子睿',
+   '10000000-0000-0000-0000-000000000005', 58, false, false),
+  ('22222222-2222-2222-2222-222222222222',
+   '10000000-0000-0000-0000-000000000004', '林帅',
+   '10000000-0000-0000-0000-000000000001', 72, false, false),
+  ('22222222-2222-2222-2222-222222222222',
+   '10000000-0000-0000-0000-000000000003', '徐铮',
+   null, 44, false, false);
+
+-- SF1 龙岗狼队 2-0 布吉联队
+insert into goals (match_id, scorer_id, scorer_name, minute, is_penalty, is_own_goal)
+select m.id,
+  '10000000-0000-0000-0000-000000000001', '陈子睿', 33, false, false
+from matches m
 where m.event_id = '11111111-1111-1111-1111-111111111111'
-  and m.round = g.round
-  and m.team_a_label = g.team_a_label;
+  and m.round = 'sf' and m.team_a_label = '龙岗狼队' and m.done = true
+limit 1;
 
--- 按 scorer_name 回填 scorer_id 到 demo profiles（仅 Section 0 的 9 位出镜主力，
--- 匿名 NPC 如 "雷霆 6 号" 保持 scorer_id = null）。
-update public.goals g
-set scorer_id = p.id
-from public.profiles p
-where g.scorer_id is null
-  and p.name = g.scorer_name
-  and p.id::text like '10000000-%';
+insert into goals (match_id, scorer_id, scorer_name, minute, is_penalty, is_own_goal)
+select m.id,
+  '10000000-0000-0000-0000-000000000003', '徐铮', 76, false, false
+from matches m
+where m.event_id = '11111111-1111-1111-1111-111111111111'
+  and m.round = 'sf' and m.team_a_label = '龙岗狼队' and m.done = true
+limit 1;
+
+-- e2: 南山电竞 1-1 华为鹏城
+insert into goals (match_id, scorer_name, minute, is_penalty, is_own_goal)
+select m.id, g.scorer_name, g.minute, false, false
+from matches m
+cross join (values ('江北', 28), ('徐铮', 63)) as g(scorer_name, minute)
+where m.event_id = '11111111-1111-1111-1111-222222222222'
+  and m.team_a_label = '南山电竞' and m.done = true;
+
 
 -- ═══════════════════════════════════════════════════════════════
--- 5. Ratings — 虎扑式评分（仅 QF1 + SF1 两场示范）
---    rater_id / ratee_id 都 null，用 ratee_name 做 display-only
---    unique(match_id, rater_id, ratee_id) 里 NULL 互不相等不会去重，
---    partial index ratings_demo_unique 才是去重保障（ratee_id IS NULL 时生效）
+-- 10. Match participants — QF1 两队名单（评分页使用）
 -- ═══════════════════════════════════════════════════════════════
 
--- QF1（demoMatchId）— 8 条评分覆盖两队主力
-insert into ratings (match_id, rater_id, ratee_id, ratee_name, score, comment, highlight) values
-  ('22222222-2222-2222-2222-222222222222', null, null, '陈子睿', 8.5, '梅开二度，终场发挥稳定',           '2球1助'),
-  ('22222222-2222-2222-2222-222222222222', null, null, '老王',   7.8, '点球一脚致胜',                     '点球破门'),
-  ('22222222-2222-2222-2222-222222222222', null, null, '徐铮',   8.2, '终场锁定胜局',                     '关键进球'),
-  ('22222222-2222-2222-2222-222222222222', null, null, '林帅',   7.5, '中场组织有序',                     '3次关键传球'),
-  ('22222222-2222-2222-2222-222222222222', null, null, '江北',   7.0, '防守稳定，几次关键解围',           null),
-  ('22222222-2222-2222-2222-222222222222', null, null, 'Kevin',  7.2, '独中一元，对方后防重点盯防',       '1球'),
-  ('22222222-2222-2222-2222-222222222222', null, null, '张教练', 6.8, '组织失误较多，但保持了团队斗志',   null),
-  ('22222222-2222-2222-2222-222222222222', null, null, '小赵',   6.5, '上半场手感不佳，下半场有所回勇',   null);
+insert into match_participants (match_id, user_id, display_name, position, side) values
+  -- 龙岗狼队 (side a)
+  ('22222222-2222-2222-2222-222222222222', '10000000-0000-0000-0000-000000000001', '陈子睿', 'CF', 'a'),
+  ('22222222-2222-2222-2222-222222222222', '10000000-0000-0000-0000-000000000002', '老王',   'GK', 'a'),
+  ('22222222-2222-2222-2222-222222222222', '10000000-0000-0000-0000-000000000006', 'Kevin',  'LB', 'a'),
+  ('22222222-2222-2222-2222-222222222222', '10000000-0000-0000-0000-000000000009', '阿泽',   'CB', 'a'),
+  ('22222222-2222-2222-2222-222222222222', '10000000-0000-0000-0000-000000000004', '林帅',   'CM', 'a'),
+  ('22222222-2222-2222-2222-222222222222', '10000000-0000-0000-0000-000000000005', '江北',   'RW', 'a'),
+  -- FC 黑马 (side b)
+  ('22222222-2222-2222-2222-222222222222', '10000000-0000-0000-0000-000000000003', '徐铮',   'CF', 'b'),
+  ('22222222-2222-2222-2222-222222222222', '10000000-0000-0000-0000-00000000000a', '路人甲', 'GK', 'b'),
+  ('22222222-2222-2222-2222-222222222222', '10000000-0000-0000-0000-00000000000b', '路人乙', 'CB', 'b');
 
--- SF1: 龙岗狼队 2-0 布吉联队 — 4 条评分
-insert into ratings (match_id, rater_id, ratee_id, ratee_name, score, comment, highlight)
-select m.id, null, null, r.ratee_name, r.score, r.comment, r.highlight
+
+-- ═══════════════════════════════════════════════════════════════
+-- 11. Ratings — 虎扑式评分（QF1 + SF1）
+--     使用真实 rater_id / ratee_id 以支持 my_match_history RPC
+-- ═══════════════════════════════════════════════════════════════
+
+-- QF1 — 9 名球员各获 3-5 条评分
+insert into ratings (match_id, rater_id, ratee_id, score, comment, highlight) values
+  -- 陈子睿 (avg ~8.7)
+  ('22222222-2222-2222-2222-222222222222', '10000000-0000-0000-0000-000000000006', '10000000-0000-0000-0000-000000000001', 9.0, '那脚世界波抽射真的绝了，门将毫无反应', '2球1助'),
+  ('22222222-2222-2222-2222-222222222222', '10000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000001', 9.0, '配合意识满分，经常跑出空档等我传长球', null),
+  ('22222222-2222-2222-2222-222222222222', '10000000-0000-0000-0000-00000000000c', '10000000-0000-0000-0000-000000000001', 8.5, '上半场有点独，好在下半场改了过来', null),
+  ('22222222-2222-2222-2222-222222222222', '10000000-0000-0000-0000-000000000004', '10000000-0000-0000-0000-000000000001', 8.0, null, null),
+  ('22222222-2222-2222-2222-222222222222', '10000000-0000-0000-0000-000000000009', '10000000-0000-0000-0000-000000000001', 9.0, null, null),
+  -- 老王 (avg ~7.6)
+  ('22222222-2222-2222-2222-222222222222', '10000000-0000-0000-0000-000000000009', '10000000-0000-0000-0000-000000000002', 8.0, '关键时刻几次神扑，配得上这个均分', '3次关键扑救'),
+  ('22222222-2222-2222-2222-222222222222', '10000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000002', 7.5, null, null),
+  ('22222222-2222-2222-2222-222222222222', '10000000-0000-0000-0000-000000000006', '10000000-0000-0000-0000-000000000002', 7.0, null, null),
+  ('22222222-2222-2222-2222-222222222222', '10000000-0000-0000-0000-000000000004', '10000000-0000-0000-0000-000000000002', 8.0, null, null),
+  -- Kevin (avg ~7.3)
+  ('22222222-2222-2222-2222-222222222222', '10000000-0000-0000-0000-000000000004', '10000000-0000-0000-0000-000000000006', 7.5, '左路防守稳，下半场那次助攻有想法', null),
+  ('22222222-2222-2222-2222-222222222222', '10000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000006', 7.0, null, null),
+  ('22222222-2222-2222-2222-222222222222', '10000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000006', 7.5, null, null),
+  -- 阿泽 (avg ~7.1)
+  ('22222222-2222-2222-2222-222222222222', '10000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000009', 7.0, '解围果断，就是几次回追节奏慢了点', null),
+  ('22222222-2222-2222-2222-222222222222', '10000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000009', 7.5, null, null),
+  ('22222222-2222-2222-2222-222222222222', '10000000-0000-0000-0000-000000000006', '10000000-0000-0000-0000-000000000009', 7.0, null, null),
+  -- 林帅 (avg ~8.1)
+  ('22222222-2222-2222-2222-222222222222', '10000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000004', 8.5, '中场节拍器名不虚传，跑动覆盖满分', '全场跑动 9.8km'),
+  ('22222222-2222-2222-2222-222222222222', '10000000-0000-0000-0000-000000000006', '10000000-0000-0000-0000-000000000004', 8.0, null, null),
+  ('22222222-2222-2222-2222-222222222222', '10000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000004', 8.0, null, null),
+  ('22222222-2222-2222-2222-222222222222', '10000000-0000-0000-0000-000000000009', '10000000-0000-0000-0000-000000000004', 8.0, null, null),
+  -- 江北 (avg ~6.8)
+  ('22222222-2222-2222-2222-222222222222', '10000000-0000-0000-0000-00000000000c', '10000000-0000-0000-0000-000000000005', 7.0, '右路突破太急，传中质量还得再练', null),
+  ('22222222-2222-2222-2222-222222222222', '10000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000005', 6.5, null, null),
+  ('22222222-2222-2222-2222-222222222222', '10000000-0000-0000-0000-000000000004', '10000000-0000-0000-0000-000000000005', 7.0, null, null),
+  -- 徐铮 (avg ~7.4)
+  ('22222222-2222-2222-2222-222222222222', '10000000-0000-0000-0000-00000000000d', '10000000-0000-0000-0000-000000000003', 7.5, '孤单的箭头，那个进球全靠自己单兵作战', '1球'),
+  ('22222222-2222-2222-2222-222222222222', '10000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000003', 7.5, null, null),
+  ('22222222-2222-2222-2222-222222222222', '10000000-0000-0000-0000-000000000004', '10000000-0000-0000-0000-000000000003', 7.0, null, null),
+  -- 路人甲 (avg ~5.2)
+  ('22222222-2222-2222-2222-222222222222', '10000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-00000000000a', 5.0, '四次被单刀，这场真的扛不住', '被过 4 次'),
+  ('22222222-2222-2222-2222-222222222222', '10000000-0000-0000-0000-000000000006', '10000000-0000-0000-0000-00000000000a', 5.5, null, null),
+  ('22222222-2222-2222-2222-222222222222', '10000000-0000-0000-0000-000000000004', '10000000-0000-0000-0000-00000000000a', 5.0, null, null),
+  -- 路人乙 (avg ~6.3)
+  ('22222222-2222-2222-2222-222222222222', '10000000-0000-0000-0000-000000000005', '10000000-0000-0000-0000-00000000000b', 6.5, '防守动作偏大，几次犯规也是没办法', null),
+  ('22222222-2222-2222-2222-222222222222', '10000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-00000000000b', 6.0, null, null),
+  ('22222222-2222-2222-2222-222222222222', '10000000-0000-0000-0000-000000000006', '10000000-0000-0000-0000-00000000000b', 6.5, null, null);
+
+-- SF1 — 陈子睿 + 徐铮评分（match history 需要）
+insert into ratings (match_id, rater_id, ratee_id, score, comment, highlight)
+select m.id, r.rater_id::uuid, r.ratee_id::uuid, r.score, r.comment, r.highlight
 from matches m
 cross join (values
-  ('陈子睿', 8.8::numeric, '半决赛 MVP，开场闪击',          '1球1助'),
-  ('徐铮',   8.3::numeric, '终场反击一剑封喉',                '1球'),
-  ('老王',   7.9::numeric, '门线扑救关键',                    '3次关键扑救'),
-  ('阿泽',   6.9::numeric, '独木难支，但防线几次解围到位',    null)
-) as r(ratee_name, score, comment, highlight)
+  ('10000000-0000-0000-0000-000000000006', '10000000-0000-0000-0000-000000000001', 8.8::numeric, '半决赛 MVP，开场闪击', '1球'),
+  ('10000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000001', 9.0::numeric, null, null),
+  ('10000000-0000-0000-0000-000000000004', '10000000-0000-0000-0000-000000000003', 8.0::numeric, null, '1球')
+) as r(rater_id, ratee_id, score, comment, highlight)
 where m.event_id = '11111111-1111-1111-1111-111111111111'
-  and m.round = 'sf' and m.team_a_label = '龙岗狼队';
+  and m.round = 'sf' and m.team_a_label = '龙岗狼队' and m.done = true;
 
--- 按 ratee_name 回填 ratee_id 到 demo profiles，完成后 event_player_ratings 视图
--- 就能按 ratee_id 聚合、客户端 join profiles 拿 avatar_url。
-update public.ratings r
-set ratee_id = p.id
-from public.profiles p
-where r.ratee_id is null
-  and p.name = r.ratee_name
-  and p.id::text like '10000000-%';
+-- R16 龙岗狼队 match — 陈子睿 rated（增加 match history 条目）
+insert into ratings (match_id, rater_id, ratee_id, score, highlight)
+select m.id,
+  '10000000-0000-0000-0000-000000000004',
+  '10000000-0000-0000-0000-000000000001',
+  8.5, '2球'
+from matches m
+where m.event_id = '11111111-1111-1111-1111-111111111111'
+  and m.round = 'r16' and m.team_a_label = '龙岗狼队' and m.done = true
+limit 1;
+
 
 -- ═══════════════════════════════════════════════════════════════
--- 6. Predictions — 世界杯竞猜
---    match_id 是 text（不 FK matches），客户端用 'wc-focus'/'w1'..'w5'
---    user_id NOT NULL + FK profiles：没 profile 时 SELECT 为空，INSERT no-op
---    每个现有 profile 都投同一套预测，prediction_distribution 视图
---    会显示 (profile_count) 票 * 6 条 match
+-- 12. Rating likes
 -- ═══════════════════════════════════════════════════════════════
 
-delete from predictions where match_id in ('wc-focus', 'w1', 'w2', 'w3', 'w4', 'w5');
-
-insert into predictions (user_id, match_id, choice, stake)
-select p.id, v.match_id, v.choice, v.stake
-from public.profiles p
+-- 给陈子睿的第一条评论（Kevin 写的）点赞
+insert into rating_likes (rating_id, user_id)
+select r.id, liker.id
+from ratings r
 cross join (values
-  ('wc-focus', 'A',    200),
-  ('w1',       'A',    100),
-  ('w2',       'draw', 50),
-  ('w3',       'B',    150),
-  ('w4',       'A',    80),
-  ('w5',       'draw', 60)
-) as v(match_id, choice, stake)
+  ('10000000-0000-0000-0000-000000000002'::uuid),
+  ('10000000-0000-0000-0000-000000000004'::uuid),
+  ('10000000-0000-0000-0000-000000000009'::uuid),
+  ('10000000-0000-0000-0000-000000000005'::uuid),
+  ('10000000-0000-0000-0000-000000000008'::uuid)
+) as liker(id)
+where r.match_id = '22222222-2222-2222-2222-222222222222'
+  and r.ratee_id = '10000000-0000-0000-0000-000000000001'
+  and r.comment is not null
+  and r.comment like '%世界波%'
+on conflict do nothing;
+
+
+-- ═══════════════════════════════════════════════════════════════
+-- 13. Posts — 社交动态（Feed 中的 FeedPost 类型）
+-- ═══════════════════════════════════════════════════════════════
+
+insert into posts (author_id, body, tags, likes, comments, shares, created_at) values
+  ('10000000-0000-0000-0000-000000000006',
+   '今天凌晨的野球，和一群陌生人踢出了最默契的配合。右边后卫那哥们传球精准得像 PS5 手柄按 L1 三角。',
+   array['野球日记', '龙岗'], 24, 5, 2,
+   now() - interval '3 hours'),
+  ('10000000-0000-0000-0000-000000000001',
+   '村超四强赛，3-1 干翻黑马！两个进球一个助攻，全场最佳实锤。今晚吃烧烤庆祝。',
+   array['龙岗村超', '比赛日记'], 56, 12, 8,
+   now() - interval '4 days 2 hours'),
+  ('10000000-0000-0000-0000-000000000004',
+   '有没有人明天早上来大运公园踢球？缺一个中场，水平中等偏上就行。',
+   array['约球', '大运公园'], 8, 3, 1,
+   now() - interval '1 day');
+
+
+-- ═══════════════════════════════════════════════════════════════
+-- 14. Conversations + messages — 聊天
+-- ═══════════════════════════════════════════════════════════════
+
+insert into conversations (id, kind, title, updated_at) values
+  ('44444444-4444-4444-4444-000000000001', 'group', '龙岗狼队群',      now() - interval '1 hour'),
+  ('44444444-4444-4444-4444-000000000002', 'dm',    null,              now() - interval '2 hours'),
+  ('44444444-4444-4444-4444-000000000003', 'group', '龙岗村超官方',    now() - interval '6 hours'),
+  ('44444444-4444-4444-4444-000000000004', 'dm',    null,              now() - interval '1 day');
+
+-- 龙岗狼队群成员
+insert into conversation_members (conv_id, user_id, unread) values
+  ('44444444-4444-4444-4444-000000000001', '10000000-0000-0000-0000-000000000001', 3),
+  ('44444444-4444-4444-4444-000000000001', '10000000-0000-0000-0000-000000000002', 0),
+  ('44444444-4444-4444-4444-000000000001', '10000000-0000-0000-0000-000000000006', 0),
+  ('44444444-4444-4444-4444-000000000001', '10000000-0000-0000-0000-000000000009', 0),
+  ('44444444-4444-4444-4444-000000000001', '10000000-0000-0000-0000-000000000004', 0),
+  ('44444444-4444-4444-4444-000000000001', '10000000-0000-0000-0000-000000000005', 0),
+  ('44444444-4444-4444-4444-000000000001', '10000000-0000-0000-0000-000000000008', 0);
+
+-- Kevin DM
+insert into conversation_members (conv_id, user_id, unread) values
+  ('44444444-4444-4444-4444-000000000002', '10000000-0000-0000-0000-000000000001', 1),
+  ('44444444-4444-4444-4444-000000000002', '10000000-0000-0000-0000-000000000006', 0);
+
+-- 龙岗村超官方
+insert into conversation_members (conv_id, user_id, unread) values
+  ('44444444-4444-4444-4444-000000000003', '10000000-0000-0000-0000-000000000001', 0);
+
+-- 林帅 DM
+insert into conversation_members (conv_id, user_id, unread) values
+  ('44444444-4444-4444-4444-000000000004', '10000000-0000-0000-0000-000000000001', 0),
+  ('44444444-4444-4444-4444-000000000004', '10000000-0000-0000-0000-000000000004', 0);
+
+-- Messages（禁用 trigger 避免重复更新 unread）
+alter table public.messages disable trigger message_created;
+
+insert into messages (conv_id, sender_id, body, kind, created_at) values
+  -- 龙岗狼队群
+  ('44444444-4444-4444-4444-000000000001', '10000000-0000-0000-0000-000000000002',
+   '周六记得提前半小时到场热身', 'text', now() - interval '1 hour'),
+  ('44444444-4444-4444-4444-000000000001', '10000000-0000-0000-0000-000000000004',
+   '收到，我带两箱水过来', 'text', now() - interval '58 minutes'),
+  ('44444444-4444-4444-4444-000000000001', '10000000-0000-0000-0000-000000000001',
+   '上次那个阵型调一下，江北改打右后卫', 'text', now() - interval '50 minutes'),
+  -- Kevin DM
+  ('44444444-4444-4444-4444-000000000002', '10000000-0000-0000-0000-000000000006',
+   '兄弟今晚的球还缺人吗？', 'text', now() - interval '2 hours'),
+  -- 龙岗村超官方
+  ('44444444-4444-4444-4444-000000000003', null,
+   '你报名的队伍已通过审核，请准时参加比赛。', 'system', now() - interval '6 hours'),
+  -- 林帅 DM
+  ('44444444-4444-4444-4444-000000000004', '10000000-0000-0000-0000-000000000004',
+   '那个传中球你回看了没哈哈', 'text', now() - interval '1 day'),
+  ('44444444-4444-4444-4444-000000000004', '10000000-0000-0000-0000-000000000001',
+   '看了看了 笑死 我以为你要射门结果一个大脚传中', 'text', now() - interval '23 hours');
+
+alter table public.messages enable trigger message_created;
+
+
+-- ═══════════════════════════════════════════════════════════════
+-- 15. Notifications — 站内通知（绑定到陈子睿）
+-- ═══════════════════════════════════════════════════════════════
+
+insert into notifications (user_id, type, title, body, icon, route, read, created_at) values
+  ('10000000-0000-0000-0000-000000000001', 'rating',
+   '你被评为全场最佳', '在龙岗村超 QF 中获得 8.7 均分，142 次评分',
+   'star', '/events', false, now() - interval '30 minutes'),
+  ('10000000-0000-0000-0000-000000000001', 'pickup',
+   '老王发起了新约球', '龙岗体育中心 3号场 · 今晚 19:30 · 缺3人',
+   'sports_soccer', '/pickups', false, now() - interval '2 hours'),
+  ('10000000-0000-0000-0000-000000000001', 'match',
+   '龙岗狼队 vs FC 黑马 即将开始', '龙岗村超小组赛第5轮 · 今天 19:30',
+   'timer', '/events', false, now() - interval '4 hours'),
+  ('10000000-0000-0000-0000-000000000001', 'system',
+   '欢迎加入球局', '你已成功注册球局账号，快去找场球踢吧！',
+   'celebration', null, true, now() - interval '7 days'),
+  ('10000000-0000-0000-0000-000000000001', 'follow',
+   'Kevin 开始关注你', '你现在有 1 位关注者',
+   'person_add', null, true, now() - interval '3 days');
+
+
+-- ═══════════════════════════════════════════════════════════════
+-- 16. Predictions — 世界杯竞猜
+-- ═══════════════════════════════════════════════════════════════
+
+insert into predictions (user_id, match_id, choice, stake) values
+  ('10000000-0000-0000-0000-000000000001', '33333333-3333-3333-3333-000000000001', 'A', 200),
+  ('10000000-0000-0000-0000-000000000002', '33333333-3333-3333-3333-000000000001', 'A', 100),
+  ('10000000-0000-0000-0000-000000000004', '33333333-3333-3333-3333-000000000001', 'B', 150),
+  ('10000000-0000-0000-0000-000000000006', '33333333-3333-3333-3333-000000000001', 'draw', 80),
+  ('10000000-0000-0000-0000-000000000009', '33333333-3333-3333-3333-000000000001', 'A', 120),
+  ('10000000-0000-0000-0000-000000000001', '33333333-3333-3333-3333-000000000002', 'B', 100),
+  ('10000000-0000-0000-0000-000000000001', '33333333-3333-3333-3333-000000000003', 'draw', 50)
 on conflict (user_id, match_id) do nothing;
 
+
 -- ═══════════════════════════════════════════════════════════════
--- Sanity checks
+-- 17. Sanity checks
 -- ═══════════════════════════════════════════════════════════════
 
-select 'demo_avatars' as what, count(*)::text as n from public.profiles
-  where id::text like '10000000-%' and avatar_url is not null
-union all
-select 'venue_photos', count(*)::text from pickups
-  where venue in (
-    '龙岗体育中心 3号场', '大运公园足球场', '平湖体育公园',
-    '坂田足球场',        '华南城五人制',   '大鹏海滨球场'
-  ) and venue_photo_url is not null
-union all
-select 'event_cover', count(*)::text from events
-  where id = '11111111-1111-1111-1111-111111111111' and cover_url is not null
-union all
-select 'ratings_linked', count(*)::text from ratings r
-  join matches m on m.id = r.match_id
-  where m.event_id = '11111111-1111-1111-1111-111111111111' and r.ratee_id is not null
-union all
-select 'goals_linked', count(*)::text from goals g
-  join matches m on m.id = g.match_id
-  where m.event_id = '11111111-1111-1111-1111-111111111111' and g.scorer_id is not null
-union all
-select 'pickups' as what, count(*)::text as n from pickups
-  where venue in (
-    '龙岗体育中心 3号场', '大运公园足球场', '平湖体育公园',
-    '坂田足球场',        '华南城五人制',   '大鹏海滨球场'
-  )
-union all
-select 'lineup',   count(*)::text from pickup_slots
-  where pickup_id = (select id from pickups where venue = '龙岗体育中心 3号场' limit 1)
-    and display_name is not null
-union all
-select 'teams',    count(*)::text from teams
-  where event_id = '11111111-1111-1111-1111-111111111111'
-union all
-select 'matches',  count(*)::text from matches
-  where event_id = '11111111-1111-1111-1111-111111111111'
-union all
-select 'matches_done', count(*)::text from matches
-  where event_id = '11111111-1111-1111-1111-111111111111' and done
-union all
-select 'goals',    count(*)::text from goals g
-  join matches m on m.id = g.match_id
-  where m.event_id = '11111111-1111-1111-1111-111111111111'
-union all
-select 'ratings',  count(*)::text from ratings r
-  join matches m on m.id = r.match_id
-  where m.event_id = '11111111-1111-1111-1111-111111111111'
-union all
-select 'predictions', count(*)::text from predictions
-  where match_id in ('wc-focus', 'w1', 'w2', 'w3', 'w4', 'w5');
+select 'profiles'         as entity, count(*)::text as n from profiles where id::text like '10000000-%'
+union all select 'player_attrs',  count(*)::text from player_attributes where user_id::text like '10000000-%'
+union all select 'player_honors', count(*)::text from player_honors where user_id::text like '10000000-%'
+union all select 'pickups',       count(*)::text from pickups where id::text like '40000000-%'
+union all select 'pickup_slots',  count(*)::text from pickup_slots where pickup_id::text like '40000000-%'
+union all select 'events',        count(*)::text from events where id::text like '11111111-%'
+union all select 'teams',         count(*)::text from teams where event_id::text like '11111111-%'
+union all select 'matches',       count(*)::text from matches where event_id::text like '11111111-%'
+union all select 'matches_done',  count(*)::text from matches where event_id::text like '11111111-%' and done
+union all select 'matches_live',  count(*)::text from matches where event_id::text like '11111111-%' and is_live
+union all select 'ext_matches',   count(*)::text from external_matches where id::text like '33333333-%'
+union all select 'goals',         count(*)::text from goals where match_id in (select id from matches where event_id::text like '11111111-%')
+union all select 'ratings',       count(*)::text from ratings where match_id in (select id from matches where event_id::text like '11111111-%')
+union all select 'posts',         count(*)::text from posts where author_id::text like '10000000-%'
+union all select 'conversations', count(*)::text from conversations where id::text like '44444444-%'
+union all select 'messages',      count(*)::text from messages where conv_id::text like '44444444-%'
+union all select 'notifications', count(*)::text from notifications where user_id = '10000000-0000-0000-0000-000000000001'
+union all select 'predictions',   count(*)::text from predictions where user_id::text like '10000000-%';
