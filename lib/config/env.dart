@@ -39,13 +39,23 @@ class Env {
       firebaseApiKey.isNotEmpty && firebaseAppId.isNotEmpty;
 
   // LiveKit (live streaming).
-  static const livekitWsUrl = String.fromEnvironment('LIVEKIT_WS_URL');
+  static const livekitWsUrl = String.fromEnvironment(
+    'LIVEKIT_WS_URL',
+    defaultValue: 'wss://t2-zhoh7xx1.livekit.cloud',
+  );
 
   static bool get isLiveKitConfigured => livekitWsUrl.isNotEmpty;
 
   // Maps (S2). AMap (高德地图) API key.
   static const amapKey = String.fromEnvironment(
     'AMAP_KEY',
+    defaultValue: '320ae72b5f24ee9d84f966cb2c9ecd98',
+  );
+
+  // AMap Web Service API key (for POI search / reverse geocoding).
+  // May be the same key if the console has Web Service enabled for it.
+  static const amapWebKey = String.fromEnvironment(
+    'AMAP_WEB_KEY',
     defaultValue: '320ae72b5f24ee9d84f966cb2c9ecd98',
   );
 }
