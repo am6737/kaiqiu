@@ -1168,7 +1168,7 @@ abstract class AppL10n {
   /// No description provided for @event_chat_hint.
   ///
   /// In zh, this message translates to:
-  /// **'发条弹幕…'**
+  /// **'发条评论…'**
   String get event_chat_hint;
 
   /// No description provided for @event_chat_send.

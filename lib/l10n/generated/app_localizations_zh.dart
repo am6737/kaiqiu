@@ -557,7 +557,7 @@ class AppL10nZh extends AppL10n {
   String get event_cta_registered => '已报名';
 
   @override
-  String get event_chat_hint => '发条弹幕…';
+  String get event_chat_hint => '发条评论…';
 
   @override
   String get event_chat_send => '发送';
