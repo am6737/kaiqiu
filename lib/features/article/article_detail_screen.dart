@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../l10n/l10n_extension.dart';
 import '../../models/article.dart';
+import '../../repositories/favorites_repository.dart';
 import '../../utils/share_helper.dart';
 import '../../models/comment.dart';
 import '../../providers.dart';
@@ -213,6 +214,8 @@ class _Body extends ConsumerWidget {
     final l = context.l10n;
     final likedIds = ref.watch(likedArticleIdsProvider).valueOrNull ?? {};
     final isLiked = likedIds.contains(article.id);
+    final favIds = ref.watch(favoriteArticleIdsProvider).valueOrNull ?? {};
+    final isFav = favIds.contains(article.id);
     final dateStr = DateFormat('yyyy-MM-dd HH:mm').format(article.createdAt);
     return CustomScrollView(
       slivers: [
@@ -324,6 +327,24 @@ class _Body extends ConsumerWidget {
                       },
                       child: Text(
                         '${isLiked ? "❤️" : "🤍"} ${article.likes}',
+                        style: TextStyle(fontSize: 11, color: t.inkMute),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    GestureDetector(
+                      onTap: () {
+                        if (!isSignedIn) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(l.like_login_required)),
+                          );
+                          return;
+                        }
+                        ref.read(favoritesRepoProvider).toggle(FavoriteEntity.article, article.id).then((_) {
+                          ref.invalidate(favoriteArticleIdsProvider);
+                        });
+                      },
+                      child: Text(
+                        isFav ? '🔖 ${l.common_unfavorite}' : '🔖 ${l.common_favorite}',
                         style: TextStyle(fontSize: 11, color: t.inkMute),
                       ),
                     ),

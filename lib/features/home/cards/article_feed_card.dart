@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../../models/feed.dart';
 import '../../../providers.dart';
+import '../../../repositories/favorites_repository.dart';
 import '../../../services/supabase.dart';
 import '../../../theme/app_tokens.dart';
 import '../../../utils/share_helper.dart';
@@ -18,6 +19,8 @@ class ArticleFeedCard extends ConsumerWidget {
     final l = AppL10n.of(context);
     final likedIds = ref.watch(likedArticleIdsProvider).valueOrNull ?? {};
     final isLiked = likedIds.contains(item.id);
+    final favIds = ref.watch(favoriteArticleIdsProvider).valueOrNull ?? {};
+    final isFav = favIds.contains(item.id);
 
     return GestureDetector(
       onTap: () => context.push('/article/${item.id}'),
@@ -97,6 +100,14 @@ class ArticleFeedCard extends ConsumerWidget {
               ),
               const SizedBox(width: 18),
               GestureDetector(
+                onTap: () => _toggleFavorite(context, ref),
+                child: Text(
+                  isFav ? '🔖 ${l.common_unfavorite}' : '🔖 ${l.common_favorite}',
+                  style: TextStyle(fontSize: 11, color: t.inkMute),
+                ),
+              ),
+              const SizedBox(width: 18),
+              GestureDetector(
                 onTap: () => shareArticle(
                   title: item.title,
                   category: item.category,
@@ -110,6 +121,18 @@ class ArticleFeedCard extends ConsumerWidget {
         ]),
       ),
     );
+  }
+
+  void _toggleFavorite(BuildContext context, WidgetRef ref) async {
+    if (!isSignedIn) {
+      final l = AppL10n.of(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l.like_login_required)),
+      );
+      return;
+    }
+    await ref.read(favoritesRepoProvider).toggle(FavoriteEntity.article, item.id);
+    ref.invalidate(favoriteArticleIdsProvider);
   }
 
   void _toggleLike(BuildContext context, WidgetRef ref) async {

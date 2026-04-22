@@ -2,7 +2,7 @@
 import '../services/local_storage.dart';
 import '../services/supabase.dart';
 
-enum FavoriteEntity { pickup, event, user }
+enum FavoriteEntity { pickup, event, user, article }
 
 extension FavoriteEntityX on FavoriteEntity {
   String get value {
@@ -13,6 +13,8 @@ extension FavoriteEntityX on FavoriteEntity {
         return 'event';
       case FavoriteEntity.user:
         return 'user';
+      case FavoriteEntity.article:
+        return 'article';
     }
   }
 }
@@ -59,6 +61,8 @@ class FavoritesRepository {
           await LocalStore.toggleFollowUser(entityId);
         }
         break;
+      case FavoriteEntity.article:
+        break;
     }
   }
 
@@ -92,6 +96,8 @@ class FavoritesRepository {
           await LocalStore.toggleFollowUser(entityId);
         }
         break;
+      case FavoriteEntity.article:
+        break;
     }
   }
 
@@ -118,6 +124,8 @@ class FavoritesRepository {
         return LocalStore.isEventFavorited(entityId);
       case FavoriteEntity.user:
         return LocalStore.isFollowing(entityId);
+      case FavoriteEntity.article:
+        return false;
     }
   }
 
@@ -147,6 +155,8 @@ class FavoritesRepository {
         return LocalStore.favoriteEvents.toList();
       case FavoriteEntity.user:
         return LocalStore.followedUsers.toList();
+      case FavoriteEntity.article:
+        return [];
     }
   }
 

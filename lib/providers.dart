@@ -68,6 +68,11 @@ final likedArticleIdsProvider = FutureProvider<Set<String>>((ref) async {
   return ref.read(likesRepoProvider).likedIds('article');
 });
 
+final favoriteArticleIdsProvider = FutureProvider<Set<String>>((ref) async {
+  final ids = await ref.read(favoritesRepoProvider).list(FavoriteEntity.article);
+  return ids.toSet();
+});
+
 // ─────────────────────────────────────────────────────────────
 // Local storage tick — bump whenever LocalStore changes so widgets
 // watching this provider rebuild.
@@ -101,14 +106,16 @@ final wcMatchesProvider = FutureProvider<List<ExternalMatch>>((ref) async {
 
 final teammatesProvider = FutureProvider<List<Teammate>>((ref) async {
   final uid = currentUserId;
-  if (uid == null) return [];
-  return ref.read(profilesRepoProvider).teammates(uid);
+  if (uid == null) return _mockTeammates;
+  final result = await ref.read(profilesRepoProvider).teammates(uid);
+  return result.isEmpty ? _mockTeammates : result;
 });
 
 final historyProvider = FutureProvider<List<MatchHistoryEntry>>((ref) async {
   final uid = currentUserId;
-  if (uid == null) return [];
-  return ref.read(profilesRepoProvider).matchHistory(uid);
+  if (uid == null) return _mockHistory;
+  final result = await ref.read(profilesRepoProvider).matchHistory(uid);
+  return result.isEmpty ? _mockHistory : result;
 });
 
 final notificationsProvider =
@@ -216,6 +223,17 @@ final chatMessagesProvider = StreamProvider.family<List<Message>, String>((
   convId,
 ) {
   return ref.read(messagesRepoProvider).streamMessages(convId);
+});
+
+/// Featured / hot events for the top carousel. Combines ongoing + registering,
+/// sorted by most teams registered (popularity proxy), limited to 4.
+final featuredEventsProvider = FutureProvider<List<Event>>((ref) async {
+  final repo = ref.read(eventsRepoProvider);
+  final ongoing = await repo.listByStatus(EventStatus.ongoing);
+  final registering = await repo.listByStatus(EventStatus.registering);
+  final all = [...ongoing, ...registering];
+  all.sort((a, b) => (b.teamsMax ?? 0).compareTo(a.teamsMax ?? 0));
+  return all.take(4).toList();
 });
 
 /// Events filtered by status (Events Hub tab). Sorted newest first.
@@ -412,8 +430,9 @@ final conversationByIdProvider =
 final myProfileProvider = FutureProvider<PlayerProfile?>((ref) async {
   ref.watch(localStoreProvider);
   final uid = currentUserId;
-  if (uid == null) return null;
-  return ref.read(profilesRepoProvider).fetchFullProfile(uid);
+  if (uid == null) return _mockProfile;
+  final result = await ref.read(profilesRepoProvider).fetchFullProfile(uid);
+  return result ?? _mockProfile;
 });
 
 /// Number of users the current user follows (local cache).
@@ -524,3 +543,70 @@ final filteredPickupsProvider = FutureProvider<List<Pickup>>((ref) async {
 final userPositionProvider = FutureProvider((ref) async {
   return LocationService().currentPosition();
 });
+
+// ─────────────────────────────────────────────────────────────
+// Mock data (development fallback)
+// ─────────────────────────────────────────────────────────────
+final _mockProfile = PlayerProfile(
+  profile: Profile(
+    id: 'mock-001',
+    name: '赵铁柱',
+    handle: '@tiezhu',
+    city: '深圳',
+    district: '南山区',
+    position: 'CAM',
+    height: 178,
+    foot: '右脚',
+    createdAt: DateTime(2023, 3, 15),
+  ),
+  stats: const PlayerStats(matches: 47, goals: 18, assists: 23),
+  attrs: const {
+    '速度': 76,
+    '射门': 68,
+    '传球': 82,
+    '防守': 55,
+    '体能': 71,
+    '技术': 85,
+  },
+  honors: const [
+    PlayerHonor(year: '2025', title: '南山秋季联赛冠军', meta: '最佳助攻'),
+    PlayerHonor(year: '2025', title: '龙岗村超 MVP'),
+    PlayerHonor(year: '2024', title: '深圳业余杯季军', meta: '最佳阵容'),
+  ],
+);
+
+const _mockTeammates = [
+  Teammate(id: 't1', name: '王大锤', matches: 32),
+  Teammate(id: 't2', name: '李小龙', matches: 28),
+  Teammate(id: 't3', name: '陈七', matches: 21),
+  Teammate(id: 't4', name: '张飞', matches: 17),
+  Teammate(id: 't5', name: '刘备', matches: 14),
+];
+
+final _mockHistory = [
+  MatchHistoryEntry(
+    matchId: 'm1', playedAt: DateTime(2026, 4, 18),
+    eventName: '南山秋季联赛', teamA: '铁柱FC', teamB: '龙岗联合',
+    scoreA: 3, scoreB: 1, myGoals: 1, myAssists: 1,
+  ),
+  MatchHistoryEntry(
+    matchId: 'm2', playedAt: DateTime(2026, 4, 11),
+    eventName: '南山秋季联赛', teamA: '铁柱FC', teamB: '宝安飞虎',
+    scoreA: 2, scoreB: 2, myGoals: 0, myAssists: 1,
+  ),
+  MatchHistoryEntry(
+    matchId: 'm3', playedAt: DateTime(2026, 4, 4),
+    eventName: '深圳业余杯', teamA: '铁柱FC', teamB: '福田猎豹',
+    scoreA: 4, scoreB: 2, myGoals: 2, myAssists: 0,
+  ),
+  MatchHistoryEntry(
+    matchId: 'm4', playedAt: DateTime(2026, 3, 28),
+    eventName: '深圳业余杯', teamA: '光明闪电', teamB: '铁柱FC',
+    scoreA: 1, scoreB: 2, myGoals: 1, myAssists: 1,
+  ),
+  MatchHistoryEntry(
+    matchId: 'm5', playedAt: DateTime(2026, 3, 14),
+    eventName: '龙岗村超', teamA: '铁柱FC', teamB: '坪山青年',
+    scoreA: 0, scoreB: 1, myGoals: 0, myAssists: 0,
+  ),
+];
