@@ -392,7 +392,7 @@ class _DmButtonState extends ConsumerState<_DmButton> {
       context.push('/chat/$convId');
     } catch (_) {
       if (mounted) {
-        showToast(context, context.l10n.pickup_detail_join_failed(''), error: true);
+        showToast(context, context.l10n.messages_new_failed, error: true);
       }
     } finally {
       if (mounted) setState(() => _busy = false);
