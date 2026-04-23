@@ -16,6 +16,9 @@ class Event {
   final String name;
   final String? sub;
   final String? city;
+  final String? address;
+  final double? lat;
+  final double? lng;
   final String? template;
   final int teamSize;
   final int? teamsMax;
@@ -34,6 +37,9 @@ class Event {
     required this.name,
     this.sub,
     this.city,
+    this.address,
+    this.lat,
+    this.lng,
     this.template,
     this.teamSize = 11,
     this.teamsMax,
@@ -53,6 +59,9 @@ class Event {
     name: m['name'] as String,
     sub: m['sub'] as String?,
     city: m['city'] as String?,
+    address: m['address'] as String?,
+    lat: (m['lat'] as num?)?.toDouble(),
+    lng: (m['lng'] as num?)?.toDouble(),
     template: m['template'] as String?,
     teamSize: (m['team_size'] as int?) ?? 11,
     teamsMax: m['teams_max'] as int?,
