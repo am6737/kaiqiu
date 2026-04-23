@@ -36,7 +36,8 @@ class _CreateVenueScreenState extends ConsumerState<CreateVenueScreen> {
   bool _uploadingCover = false;
 
   final List<String> _selectedFacilities = [];
-  static const _allFacilities = [
+  final _customFacility = TextEditingController();
+  static const _presetFacilities = [
     '更衣室',
     '停车场',
     '灯光',
@@ -50,7 +51,7 @@ class _CreateVenueScreenState extends ConsumerState<CreateVenueScreen> {
 
   @override
   void dispose() {
-    for (final c in [_name, _desc, _phone, _price, _fieldCount, _openingHours]) {
+    for (final c in [_name, _desc, _phone, _price, _fieldCount, _openingHours, _customFacility]) {
       c.dispose();
     }
     super.dispose();
@@ -72,6 +73,19 @@ class _CreateVenueScreenState extends ConsumerState<CreateVenueScreen> {
     } finally {
       if (mounted) setState(() => _uploadingCover = false);
     }
+  }
+
+  void _addCustomFacility() {
+    final text = _customFacility.text.trim();
+    if (text.isEmpty) return;
+    if (_selectedFacilities.contains(text)) {
+      _customFacility.clear();
+      return;
+    }
+    setState(() {
+      _selectedFacilities.add(text);
+      _customFacility.clear();
+    });
   }
 
   Future<void> _pickLocation() async {
@@ -322,22 +336,80 @@ class _CreateVenueScreenState extends ConsumerState<CreateVenueScreen> {
                     child: Wrap(
                       spacing: 8,
                       runSpacing: 8,
-                      children: _allFacilities.map((f) {
-                        final selected = _selectedFacilities.contains(f);
-                        return _ChoiceChip(
-                          label: f,
-                          selected: selected,
-                          onTap: () {
-                            setState(() {
-                              if (selected) {
-                                _selectedFacilities.remove(f);
-                              } else {
-                                _selectedFacilities.add(f);
-                              }
-                            });
-                          },
-                        );
-                      }).toList(),
+                      children: [
+                        for (final f in _presetFacilities)
+                          _ChoiceChip(
+                            label: f,
+                            selected: _selectedFacilities.contains(f),
+                            onTap: () {
+                              setState(() {
+                                if (_selectedFacilities.contains(f)) {
+                                  _selectedFacilities.remove(f);
+                                } else {
+                                  _selectedFacilities.add(f);
+                                }
+                              });
+                            },
+                          ),
+                        for (final f in _selectedFacilities.where(
+                          (f) => !_presetFacilities.contains(f),
+                        ))
+                          _ChoiceChip(
+                            label: f,
+                            selected: true,
+                            onTap: () => setState(() => _selectedFacilities.remove(f)),
+                            deletable: true,
+                          ),
+                      ],
+                    ),
+                  ),
+                  // Custom facility input
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _customFacility,
+                            style: TextStyle(fontSize: 13, color: t.ink),
+                            decoration: InputDecoration(
+                              hintText: '添加自定义设施',
+                              hintStyle: TextStyle(fontSize: 13, color: t.inkDim),
+                              filled: true,
+                              fillColor: t.elev2,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 10,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(t.r2),
+                                borderSide: BorderSide(color: t.line),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(t.r2),
+                                borderSide: BorderSide(color: t.line),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(t.r2),
+                                borderSide: BorderSide(color: t.accent, width: 1.5),
+                              ),
+                            ),
+                            onSubmitted: (_) => _addCustomFacility(),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        GestureDetector(
+                          onTap: _addCustomFacility,
+                          child: Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: t.accent,
+                              borderRadius: BorderRadius.circular(t.r2),
+                            ),
+                            child: Icon(Icons.add, size: 18, color: t.accentInk),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -441,10 +513,12 @@ class _ChoiceChip extends StatelessWidget {
   final String label;
   final bool selected;
   final VoidCallback onTap;
+  final bool deletable;
   const _ChoiceChip({
     required this.label,
     required this.selected,
     required this.onTap,
+    this.deletable = false,
   });
 
   @override
@@ -459,13 +533,22 @@ class _ChoiceChip extends StatelessWidget {
           border: Border.all(color: selected ? t.accent : t.line),
           borderRadius: BorderRadius.circular(999),
         ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 13,
-            color: selected ? t.accent : t.ink,
-            fontWeight: FontWeight.w500,
-          ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                color: selected ? t.accent : t.ink,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            if (deletable) ...[
+              const SizedBox(width: 4),
+              Icon(Icons.close, size: 14, color: t.accent),
+            ],
+          ],
         ),
       ),
     );
