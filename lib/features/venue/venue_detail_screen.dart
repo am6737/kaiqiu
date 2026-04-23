@@ -503,7 +503,7 @@ class _ContactRow extends ConsumerWidget {
                     fontSize: 14,
                     color: venue.phone != null && venue.phone!.isNotEmpty
                         ? t.ink
-                        : t.sub,
+                        : t.inkSub,
                   ),
                 ),
               ),
@@ -544,7 +544,7 @@ class _ContactRow extends ConsumerWidget {
                   '负责人: ${venue.ownerName ?? '无'}',
                   style: TextStyle(
                     fontSize: 14,
-                    color: venue.ownerName != null ? t.ink : t.sub,
+                    color: venue.ownerName != null ? t.ink : t.inkSub,
                   ),
                 ),
               ),
