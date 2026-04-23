@@ -629,6 +629,9 @@ begin
   if p_other_user_id = v_me then
     raise exception 'cannot_dm_self';
   end if;
+  if not exists (select 1 from profiles where id = v_me) then
+    raise exception 'profile_incomplete';
+  end if;
   if not exists (select 1 from profiles where id = p_other_user_id) then
     raise exception 'user_not_found';
   end if;

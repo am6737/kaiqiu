@@ -681,6 +681,7 @@
   "onboarding_submit": "开始使用",
   "onboarding_name_empty": "请输入昵称",
   "onboarding_save_fail": "保存失败",
+  "onboarding_profile_required": "请先完善个人资料",
 
   "rate_title": "赛后评分",
   "rate_progress": "{cur}/{total} 人",

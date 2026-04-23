@@ -54,8 +54,13 @@ class _UserCardSheetBodyState extends ConsumerState<_UserCardSheetBody> {
       router.push('/chat/$convId');
     } catch (e) {
       if (!mounted) return;
-      final l = context.l10n;
-      showToast(context, '${l.messages_new_failed}: $e', error: true);
+      if (e.toString().contains('profile_incomplete')) {
+        showToast(context, context.l10n.onboarding_profile_required, error: true);
+        Navigator.of(context).pop();
+        GoRouter.of(context).push('/onboarding');
+      } else {
+        showToast(context, '${context.l10n.messages_new_failed}: $e', error: true);
+      }
       setState(() => _busy = false);
     }
   }

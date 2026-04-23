@@ -390,8 +390,12 @@ class _DmButtonState extends ConsumerState<_DmButton> {
       if (!mounted) return;
       ref.invalidate(conversationsProvider);
       context.push('/chat/$convId');
-    } catch (_) {
-      if (mounted) {
+    } catch (e) {
+      if (!mounted) return;
+      if (e.toString().contains('profile_incomplete')) {
+        showToast(context, context.l10n.onboarding_profile_required, error: true);
+        context.push('/onboarding');
+      } else {
         showToast(context, context.l10n.messages_new_failed, error: true);
       }
     } finally {

@@ -102,9 +102,14 @@ class _NewDmSheetBodyState extends ConsumerState<_NewDmSheetBody> {
       router.push('/chat/$convId');
     } catch (e) {
       if (!mounted) return;
-      final l = context.l10n;
       setState(() => _busy = false);
-      showToast(context, '${l.messages_new_failed}: $e', error: true);
+      if (e.toString().contains('profile_incomplete')) {
+        showToast(context, context.l10n.onboarding_profile_required, error: true);
+        Navigator.of(context).pop();
+        GoRouter.of(context).push('/onboarding');
+      } else {
+        showToast(context, '${context.l10n.messages_new_failed}: $e', error: true);
+      }
     }
   }
 

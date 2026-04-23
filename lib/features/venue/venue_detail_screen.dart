@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../l10n/l10n_extension.dart';
 import '../../models/venue.dart';
 import '../../providers.dart';
 import '../../services/map_launcher.dart';
@@ -618,7 +619,13 @@ class _BottomBar extends ConsumerWidget {
         context.push('/chat/$convId');
       }
     } catch (e) {
-      if (context.mounted) showToast(context, '无法建立对话: $e');
+      if (!context.mounted) return;
+      if (e.toString().contains('profile_incomplete')) {
+        showToast(context, context.l10n.onboarding_profile_required, error: true);
+        context.push('/onboarding');
+      } else {
+        showToast(context, '${context.l10n.messages_new_failed}: $e');
+      }
     }
   }
 

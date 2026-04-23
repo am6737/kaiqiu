@@ -3535,6 +3535,12 @@ abstract class AppL10n {
   /// **'保存失败'**
   String get onboarding_save_fail;
 
+  /// No description provided for @onboarding_profile_required.
+  ///
+  /// In zh, this message translates to:
+  /// **'请先完善个人资料'**
+  String get onboarding_profile_required;
+
   /// No description provided for @rate_title.
   ///
   /// In zh, this message translates to:

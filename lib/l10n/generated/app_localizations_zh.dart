@@ -1790,6 +1790,9 @@ class AppL10nZh extends AppL10n {
   String get onboarding_save_fail => '保存失败';
 
   @override
+  String get onboarding_profile_required => '请先完善个人资料';
+
+  @override
   String get rate_title => '赛后评分';
 
   @override

@@ -1815,6 +1815,10 @@ class AppL10nEn extends AppL10n {
   String get onboarding_save_fail => 'Save failed';
 
   @override
+  String get onboarding_profile_required =>
+      'Please complete your profile first';
+
+  @override
   String get rate_title => 'Post-match Rating';
 
   @override

@@ -681,6 +681,7 @@
   "onboarding_submit": "Get started",
   "onboarding_name_empty": "Please enter a nickname",
   "onboarding_save_fail": "Save failed",
+  "onboarding_profile_required": "Please complete your profile first",
 
   "rate_title": "Post-match Rating",
   "rate_progress": "{cur}/{total} players",
