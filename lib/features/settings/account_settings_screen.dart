@@ -393,10 +393,10 @@ class AccountSettingsScreen extends ConsumerWidget {
         ),
       ),
     );
-    if (deleted == true && context.mounted) {
-      showToast(context, l.settings_account_delete_done, success: true);
-      context.go('/sign-in');
-    }
+    if (deleted != true || !context.mounted) return;
+    showToast(context, l.settings_account_delete_done, success: true);
+    await LocalStore.clearAll();
+    try { await supabase.auth.signOut(); } catch (_) {}
   }
 }
 
@@ -449,6 +449,7 @@ class _DeleteAccountSheet extends ConsumerStatefulWidget {
 
 class _DeleteAccountSheetState extends ConsumerState<_DeleteAccountSheet> {
   bool _loading = false;
+  String? _error;
   late final TextEditingController _controller;
 
   bool get _matched => _controller.text.trim() == widget.confirmWord;
@@ -468,7 +469,7 @@ class _DeleteAccountSheetState extends ConsumerState<_DeleteAccountSheet> {
 
   Future<void> _submit() async {
     if (!_matched || _loading) return;
-    setState(() => _loading = true);
+    setState(() { _loading = true; _error = null; });
     try {
       final res = await supabase.functions.invoke('delete-account');
       if (res.status != 200) {
@@ -477,20 +478,12 @@ class _DeleteAccountSheetState extends ConsumerState<_DeleteAccountSheet> {
             : res.data;
         final msg = (body is Map ? body['error'] : null) ??
             'Unexpected error (${res.status})';
-        if (mounted) {
-          showToast(context, '$msg', error: true);
-          setState(() => _loading = false);
-        }
+        if (mounted) setState(() { _loading = false; _error = '$msg'; });
         return;
       }
-      await LocalStore.clearAll();
-      try { await supabase.auth.signOut(); } catch (_) {}
       if (mounted) Navigator.of(context).pop(true);
     } catch (e) {
-      if (mounted) {
-        showToast(context, '$e', error: true);
-        setState(() => _loading = false);
-      }
+      if (mounted) setState(() { _loading = false; _error = '$e'; });
     }
   }
 
@@ -518,6 +511,13 @@ class _DeleteAccountSheetState extends ConsumerState<_DeleteAccountSheet> {
             height: 1.5,
           ),
         ),
+        if (_error != null) ...[
+          const SizedBox(height: 12),
+          Text(
+            _error!,
+            style: TextStyle(fontSize: 13, color: context.tokens.danger),
+          ),
+        ],
         const SizedBox(height: 16),
         Text(
           l.settings_account_delete_input_hint,
