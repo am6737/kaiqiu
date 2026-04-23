@@ -37,6 +37,15 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
   static const _defaultVisibleKeys = {'all', 'today', 'tomorrow', 'week', 'free', 'lv', 'fee', 'near'};
   final Set<String> _visibleFilterKeys = Set.of(_defaultVisibleKeys);
 
+  // Venue filter state (symmetric to pickup filter).
+  String _venueFilter = 'v_all';
+  static const _defaultVisibleVenueKeys = {
+    'v_all', 'v_indoor', 'v_outdoor',
+    'v_football', 'v_basketball',
+    'v_free', 'v_near',
+  };
+  final Set<String> _visibleVenueFilterKeys = Set.of(_defaultVisibleVenueKeys);
+
   // Extended filter state (opened from the filter icon sheet).
   double _distKm = 5;
   int _maxFee = 100;
@@ -179,6 +188,47 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
         .toList();
   }
 
+  List<(String, String)> _allVenueFilterOptions() {
+    return const [
+      ('v_all', '全部'),
+      ('v_indoor', '室内'),
+      ('v_outdoor', '室外'),
+      ('v_semi', '半室内'),
+      ('v_football', '足球'),
+      ('v_basketball', '篮球'),
+      ('v_badminton', '羽毛球'),
+      ('v_free', '免费'),
+      ('v_cheap', '低价'),
+      ('v_near', '附近'),
+      ('v_rated', '高评分'),
+    ];
+  }
+
+  List<(String, String)> _visibleVenueFilterOptions() {
+    return _allVenueFilterOptions()
+        .where((f) => f.$1 == 'v_all' || _visibleVenueFilterKeys.contains(f.$1))
+        .toList();
+  }
+
+  List<Venue> _filterVenues(List<Venue> venues) {
+    return switch (_venueFilter) {
+      'v_indoor' => venues.where((v) => v.fieldType == VenueFieldType.indoor),
+      'v_outdoor' => venues.where((v) => v.fieldType == VenueFieldType.outdoor),
+      'v_semi' => venues.where((v) => v.fieldType == VenueFieldType.semi),
+      'v_football' => venues.where((v) => v.sportType == 'football'),
+      'v_basketball' => venues.where((v) => v.sportType == 'basketball'),
+      'v_badminton' => venues.where((v) => v.sportType == 'badminton'),
+      'v_free' => venues.where((v) => v.pricePerHourCents == 0),
+      'v_cheap' => venues.where((v) => v.pricePerHourCents <= 5000),
+      'v_near' => venues.where((v) {
+        final m = Geolocator.distanceBetween(_userLat, _userLng, v.lat, v.lng);
+        return m <= 3000;
+      }),
+      'v_rated' => venues.where((v) => v.rating != null && v.rating! >= 4.0),
+      _ => venues,
+    }.toList();
+  }
+
   void _showFilterChipConfig(BuildContext context) {
     final allOptions = _allFilterOptions(context);
     showModalBottomSheet(
@@ -229,6 +279,99 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                                 _visibleFilterKeys.remove(f.$1);
                               } else {
                                 _visibleFilterKeys.add(f.$1);
+                              }
+                            });
+                          });
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: selected ? context.tokens.accentSubtle : context.tokens.elev2,
+                            border: Border.all(
+                              color: selected ? context.tokens.accent : context.tokens.line,
+                            ),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (selected) ...[
+                                Icon(Icons.check, size: 14, color: context.tokens.accent),
+                                const SizedBox(width: 4),
+                              ],
+                              Text(
+                                f.$2,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: selected ? context.tokens.accent : context.tokens.ink,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showVenueFilterChipConfig(BuildContext context) {
+    final allOptions = _allVenueFilterOptions();
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: context.tokens.elev1,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setModal) => SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 36,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: context.tokens.inkMute,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    '场馆筛选配置',
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: context.tokens.ink,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: allOptions.where((f) => f.$1 != 'v_all').map((f) {
+                      final selected = _visibleVenueFilterKeys.contains(f.$1);
+                      return GestureDetector(
+                        onTap: () {
+                          setModal(() {
+                            setState(() {
+                              if (selected) {
+                                _visibleVenueFilterKeys.remove(f.$1);
+                              } else {
+                                _visibleVenueFilterKeys.add(f.$1);
                               }
                             });
                           });
