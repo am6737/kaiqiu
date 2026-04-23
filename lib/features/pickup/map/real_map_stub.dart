@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 
 import '../../../models/map_pin.dart';
 import '../../../models/pickup.dart';
-import '../../../widgets/sport_icon.dart';
+import 'marker_painter.dart';
 import '../../../theme/app_tokens.dart';
 
 /// Nanning default center — used by the mobile map, surfaced here so the
@@ -103,8 +103,6 @@ class _Pin extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // On web we accept either normalised (0-1) coords or real lat/lng that
-    // happen to fall near Shenzhen. Auto-detect.
     final lngRaw = pickup.lng ?? 0.5;
     final latRaw = pickup.lat ?? 0.5;
     final (normX, normY) = _normalise(lngRaw, latRaw);
@@ -117,45 +115,28 @@ class _Pin extends StatelessWidget {
       _ => context.tokens.accent,
     };
 
+    final text = '¥${pickup.feeYuan.toStringAsFixed(0)}';
+    final painter = MarkerBubblePainter(
+      text: text,
+      bgColor: statusColor,
+      active: isActive,
+    );
+    final scale = isActive ? 1.2 : 1.0;
+    final w = painter.totalWidth * scale;
+    final h = painter.totalHeight * scale;
+
     return Positioned(
-      left: x - 16,
-      top: y - 40,
+      left: x - w / 2,
+      top: y - h,
       child: GestureDetector(
         onTap: onTap,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: isActive ? 40 : 32,
-              height: isActive ? 40 : 32,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: context.tokens.elev1,
-                shape: BoxShape.circle,
-                border: Border.all(color: statusColor, width: 2),
-                boxShadow: [
-                  BoxShadow(
-                    color: statusColor.withValues(alpha: 0.25),
-                    blurRadius: 12,
-                  ),
-                ],
-              ),
-              child: SportIcon(
-                Sport.football,
-                size: isActive ? 18 : 14,
-                color: statusColor,
-              ),
-            ),
-            Container(
-              width: 6,
-              height: 6,
-              margin: const EdgeInsets.only(top: -3),
-              decoration: BoxDecoration(
-                color: statusColor,
-                shape: BoxShape.circle,
-              ),
-            ),
-          ],
+        child: SizedBox(
+          width: w,
+          height: h,
+          child: CustomPaint(
+            painter: painter,
+            size: Size(painter.totalWidth, painter.totalHeight),
+          ),
         ),
       ),
     );
