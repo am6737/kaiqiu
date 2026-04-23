@@ -11,6 +11,7 @@ import '../../providers.dart';
 import '../../services/supabase.dart';
 import '../../theme/app_tokens.dart';
 import '../../widgets/avatar.dart';
+import '../../widgets/interaction_btn.dart';
 import '../../widgets/rich_input.dart';
 import '../../widgets/typography.dart';
 
@@ -343,13 +344,13 @@ class _Body extends ConsumerWidget {
                     ref.invalidate(postDetailProvider(postId));
                   });
                 },
-                child: _InteractionBtn(
+                child: InteractionBtn(
                     icon: isLiked ? Icons.favorite : Icons.favorite_border,
                     label: '$likes',
                     color: isLiked ? t.danger : t.inkSub),
               ),
               const SizedBox(width: 28),
-              _InteractionBtn(
+              InteractionBtn(
                   icon: Icons.chat_bubble_outline,
                   label: '$commentCount',
                   color: t.inkSub),
@@ -360,7 +361,7 @@ class _Body extends ConsumerWidget {
                   body: body,
                   tags: tags,
                 ),
-                child: _InteractionBtn(
+                child: InteractionBtn(
                     icon: Icons.share_outlined,
                     label: '$shares',
                     color: t.inkSub),
@@ -496,26 +497,6 @@ class _StatCell extends StatelessWidget {
           Label(label),
         ],
       ),
-    );
-  }
-}
-
-class _InteractionBtn extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final Color color;
-  const _InteractionBtn(
-      {required this.icon, required this.label, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 18, color: color),
-        const SizedBox(width: 5),
-        Text(label, style: TextStyle(fontSize: 13, color: color)),
-      ],
     );
   }
 }

@@ -13,6 +13,7 @@ import '../../services/supabase.dart';
 import '../../theme/app_tokens.dart';
 import '../../widgets/avatar.dart';
 import '../../widgets/rich_input.dart';
+import '../../widgets/interaction_btn.dart';
 import '../../widgets/typography.dart';
 
 class ArticleDetailScreen extends ConsumerStatefulWidget {
@@ -306,12 +307,16 @@ class _Body extends ConsumerWidget {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    Text('👁 ${article.viewCount}',
-                        style: TextStyle(fontSize: 11, color: t.inkMute)),
-                    const SizedBox(width: 14),
-                    Text('💬 ${article.commentCount}',
-                        style: TextStyle(fontSize: 11, color: t.inkMute)),
-                    const SizedBox(width: 14),
+                    InteractionBtn(
+                        icon: Icons.visibility_outlined,
+                        label: '${article.viewCount}',
+                        color: t.inkSub),
+                    const SizedBox(width: 28),
+                    InteractionBtn(
+                        icon: Icons.chat_bubble_outline,
+                        label: '${article.commentCount}',
+                        color: t.inkSub),
+                    const SizedBox(width: 28),
                     GestureDetector(
                       onTap: () {
                         if (!isSignedIn) {
@@ -325,12 +330,12 @@ class _Body extends ConsumerWidget {
                           ref.invalidate(articleDetailProvider(article.id));
                         });
                       },
-                      child: Text(
-                        '${isLiked ? "❤️" : "🤍"} ${article.likes}',
-                        style: TextStyle(fontSize: 11, color: t.inkMute),
-                      ),
+                      child: InteractionBtn(
+                          icon: isLiked ? Icons.favorite : Icons.favorite_border,
+                          label: '${article.likes}',
+                          color: isLiked ? t.danger : t.inkSub),
                     ),
-                    const SizedBox(width: 14),
+                    const SizedBox(width: 28),
                     GestureDetector(
                       onTap: () {
                         if (!isSignedIn) {
@@ -343,20 +348,22 @@ class _Body extends ConsumerWidget {
                           ref.invalidate(favoriteArticleIdsProvider);
                         });
                       },
-                      child: Text(
-                        isFav ? '🔖 ${l.common_unfavorite}' : '🔖 ${l.common_favorite}',
-                        style: TextStyle(fontSize: 11, color: t.inkMute),
-                      ),
+                      child: InteractionBtn(
+                          icon: isFav ? Icons.bookmark : Icons.bookmark_border,
+                          label: isFav ? l.common_unfavorite : l.common_favorite,
+                          color: isFav ? t.danger : t.inkSub),
                     ),
-                    const SizedBox(width: 14),
+                    const SizedBox(width: 28),
                     GestureDetector(
                       onTap: () => shareArticle(
                         title: article.title,
                         category: _categoryLabel(context, article.category),
                         summary: article.summary,
                       ),
-                      child: Text('↗️ ${l.common_share}',
-                          style: TextStyle(fontSize: 11, color: t.inkMute)),
+                      child: InteractionBtn(
+                          icon: Icons.share_outlined,
+                          label: l.common_share,
+                          color: t.inkSub),
                     ),
                   ],
                 ),

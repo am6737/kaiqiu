@@ -8,6 +8,7 @@ import '../../../services/supabase.dart';
 import '../../../theme/app_tokens.dart';
 import '../../../utils/share_helper.dart';
 import '../../../widgets/avatar.dart';
+import '../../../widgets/interaction_btn.dart';
 
 class ActivityFeedCard extends ConsumerWidget {
   final FeedActivity item;
@@ -98,14 +99,16 @@ class ActivityFeedCard extends ConsumerWidget {
                 child: Row(children: [
                   GestureDetector(
                     onTap: () => _toggleLike(context, ref),
-                    child: Text(
-                      '${isLiked ? "❤️" : "🤍"} ${item.likes}',
-                      style: TextStyle(fontSize: 11, color: t.inkMute),
-                    ),
+                    child: InteractionBtn(
+                        icon: isLiked ? Icons.favorite : Icons.favorite_border,
+                        label: '${item.likes}',
+                        color: isLiked ? t.danger : t.inkSub),
                   ),
                   const SizedBox(width: 18),
-                  Text('💬 ${item.comments}',
-                      style: TextStyle(fontSize: 11, color: t.inkMute)),
+                  InteractionBtn(
+                      icon: Icons.chat_bubble_outline,
+                      label: '${item.comments}',
+                      color: t.inkSub),
                   const SizedBox(width: 18),
                   GestureDetector(
                     onTap: () => sharePost(
@@ -113,8 +116,10 @@ class ActivityFeedCard extends ConsumerWidget {
                       body: item.body,
                       tags: item.tags,
                     ),
-                    child: Text('↗️ ${l.home_discover_share}',
-                        style: TextStyle(fontSize: 11, color: t.inkMute)),
+                    child: InteractionBtn(
+                        icon: Icons.share_outlined,
+                        label: l.home_discover_share,
+                        color: t.inkSub),
                   ),
                 ]),
               ),

@@ -8,6 +8,7 @@ import '../../../repositories/favorites_repository.dart';
 import '../../../services/supabase.dart';
 import '../../../theme/app_tokens.dart';
 import '../../../utils/share_helper.dart';
+import '../../../widgets/interaction_btn.dart';
 
 class ArticleFeedCard extends ConsumerWidget {
   final FeedArticle item;
@@ -58,9 +59,20 @@ class ArticleFeedCard extends ConsumerWidget {
                             fontSize: 11, color: t.inkDim, height: 1.4)),
                   ],
                   const SizedBox(height: 6),
-                  Text(
-                      '👁 ${item.viewCount} · 💬 ${item.commentCount} · ${l.home_article_read_time(item.readTimeMin)}',
-                      style: TextStyle(fontSize: 10, color: t.inkMute)),
+                  Row(children: [
+                    Icon(Icons.visibility_outlined, size: 12, color: t.inkMute),
+                    const SizedBox(width: 3),
+                    Text('${item.viewCount}',
+                        style: TextStyle(fontSize: 10, color: t.inkMute)),
+                    Text(' · ', style: TextStyle(fontSize: 10, color: t.inkMute)),
+                    Icon(Icons.chat_bubble_outline, size: 12, color: t.inkMute),
+                    const SizedBox(width: 3),
+                    Text('${item.commentCount}',
+                        style: TextStyle(fontSize: 10, color: t.inkMute)),
+                    Text(' · ', style: TextStyle(fontSize: 10, color: t.inkMute)),
+                    Text(l.home_article_read_time(item.readTimeMin),
+                        style: TextStyle(fontSize: 10, color: t.inkMute)),
+                  ]),
                 ])),
             const SizedBox(width: 12),
             Container(
@@ -93,18 +105,18 @@ class ArticleFeedCard extends ConsumerWidget {
             child: Row(children: [
               GestureDetector(
                 onTap: () => _toggleLike(context, ref),
-                child: Text(
-                  '${isLiked ? "❤️" : "🤍"} ${item.likes}',
-                  style: TextStyle(fontSize: 11, color: t.inkMute),
-                ),
+                child: InteractionBtn(
+                    icon: isLiked ? Icons.favorite : Icons.favorite_border,
+                    label: '${item.likes}',
+                    color: isLiked ? t.danger : t.inkSub),
               ),
               const SizedBox(width: 18),
               GestureDetector(
                 onTap: () => _toggleFavorite(context, ref),
-                child: Text(
-                  isFav ? '🔖 ${l.common_unfavorite}' : '🔖 ${l.common_favorite}',
-                  style: TextStyle(fontSize: 11, color: t.inkMute),
-                ),
+                child: InteractionBtn(
+                    icon: isFav ? Icons.bookmark : Icons.bookmark_border,
+                    label: isFav ? l.common_unfavorite : l.common_favorite,
+                    color: isFav ? t.danger : t.inkSub),
               ),
               const SizedBox(width: 18),
               GestureDetector(
@@ -113,8 +125,10 @@ class ArticleFeedCard extends ConsumerWidget {
                   category: item.category,
                   summary: item.summary,
                 ),
-                child: Text('↗️ ${l.home_discover_share}',
-                    style: TextStyle(fontSize: 11, color: t.inkMute)),
+                child: InteractionBtn(
+                    icon: Icons.share_outlined,
+                    label: l.home_discover_share,
+                    color: t.inkSub),
               ),
             ]),
           ),
