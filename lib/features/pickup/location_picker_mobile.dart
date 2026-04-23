@@ -25,8 +25,7 @@ class LocationPickerScreen extends ConsumerStatefulWidget {
 class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
   AMapController? _mapController;
   final _searchCtrl = TextEditingController();
-  Timer? _searchDebounce;
-  Timer? _cameraDebounce;
+  Timer? _debounce;
 
   List<PoiResult> _searchResults = [];
   bool _showSearchResults = false;
@@ -46,8 +45,7 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
 
   @override
   void dispose() {
-    _searchDebounce?.cancel();
-    _cameraDebounce?.cancel();
+    _debounce?.cancel();
     _searchCtrl.dispose();
     super.dispose();
   }
@@ -72,7 +70,7 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
   }
 
   void _onSearchChanged(String text) {
-    _searchDebounce?.cancel();
+    _debounce?.cancel();
     if (text.trim().isEmpty) {
       setState(() {
         _searchResults = [];
@@ -80,7 +78,7 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
       });
       return;
     }
-    _searchDebounce = Timer(const Duration(milliseconds: 500), () async {
+    _debounce = Timer(const Duration(milliseconds: 500), () async {
       setState(() => _searching = true);
       final results = await ref.read(amapSearchProvider).searchPoi(text);
       if (!mounted) return;
@@ -109,12 +107,12 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
   }
 
   void _onCameraMoveEnd(CameraPosition pos) {
-    _cameraDebounce?.cancel();
+    _debounce?.cancel();
     final lat = pos.target.latitude;
     final lng = pos.target.longitude;
     _centerLat = lat;
     _centerLng = lng;
-    _cameraDebounce = Timer(const Duration(milliseconds: 500), () {
+    _debounce = Timer(const Duration(milliseconds: 500), () {
       _doReverseGeocode(lat, lng);
     });
   }
