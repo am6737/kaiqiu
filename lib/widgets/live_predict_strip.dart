@@ -244,13 +244,13 @@ class _OutcomeBtn extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (flagName != null)
+            if (flagName != null && flagName!.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(bottom: 4),
                 child: TeamBadge(name: flagName!, logoUrl: flagUrl, size: 20),
               ),
             Text(
-              label,
+              label.isNotEmpty ? label : '—',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
@@ -601,7 +601,7 @@ class _BigOption extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (flagName != null)
+            if (flagName != null && flagName!.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(bottom: 6),
                 child: TeamBadge(name: flagName!, logoUrl: flagUrl, size: 28),

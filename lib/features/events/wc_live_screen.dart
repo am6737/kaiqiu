@@ -233,15 +233,18 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
                   Expanded(
                     child: Row(
                       children: [
-                        TeamBadge(
-                          name: _teamA.isNotEmpty ? _teamA : '—',
-                          logoUrl: _flagA,
-                          size: 36,
-                        ),
-                        const SizedBox(width: 8),
+                        if (_teamA.isNotEmpty || _flagA != null)
+                          Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: TeamBadge(
+                              name: _teamA.isNotEmpty ? _teamA : '?',
+                              logoUrl: _flagA,
+                              size: 36,
+                            ),
+                          ),
                         Flexible(
                           child: Text(
-                            _teamA,
+                            _teamA.isNotEmpty ? _teamA : '—',
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               fontSize: 13,
@@ -283,7 +286,7 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
                       children: [
                         Flexible(
                           child: Text(
-                            _teamB,
+                            _teamB.isNotEmpty ? _teamB : '—',
                             overflow: TextOverflow.ellipsis,
                             textAlign: TextAlign.right,
                             style: TextStyle(
@@ -293,12 +296,15 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        TeamBadge(
-                          name: _teamB.isNotEmpty ? _teamB : '—',
-                          logoUrl: _flagB,
-                          size: 36,
-                        ),
+                        if (_teamB.isNotEmpty || _flagB != null)
+                          Padding(
+                            padding: const EdgeInsets.only(left: 8),
+                            child: TeamBadge(
+                              name: _teamB.isNotEmpty ? _teamB : '?',
+                              logoUrl: _flagB,
+                              size: 36,
+                            ),
+                          ),
                       ],
                     ),
                   ),
