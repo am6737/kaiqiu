@@ -15,6 +15,7 @@ import '../../widgets/danmaku_overlay.dart';
 import '../../widgets/live_pill.dart';
 import '../../widgets/live_predict_strip.dart';
 import '../../widgets/live_stream_player.dart';
+import '../../widgets/team_badge.dart';
 import '../../widgets/typography.dart';
 import '../../theme/app_tokens.dart';
 import '../../widgets/rich_input.dart';
@@ -40,6 +41,8 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
   int _viewers = 0;
   String _teamA = '';
   String _teamB = '';
+  String? _flagA;
+  String? _flagB;
 
   @override
   void initState() {
@@ -67,6 +70,8 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
         _viewers = m.viewers;
         _teamA = m.teamA;
         _teamB = m.teamB;
+        _flagA = m.flagA;
+        _flagB = m.flagB;
       });
     } catch (_) {}
   }
@@ -226,11 +231,26 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
               child: Row(
                 children: [
                   Expanded(
-                    child: _TeamBadge(
-                      name: _teamA.isNotEmpty ? _teamA : '—',
-                      label: _teamA,
-                      hue: 200,
-                      alignEnd: false,
+                    child: Row(
+                      children: [
+                        TeamBadge(
+                          name: _teamA.isNotEmpty ? _teamA : '—',
+                          logoUrl: _flagA,
+                          size: 36,
+                        ),
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: Text(
+                            _teamA,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: context.tokens.ink,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   Row(
@@ -258,11 +278,28 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
                     ],
                   ),
                   Expanded(
-                    child: _TeamBadge(
-                      name: _teamB.isNotEmpty ? _teamB : '—',
-                      label: _teamB,
-                      hue: 140,
-                      alignEnd: true,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            _teamB,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.right,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: context.tokens.ink,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        TeamBadge(
+                          name: _teamB.isNotEmpty ? _teamB : '—',
+                          logoUrl: _flagB,
+                          size: 36,
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -273,6 +310,8 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
               matchId: widget.matchId,
               homeLabel: _teamA,
               awayLabel: _teamB,
+              homeFlagUrl: _flagA,
+              awayFlagUrl: _flagB,
             ),
             // Danmu feed
             Expanded(
@@ -462,61 +501,7 @@ class _DanmakuToggleButton extends StatelessWidget {
   }
 }
 
-class _TeamBadge extends StatelessWidget {
-  final String name, label;
-  final double hue;
-  final bool alignEnd;
-  const _TeamBadge({
-    required this.name,
-    required this.label,
-    required this.hue,
-    required this.alignEnd,
-  });
 
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final flagL = isDark ? 0.3 : 0.65;
-    final flag = Container(
-      width: 40,
-      height: 28,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: HSLColor.fromAHSL(1, hue, 0.4, flagL).toColor(),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(
-        name,
-        style: TextStyle(
-          fontFamily: context.tokens.fontMono,
-          fontFamilyFallback: context.tokens.monoFallbacks,
-          fontSize: 11,
-          fontWeight: FontWeight.w800,
-          color: context.tokens.ink,
-        ),
-      ),
-    );
-    return Row(
-      mainAxisAlignment: alignEnd
-          ? MainAxisAlignment.end
-          : MainAxisAlignment.start,
-      children: [
-        if (!alignEnd) flag,
-        if (!alignEnd) const SizedBox(width: 8),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 13,
-            color: context.tokens.ink,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        if (alignEnd) const SizedBox(width: 8),
-        if (alignEnd) flag,
-      ],
-    );
-  }
-}
 
 class _Danmu {
   final String user, text;

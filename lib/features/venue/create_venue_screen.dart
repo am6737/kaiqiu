@@ -35,7 +35,7 @@ class _CreateVenueScreenState extends ConsumerState<CreateVenueScreen> {
   String? _coverUrl;
   bool _uploadingCover = false;
   final List<String> _photoUrls = [];
-  bool _uploadingPhoto = false;
+  final Set<int> _uploadingPhotoIndices = {};
 
   final List<String> _selectedFacilities = [];
   final _customFacility = TextEditingController();
@@ -77,27 +77,35 @@ class _CreateVenueScreenState extends ConsumerState<CreateVenueScreen> {
     }
   }
 
-  Future<void> _pickPhoto() async {
+  Future<void> _addPhoto() async {
     if (_photoUrls.length >= 9) {
       showToast(context, '最多上传9张照片', error: true);
       return;
     }
     final uid = currentUserId;
     if (uid == null) return;
-    setState(() => _uploadingPhoto = true);
+    final idx = _photoUrls.length;
+    setState(() => _uploadingPhotoIndices.add(idx));
     try {
       final url = await StorageService().pickCropCompressAndUpload(
         bucket: 'venue-covers',
         pathPrefix: '$uid/photos',
         square: false,
       );
-      if (url != null && mounted) setState(() => _photoUrls.add(url));
+      if (url != null && mounted) {
+        setState(() => _photoUrls.add(url));
+      }
     } catch (e) {
       if (mounted) showToast(context, '$e', error: true);
     } finally {
-      if (mounted) setState(() => _uploadingPhoto = false);
+      if (mounted) setState(() => _uploadingPhotoIndices.remove(idx));
     }
   }
+
+  void _removePhoto(int index) {
+    setState(() => _photoUrls.removeAt(index));
+  }
+
 
   void _addCustomFacility() {
     final text = _customFacility.text.trim();
@@ -194,9 +202,9 @@ class _CreateVenueScreenState extends ConsumerState<CreateVenueScreen> {
                   // Venue photos
                   _PhotoGrid(
                     urls: _photoUrls,
-                    uploading: _uploadingPhoto,
-                    onAdd: _pickPhoto,
-                    onRemove: (i) => setState(() => _photoUrls.removeAt(i)),
+                    uploading: _uploadingPhotoIndices.isNotEmpty,
+                    onAdd: _addPhoto,
+                    onRemove: _removePhoto,
                   ),
 
                   _TextField(label: '场馆名称', controller: _name, hint: '如：阳光足球公园'),

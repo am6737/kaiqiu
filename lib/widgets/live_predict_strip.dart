@@ -13,6 +13,7 @@ import '../providers.dart';
 import '../repositories/predictions_repository.dart';
 import '../services/local_storage.dart';
 import '../utils/toast.dart';
+import 'team_badge.dart';
 import 'typography.dart';
 import '../theme/app_tokens.dart';
 
@@ -22,11 +23,15 @@ class LivePredictStrip extends ConsumerWidget {
   final String matchId;
   final String homeLabel;
   final String awayLabel;
+  final String? homeFlagUrl;
+  final String? awayFlagUrl;
   const LivePredictStrip({
     super.key,
     required this.matchId,
     required this.homeLabel,
     required this.awayLabel,
+    this.homeFlagUrl,
+    this.awayFlagUrl,
   });
 
   @override
@@ -43,6 +48,8 @@ class LivePredictStrip extends ConsumerWidget {
         matchId: matchId,
         homeLabel: homeLabel,
         awayLabel: awayLabel,
+        homeFlagUrl: homeFlagUrl,
+        awayFlagUrl: awayFlagUrl,
         dist: dist,
         onTap: (choice) =>
             _openSheet(context, ref, initialChoice: choice, dist: dist),
@@ -76,6 +83,8 @@ class LivePredictStrip extends ConsumerWidget {
         matchId: matchId,
         homeLabel: homeLabel,
         awayLabel: awayLabel,
+        homeFlagUrl: homeFlagUrl,
+        awayFlagUrl: awayFlagUrl,
         initialChoice: initialChoice,
         dist: dist,
       ),
@@ -108,12 +117,16 @@ class _UnvotedStrip extends StatelessWidget {
   final String matchId;
   final String homeLabel;
   final String awayLabel;
+  final String? homeFlagUrl;
+  final String? awayFlagUrl;
   final _Dist dist;
   final ValueChanged<String> onTap;
   const _UnvotedStrip({
     required this.matchId,
     required this.homeLabel,
     required this.awayLabel,
+    this.homeFlagUrl,
+    this.awayFlagUrl,
     required this.dist,
     required this.onTap,
   });
@@ -171,6 +184,8 @@ class _UnvotedStrip extends StatelessWidget {
                 child: _OutcomeBtn(
                   label: homeLabel,
                   sub: '${dist.a}%',
+                  flagUrl: homeFlagUrl,
+                  flagName: homeLabel,
                   onTap: () => onTap('A'),
                 ),
               ),
@@ -187,6 +202,8 @@ class _UnvotedStrip extends StatelessWidget {
                 child: _OutcomeBtn(
                   label: awayLabel,
                   sub: '${dist.b}%',
+                  flagUrl: awayFlagUrl,
+                  flagName: awayLabel,
                   onTap: () => onTap('B'),
                 ),
               ),
@@ -201,10 +218,14 @@ class _UnvotedStrip extends StatelessWidget {
 class _OutcomeBtn extends StatelessWidget {
   final String label;
   final String sub;
+  final String? flagUrl;
+  final String? flagName;
   final VoidCallback onTap;
   const _OutcomeBtn({
     required this.label,
     required this.sub,
+    this.flagUrl,
+    this.flagName,
     required this.onTap,
   });
 
@@ -223,6 +244,11 @@ class _OutcomeBtn extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            if (flagName != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: TeamBadge(name: flagName!, logoUrl: flagUrl, size: 20),
+              ),
             Text(
               label,
               maxLines: 1,
@@ -336,12 +362,16 @@ class _PredictSheet extends ConsumerStatefulWidget {
   final String matchId;
   final String homeLabel;
   final String awayLabel;
+  final String? homeFlagUrl;
+  final String? awayFlagUrl;
   final String initialChoice;
   final _Dist dist;
   const _PredictSheet({
     required this.matchId,
     required this.homeLabel,
     required this.awayLabel,
+    this.homeFlagUrl,
+    this.awayFlagUrl,
     required this.initialChoice,
     required this.dist,
   });
@@ -447,6 +477,8 @@ class _PredictSheetState extends ConsumerState<_PredictSheet> {
                 child: _BigOption(
                   label: widget.homeLabel,
                   sub: l.wc_predict_home_win,
+                  flagUrl: widget.homeFlagUrl,
+                  flagName: widget.homeLabel,
                   active: _choice == 'A',
                   onTap: () => setState(() => _choice = 'A'),
                 ),
@@ -465,6 +497,8 @@ class _PredictSheetState extends ConsumerState<_PredictSheet> {
                 child: _BigOption(
                   label: widget.awayLabel,
                   sub: l.wc_predict_away_win,
+                  flagUrl: widget.awayFlagUrl,
+                  flagName: widget.awayLabel,
                   active: _choice == 'B',
                   onTap: () => setState(() => _choice = 'B'),
                 ),
@@ -539,11 +573,15 @@ class _PredictSheetState extends ConsumerState<_PredictSheet> {
 class _BigOption extends StatelessWidget {
   final String label;
   final String sub;
+  final String? flagUrl;
+  final String? flagName;
   final bool active;
   final VoidCallback onTap;
   const _BigOption({
     required this.label,
     required this.sub,
+    this.flagUrl,
+    this.flagName,
     required this.active,
     required this.onTap,
   });
@@ -563,6 +601,11 @@ class _BigOption extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            if (flagName != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: TeamBadge(name: flagName!, logoUrl: flagUrl, size: 28),
+              ),
             Text(
               label,
               maxLines: 1,
