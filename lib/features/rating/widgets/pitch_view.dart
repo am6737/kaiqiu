@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../l10n/l10n_extension.dart';
 import '../../../models/pickup.dart';
 import '../../../theme/app_tokens.dart';
 import '../../../widgets/user_card_sheet.dart';
@@ -196,7 +197,7 @@ class _PlayerDot extends ConsumerWidget {
               borderRadius: BorderRadius.circular(2),
             ),
             child: Text(
-              slot.position,
+              context.l10n.positionName(slot.position),
               style: TextStyle(
                 fontFamily: context.tokens.fontMono,
                 fontFamilyFallback: context.tokens.monoFallbacks,

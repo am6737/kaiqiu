@@ -4806,6 +4806,132 @@ abstract class AppL10n {
   /// In zh, this message translates to:
   /// **'定位权限被拒绝，请在设置中开启'**
   String get pickup_map_location_denied;
+
+  /// No description provided for @position_gk.
+  ///
+  /// In zh, this message translates to:
+  /// **'门将'**
+  String get position_gk;
+
+  /// No description provided for @position_cb.
+  ///
+  /// In zh, this message translates to:
+  /// **'中卫'**
+  String get position_cb;
+
+  /// No description provided for @position_lcb.
+  ///
+  /// In zh, this message translates to:
+  /// **'左中卫'**
+  String get position_lcb;
+
+  /// No description provided for @position_rcb.
+  ///
+  /// In zh, this message translates to:
+  /// **'右中卫'**
+  String get position_rcb;
+
+  /// No description provided for @position_lb.
+  ///
+  /// In zh, this message translates to:
+  /// **'左后卫'**
+  String get position_lb;
+
+  /// No description provided for @position_rb.
+  ///
+  /// In zh, this message translates to:
+  /// **'右后卫'**
+  String get position_rb;
+
+  /// No description provided for @position_cm.
+  ///
+  /// In zh, this message translates to:
+  /// **'中场'**
+  String get position_cm;
+
+  /// No description provided for @position_lcm.
+  ///
+  /// In zh, this message translates to:
+  /// **'左中场'**
+  String get position_lcm;
+
+  /// No description provided for @position_rcm.
+  ///
+  /// In zh, this message translates to:
+  /// **'右中场'**
+  String get position_rcm;
+
+  /// No description provided for @position_lw.
+  ///
+  /// In zh, this message translates to:
+  /// **'左边锋'**
+  String get position_lw;
+
+  /// No description provided for @position_rw.
+  ///
+  /// In zh, this message translates to:
+  /// **'右边锋'**
+  String get position_rw;
+
+  /// No description provided for @position_st.
+  ///
+  /// In zh, this message translates to:
+  /// **'前锋'**
+  String get position_st;
+
+  /// No description provided for @position_lm.
+  ///
+  /// In zh, this message translates to:
+  /// **'左前卫'**
+  String get position_lm;
+
+  /// No description provided for @position_rm.
+  ///
+  /// In zh, this message translates to:
+  /// **'右前卫'**
+  String get position_rm;
+
+  /// No description provided for @position_lwb.
+  ///
+  /// In zh, this message translates to:
+  /// **'左翼卫'**
+  String get position_lwb;
+
+  /// No description provided for @position_rwb.
+  ///
+  /// In zh, this message translates to:
+  /// **'右翼卫'**
+  String get position_rwb;
+
+  /// No description provided for @position_ls.
+  ///
+  /// In zh, this message translates to:
+  /// **'左前锋'**
+  String get position_ls;
+
+  /// No description provided for @position_rs.
+  ///
+  /// In zh, this message translates to:
+  /// **'右前锋'**
+  String get position_rs;
+
+  /// No description provided for @position_cam.
+  ///
+  /// In zh, this message translates to:
+  /// **'前腰'**
+  String get position_cam;
+
+  /// No description provided for @position_cdm.
+  ///
+  /// In zh, this message translates to:
+  /// **'后腰'**
+  String get position_cdm;
+
+  /// No description provided for @position_cf.
+  ///
+  /// In zh, this message translates to:
+  /// **'中锋'**
+  String get position_cf;
 }
 
 class _AppL10nDelegate extends LocalizationsDelegate<AppL10n> {

@@ -2490,4 +2490,67 @@ class AppL10nZh extends AppL10n {
 
   @override
   String get pickup_map_location_denied => '定位权限被拒绝，请在设置中开启';
+
+  @override
+  String get position_gk => '门将';
+
+  @override
+  String get position_cb => '中卫';
+
+  @override
+  String get position_lcb => '左中卫';
+
+  @override
+  String get position_rcb => '右中卫';
+
+  @override
+  String get position_lb => '左后卫';
+
+  @override
+  String get position_rb => '右后卫';
+
+  @override
+  String get position_cm => '中场';
+
+  @override
+  String get position_lcm => '左中场';
+
+  @override
+  String get position_rcm => '右中场';
+
+  @override
+  String get position_lw => '左边锋';
+
+  @override
+  String get position_rw => '右边锋';
+
+  @override
+  String get position_st => '前锋';
+
+  @override
+  String get position_lm => '左前卫';
+
+  @override
+  String get position_rm => '右前卫';
+
+  @override
+  String get position_lwb => '左翼卫';
+
+  @override
+  String get position_rwb => '右翼卫';
+
+  @override
+  String get position_ls => '左前锋';
+
+  @override
+  String get position_rs => '右前锋';
+
+  @override
+  String get position_cam => '前腰';
+
+  @override
+  String get position_cdm => '后腰';
+
+  @override
+  String get position_cf => '中锋';
 }

@@ -973,5 +973,27 @@
   "messages_new_dm_not_found": "User not found",
   "messages_new_dm_cant_self": "Can't DM yourself",
   "pickup_map_location_disabled": "Location services are disabled",
-  "pickup_map_location_denied": "Location permission denied. Please enable it in Settings."
+  "pickup_map_location_denied": "Location permission denied. Please enable it in Settings.",
+
+  "position_gk": "GK",
+  "position_cb": "CB",
+  "position_lcb": "LCB",
+  "position_rcb": "RCB",
+  "position_lb": "LB",
+  "position_rb": "RB",
+  "position_cm": "CM",
+  "position_lcm": "LCM",
+  "position_rcm": "RCM",
+  "position_lw": "LW",
+  "position_rw": "RW",
+  "position_st": "ST",
+  "position_lm": "LM",
+  "position_rm": "RM",
+  "position_lwb": "LWB",
+  "position_rwb": "RWB",
+  "position_ls": "LS",
+  "position_rs": "RS",
+  "position_cam": "CAM",
+  "position_cdm": "CDM",
+  "position_cf": "CF"
 }

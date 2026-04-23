@@ -724,7 +724,7 @@ class _PlayerDot extends StatelessWidget {
               borderRadius: BorderRadius.circular(2),
             ),
             child: Text(
-              pos,
+              context.l10n.positionName(pos),
               style: TextStyle(
                 fontFamily: context.tokens.fontMono,
                 fontFamilyFallback: context.tokens.monoFallbacks,
@@ -975,7 +975,7 @@ class _BottomCtaState extends ConsumerState<_BottomCta> {
               child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
             )
           : Text(
-              context.l10n.pickup_detail_confirm_position(selected.$1),
+              context.l10n.pickup_detail_confirm_position(context.l10n.positionName(selected.$1)),
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,

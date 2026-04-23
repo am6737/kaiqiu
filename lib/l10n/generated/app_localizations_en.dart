@@ -2522,4 +2522,67 @@ class AppL10nEn extends AppL10n {
   @override
   String get pickup_map_location_denied =>
       'Location permission denied. Please enable it in Settings.';
+
+  @override
+  String get position_gk => 'GK';
+
+  @override
+  String get position_cb => 'CB';
+
+  @override
+  String get position_lcb => 'LCB';
+
+  @override
+  String get position_rcb => 'RCB';
+
+  @override
+  String get position_lb => 'LB';
+
+  @override
+  String get position_rb => 'RB';
+
+  @override
+  String get position_cm => 'CM';
+
+  @override
+  String get position_lcm => 'LCM';
+
+  @override
+  String get position_rcm => 'RCM';
+
+  @override
+  String get position_lw => 'LW';
+
+  @override
+  String get position_rw => 'RW';
+
+  @override
+  String get position_st => 'ST';
+
+  @override
+  String get position_lm => 'LM';
+
+  @override
+  String get position_rm => 'RM';
+
+  @override
+  String get position_lwb => 'LWB';
+
+  @override
+  String get position_rwb => 'RWB';
+
+  @override
+  String get position_ls => 'LS';
+
+  @override
+  String get position_rs => 'RS';
+
+  @override
+  String get position_cam => 'CAM';
+
+  @override
+  String get position_cdm => 'CDM';
+
+  @override
+  String get position_cf => 'CF';
 }
