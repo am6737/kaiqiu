@@ -9,12 +9,12 @@ import '../../models/map_pin.dart';
 import '../../models/pickup.dart';
 import '../../models/venue.dart';
 import '../../providers.dart';
-import '../../services/local_storage.dart';
 import '../../widgets/chip_pill.dart';
 import '../../widgets/live_pill.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/sport_icon.dart';
 import '../../widgets/typography.dart';
+import '../home/cards/pickup_feed_card.dart';
 import 'map/real_map.dart';
 import '../../theme/app_tokens.dart';
 
@@ -29,9 +29,13 @@ enum _MapMode { pickup, venue }
 
 class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
   _MapMode _mode = _MapMode.pickup;
-  String _filter = 'today';
+  String _filter = 'all';
   String? _activePin;
+  bool _sheetExpanded = false;
   final _sheetCtrl = DraggableScrollableController();
+
+  static const _defaultVisibleKeys = {'all', 'today', 'tomorrow', 'week', 'free', 'lv', 'fee', 'near'};
+  final Set<String> _visibleFilterKeys = Set.of(_defaultVisibleKeys);
 
   // Extended filter state (opened from the filter icon sheet).
   double _distKm = 5;
@@ -142,6 +146,10 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
     if (_activePin != null && _sheetCtrl.size > minSize + 0.01) {
       setState(() => _activePin = null);
     }
+    final expanded = _sheetCtrl.size > 0.7;
+    if (expanded != _sheetExpanded) {
+      setState(() => _sheetExpanded = expanded);
+    }
   }
 
   @override
@@ -151,16 +159,117 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
     super.dispose();
   }
 
-  List<(String, String)> _filterOptions(BuildContext context) {
+  List<(String, String)> _allFilterOptions(BuildContext context) {
     final l = context.l10n;
     return [
+      ('all', l.home_pickup_filter_all),
       ('today', l.pickup_filter_today),
       ('tomorrow', l.pickup_filter_tomorrow),
       ('week', l.pickup_filter_week),
+      ('free', l.home_fee_free),
       ('lv', l.pickup_filter_mid),
       ('fee', l.pickup_filter_cheap),
       ('near', l.pickup_filter_near),
     ];
+  }
+
+  List<(String, String)> _visibleFilterOptions(BuildContext context) {
+    return _allFilterOptions(context)
+        .where((f) => f.$1 == 'all' || _visibleFilterKeys.contains(f.$1))
+        .toList();
+  }
+
+  void _showFilterChipConfig(BuildContext context) {
+    final allOptions = _allFilterOptions(context);
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: context.tokens.elev1,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setModal) => SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 36,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: context.tokens.inkMute,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    context.l10n.pickup_filter_title,
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: context.tokens.ink,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: allOptions.where((f) => f.$1 != 'all').map((f) {
+                      final selected = _visibleFilterKeys.contains(f.$1);
+                      return GestureDetector(
+                        onTap: () {
+                          setModal(() {
+                            setState(() {
+                              if (selected) {
+                                _visibleFilterKeys.remove(f.$1);
+                              } else {
+                                _visibleFilterKeys.add(f.$1);
+                              }
+                            });
+                          });
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: selected ? context.tokens.accentSubtle : context.tokens.elev2,
+                            border: Border.all(
+                              color: selected ? context.tokens.accent : context.tokens.line,
+                            ),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (selected) ...[
+                                Icon(Icons.check, size: 14, color: context.tokens.accent),
+                                const SizedBox(width: 4),
+                              ],
+                              Text(
+                                f.$2,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: selected ? context.tokens.accent : context.tokens.ink,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Future<void> _showFilterSheet(BuildContext context) async {
@@ -484,21 +593,42 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                   if (!isVenueMode)
                   Builder(
                     builder: (ctx) {
-                      final filters = _filterOptions(ctx);
+                      final filters = _visibleFilterOptions(ctx);
                       return SizedBox(
                         height: 28,
-                        child: ListView.separated(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: filters.length,
-                          separatorBuilder: (_, i) => const SizedBox(width: 6),
-                          itemBuilder: (_, i) {
-                            final f = filters[i];
-                            return ChipPill(
-                              label: f.$2,
-                              active: f.$1 == _filter,
-                              onTap: () => setState(() => _filter = f.$1),
-                            );
-                          },
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: ListView.separated(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: filters.length,
+                                separatorBuilder: (_, i) => const SizedBox(width: 6),
+                                itemBuilder: (_, i) {
+                                  final f = filters[i];
+                                  return ChipPill(
+                                    label: f.$2,
+                                    active: f.$1 == _filter,
+                                    onTap: () => setState(() => _filter = f.$1),
+                                  );
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            GestureDetector(
+                              onTap: () => _showFilterChipConfig(ctx),
+                              child: Container(
+                                width: 28,
+                                height: 28,
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  color: context.tokens.elev2,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: context.tokens.line),
+                                ),
+                                child: Icon(Icons.tune, size: 14, color: context.tokens.inkSub),
+                              ),
+                            ),
+                          ],
                         ),
                       );
                     },
@@ -581,17 +711,21 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
             controller: _sheetCtrl,
             initialChildSize: 0.55,
             minChildSize: _sheetMinSize(context),
-            maxChildSize: 0.55,
+            maxChildSize: 1.0,
             snap: true,
-            snapSizes: const [0.55],
+            snapSizes: const [0.55, 1.0],
             builder: (context, scrollController) => Container(
               decoration: BoxDecoration(
                 color: context.tokens.elev1,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(24),
-                  topRight: Radius.circular(24),
-                ),
-                border: Border(top: BorderSide(color: context.tokens.line, width: 1)),
+                borderRadius: _sheetExpanded
+                    ? BorderRadius.zero
+                    : const BorderRadius.only(
+                        topLeft: Radius.circular(24),
+                        topRight: Radius.circular(24),
+                      ),
+                border: _sheetExpanded
+                    ? null
+                    : Border(top: BorderSide(color: context.tokens.line, width: 1)),
               ),
               child: CustomScrollView(
                 controller: scrollController,
@@ -632,6 +766,23 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                               ),
                               const Spacer(),
                               Label(context.l10n.pickup_map_sort_distance),
+                              const SizedBox(width: 12),
+                              GestureDetector(
+                                onTap: () {
+                                  _sheetCtrl.animateTo(
+                                    _sheetExpanded ? 0.55 : 1.0,
+                                    duration: const Duration(milliseconds: 300),
+                                    curve: Curves.easeOut,
+                                  );
+                                },
+                                child: Icon(
+                                  _sheetExpanded
+                                      ? Icons.fullscreen_exit
+                                      : Icons.fullscreen,
+                                  size: 20,
+                                  color: context.tokens.inkSub,
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -650,14 +801,21 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                       ),
                     )
                   else
-                  SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (_, i) => _MapListRow(
-                        item: pickups[i],
-                        distanceKm: _distanceTo(pickups[i]),
-                        onTap: () => context.push('/pickup/${pickups[i].id}'),
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (_, i) {
+                          final p = pickups[i];
+                          final dist = _distanceTo(p);
+                          return PickupFeedCard(
+                            pickup: p,
+                            distanceKm: dist != null ? double.tryParse(dist) : null,
+                            locationAvailable: true,
+                          );
+                        },
+                        childCount: pickups.length,
                       ),
-                      childCount: pickups.length,
                     ),
                   ),
                 ],
@@ -759,104 +917,6 @@ class _LegendRow extends StatelessWidget {
         const SizedBox(width: 6),
         Label(label),
       ],
-    );
-  }
-}
-
-class _MapListRow extends StatelessWidget {
-  final Pickup item;
-  final String? distanceKm;
-  final VoidCallback onTap;
-  const _MapListRow({required this.item, this.distanceKm, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final stateKey = switch (item.status) {
-      PickupStatus.full => 'full',
-      PickupStatus.almost => 'almost',
-      _ => 'open',
-    };
-    final need = item.displayNeed;
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(color: context.tokens.line, width: 1)),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 52,
-              height: 52,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: context.tokens.elev3,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: SportIcon(Sport.football, size: 20, color: context.tokens.inkSub),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item.venue,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: context.tokens.ink,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      N(item.displayTime, size: 11, color: context.tokens.inkSub),
-                      const SizedBox(width: 10),
-                      if (item.level != null) Label(item.level!),
-                      const SizedBox(width: 10),
-                      N(
-                        '¥${item.feeYuan.toStringAsFixed(0)}',
-                        size: 11,
-                        color: context.tokens.inkSub,
-                      ),
-                      if (distanceKm != null) ...[
-                        const SizedBox(width: 10),
-                        Icon(Icons.near_me, size: 10, color: context.tokens.inkMute),
-                        const SizedBox(width: 2),
-                        N(
-                          '${distanceKm}km',
-                          size: 11,
-                          color: context.tokens.inkMute,
-                        ),
-                      ],
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                StatusDot(state: stateKey, size: 7),
-                const SizedBox(height: 4),
-                N(
-                  need > 0
-                      ? context.l10n.pickup_map_need_short(need)
-                      : context.l10n.pickup_map_full_short,
-                  size: 12,
-                  weight: FontWeight.w600,
-                  color: need > 0 ? context.tokens.accent : context.tokens.inkDim,
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

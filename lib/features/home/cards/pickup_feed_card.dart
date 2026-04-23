@@ -128,6 +128,15 @@ class PickupFeedCard extends StatelessWidget {
           const SizedBox(width: 10),
           Text(pickup.level!, style: TextStyle(fontSize: 12, color: t.inkSub)),
         ],
+        if (distanceKm != null) ...[
+          const SizedBox(width: 10),
+          Icon(Icons.near_me, size: 10, color: t.inkMute),
+          const SizedBox(width: 2),
+          Text(
+            '${distanceKm!.toStringAsFixed(1)}km',
+            style: TextStyle(fontSize: 12, color: t.inkMute),
+          ),
+        ],
       ]),
     ]);
   }
