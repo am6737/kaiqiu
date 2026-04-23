@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import 'package:cached_network_image/cached_network_image.dart';
 
@@ -17,7 +18,8 @@ import '../../widgets/typography.dart';
 import '../../theme/app_tokens.dart';
 
 class CreateEventScreen extends ConsumerStatefulWidget {
-  const CreateEventScreen({super.key});
+  final String? editEventId;
+  const CreateEventScreen({super.key, this.editEventId});
 
   @override
   ConsumerState<CreateEventScreen> createState() => _CreateEventScreenState();
@@ -28,17 +30,20 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   int _step = 1;
   String _tpl = 'knockout16';
   final _name = TextEditingController();
-  final _start = TextEditingController();
-  final _end = TextEditingController();
+  DateTime? _startDate;
+  DateTime? _endDate;
   final _venue = TextEditingController();
   final _fee = TextEditingController();
   final _prize = TextEditingController();
-  final _deadline = TextEditingController();
+  DateTime? _deadlineDate;
   final _teamSize = TextEditingController();
   final _maxTeams = TextEditingController();
   String _review = 'auto';
   String? _coverUrl;
   bool _uploadingCover = false;
+
+  Map<String, String?> _errors = {};
+  bool _editMode = false;
 
   List<(String, String, String)> _tpls(BuildContext context) {
     final l = context.l10n;
@@ -65,21 +70,116 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    if (widget.editEventId != null) {
+      _editMode = true;
+      _loadEvent();
+    }
+  }
+
+  Future<void> _loadEvent() async {
+    try {
+      final event = await ref.read(eventsRepoProvider).fetch(widget.editEventId!);
+      setState(() {
+        _tpl = event.template ?? 'knockout16';
+        _name.text = event.name;
+        _startDate = event.startsAt;
+        _endDate = event.endsAt;
+        _venue.text = event.sub ?? '';
+        _fee.text = event.feeCents != null ? '${event.feeCents! ~/ 100}' : '';
+        _prize.text = event.prizeCents != null ? '${event.prizeCents! ~/ 100}' : '';
+        _deadlineDate = event.deadline;
+        _teamSize.text = '${event.teamSize}';
+        _maxTeams.text = event.teamsMax != null ? '${event.teamsMax}' : '';
+        _review = event.reviewMode ?? 'auto';
+        _coverUrl = event.coverUrl;
+      });
+    } catch (e) {
+      if (mounted) showToast(context, '$e', error: true);
+    }
+  }
+
+  @override
   void dispose() {
     for (final c in [
       _name,
-      _start,
-      _end,
       _venue,
       _fee,
       _prize,
-      _deadline,
       _teamSize,
       _maxTeams,
     ]) {
       c.dispose();
     }
     super.dispose();
+  }
+
+  bool _validateStep(int step) {
+    final l = context.l10n;
+    final errors = <String, String?>{};
+
+    if (step == 2) {
+      if (_name.text.trim().isEmpty) errors['name'] = l.validation_name_required;
+      if (_startDate == null) {
+        errors['start'] = l.validation_start_required;
+      } else if (!_startDate!.isAfter(DateTime.now())) {
+        errors['start'] = l.validation_start_future;
+      }
+      if (_endDate == null) {
+        errors['end'] = l.validation_end_required;
+      } else if (_startDate != null && !_endDate!.isAfter(_startDate!)) {
+        errors['end'] = l.validation_end_after_start;
+      }
+      if (_venue.text.trim().isEmpty) errors['venue'] = l.validation_venue_required;
+      final feeVal = _fee.text.trim();
+      if (feeVal.isNotEmpty) {
+        final n = int.tryParse(feeVal);
+        if (n == null || n < 0) errors['fee'] = l.validation_fee_positive;
+      }
+      final prizeVal = _prize.text.trim();
+      if (prizeVal.isNotEmpty) {
+        final n = int.tryParse(prizeVal);
+        if (n == null || n < 0) errors['prize'] = l.validation_prize_positive;
+      }
+    } else if (step == 3) {
+      if (_deadlineDate == null) {
+        errors['deadline'] = l.validation_deadline_required;
+      } else if (_startDate != null && !_deadlineDate!.isBefore(_startDate!)) {
+        errors['deadline'] = l.validation_deadline_before_start;
+      }
+      final tsVal = _teamSize.text.trim();
+      if (tsVal.isNotEmpty) {
+        final n = int.tryParse(tsVal);
+        if (n == null || n <= 0) errors['teamSize'] = l.validation_team_size_positive;
+      }
+      final mtVal = _maxTeams.text.trim();
+      if (mtVal.isNotEmpty) {
+        final n = int.tryParse(mtVal);
+        if (n == null || n < 2) errors['maxTeams'] = l.validation_max_teams_min;
+      }
+    }
+
+    setState(() => _errors = errors);
+    return errors.isEmpty;
+  }
+
+  Future<DateTime?> _pickDateTime({DateTime? initial}) async {
+    final date = await showDatePicker(
+      context: context,
+      initialDate: initial ?? DateTime.now().add(const Duration(days: 7)),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 730)),
+    );
+    if (date == null || !mounted) return null;
+    final time = await showTimePicker(
+      context: context,
+      initialTime: initial != null
+          ? TimeOfDay(hour: initial.hour, minute: initial.minute)
+          : const TimeOfDay(hour: 15, minute: 0),
+    );
+    if (time == null) return DateTime(date.year, date.month, date.day);
+    return DateTime(date.year, date.month, date.day, time.hour, time.minute);
   }
 
   @override
@@ -110,7 +210,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          l.create_event_title,
+                          _editMode ? l.event_edit : l.create_event_title,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
@@ -205,7 +305,9 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                     ? null
                     : () {
                         if (_step < 4) {
-                          setState(() => _step++);
+                          if (_step == 1 || _validateStep(_step)) {
+                            setState(() => _step++);
+                          }
                         } else {
                           _submit();
                         }
@@ -270,7 +372,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     final uid = supabase.auth.currentUser?.id;
     if (uid == null) return;
     try {
-      await ref.read(eventsRepoProvider).create({
+      final payload = {
         'creator_id': uid,
         'name': _name.text.trim(),
         'sub': _venue.text.trim().isEmpty ? null : _venue.text.trim(),
@@ -279,29 +381,32 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         'teams_max': int.tryParse(_maxTeams.text) ?? 16,
         'fee_cents': (int.tryParse(_fee.text) ?? 0) * 100,
         'prize_cents': (int.tryParse(_prize.text) ?? 0) * 100,
-        'deadline': _parseDate(_deadline.text)?.toIso8601String(),
-        'starts_at': _parseDate(_start.text)?.toIso8601String(),
-        'ends_at': _parseDate(_end.text)?.toIso8601String(),
+        'deadline': _deadlineDate?.toIso8601String(),
+        'starts_at': _startDate?.toIso8601String(),
+        'ends_at': _endDate?.toIso8601String(),
+        'review_mode': _review,
         if (_coverUrl != null) 'cover_url': _coverUrl,
-      });
+      };
+
+      if (_editMode) {
+        await ref.read(eventsRepoProvider).updateEvent(widget.editEventId!, payload);
+      } else {
+        await ref.read(eventsRepoProvider).create(payload);
+      }
       ref.invalidate(liveEventsProvider(EventStatus.registering));
       ref.invalidate(myHostedEventsProvider);
       if (!mounted) return;
-      showToast(context, l.create_event_published, success: true);
+      showToast(
+        context,
+        _editMode ? l.event_edit_success : l.create_event_published,
+        success: true,
+      );
       context.go('/events');
     } catch (e) {
       if (!mounted) return;
       showToast(context, l.create_event_publish_failed('$e'), error: true);
     } finally {
       if (mounted) setState(() => _submitting = false);
-    }
-  }
-
-  DateTime? _parseDate(String s) {
-    try {
-      return DateTime.parse(s.trim());
-    } catch (_) {
-      return null;
     }
   }
 
@@ -419,27 +524,35 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
             ),
           ),
           const SizedBox(height: 18),
-          _Field(label: l.create_event_f_name, controller: _name),
+          _Field(label: l.create_event_f_name, controller: _name, errorText: _errors['name']),
           Row(
             children: [
               Expanded(
-                child: _Field(
+                child: _DateField(
                   label: l.create_event_f_start,
-                  controller: _start,
-                  mono: true,
+                  value: _startDate,
+                  errorText: _errors['start'],
+                  onTap: () async {
+                    final dt = await _pickDateTime(initial: _startDate);
+                    if (dt != null) setState(() => _startDate = dt);
+                  },
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: _Field(
+                child: _DateField(
                   label: l.create_event_f_end,
-                  controller: _end,
-                  mono: true,
+                  value: _endDate,
+                  errorText: _errors['end'],
+                  onTap: () async {
+                    final dt = await _pickDateTime(initial: _endDate);
+                    if (dt != null) setState(() => _endDate = dt);
+                  },
                 ),
               ),
             ],
           ),
-          _Field(label: l.create_event_f_venue, controller: _venue),
+          _Field(label: l.create_event_f_venue, controller: _venue, errorText: _errors['venue']),
           Row(
             children: [
               Expanded(
@@ -448,6 +561,8 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                   controller: _fee,
                   prefix: '¥',
                   mono: true,
+                  keyboardType: TextInputType.number,
+                  errorText: _errors['fee'],
                 ),
               ),
               const SizedBox(width: 10),
@@ -457,6 +572,8 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                   controller: _prize,
                   prefix: '¥',
                   mono: true,
+                  keyboardType: TextInputType.number,
+                  errorText: _errors['prize'],
                 ),
               ),
             ],
@@ -483,10 +600,14 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
             ),
           ),
           const SizedBox(height: 18),
-          _Field(
+          _DateField(
             label: l.create_event_f_deadline,
-            controller: _deadline,
-            mono: true,
+            value: _deadlineDate,
+            errorText: _errors['deadline'],
+            onTap: () async {
+              final dt = await _pickDateTime(initial: _deadlineDate);
+              if (dt != null) setState(() => _deadlineDate = dt);
+            },
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(0, 16, 0, 8),
@@ -534,6 +655,8 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                   label: l.create_event_f_teamsize,
                   controller: _teamSize,
                   mono: true,
+                  keyboardType: TextInputType.number,
+                  errorText: _errors['teamSize'],
                 ),
               ),
               const SizedBox(width: 10),
@@ -542,6 +665,8 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                   label: l.create_event_f_maxteams,
                   controller: _maxTeams,
                   mono: true,
+                  keyboardType: TextInputType.number,
+                  errorText: _errors['maxTeams'],
                 ),
               ),
             ],
@@ -581,6 +706,8 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     );
   }
 
+  String _fmtDate(DateTime dt) => DateFormat('yyyy-MM-dd HH:mm').format(dt);
+
   Widget _step4() {
     final l = context.l10n;
     final tpls = _tpls(context);
@@ -588,6 +715,13 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         .firstWhere((t) => t.$1 == _tpl, orElse: () => tpls[1])
         .$2;
     final prizeWan = (int.tryParse(_prize.text) ?? 0) / 10000;
+    final startStr = _startDate != null ? _fmtDate(_startDate!) : '';
+    final deadlineStr = _deadlineDate != null ? _fmtDate(_deadlineDate!) : '';
+    final configOk = _name.text.trim().isNotEmpty &&
+        _startDate != null &&
+        _endDate != null &&
+        _venue.text.trim().isNotEmpty &&
+        _deadlineDate != null;
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -710,9 +844,9 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                         children: [
                           _previewStat(
                             l.home_event_kickoff,
-                            _start.text.length > 5
-                                ? _start.text.substring(5)
-                                : _start.text,
+                            startStr.length > 5
+                                ? startStr.substring(5)
+                                : startStr,
                           ),
                           _previewStat(
                             l.event_kpi_teams,
@@ -740,9 +874,9 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                       Label(
                         l.create_event_preview_registered_of_max(
                           _maxTeams.text,
-                          _deadline.text.length > 5
-                              ? _deadline.text.substring(5)
-                              : _deadline.text,
+                          deadlineStr.length > 5
+                              ? deadlineStr.substring(5)
+                              : deadlineStr,
                         ),
                       ),
                     ],
@@ -755,20 +889,24 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: context.tokens.accentSubtle,
-              border: Border.all(color: const Color(0x6600FF85)),
+              color: configOk ? context.tokens.accentSubtle : context.tokens.elev2,
+              border: Border.all(color: configOk ? const Color(0x6600FF85) : context.tokens.line),
               borderRadius: BorderRadius.circular(context.tokens.r2),
             ),
             child: Row(
               children: [
-                Icon(Icons.check, size: 14, color: context.tokens.accent),
+                Icon(
+                  configOk ? Icons.check : Icons.warning_amber_rounded,
+                  size: 14,
+                  color: configOk ? context.tokens.accent : context.tokens.warn,
+                ),
                 const SizedBox(width: 8),
                 Text(
                   l.create_event_preview_config_ok,
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: context.tokens.accent,
+                    color: configOk ? context.tokens.accent : context.tokens.warn,
                   ),
                 ),
               ],
@@ -806,15 +944,20 @@ class _Field extends StatelessWidget {
   final TextEditingController controller;
   final String? prefix;
   final bool mono;
+  final String? errorText;
+  final TextInputType? keyboardType;
   const _Field({
     required this.label,
     required this.controller,
     this.prefix,
     this.mono = false,
+    this.errorText,
+    this.keyboardType,
   });
 
   @override
   Widget build(BuildContext context) {
+    final hasError = errorText != null;
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: Column(
@@ -827,7 +970,7 @@ class _Field extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
               color: context.tokens.elev2,
-              border: Border.all(color: context.tokens.line),
+              border: Border.all(color: hasError ? Colors.red : context.tokens.line),
               borderRadius: BorderRadius.circular(context.tokens.r2),
             ),
             child: Row(
@@ -840,6 +983,7 @@ class _Field extends StatelessWidget {
                 Expanded(
                   child: TextField(
                     controller: controller,
+                    keyboardType: keyboardType,
                     style: TextStyle(
                       color: context.tokens.ink,
                       fontSize: 15,
@@ -857,6 +1001,80 @@ class _Field extends StatelessWidget {
               ],
             ),
           ),
+          if (hasError) ...[
+            const SizedBox(height: 4),
+            Text(
+              errorText!,
+              style: const TextStyle(fontSize: 11, color: Colors.red),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _DateField extends StatelessWidget {
+  final String label;
+  final DateTime? value;
+  final VoidCallback onTap;
+  final String? errorText;
+  const _DateField({
+    required this.label,
+    required this.value,
+    required this.onTap,
+    this.errorText,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final hasError = errorText != null;
+    final display = value != null
+        ? DateFormat('yyyy-MM-dd HH:mm').format(value!)
+        : '';
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Label(label),
+          const SizedBox(height: 6),
+          GestureDetector(
+            onTap: onTap,
+            child: Container(
+              height: 46,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                color: context.tokens.elev2,
+                border: Border.all(color: hasError ? Colors.red : context.tokens.line),
+                borderRadius: BorderRadius.circular(context.tokens.r2),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      display,
+                      style: TextStyle(
+                        color: display.isEmpty ? context.tokens.inkDim : context.tokens.ink,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                        fontFamily: context.tokens.fontMono,
+                        fontFamilyFallback: context.tokens.monoFallbacks,
+                      ),
+                    ),
+                  ),
+                  Icon(Icons.calendar_today, size: 16, color: context.tokens.inkSub),
+                ],
+              ),
+            ),
+          ),
+          if (hasError) ...[
+            const SizedBox(height: 4),
+            Text(
+              errorText!,
+              style: const TextStyle(fontSize: 11, color: Colors.red),
+            ),
+          ],
         ],
       ),
     );
