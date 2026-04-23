@@ -56,6 +56,6 @@ class Env {
   // May be the same key if the console has Web Service enabled for it.
   static const amapWebKey = String.fromEnvironment(
     'AMAP_WEB_KEY',
-    defaultValue: '320ae72b5f24ee9d84f966cb2c9ecd98',
+    defaultValue: '9e146ca7abfcd573f40e92c5c8944c07',
   );
 }
