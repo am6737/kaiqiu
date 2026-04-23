@@ -490,17 +490,24 @@ class _ContactRow extends ConsumerWidget {
       ),
       child: Column(
         children: [
-          if (venue.phone != null && venue.phone!.isNotEmpty) ...[
-            Row(
-              children: [
-                Icon(Icons.phone, size: 18, color: t.accent),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    venue.phone!,
-                    style: TextStyle(fontSize: 14, color: t.ink),
+          Row(
+            children: [
+              Icon(Icons.phone, size: 18, color: t.accent),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  venue.phone != null && venue.phone!.isNotEmpty
+                      ? venue.phone!
+                      : '无',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: venue.phone != null && venue.phone!.isNotEmpty
+                        ? t.ink
+                        : t.sub,
                   ),
                 ),
+              ),
+              if (venue.phone != null && venue.phone!.isNotEmpty)
                 GestureDetector(
                   onTap: () {
                     Clipboard.setData(ClipboardData(text: venue.phone!));
@@ -525,18 +532,20 @@ class _ContactRow extends ConsumerWidget {
                     ),
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 10),
-          ],
+            ],
+          ),
+          const SizedBox(height: 10),
           Row(
             children: [
               Icon(Icons.person, size: 18, color: t.accent),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  '负责人: ${venue.ownerName ?? '场馆管理员'}',
-                  style: TextStyle(fontSize: 14, color: t.ink),
+                  '负责人: ${venue.ownerName ?? '无'}',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: venue.ownerName != null ? t.ink : t.sub,
+                  ),
                 ),
               ),
             ],
