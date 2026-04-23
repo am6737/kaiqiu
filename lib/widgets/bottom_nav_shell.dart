@@ -1,13 +1,33 @@
 // bottom_nav_shell.dart — 4-tab bottom nav, wraps StatefulShellRoute children
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../l10n/l10n_extension.dart';
+import '../providers.dart';
 import '../theme/app_tokens.dart';
 
-class BottomNavShell extends StatelessWidget {
+class BottomNavShell extends ConsumerStatefulWidget {
   final StatefulNavigationShell shell;
   const BottomNavShell({super.key, required this.shell});
+
+  @override
+  ConsumerState<BottomNavShell> createState() => _BottomNavShellState();
+}
+
+class _BottomNavShellState extends ConsumerState<BottomNavShell> {
+  @override
+  void initState() {
+    super.initState();
+    ref.listenManual(myProfileProvider, (_, next) {
+      final profile = next.valueOrNull?.profile;
+      if (profile != null &&
+          profile.name == '新球友' &&
+          profile.avatarUrl == null) {
+        context.go('/onboarding');
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +40,7 @@ class BottomNavShell extends StatelessWidget {
     ];
     return Scaffold(
       backgroundColor: context.tokens.bg,
-      body: shell,
+      body: widget.shell,
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: context.tokens.elev1,
@@ -35,10 +55,10 @@ class BottomNavShell extends StatelessWidget {
                   label: label,
                   icon: icon,
                   iconActive: iconActive,
-                  active: shell.currentIndex == i,
-                  onTap: () => shell.goBranch(
+                  active: widget.shell.currentIndex == i,
+                  onTap: () => widget.shell.goBranch(
                     i,
-                    initialLocation: i == shell.currentIndex,
+                    initialLocation: i == widget.shell.currentIndex,
                   ),
                 ),
               ),
