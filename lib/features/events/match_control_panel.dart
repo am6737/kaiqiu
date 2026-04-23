@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../l10n/l10n_extension.dart';
+import '../../models/event.dart';
 import '../../providers.dart';
 import '../../theme/app_tokens.dart';
 import '../../widgets/primary_button.dart';
@@ -82,6 +83,38 @@ class _MatchControlPanelState extends ConsumerState<MatchControlPanel> {
       await ref
           .read(eventsRepoProvider)
           .endMatch(widget.matchId, _scoreA, _scoreB);
+
+      if (mounted) {
+        final matches = await ref.read(eventsRepoProvider).matchesFor(widget.eventId);
+        final allDone = matches.every((m) => m.done || m.id == widget.matchId);
+        if (allDone && mounted) {
+          final completeEvent = await showDialog<bool>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: Text(l.event_complete),
+              content: Text(l.event_all_matches_done),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: Text(l.common_cancel),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: Text(l.common_confirm),
+                ),
+              ],
+            ),
+          );
+          if (completeEvent == true) {
+            await ref.read(eventsRepoProvider).updateEventStatus(
+              widget.eventId,
+              EventStatus.completed,
+            );
+            ref.invalidate(eventDetailProvider(widget.eventId));
+          }
+        }
+      }
+
       if (mounted) widget.onMatchEnded();
     } finally {
       if (mounted) setState(() => _busy = false);
