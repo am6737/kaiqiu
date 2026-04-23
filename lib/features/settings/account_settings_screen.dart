@@ -377,7 +377,6 @@ class AccountSettingsScreen extends ConsumerWidget {
   Future<void> _deleteAccount(BuildContext context) async {
     final l = context.l10n;
     final confirmWord = l.settings_account_delete_confirm_word;
-    final controller = TextEditingController();
 
     await showModalBottomSheet(
       context: context,
@@ -390,10 +389,7 @@ class AccountSettingsScreen extends ConsumerWidget {
         padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
-          child: _DeleteAccountSheet(
-            confirmWord: confirmWord,
-            controller: controller,
-          ),
+          child: _DeleteAccountSheet(confirmWord: confirmWord),
         ),
       ),
     );
@@ -440,11 +436,7 @@ class _PwField extends StatelessWidget {
 
 class _DeleteAccountSheet extends ConsumerStatefulWidget {
   final String confirmWord;
-  final TextEditingController controller;
-  const _DeleteAccountSheet({
-    required this.confirmWord,
-    required this.controller,
-  });
+  const _DeleteAccountSheet({required this.confirmWord});
 
   @override
   ConsumerState<_DeleteAccountSheet> createState() =>
@@ -453,14 +445,21 @@ class _DeleteAccountSheet extends ConsumerStatefulWidget {
 
 class _DeleteAccountSheetState extends ConsumerState<_DeleteAccountSheet> {
   bool _loading = false;
+  late final TextEditingController _controller;
 
-  bool get _matched =>
-      widget.controller.text.trim() == widget.confirmWord;
+  bool get _matched => _controller.text.trim() == widget.confirmWord;
 
   @override
   void initState() {
     super.initState();
-    widget.controller.addListener(() => setState(() {}));
+    _controller = TextEditingController();
+    _controller.addListener(() => setState(() {}));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   Future<void> _submit() async {
@@ -468,15 +467,17 @@ class _DeleteAccountSheetState extends ConsumerState<_DeleteAccountSheet> {
     setState(() => _loading = true);
     try {
       final res = await supabase.functions.invoke('delete-account');
-      final body = res.data is String ? jsonDecode(res.data as String) : res.data;
-      if (body is Map && body['error'] != null) {
+      if (res.status != 200) {
+        final body = res.data is String ? jsonDecode(res.data as String) : res.data;
+        final msg = (body is Map ? body['error'] : null) ?? 'Unexpected error (${res.status})';
         if (mounted) {
-          showToast(context, '${body['error']}', error: true);
+          showToast(context, '$msg', error: true);
           setState(() => _loading = false);
         }
         return;
       }
       await LocalStore.clearAll();
+      try { await supabase.auth.signOut(); } catch (_) {}
       if (mounted) {
         final l = context.l10n;
         showToast(context, l.settings_account_delete_done, success: true);
@@ -531,7 +532,7 @@ class _DeleteAccountSheetState extends ConsumerState<_DeleteAccountSheet> {
             borderRadius: BorderRadius.circular(context.tokens.r2),
           ),
           child: TextField(
-            controller: widget.controller,
+            controller: _controller,
             enabled: !_loading,
             style: TextStyle(color: context.tokens.ink, fontSize: 14),
             decoration: const InputDecoration(

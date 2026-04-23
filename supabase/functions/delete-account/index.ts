@@ -72,7 +72,24 @@ async function handler(req: Request): Promise<Response> {
     }
   }
 
-  // 3. Delete auth user (cascades profiles + all ON DELETE CASCADE rows)
+  // 3. Delete rows from tables with bare FK references to profiles
+  const cleanup = [
+    supaAdmin.from("match_participants").delete().eq("user_id", uid),
+    supaAdmin.from("pickup_slots").delete().eq("user_id", uid),
+    supaAdmin.from("comments").delete().eq("author_id", uid),
+    supaAdmin.from("messages").delete().eq("sender_id", uid),
+    supaAdmin.from("teams").delete().eq("captain_id", uid),
+    supaAdmin.from("events").delete().eq("creator_id", uid),
+  ];
+  const cleanupResults = await Promise.all(cleanup);
+  for (const r of cleanupResults) {
+    if (r.error) {
+      console.error("[delete-account] cleanup failed:", r.error);
+      return json({ error: "failed to clean up data" }, 500);
+    }
+  }
+
+  // 4. Delete auth user (cascades profiles + all ON DELETE CASCADE rows)
   const { error: deleteError } = await supaAdmin.auth.admin.deleteUser(uid);
   if (deleteError) {
     console.error("[delete-account] deleteUser failed:", deleteError);
