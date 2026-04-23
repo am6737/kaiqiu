@@ -3913,6 +3913,18 @@ abstract class AppL10n {
   /// **'名额充足'**
   String get home_pickup_slots_available;
 
+  /// No description provided for @home_fee_free.
+  ///
+  /// In zh, this message translates to:
+  /// **'免费'**
+  String get home_fee_free;
+
+  /// No description provided for @home_fee_yuan.
+  ///
+  /// In zh, this message translates to:
+  /// **'¥ {fee}'**
+  String home_fee_yuan(String fee);
+
   /// No description provided for @home_activity_matches.
   ///
   /// In zh, this message translates to:

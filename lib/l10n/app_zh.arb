@@ -770,6 +770,9 @@
   "home_pickup_filter_intermediate": "中级",
   "home_pickup_filter_advanced": "高级",
   "home_pickup_slots_available": "名额充足",
+  "home_fee_free": "免费",
+  "home_fee_yuan": "¥ {fee}",
+  "@home_fee_yuan": { "placeholders": { "fee": { "type": "String" } } },
 
   "home_activity_matches": "局数",
   "home_activity_record": "胜负",

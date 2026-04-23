@@ -770,6 +770,9 @@
   "home_pickup_filter_intermediate": "Intermediate",
   "home_pickup_filter_advanced": "Advanced",
   "home_pickup_slots_available": "Spots available",
+  "home_fee_free": "Free",
+  "home_fee_yuan": "¥ {fee}",
+  "@home_fee_yuan": { "placeholders": { "fee": { "type": "String" } } },
 
   "home_activity_matches": "Matches",
   "home_activity_record": "Record",

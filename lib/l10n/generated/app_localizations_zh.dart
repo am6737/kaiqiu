@@ -1993,6 +1993,14 @@ class AppL10nZh extends AppL10n {
   String get home_pickup_slots_available => '名额充足';
 
   @override
+  String get home_fee_free => '免费';
+
+  @override
+  String home_fee_yuan(String fee) {
+    return '¥ $fee';
+  }
+
+  @override
   String get home_activity_matches => '局数';
 
   @override

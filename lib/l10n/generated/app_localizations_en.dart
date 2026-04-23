@@ -2026,6 +2026,14 @@ class AppL10nEn extends AppL10n {
   String get home_pickup_slots_available => 'Spots available';
 
   @override
+  String get home_fee_free => 'Free';
+
+  @override
+  String home_fee_yuan(String fee) {
+    return '¥ $fee';
+  }
+
+  @override
   String get home_activity_matches => 'Matches';
 
   @override
