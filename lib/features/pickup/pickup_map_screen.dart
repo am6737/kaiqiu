@@ -642,6 +642,7 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
 
   Widget _buildMap(BuildContext context, List<Pickup> pickups, {List<Venue> venues = const []}) {
     final isVenueMode = _mode == _MapMode.venue;
+    final filteredVenues = isVenueMode ? _filterVenues(venues) : venues;
     return Scaffold(
       backgroundColor: context.tokens.bg,
       body: Stack(
@@ -650,7 +651,7 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
           Positioned.fill(
             child: RealPickupMap(
               pickups: isVenueMode ? const [] : pickups,
-              extraPins: isVenueMode ? _venuesToPins(venues) : const [],
+              extraPins: isVenueMode ? _venuesToPins(filteredVenues) : const [],
               activePinId: _activePin,
               locateTrigger: _locateTrigger,
               centerLat: _userLat != _fallbackLat ? _userLat : null,
@@ -733,10 +734,12 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                     ],
                   ),
                   const SizedBox(height: 10),
-                  if (!isVenueMode)
                   Builder(
                     builder: (ctx) {
-                      final filters = _visibleFilterOptions(ctx);
+                      final filters = isVenueMode
+                          ? _visibleVenueFilterOptions()
+                          : _visibleFilterOptions(ctx);
+                      final activeKey = isVenueMode ? _venueFilter : _filter;
                       return SizedBox(
                         height: 28,
                         child: Row(
@@ -750,15 +753,23 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                                   final f = filters[i];
                                   return ChipPill(
                                     label: f.$2,
-                                    active: f.$1 == _filter,
-                                    onTap: () => setState(() => _filter = f.$1),
+                                    active: f.$1 == activeKey,
+                                    onTap: () => setState(() {
+                                      if (isVenueMode) {
+                                        _venueFilter = f.$1;
+                                      } else {
+                                        _filter = f.$1;
+                                      }
+                                    }),
                                   );
                                 },
                               ),
                             ),
                             const SizedBox(width: 6),
                             GestureDetector(
-                              onTap: () => _showFilterChipConfig(ctx),
+                              onTap: () => isVenueMode
+                                  ? _showVenueFilterChipConfig(ctx)
+                                  : _showFilterChipConfig(ctx),
                               child: Container(
                                 width: 28,
                                 height: 28,
@@ -897,7 +908,7 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                             children: [
                               Text(
                                 isVenueMode
-                                    ? '${venues.length} 个场馆'
+                                    ? '${filteredVenues.length} 个场馆'
                                     : context.l10n.pickup_city_pickup_count(
                                         pickups.length,
                                       ),
@@ -936,11 +947,11 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                     SliverList(
                       delegate: SliverChildBuilderDelegate(
                         (_, i) => _VenueListRow(
-                          venue: venues[i],
-                          distanceKm: _distanceToPoint(venues[i].lat, venues[i].lng),
-                          onTap: () => context.push('/venue/${venues[i].id}'),
+                          venue: filteredVenues[i],
+                          distanceKm: _distanceToPoint(filteredVenues[i].lat, filteredVenues[i].lng),
+                          onTap: () => context.push('/venue/${filteredVenues[i].id}'),
                         ),
-                        childCount: venues.length,
+                        childCount: filteredVenues.length,
                       ),
                     )
                   else
@@ -984,7 +995,7 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                     builder: (context) {
                       if (isVenueMode) {
                         final venue = _activePin != null
-                            ? venues.where((v) => v.id == _activePin).firstOrNull
+                            ? filteredVenues.where((v) => v.id == _activePin).firstOrNull
                             : null;
                         if (venue == null) return const SizedBox.shrink();
                         return AnimatedSwitcher(
