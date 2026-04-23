@@ -29,25 +29,29 @@ class ProfileScreen extends ConsumerWidget {
       current: profile?.avatarUrl,
       name: profile?.name ?? '',
     );
-    if (result == null) return;
+    if (result == null || !context.mounted) return;
 
     final uid = currentUserId;
     if (uid == null) return;
 
-    String? newUrl;
-    if (result == kUploadCustom) {
-      newUrl = await StorageService().pickCropCompressAndUpload(
-        bucket: 'avatars',
-        pathPrefix: uid,
-        square: true,
-      );
-      if (newUrl == null) return;
-    } else {
-      newUrl = result;
-    }
+    try {
+      String? newUrl;
+      if (result == kUploadCustom) {
+        newUrl = await StorageService().pickCropCompressAndUpload(
+          bucket: 'avatars',
+          pathPrefix: uid,
+          square: true,
+        );
+        if (newUrl == null || !context.mounted) return;
+      } else {
+        newUrl = result;
+      }
 
-    await ref.read(profilesRepoProvider).update(uid, {'avatar_url': newUrl});
-    ref.invalidate(myProfileProvider);
+      await ref.read(profilesRepoProvider).update(uid, {'avatar_url': newUrl});
+      ref.invalidate(myProfileProvider);
+    } catch (_) {
+      // silently ignore upload / save failures
+    }
   }
 
   @override

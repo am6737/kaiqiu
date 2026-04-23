@@ -42,14 +42,18 @@ class StorageService {
     String extension = _extOf(picked.name);
     String contentType = _mimeOf(extension);
 
-    if (!kIsWeb && square) {
-      final cropped = await _cropSquare(picked.path);
-      if (cropped == null) return null;
-      bytes = await cropped.readAsBytes();
-      extension = _extOf(cropped.path);
-      contentType = _mimeOf(extension);
-    } else {
-      bytes = await picked.readAsBytes();
+    try {
+      if (!kIsWeb && square) {
+        final cropped = await _cropSquare(picked.path);
+        if (cropped == null) return null;
+        bytes = await cropped.readAsBytes();
+        extension = _extOf(cropped.path);
+        contentType = _mimeOf(extension);
+      } else {
+        bytes = await picked.readAsBytes();
+      }
+    } catch (_) {
+      return null;
     }
 
     // Compress on mobile (web plugin lacks Uint8List compression for all formats).
