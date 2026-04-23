@@ -1763,7 +1763,28 @@ class AppL10nZh extends AppL10n {
   String get auth_signup_failed => '注册失败';
 
   @override
+  String get auth_signup_check_email => '注册成功！请查看邮箱并点击确认链接';
+
+  @override
   String get auth_anon_failed => '游客登录失败';
+
+  @override
+  String get onboarding_title => '完善个人信息';
+
+  @override
+  String get onboarding_subtitle => '随时可以在个人主页修改';
+
+  @override
+  String get onboarding_name_label => '昵称';
+
+  @override
+  String get onboarding_submit => '开始使用';
+
+  @override
+  String get onboarding_name_empty => '请输入昵称';
+
+  @override
+  String get onboarding_save_fail => '保存失败';
 
   @override
   String get rate_title => '赛后评分';

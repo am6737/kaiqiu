@@ -1787,7 +1787,29 @@ class AppL10nEn extends AppL10n {
   String get auth_signup_failed => 'Sign up failed';
 
   @override
+  String get auth_signup_check_email =>
+      'Signed up! Please check your email to confirm';
+
+  @override
   String get auth_anon_failed => 'Guest login failed';
+
+  @override
+  String get onboarding_title => 'Set up your profile';
+
+  @override
+  String get onboarding_subtitle => 'You can change this later';
+
+  @override
+  String get onboarding_name_label => 'Nickname';
+
+  @override
+  String get onboarding_submit => 'Get started';
+
+  @override
+  String get onboarding_name_empty => 'Please enter a nickname';
+
+  @override
+  String get onboarding_save_fail => 'Save failed';
 
   @override
   String get rate_title => 'Post-match Rating';

@@ -3481,11 +3481,53 @@ abstract class AppL10n {
   /// **'注册失败'**
   String get auth_signup_failed;
 
+  /// No description provided for @auth_signup_check_email.
+  ///
+  /// In zh, this message translates to:
+  /// **'注册成功！请查看邮箱并点击确认链接'**
+  String get auth_signup_check_email;
+
   /// No description provided for @auth_anon_failed.
   ///
   /// In zh, this message translates to:
   /// **'游客登录失败'**
   String get auth_anon_failed;
+
+  /// No description provided for @onboarding_title.
+  ///
+  /// In zh, this message translates to:
+  /// **'完善个人信息'**
+  String get onboarding_title;
+
+  /// No description provided for @onboarding_subtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'随时可以在个人主页修改'**
+  String get onboarding_subtitle;
+
+  /// No description provided for @onboarding_name_label.
+  ///
+  /// In zh, this message translates to:
+  /// **'昵称'**
+  String get onboarding_name_label;
+
+  /// No description provided for @onboarding_submit.
+  ///
+  /// In zh, this message translates to:
+  /// **'开始使用'**
+  String get onboarding_submit;
+
+  /// No description provided for @onboarding_name_empty.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入昵称'**
+  String get onboarding_name_empty;
+
+  /// No description provided for @onboarding_save_fail.
+  ///
+  /// In zh, this message translates to:
+  /// **'保存失败'**
+  String get onboarding_save_fail;
 
   /// No description provided for @rate_title.
   ///
