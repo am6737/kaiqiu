@@ -1069,6 +1069,12 @@ abstract class AppL10n {
   /// **'规则'**
   String get event_overview_rules;
 
+  /// No description provided for @event_overview_venue.
+  ///
+  /// In zh, this message translates to:
+  /// **'赛事场地'**
+  String get event_overview_venue;
+
   /// No description provided for @event_overview_organizer.
   ///
   /// In zh, this message translates to:

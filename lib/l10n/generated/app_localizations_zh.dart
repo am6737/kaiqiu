@@ -511,6 +511,9 @@ class AppL10nZh extends AppL10n {
   String get event_overview_rules => '规则';
 
   @override
+  String get event_overview_venue => '赛事场地';
+
+  @override
   String get event_overview_organizer => '组织方';
 
   @override

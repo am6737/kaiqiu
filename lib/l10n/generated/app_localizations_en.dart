@@ -517,6 +517,9 @@ class AppL10nEn extends AppL10n {
   String get event_overview_rules => 'Rules';
 
   @override
+  String get event_overview_venue => 'Venue';
+
+  @override
   String get event_overview_organizer => 'Organizer';
 
   @override
