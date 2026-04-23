@@ -222,6 +222,31 @@ class EventsRepository {
   Future<void> insertMatches(List<Map<String, dynamic>> rows) async {
     await supabase.from('matches').insert(rows);
   }
+
+  Future<void> updateEvent(String id, Map<String, dynamic> payload) async {
+    await supabase.from('events').update(payload).eq('id', id);
+  }
+
+  Future<void> cancelEvent(String eventId) async {
+    await supabase
+        .from('events')
+        .update({'status': 'cancelled'})
+        .eq('id', eventId);
+  }
+
+  Future<void> insertTeam(Map<String, dynamic> payload) async {
+    await supabase.from('teams').insert(payload);
+  }
+
+  Future<bool> isUserRegistered(String eventId, String userId) async {
+    final row = await supabase
+        .from('teams')
+        .select('id')
+        .eq('event_id', eventId)
+        .eq('captain_id', userId)
+        .maybeSingle();
+    return row != null;
+  }
 }
 
 class _RatingAgg {
