@@ -1,18 +1,22 @@
 // chat_screen.dart — 单会话聊天 (real-time via Supabase)
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../l10n/l10n_extension.dart';
 import '../../models/message.dart';
+import '../../models/profile.dart';
 import '../../providers.dart';
 import '../../services/local_storage.dart';
 import '../../services/supabase.dart' as svc;
 import '../../services/storage.dart';
 import '../../utils/toast.dart';
 import '../../widgets/avatar.dart';
+import '../../widgets/network_avatar.dart';
 import '../../widgets/rich_input.dart';
+import '../../widgets/user_card_sheet.dart';
 import '../../theme/app_tokens.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
@@ -51,7 +55,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     }
   }
 
-  Future<void> _showMoreMenu() async {
+  Future<void> _showMoreMenu({required bool isDm}) async {
     final l = context.l10n;
     await showModalBottomSheet(
       context: context,
@@ -74,17 +78,18 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 ),
               ),
             ),
-            ListTile(
-              leading: Icon(Icons.people_outline, color: context.tokens.inkSub),
-              title: Text(
-                l.chat_more_members,
-                style: TextStyle(color: context.tokens.ink),
+            if (!isDm)
+              ListTile(
+                leading: Icon(Icons.people_outline, color: context.tokens.inkSub),
+                title: Text(
+                  l.chat_more_members,
+                  style: TextStyle(color: context.tokens.ink),
+                ),
+                onTap: () {
+                  Navigator.of(ctx).pop();
+                  showToast(context, l.chat_more_members);
+                },
               ),
-              onTap: () {
-                Navigator.of(ctx).pop();
-                showToast(context, l.chat_more_members);
-              },
-            ),
             ListTile(
               leading: Icon(
                 LocalStore.isMuted(widget.convId)
@@ -198,12 +203,23 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final me = svc.currentUserId;
 
     final conv = ref.watch(conversationByIdProvider(widget.convId));
+    final isDm = conv?.kind == 'dm';
+    final peerAsync = isDm
+        ? ref.watch(dmPeerProfileProvider(widget.convId))
+        : const AsyncValue<Profile?>.data(null);
+    final peerProfile = peerAsync.valueOrNull;
+
     String title;
-    if (conv?.kind == 'dm') {
-      final peer = ref.watch(dmPeerProfileProvider(widget.convId)).valueOrNull;
-      title = peer?.name ?? context.l10n.chat_default_group_title;
+    if (conv == null) {
+      title = '…';
+    } else if (isDm) {
+      title = peerAsync.when(
+        data: (p) => p?.name ?? '…',
+        loading: () => '…',
+        error: (_, _) => '…',
+      );
     } else {
-      title = conv?.title ?? context.l10n.chat_default_group_title;
+      title = conv.title ?? context.l10n.chat_default_group_title;
     }
 
     // Auto-scroll to bottom when new data arrives.
@@ -237,19 +253,34 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: Text(
-                      title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: context.tokens.ink,
+                    child: GestureDetector(
+                      onTap: isDm && peerProfile != null
+                          ? () => showUserCardSheet(context, ref, userId: peerProfile.id)
+                          : null,
+                      child: Row(
+                        children: [
+                          if (isDm && peerProfile != null) ...[
+                            NetworkAvatar(peerProfile.name, url: peerProfile.avatarUrl, size: 28),
+                            const SizedBox(width: 8),
+                          ],
+                          Expanded(
+                            child: Text(
+                              title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: context.tokens.ink,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
                   GestureDetector(
-                    onTap: _showMoreMenu,
+                    onTap: () => _showMoreMenu(isDm: isDm),
                     child: Padding(
                       padding: EdgeInsets.all(6),
                       child: Icon(Icons.more_horiz, size: 20, color: context.tokens.inkSub),
@@ -260,16 +291,21 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             ),
             Expanded(
               child: messagesAsync.when(
-                data: (list) => ListView.builder(
-                  controller: _scroll,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 12,
-                  ),
-                  itemCount: list.length,
-                  itemBuilder: (_, i) =>
-                      _Bubble(msg: list[i], isMe: list[i].senderId == me),
-                ),
+                data: (list) {
+                  if (isDm && list.isEmpty) {
+                    return _DmEmptyState(peerAsync: peerAsync);
+                  }
+                  return ListView.builder(
+                    controller: _scroll,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
+                    itemCount: list.length,
+                    itemBuilder: (_, i) =>
+                        _Bubble(msg: list[i], isMe: list[i].senderId == me),
+                  );
+                },
                 loading: () => Center(
                   child: CircularProgressIndicator(
                     color: context.tokens.accent,
@@ -337,6 +373,11 @@ class _Bubble extends StatelessWidget {
     if (msg.kind == 'image' && msg.body != null) {
       bubble = GestureDetector(
         onTap: () => _showFullImage(context, msg.body!),
+        onLongPress: () {
+          HapticFeedback.lightImpact();
+          Clipboard.setData(ClipboardData(text: msg.body!));
+          showToast(context, context.l10n.chat_copied, success: true);
+        },
         child: ClipRRect(
           borderRadius: BorderRadius.circular(10),
           child: ConstrainedBox(
@@ -366,19 +407,28 @@ class _Bubble extends StatelessWidget {
         ),
       );
     } else {
-      bubble = Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        constraints: const BoxConstraints(maxWidth: 260),
-        decoration: BoxDecoration(
-          color: isMe ? context.tokens.accent : context.tokens.elev2,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Text(
-          msg.body ?? '',
-          style: TextStyle(
-            fontSize: 14,
-            color: isMe ? Colors.black : context.tokens.ink,
-            height: 1.4,
+      bubble = GestureDetector(
+        onLongPress: () {
+          if (msg.body != null) {
+            HapticFeedback.lightImpact();
+            Clipboard.setData(ClipboardData(text: msg.body!));
+            showToast(context, context.l10n.chat_copied, success: true);
+          }
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          constraints: const BoxConstraints(maxWidth: 260),
+          decoration: BoxDecoration(
+            color: isMe ? context.tokens.accent : context.tokens.elev2,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Text(
+            msg.body ?? '',
+            style: TextStyle(
+              fontSize: 14,
+              color: isMe ? Colors.black : context.tokens.ink,
+              height: 1.4,
+            ),
           ),
         ),
       );
@@ -430,6 +480,80 @@ class _Bubble extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _DmEmptyState extends StatelessWidget {
+  final AsyncValue<Profile?> peerAsync;
+  const _DmEmptyState({required this.peerAsync});
+
+  @override
+  Widget build(BuildContext context) {
+    return peerAsync.when(
+      loading: () => Center(
+        child: CircularProgressIndicator(
+          color: context.tokens.accent,
+          strokeWidth: 2,
+        ),
+      ),
+      error: (_, _) => const SizedBox.shrink(),
+      data: (profile) {
+        if (profile == null) return const SizedBox.shrink();
+        final metaParts = [
+          if ((profile.position ?? '').isNotEmpty) profile.position!,
+          if ((profile.city ?? '').isNotEmpty) profile.city!,
+          if ((profile.district ?? '').isNotEmpty) profile.district!,
+        ];
+        final metaLine = metaParts.isNotEmpty ? metaParts.join(' · ') : null;
+
+        return Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                NetworkAvatar(profile.name, url: profile.avatarUrl, size: 72),
+                const SizedBox(height: 12),
+                Text(
+                  profile.name,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: context.tokens.ink,
+                  ),
+                ),
+                if (metaLine != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    metaLine,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: context.tokens.inkDim,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 16),
+                Text(
+                  context.l10n.chat_dm_empty_title,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: context.tokens.inkSub,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  context.l10n.chat_dm_empty_subtitle,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: context.tokens.inkDim,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

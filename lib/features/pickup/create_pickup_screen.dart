@@ -8,8 +8,9 @@ import '../../providers.dart';
 import '../../services/storage.dart';
 import '../../services/supabase.dart';
 import '../../utils/toast.dart';
-import '../../utils/validators.dart';
+import '../../models/picked_location.dart';
 import '../../widgets/primary_button.dart';
+import 'location_picker.dart';
 import '../../widgets/section_header.dart';
 import '../../widgets/typography.dart';
 import '../../theme/app_tokens.dart';
@@ -22,8 +23,8 @@ class CreatePickupScreen extends ConsumerStatefulWidget {
 }
 
 class _CreatePickupScreenState extends ConsumerState<CreatePickupScreen> {
-  final _venue = TextEditingController(text: '莲花山足球场');
-  final _address = TextEditingController();
+  final _title = TextEditingController();
+  PickedLocation? _pickedLocation;
   final _start = TextEditingController(text: _defaultStart());
   final _duration = TextEditingController(text: '90');
   final _total = TextEditingController(text: '11');
@@ -66,7 +67,7 @@ class _CreatePickupScreenState extends ConsumerState<CreatePickupScreen> {
 
   @override
   void dispose() {
-    for (final c in [_venue, _address, _start, _duration, _total, _fee]) {
+    for (final c in [_title, _start, _duration, _total, _fee]) {
       c.dispose();
     }
     super.dispose();
@@ -91,6 +92,36 @@ class _CreatePickupScreenState extends ConsumerState<CreatePickupScreen> {
     }
   }
 
+  String _generateDefaultTitle(String venue, DateTime startAt) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final startDay = DateTime(startAt.year, startAt.month, startAt.day);
+    final diff = startDay.difference(today).inDays;
+    final time =
+        '${startAt.hour.toString().padLeft(2, '0')}:${startAt.minute.toString().padLeft(2, '0')}';
+    String label;
+    if (diff == 0) {
+      label = '今天 $time';
+    } else if (diff == 1) {
+      label = '明天 $time';
+    } else if (diff > 1 && diff < 7) {
+      const weekdays = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+      label = '${weekdays[startAt.weekday - 1]} $time';
+    } else {
+      label = '${startAt.month}/${startAt.day} $time';
+    }
+    return '$venue $label';
+  }
+
+  Future<void> _pickLocation() async {
+    final result = await Navigator.of(context).push<PickedLocation>(
+      MaterialPageRoute(builder: (_) => const LocationPickerScreen()),
+    );
+    if (result != null && mounted) {
+      setState(() => _pickedLocation = result);
+    }
+  }
+
   Future<void> _submit() async {
     final l = context.l10n;
     final uid = currentUserId;
@@ -98,8 +129,8 @@ class _CreatePickupScreenState extends ConsumerState<CreatePickupScreen> {
       showToast(context, l.error_please_login, error: true);
       return;
     }
-    if (validateRequired(_venue.text) != null) {
-      showToast(context, l.error_required_field, error: true);
+    if (_pickedLocation == null) {
+      showToast(context, '请选择场地位置', error: true);
       return;
     }
     final startAt = _parseStart(_start.text);
@@ -117,9 +148,14 @@ class _CreatePickupScreenState extends ConsumerState<CreatePickupScreen> {
           .createWithSlots(
             payload: {
               'host_id': uid,
-              'venue': _venue.text.trim(),
-              if (_address.text.trim().isNotEmpty)
-                'address': _address.text.trim(),
+              'venue': _pickedLocation!.name,
+              'address': _pickedLocation!.address,
+              'lat': _pickedLocation!.lat,
+              'lng': _pickedLocation!.lng,
+              'title': _title.text.trim().isNotEmpty
+                  ? _title.text.trim()
+                  : _generateDefaultTitle(
+                      _pickedLocation!.name, startAt),
               'start_at': startAt.toUtc().toIso8601String(),
               'duration_min': durationMin,
               'total': total,
@@ -163,11 +199,100 @@ class _CreatePickupScreenState extends ConsumerState<CreatePickupScreen> {
               child: ListView(
                 padding: const EdgeInsets.only(bottom: 120),
                 children: [
-                  _Field(label: l.pickup_create_venue, controller: _venue),
                   _Field(
-                    label: l.pickup_create_address,
-                    controller: _address,
-                    hint: l.pickup_create_address_hint,
+                    label: '活动标题',
+                    controller: _title,
+                    hint: '给你的约球起个标题吧',
+                    maxLength: 30,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Label('场地位置'),
+                        const SizedBox(height: 6),
+                        GestureDetector(
+                          onTap: _pickLocation,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              color: context.tokens.elev2,
+                              border: Border.all(color: context.tokens.line),
+                              borderRadius:
+                                  BorderRadius.circular(context.tokens.r2),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.location_on_outlined,
+                                  size: 20,
+                                  color: _pickedLocation != null
+                                      ? context.tokens.accent
+                                      : context.tokens.inkDim,
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: _pickedLocation != null
+                                      ? Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              _pickedLocation!.name,
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                color: context.tokens.ink,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            const SizedBox(height: 2),
+                                            Text(
+                                              _pickedLocation!.address,
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: context.tokens.inkDim,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ],
+                                        )
+                                      : Text(
+                                          '选择场地位置',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: context.tokens.inkDim,
+                                          ),
+                                        ),
+                                ),
+                                if (_pickedLocation != null)
+                                  GestureDetector(
+                                    onTap: () =>
+                                        setState(() => _pickedLocation = null),
+                                    child: Icon(
+                                      Icons.close,
+                                      size: 18,
+                                      color: context.tokens.inkDim,
+                                    ),
+                                  )
+                                else
+                                  Icon(
+                                    Icons.chevron_right,
+                                    size: 20,
+                                    color: context.tokens.inkDim,
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   _Field(
                     label: l.pickup_create_start_at,
@@ -375,6 +500,7 @@ class _Field extends StatelessWidget {
   final String? hint;
   final VoidCallback? onTap;
   final bool readOnly;
+  final int? maxLength;
   const _Field({
     required this.label,
     required this.controller,
@@ -383,6 +509,7 @@ class _Field extends StatelessWidget {
     this.hint,
     this.onTap,
     this.readOnly = false,
+    this.maxLength,
   });
 
   @override
@@ -414,9 +541,11 @@ class _Field extends StatelessWidget {
                     keyboardType: keyboardType,
                     readOnly: readOnly,
                     onTap: onTap,
+                    maxLength: maxLength,
                     style: TextStyle(color: context.tokens.ink, fontSize: 14),
                     decoration: InputDecoration(
                       border: InputBorder.none,
+                      counterText: '',
                       isDense: true,
                       contentPadding:
                           const EdgeInsets.symmetric(vertical: 12),

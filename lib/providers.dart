@@ -33,6 +33,7 @@ import 'repositories/livekit_repository.dart';
 import 'models/livekit_token.dart';
 import 'repositories/reminders_repository.dart';
 import 'repositories/user_teams_repository.dart';
+import 'services/amap_search_service.dart';
 import 'services/local_storage.dart';
 import 'services/location.dart';
 import 'services/supabase.dart';
@@ -59,6 +60,7 @@ final notificationsRepoProvider =
     Provider((_) => NotificationsRepository());
 final likesRepoProvider = Provider((_) => LikesRepository());
 final livekitRepoProvider = Provider((_) => LiveKitRepository());
+final amapSearchProvider = Provider((_) => AmapSearchService());
 
 final likedPostIdsProvider = FutureProvider<Set<String>>((ref) async {
   return ref.read(likesRepoProvider).likedIds('post');

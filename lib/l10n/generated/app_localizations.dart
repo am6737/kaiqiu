@@ -2095,6 +2095,24 @@ abstract class AppL10n {
   /// **'已清空'**
   String get chat_cleared;
 
+  /// No description provided for @chat_dm_empty_title.
+  ///
+  /// In zh, this message translates to:
+  /// **'你们还没聊过'**
+  String get chat_dm_empty_title;
+
+  /// No description provided for @chat_dm_empty_subtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'打个招呼吧'**
+  String get chat_dm_empty_subtitle;
+
+  /// No description provided for @chat_copied.
+  ///
+  /// In zh, this message translates to:
+  /// **'已复制'**
+  String get chat_copied;
+
   /// No description provided for @profile_title.
   ///
   /// In zh, this message translates to:
@@ -2476,8 +2494,20 @@ abstract class AppL10n {
   /// No description provided for @profile_edit_avatar_hint.
   ///
   /// In zh, this message translates to:
-  /// **'点击更换头像（暂用首字母）'**
+  /// **'点击选择或上传头像'**
   String get profile_edit_avatar_hint;
+
+  /// No description provided for @avatar_picker_title.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择头像'**
+  String get avatar_picker_title;
+
+  /// No description provided for @avatar_picker_upload.
+  ///
+  /// In zh, this message translates to:
+  /// **'上传自定义头像'**
+  String get avatar_picker_upload;
 
   /// No description provided for @profile_edit_save_ok.
   ///
