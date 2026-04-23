@@ -4932,6 +4932,210 @@ abstract class AppL10n {
   /// In zh, this message translates to:
   /// **'中锋'**
   String get position_cf;
+
+  /// No description provided for @validation_name_required.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入赛事名称'**
+  String get validation_name_required;
+
+  /// No description provided for @validation_start_required.
+  ///
+  /// In zh, this message translates to:
+  /// **'请选择开始时间'**
+  String get validation_start_required;
+
+  /// No description provided for @validation_start_future.
+  ///
+  /// In zh, this message translates to:
+  /// **'开始时间必须在当前之后'**
+  String get validation_start_future;
+
+  /// No description provided for @validation_end_required.
+  ///
+  /// In zh, this message translates to:
+  /// **'请选择结束时间'**
+  String get validation_end_required;
+
+  /// No description provided for @validation_end_after_start.
+  ///
+  /// In zh, this message translates to:
+  /// **'结束时间必须晚于开始时间'**
+  String get validation_end_after_start;
+
+  /// No description provided for @validation_venue_required.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入场地'**
+  String get validation_venue_required;
+
+  /// No description provided for @validation_fee_positive.
+  ///
+  /// In zh, this message translates to:
+  /// **'费用不能为负数'**
+  String get validation_fee_positive;
+
+  /// No description provided for @validation_prize_positive.
+  ///
+  /// In zh, this message translates to:
+  /// **'奖金不能为负数'**
+  String get validation_prize_positive;
+
+  /// No description provided for @validation_deadline_required.
+  ///
+  /// In zh, this message translates to:
+  /// **'请选择报名截止日期'**
+  String get validation_deadline_required;
+
+  /// No description provided for @validation_deadline_before_start.
+  ///
+  /// In zh, this message translates to:
+  /// **'报名截止日期必须早于开始时间'**
+  String get validation_deadline_before_start;
+
+  /// No description provided for @validation_team_size_positive.
+  ///
+  /// In zh, this message translates to:
+  /// **'每队人数必须大于0'**
+  String get validation_team_size_positive;
+
+  /// No description provided for @validation_max_teams_min.
+  ///
+  /// In zh, this message translates to:
+  /// **'最大队伍数不能少于2'**
+  String get validation_max_teams_min;
+
+  /// No description provided for @validation_contact_required.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入联系人'**
+  String get validation_contact_required;
+
+  /// No description provided for @validation_phone_required.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入联系电话'**
+  String get validation_phone_required;
+
+  /// No description provided for @validation_phone_format.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入有效的手机号码'**
+  String get validation_phone_format;
+
+  /// No description provided for @schedule_teams_required.
+  ///
+  /// In zh, this message translates to:
+  /// **'请填写所有比赛的双方队伍名称'**
+  String get schedule_teams_required;
+
+  /// No description provided for @schedule_slot_missing_teams.
+  ///
+  /// In zh, this message translates to:
+  /// **'{round} #{index}: 请填写双方队伍'**
+  String schedule_slot_missing_teams(Object round, Object index);
+
+  /// No description provided for @schedule_time_warning_title.
+  ///
+  /// In zh, this message translates to:
+  /// **'部分比赛未设置时间'**
+  String get schedule_time_warning_title;
+
+  /// No description provided for @schedule_time_warning_body.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count}场比赛尚未设置时间，是否继续？'**
+  String schedule_time_warning_body(Object count);
+
+  /// No description provided for @schedule_teams_insufficient.
+  ///
+  /// In zh, this message translates to:
+  /// **'已报名{registered}支队伍，模板至少需要{required}支'**
+  String schedule_teams_insufficient(Object registered, Object required);
+
+  /// No description provided for @event_complete.
+  ///
+  /// In zh, this message translates to:
+  /// **'结束赛事'**
+  String get event_complete;
+
+  /// No description provided for @event_complete_confirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认将赛事标记为已完赛？此操作不可撤销。'**
+  String get event_complete_confirm;
+
+  /// No description provided for @event_complete_success.
+  ///
+  /// In zh, this message translates to:
+  /// **'赛事已完赛'**
+  String get event_complete_success;
+
+  /// No description provided for @event_cancel.
+  ///
+  /// In zh, this message translates to:
+  /// **'取消赛事'**
+  String get event_cancel;
+
+  /// No description provided for @event_cancel_confirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认取消此赛事？已报名的队伍将收到通知。'**
+  String get event_cancel_confirm;
+
+  /// No description provided for @event_cancel_success.
+  ///
+  /// In zh, this message translates to:
+  /// **'赛事已取消'**
+  String get event_cancel_success;
+
+  /// No description provided for @event_edit.
+  ///
+  /// In zh, this message translates to:
+  /// **'编辑赛事'**
+  String get event_edit;
+
+  /// No description provided for @event_edit_success.
+  ///
+  /// In zh, this message translates to:
+  /// **'赛事信息已更新'**
+  String get event_edit_success;
+
+  /// No description provided for @event_status_cancelled.
+  ///
+  /// In zh, this message translates to:
+  /// **'已取消'**
+  String get event_status_cancelled;
+
+  /// No description provided for @event_registration_full.
+  ///
+  /// In zh, this message translates to:
+  /// **'报名已满'**
+  String get event_registration_full;
+
+  /// No description provided for @event_registration_closed.
+  ///
+  /// In zh, this message translates to:
+  /// **'报名已截止'**
+  String get event_registration_closed;
+
+  /// No description provided for @event_registration_deadline_passed.
+  ///
+  /// In zh, this message translates to:
+  /// **'报名截止日期已过'**
+  String get event_registration_deadline_passed;
+
+  /// No description provided for @event_already_registered.
+  ///
+  /// In zh, this message translates to:
+  /// **'你已报名此赛事'**
+  String get event_already_registered;
+
+  /// No description provided for @event_all_matches_done.
+  ///
+  /// In zh, this message translates to:
+  /// **'所有比赛已结束，是否标记赛事为已完赛？'**
+  String get event_all_matches_done;
 }
 
 class _AppL10nDelegate extends LocalizationsDelegate<AppL10n> {

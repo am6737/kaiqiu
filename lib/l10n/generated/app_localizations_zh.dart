@@ -2553,4 +2553,112 @@ class AppL10nZh extends AppL10n {
 
   @override
   String get position_cf => '中锋';
+
+  @override
+  String get validation_name_required => '请输入赛事名称';
+
+  @override
+  String get validation_start_required => '请选择开始时间';
+
+  @override
+  String get validation_start_future => '开始时间必须在当前之后';
+
+  @override
+  String get validation_end_required => '请选择结束时间';
+
+  @override
+  String get validation_end_after_start => '结束时间必须晚于开始时间';
+
+  @override
+  String get validation_venue_required => '请输入场地';
+
+  @override
+  String get validation_fee_positive => '费用不能为负数';
+
+  @override
+  String get validation_prize_positive => '奖金不能为负数';
+
+  @override
+  String get validation_deadline_required => '请选择报名截止日期';
+
+  @override
+  String get validation_deadline_before_start => '报名截止日期必须早于开始时间';
+
+  @override
+  String get validation_team_size_positive => '每队人数必须大于0';
+
+  @override
+  String get validation_max_teams_min => '最大队伍数不能少于2';
+
+  @override
+  String get validation_contact_required => '请输入联系人';
+
+  @override
+  String get validation_phone_required => '请输入联系电话';
+
+  @override
+  String get validation_phone_format => '请输入有效的手机号码';
+
+  @override
+  String get schedule_teams_required => '请填写所有比赛的双方队伍名称';
+
+  @override
+  String schedule_slot_missing_teams(Object round, Object index) {
+    return '$round #$index: 请填写双方队伍';
+  }
+
+  @override
+  String get schedule_time_warning_title => '部分比赛未设置时间';
+
+  @override
+  String schedule_time_warning_body(Object count) {
+    return '$count场比赛尚未设置时间，是否继续？';
+  }
+
+  @override
+  String schedule_teams_insufficient(Object registered, Object required) {
+    return '已报名$registered支队伍，模板至少需要$required支';
+  }
+
+  @override
+  String get event_complete => '结束赛事';
+
+  @override
+  String get event_complete_confirm => '确认将赛事标记为已完赛？此操作不可撤销。';
+
+  @override
+  String get event_complete_success => '赛事已完赛';
+
+  @override
+  String get event_cancel => '取消赛事';
+
+  @override
+  String get event_cancel_confirm => '确认取消此赛事？已报名的队伍将收到通知。';
+
+  @override
+  String get event_cancel_success => '赛事已取消';
+
+  @override
+  String get event_edit => '编辑赛事';
+
+  @override
+  String get event_edit_success => '赛事信息已更新';
+
+  @override
+  String get event_status_cancelled => '已取消';
+
+  @override
+  String get event_registration_full => '报名已满';
+
+  @override
+  String get event_registration_closed => '报名已截止';
+
+  @override
+  String get event_registration_deadline_passed => '报名截止日期已过';
+
+  @override
+  String get event_already_registered => '你已报名此赛事';
+
+  @override
+  String get event_all_matches_done => '所有比赛已结束，是否标记赛事为已完赛？';
 }

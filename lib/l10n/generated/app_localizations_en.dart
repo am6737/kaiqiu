@@ -2585,4 +2585,120 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get position_cf => 'CF';
+
+  @override
+  String get validation_name_required => 'Event name is required';
+
+  @override
+  String get validation_start_required => 'Start time is required';
+
+  @override
+  String get validation_start_future => 'Start time must be in the future';
+
+  @override
+  String get validation_end_required => 'End time is required';
+
+  @override
+  String get validation_end_after_start => 'End time must be after start time';
+
+  @override
+  String get validation_venue_required => 'Venue is required';
+
+  @override
+  String get validation_fee_positive => 'Fee cannot be negative';
+
+  @override
+  String get validation_prize_positive => 'Prize cannot be negative';
+
+  @override
+  String get validation_deadline_required =>
+      'Registration deadline is required';
+
+  @override
+  String get validation_deadline_before_start =>
+      'Deadline must be before start time';
+
+  @override
+  String get validation_team_size_positive =>
+      'Team size must be greater than 0';
+
+  @override
+  String get validation_max_teams_min => 'Must have at least 2 teams';
+
+  @override
+  String get validation_contact_required => 'Contact person is required';
+
+  @override
+  String get validation_phone_required => 'Phone number is required';
+
+  @override
+  String get validation_phone_format => 'Please enter a valid phone number';
+
+  @override
+  String get schedule_teams_required =>
+      'Please fill in team names for all matches';
+
+  @override
+  String schedule_slot_missing_teams(Object round, Object index) {
+    return '$round #$index: please fill in both teams';
+  }
+
+  @override
+  String get schedule_time_warning_title => 'Some matches have no time';
+
+  @override
+  String schedule_time_warning_body(Object count) {
+    return '$count matches have no scheduled time. Continue?';
+  }
+
+  @override
+  String schedule_teams_insufficient(Object registered, Object required) {
+    return '$registered teams registered, template requires at least $required';
+  }
+
+  @override
+  String get event_complete => 'Complete Event';
+
+  @override
+  String get event_complete_confirm =>
+      'Mark event as completed? This cannot be undone.';
+
+  @override
+  String get event_complete_success => 'Event completed';
+
+  @override
+  String get event_cancel => 'Cancel Event';
+
+  @override
+  String get event_cancel_confirm =>
+      'Cancel this event? Registered teams will be notified.';
+
+  @override
+  String get event_cancel_success => 'Event cancelled';
+
+  @override
+  String get event_edit => 'Edit Event';
+
+  @override
+  String get event_edit_success => 'Event updated';
+
+  @override
+  String get event_status_cancelled => 'Cancelled';
+
+  @override
+  String get event_registration_full => 'Registration full';
+
+  @override
+  String get event_registration_closed => 'Registration closed';
+
+  @override
+  String get event_registration_deadline_passed =>
+      'Registration deadline passed';
+
+  @override
+  String get event_already_registered => 'Already registered';
+
+  @override
+  String get event_all_matches_done =>
+      'All matches finished. Mark event as completed?';
 }
