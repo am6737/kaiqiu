@@ -14,7 +14,6 @@ import '../../widgets/avatar.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/typography.dart';
 import '../../theme/app_tokens.dart';
-import 'new_dm_sheet.dart';
 
 class MessagesTab extends ConsumerWidget {
   const MessagesTab({super.key});
@@ -132,20 +131,6 @@ Future<void> showMessagesNewSheet(BuildContext context, WidgetRef ref) async {
             ),
           ),
           const SizedBox(height: 12),
-          ListTile(
-            leading: Icon(Icons.chat_bubble_outline,
-                color: context.tokens.accent),
-            title: Text(
-              l.messages_new_dm,
-              style: TextStyle(color: context.tokens.ink),
-            ),
-            onTap: () async {
-              Navigator.of(ctx).pop();
-              if (context.mounted) {
-                await showNewDmSheet(context, ref);
-              }
-            },
-          ),
           ListTile(
             leading: Icon(Icons.groups_outlined, color: context.tokens.accent),
             title: Text(

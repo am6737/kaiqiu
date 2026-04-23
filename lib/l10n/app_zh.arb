@@ -424,8 +424,8 @@
   "profile_mini_mvp": "MVP",
   "profile_section_activity": "我的活动",
   "profile_section_settings": "设置",
-  "profile_menu_my_events": "我报名的赛事",
-  "profile_menu_my_pickups": "我组织的球局",
+  "profile_menu_my_events": "我的赛事",
+  "profile_menu_my_pickups": "我的球局",
   "profile_menu_my_teams": "我的队伍",
   "profile_menu_favorites": "收藏与足迹",
   "profile_menu_account": "账号设置",
@@ -907,7 +907,7 @@
   "messages_kind_group": "群聊",
   "messages_kind_dm": "私信",
 
-  "chat_default_group_title": "开球 · 新手大厅",
+  "chat_default_group_title": "群聊",
   "chat_sender_system": "系统",
 
   "auth_guest_prefix": "游客-",

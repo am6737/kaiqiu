@@ -141,37 +141,14 @@ class ProfileScreen extends ConsumerWidget {
             // Title row
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 6, 16, 8),
-              child: Row(
-                children: [
-                  Text(
-                    l.profile_title,
-                    style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.w800,
-                      color: context.tokens.ink,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                  const Spacer(),
-                  GestureDetector(
-                    onTap: () => context.push('/settings/account'),
-                    child: Container(
-                      width: 36,
-                      height: 36,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: context.tokens.elev2,
-                        border: Border.all(color: context.tokens.line),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.settings_outlined,
-                        size: 18,
-                        color: context.tokens.inkSub,
-                      ),
-                    ),
-                  ),
-                ],
+              child: Text(
+                l.profile_title,
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w800,
+                  color: context.tokens.ink,
+                  letterSpacing: -0.5,
+                ),
               ),
             ),
             // Centered avatar

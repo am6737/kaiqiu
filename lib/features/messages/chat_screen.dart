@@ -513,18 +513,7 @@ class _DmEmptyState extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                NetworkAvatar(profile.name, url: profile.avatarUrl, size: 72),
-                const SizedBox(height: 12),
-                Text(
-                  profile.name,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: context.tokens.ink,
-                  ),
-                ),
                 if (metaLine != null) ...[
-                  const SizedBox(height: 4),
                   Text(
                     metaLine,
                     style: TextStyle(

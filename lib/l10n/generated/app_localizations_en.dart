@@ -1111,10 +1111,10 @@ class AppL10nEn extends AppL10n {
   String get profile_section_settings => 'Settings';
 
   @override
-  String get profile_menu_my_events => 'Events I joined';
+  String get profile_menu_my_events => 'My Events';
 
   @override
-  String get profile_menu_my_pickups => 'Pickups I hosted';
+  String get profile_menu_my_pickups => 'My Pickups';
 
   @override
   String get profile_menu_my_teams => 'My teams';
@@ -2359,7 +2359,7 @@ class AppL10nEn extends AppL10n {
   String get messages_kind_dm => 'Direct';
 
   @override
-  String get chat_default_group_title => 'GameOn · Rookie Lobby';
+  String get chat_default_group_title => 'Group Chat';
 
   @override
   String get chat_sender_system => 'system';

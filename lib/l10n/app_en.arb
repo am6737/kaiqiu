@@ -424,8 +424,8 @@
   "profile_mini_mvp": "MVP",
   "profile_section_activity": "Activity",
   "profile_section_settings": "Settings",
-  "profile_menu_my_events": "Events I joined",
-  "profile_menu_my_pickups": "Pickups I hosted",
+  "profile_menu_my_events": "My Events",
+  "profile_menu_my_pickups": "My Pickups",
   "profile_menu_my_teams": "My teams",
   "profile_menu_favorites": "Favorites",
   "profile_menu_account": "Account",
@@ -907,7 +907,7 @@
   "messages_kind_group": "Group",
   "messages_kind_dm": "Direct",
 
-  "chat_default_group_title": "GameOn · Rookie Lobby",
+  "chat_default_group_title": "Group Chat",
   "chat_sender_system": "system",
 
   "auth_guest_prefix": "Guest-",

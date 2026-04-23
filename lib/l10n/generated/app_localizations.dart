@@ -2188,13 +2188,13 @@ abstract class AppL10n {
   /// No description provided for @profile_menu_my_events.
   ///
   /// In zh, this message translates to:
-  /// **'我报名的赛事'**
+  /// **'我的赛事'**
   String get profile_menu_my_events;
 
   /// No description provided for @profile_menu_my_pickups.
   ///
   /// In zh, this message translates to:
-  /// **'我组织的球局'**
+  /// **'我的球局'**
   String get profile_menu_my_pickups;
 
   /// No description provided for @profile_menu_my_teams.
@@ -4522,7 +4522,7 @@ abstract class AppL10n {
   /// No description provided for @chat_default_group_title.
   ///
   /// In zh, this message translates to:
-  /// **'开球 · 新手大厅'**
+  /// **'群聊'**
   String get chat_default_group_title;
 
   /// No description provided for @chat_sender_system.

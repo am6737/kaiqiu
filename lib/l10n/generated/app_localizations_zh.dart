@@ -1099,10 +1099,10 @@ class AppL10nZh extends AppL10n {
   String get profile_section_settings => '设置';
 
   @override
-  String get profile_menu_my_events => '我报名的赛事';
+  String get profile_menu_my_events => '我的赛事';
 
   @override
-  String get profile_menu_my_pickups => '我组织的球局';
+  String get profile_menu_my_pickups => '我的球局';
 
   @override
   String get profile_menu_my_teams => '我的队伍';
@@ -2334,7 +2334,7 @@ class AppL10nZh extends AppL10n {
   String get messages_kind_dm => '私信';
 
   @override
-  String get chat_default_group_title => '开球 · 新手大厅';
+  String get chat_default_group_title => '群聊';
 
   @override
   String get chat_sender_system => '系统';

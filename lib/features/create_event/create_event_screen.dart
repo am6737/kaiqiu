@@ -285,6 +285,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         if (_coverUrl != null) 'cover_url': _coverUrl,
       });
       ref.invalidate(liveEventsProvider(EventStatus.registering));
+      ref.invalidate(myHostedEventsProvider);
       if (!mounted) return;
       showToast(context, l.create_event_published, success: true);
       context.go('/events');
