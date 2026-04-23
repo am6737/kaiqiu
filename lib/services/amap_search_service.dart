@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as dev;
 import 'package:http/http.dart' as http;
 import '../config/env.dart';
 
@@ -28,9 +29,15 @@ class AmapSearchService {
     });
     try {
       final resp = await http.get(uri).timeout(const Duration(seconds: 6));
-      if (resp.statusCode != 200) return [];
+      if (resp.statusCode != 200) {
+        dev.log('AMap POI search HTTP ${resp.statusCode}', name: 'AmapSearch');
+        return [];
+      }
       final body = json.decode(resp.body) as Map<String, dynamic>;
-      if (body['status'] != '1') return [];
+      if (body['status'] != '1') {
+        dev.log('AMap POI search failed: ${body['info']} (${body['infocode']})', name: 'AmapSearch');
+        return [];
+      }
       final pois = body['pois'] as List? ?? [];
       return pois.map((p) {
         final loc = (p['location'] as String? ?? '').split(',');
@@ -43,7 +50,8 @@ class AmapSearchService {
           lng: lng,
         );
       }).where((p) => p.lat != 0 && p.lng != 0).toList();
-    } catch (_) {
+    } catch (e) {
+      dev.log('AMap POI search error: $e', name: 'AmapSearch');
       return [];
     }
   }
@@ -56,9 +64,15 @@ class AmapSearchService {
     });
     try {
       final resp = await http.get(uri).timeout(const Duration(seconds: 6));
-      if (resp.statusCode != 200) return null;
+      if (resp.statusCode != 200) {
+        dev.log('AMap regeo HTTP ${resp.statusCode}', name: 'AmapSearch');
+        return null;
+      }
       final body = json.decode(resp.body) as Map<String, dynamic>;
-      if (body['status'] != '1') return null;
+      if (body['status'] != '1') {
+        dev.log('AMap regeo failed: ${body['info']} (${body['infocode']})', name: 'AmapSearch');
+        return null;
+      }
       final regeo = body['regeocode'] as Map<String, dynamic>? ?? {};
       final formatted = regeo['formatted_address'] as String? ?? '';
       final pois = regeo['pois'] as List?;
@@ -72,7 +86,8 @@ class AmapSearchService {
       }
       if (name.isEmpty) name = formatted;
       return PoiResult(name: name, address: formatted, lat: lat, lng: lng);
-    } catch (_) {
+    } catch (e) {
+      dev.log('AMap regeo error: $e', name: 'AmapSearch');
       return null;
     }
   }
