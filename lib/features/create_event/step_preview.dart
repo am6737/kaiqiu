@@ -12,6 +12,7 @@ class StepPreview extends StatelessWidget {
   final String selectedTemplate;
   final String eventName;
   final String venueName;
+  final String? venueAddress;
   final String prizeText;
   final String maxTeamsText;
   final DateTime? startDate;
@@ -25,6 +26,7 @@ class StepPreview extends StatelessWidget {
     required this.selectedTemplate,
     required this.eventName,
     required this.venueName,
+    this.venueAddress,
     required this.prizeText,
     required this.maxTeamsText,
     required this.startDate,
@@ -202,6 +204,15 @@ class StepPreview extends StatelessWidget {
                         '$tplName · $venueName',
                         style: TextStyle(fontSize: 12, color: context.tokens.inkSub),
                       ),
+                      if (venueAddress != null && venueAddress!.isNotEmpty) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          venueAddress!,
+                          style: TextStyle(fontSize: 11, color: context.tokens.inkDim),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                       const SizedBox(height: 12),
                       Row(
                         children: [
