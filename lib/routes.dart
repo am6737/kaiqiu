@@ -151,6 +151,10 @@ final router = GoRouter(
       path: '/create-event',
       builder: (_, s) => const CreateEventScreen(),
     ),
+    GoRoute(
+      path: '/event/:id/edit',
+      builder: (_, s) => CreateEventScreen(editEventId: s.pathParameters['id']),
+    ),
     // Venues
     GoRoute(
       path: '/venue/create',
