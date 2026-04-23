@@ -1,20 +1,7 @@
-// storage.dart — 图片选择 + 裁剪 + 压缩 + 上传到 Supabase Storage
-//
-// 使用示例：
-//   final url = await StorageService().pickCropCompressAndUpload(
-//     bucket: 'avatars',
-//     pathPrefix: currentUserId!,
-//     square: true,
-//   );
-//
-// bucket 必须是在 Supabase Dashboard → Storage 预先创建好的 public bucket。
-// 返回 publicUrl（用户取消返回 null，上传失败抛异常）。
-
-import 'dart:io' show Platform;
+// storage.dart — 图片选择 + 压缩 + 上传到 Supabase Storage
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
-import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -23,9 +10,6 @@ import 'supabase.dart';
 class StorageService {
   final ImagePicker _picker = ImagePicker();
 
-  /// End-to-end: pick → optionally crop (mobile) → compress → upload → publicUrl.
-  ///
-  /// Returns `null` if the user cancels. Throws on upload failure.
   Future<String?> pickCropCompressAndUpload({
     required String bucket,
     required String pathPrefix,
@@ -40,25 +24,10 @@ class StorageService {
     );
     if (picked == null) return null;
 
-    Uint8List bytes;
+    Uint8List bytes = await picked.readAsBytes();
     String extension = _extOf(picked.name);
     String contentType = _mimeOf(extension);
 
-    try {
-      if (!kIsWeb && square && !Platform.isAndroid) {
-        final cropped = await _cropSquare(picked.path);
-        if (cropped == null) return null;
-        bytes = await cropped.readAsBytes();
-        extension = _extOf(cropped.path);
-        contentType = _mimeOf(extension);
-      } else {
-        bytes = await picked.readAsBytes();
-      }
-    } catch (_) {
-      return null;
-    }
-
-    // Compress on mobile (web plugin lacks Uint8List compression for all formats).
     if (!kIsWeb) {
       try {
         final compressed = await FlutterImageCompress.compressWithList(
@@ -68,9 +37,7 @@ class StorageService {
           minHeight: 1024,
         );
         if (compressed.isNotEmpty) bytes = compressed;
-      } catch (_) {
-        // fall through with uncompressed bytes
-      }
+      } catch (_) {}
     }
 
     final storagePath =
@@ -85,25 +52,10 @@ class StorageService {
     return supabase.storage.from(bucket).getPublicUrl(storagePath);
   }
 
-  Future<CroppedFile?> _cropSquare(String sourcePath) async {
-    return ImageCropper().cropImage(
-      sourcePath: sourcePath,
-      aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
-      compressQuality: 90,
-      uiSettings: [
-        AndroidUiSettings(hideBottomControls: true, lockAspectRatio: true),
-        IOSUiSettings(aspectRatioLockEnabled: true),
-      ],
-    );
-  }
-
-  /// Best-effort delete of an object by full storage path (e.g. "uid/123.jpg").
   Future<void> delete(String bucket, String path) async {
     try {
       await supabase.storage.from(bucket).remove([path]);
-    } catch (_) {
-      // ignore
-    }
+    } catch (_) {}
   }
 
   String _extOf(String name) {
