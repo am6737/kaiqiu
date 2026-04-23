@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../l10n/generated/app_localizations.dart';
 import '../../l10n/l10n_extension.dart';
 import '../../services/local_storage.dart';
 import '../../services/supabase.dart';
@@ -11,6 +12,24 @@ import '../../utils/toast.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/typography.dart';
 import '../../theme/app_tokens.dart';
+
+String _localizeAuthError(AuthException e, AppL10n l) {
+  final msg = e.message.toLowerCase();
+  if (msg.contains('invalid login credentials') ||
+      msg.contains('invalid_credentials')) {
+    return l.auth_error_invalid_credentials;
+  }
+  if (msg.contains('user already registered')) {
+    return l.auth_error_user_already_registered;
+  }
+  if (msg.contains('email not confirmed')) {
+    return l.auth_error_email_not_confirmed;
+  }
+  if (msg.contains('rate limit') || msg.contains('too many requests')) {
+    return l.auth_error_too_many_requests;
+  }
+  return l.auth_error_unknown;
+}
 
 class SignInScreen extends ConsumerStatefulWidget {
   const SignInScreen({super.key});
@@ -72,15 +91,16 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       }
       // Router redirect will fire automatically for login.
     } on AuthException catch (e) {
-      setState(() => _error = e.message);
-    } catch (e) {
-      setState(() => _error = '$e');
+      setState(() => _error = _localizeAuthError(e, l));
+    } catch (_) {
+      setState(() => _error = l.auth_error_unknown);
     } finally {
       if (mounted) setState(() => _busy = false);
     }
   }
 
   Future<void> _anonymous() async {
+    final l = context.l10n;
     setState(() {
       _busy = true;
       _error = null;
@@ -89,9 +109,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       await supabase.auth.signInAnonymously();
       if (mounted) context.go('/onboarding');
     } on AuthException catch (e) {
-      setState(() => _error = e.message);
-    } catch (e) {
-      setState(() => _error = '$e');
+      setState(() => _error = _localizeAuthError(e, l));
+    } catch (_) {
+      setState(() => _error = l.auth_error_unknown);
     } finally {
       if (mounted) setState(() => _busy = false);
     }

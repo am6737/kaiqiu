@@ -1807,6 +1807,26 @@ class AppL10nEn extends AppL10n {
   String get auth_anon_failed => 'Guest login failed';
 
   @override
+  String get auth_error_invalid_credentials =>
+      'Incorrect email or password, please try again';
+
+  @override
+  String get auth_error_user_already_registered =>
+      'This email is already registered, please sign in';
+
+  @override
+  String get auth_error_email_not_confirmed =>
+      'Email not verified, please check your inbox';
+
+  @override
+  String get auth_error_too_many_requests =>
+      'Too many requests, please try again later';
+
+  @override
+  String get auth_error_unknown =>
+      'Something went wrong, please try again later';
+
+  @override
   String get onboarding_title => 'Set up your profile';
 
   @override

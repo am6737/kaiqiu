@@ -3517,6 +3517,36 @@ abstract class AppL10n {
   /// **'游客登录失败'**
   String get auth_anon_failed;
 
+  /// No description provided for @auth_error_invalid_credentials.
+  ///
+  /// In zh, this message translates to:
+  /// **'邮箱或密码错误，请检查后重试'**
+  String get auth_error_invalid_credentials;
+
+  /// No description provided for @auth_error_user_already_registered.
+  ///
+  /// In zh, this message translates to:
+  /// **'该邮箱已注册，请直接登录'**
+  String get auth_error_user_already_registered;
+
+  /// No description provided for @auth_error_email_not_confirmed.
+  ///
+  /// In zh, this message translates to:
+  /// **'邮箱尚未验证，请查看收件箱'**
+  String get auth_error_email_not_confirmed;
+
+  /// No description provided for @auth_error_too_many_requests.
+  ///
+  /// In zh, this message translates to:
+  /// **'请求过于频繁，请稍后再试'**
+  String get auth_error_too_many_requests;
+
+  /// No description provided for @auth_error_unknown.
+  ///
+  /// In zh, this message translates to:
+  /// **'操作失败，请稍后重试'**
+  String get auth_error_unknown;
+
   /// No description provided for @onboarding_title.
   ///
   /// In zh, this message translates to:
