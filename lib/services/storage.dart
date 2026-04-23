@@ -10,6 +10,8 @@
 // bucket 必须是在 Supabase Dashboard → Storage 预先创建好的 public bucket。
 // 返回 publicUrl（用户取消返回 null，上传失败抛异常）。
 
+import 'dart:io' show Platform;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:image_cropper/image_cropper.dart';
@@ -43,7 +45,7 @@ class StorageService {
     String contentType = _mimeOf(extension);
 
     try {
-      if (!kIsWeb && square) {
+      if (!kIsWeb && square && !Platform.isAndroid) {
         final cropped = await _cropSquare(picked.path);
         if (cropped == null) return null;
         bytes = await cropped.readAsBytes();
