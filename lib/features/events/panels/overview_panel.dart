@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../l10n/l10n_extension.dart';
 import '../../../models/event.dart';
+import '../../../services/map_launcher.dart';
 import '../../../widgets/typography.dart';
 import '../../../theme/app_tokens.dart';
 
@@ -9,11 +10,32 @@ class OverviewPanel extends StatelessWidget {
   final Event event;
   const OverviewPanel({super.key, required this.event});
 
+  bool get _canNavigate => event.lat != null && event.lng != null;
+
+  String get _locationText {
+    final parts = <String>[];
+    if (event.sub != null && event.sub!.isNotEmpty) parts.add(event.sub!);
+    if (event.address != null &&
+        event.address!.trim().isNotEmpty &&
+        event.address != event.sub) {
+      parts.add(event.address!);
+    }
+    return parts.join(' · ');
+  }
+
+  void _openNav(BuildContext context) {
+    if (!_canNavigate) return;
+    MapLauncher.openNavigation(
+      context: context,
+      lat: event.lat!,
+      lng: event.lng!,
+      name: event.sub ?? (event.address ?? ''),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final body = event.sub?.isNotEmpty == true
-        ? '${event.sub} — ${event.name}。'
-        : '${event.name}。';
+    final l = context.l10n;
     return Container(
       padding: const EdgeInsets.all(16),
       color: context.tokens.elev1,
@@ -21,17 +43,17 @@ class OverviewPanel extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            body,
+            '${event.name}。',
             style: TextStyle(fontSize: 14, color: context.tokens.ink, height: 1.6),
           ),
           const SizedBox(height: 16),
-          Label(context.l10n.event_overview_rules),
+          Label(l.event_overview_rules),
           const SizedBox(height: 10),
           for (final r in [
-            context.l10n.event_overview_rule_format,
-            context.l10n.event_overview_rule_halves,
-            context.l10n.event_overview_rule_subs,
-            context.l10n.event_overview_rule_cards,
+            l.event_overview_rule_format,
+            l.event_overview_rule_halves,
+            l.event_overview_rule_subs,
+            l.event_overview_rule_cards,
           ])
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
@@ -54,7 +76,48 @@ class OverviewPanel extends StatelessWidget {
               ),
             ),
           const SizedBox(height: 10),
-          Label(context.l10n.event_overview_organizer),
+          // Venue section
+          if (event.sub != null && event.sub!.isNotEmpty) ...[
+            Label(l.event_overview_venue),
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: context.tokens.elev2,
+                border: Border.all(color: context.tokens.line),
+                borderRadius: BorderRadius.circular(context.tokens.r2),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.near_me, size: 14, color: context.tokens.accent),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      _locationText,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 13, color: context.tokens.inkSub),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  TextButton(
+                    onPressed: _canNavigate ? () => _openNav(context) : null,
+                    style: TextButton.styleFrom(
+                      foregroundColor: context.tokens.accent,
+                      disabledForegroundColor: context.tokens.inkMute,
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      minimumSize: const Size(0, 32),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                    ),
+                    child: Text(l.pickup_detail_navigate),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+          ],
+          Label(l.event_overview_organizer),
           const SizedBox(height: 10),
           Container(
             padding: const EdgeInsets.all(12),
@@ -85,7 +148,7 @@ class OverviewPanel extends StatelessWidget {
                         color: context.tokens.ink,
                       ),
                     ),
-                    Label(context.l10n.event_overview_organizer_label),
+                    Label(l.event_overview_organizer_label),
                   ],
                 ),
               ],
