@@ -234,6 +234,10 @@ if (event.sub != null && event.sub!.isNotEmpty) ...[
 
 需要新增 import：`package:qiuju_app/services/map_launcher.dart`。
 
+### body 文本调整
+
+OverviewPanel 顶部的 body 文本当前为 `'${event.sub} — ${event.name}。'`。由于场地名称已在专属区块展示，body 文本改为仅展示 `'${event.name}。'`，避免重复。
+
 ### 向后兼容
 
 如果 `event.lat == null || event.lng == null`（历史赛事无坐标），导航按钮禁用，仅展示文字。
