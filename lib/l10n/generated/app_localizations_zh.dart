@@ -833,6 +833,12 @@ class AppL10nZh extends AppL10n {
   String get schedule_assign_teams => '指定对阵队伍';
 
   @override
+  String get event_close_registration => '关闭报名，编排赛程';
+
+  @override
+  String get event_close_registration_confirm => '确定关闭报名？关闭后无法再接受新队伍报名。';
+
+  @override
   String get wc_title => '世界杯专区';
 
   @override

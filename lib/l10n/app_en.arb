@@ -311,6 +311,8 @@
   "@schedule_auto_hint": { "placeholders": { "template": { "type": "String" } } },
   "schedule_set_time": "Set match time",
   "schedule_assign_teams": "Assign teams",
+  "event_close_registration": "Close Registration & Schedule",
+  "event_close_registration_confirm": "Close registration? No new teams can sign up after this.",
 
   "wc_title": "World Cup",
   "wc_subtitle": "Group Stage · Round 2 · 5 matches live tonight",

@@ -1687,6 +1687,18 @@ abstract class AppL10n {
   /// **'指定对阵队伍'**
   String get schedule_assign_teams;
 
+  /// No description provided for @event_close_registration.
+  ///
+  /// In zh, this message translates to:
+  /// **'关闭报名，编排赛程'**
+  String get event_close_registration;
+
+  /// No description provided for @event_close_registration_confirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确定关闭报名？关闭后无法再接受新队伍报名。'**
+  String get event_close_registration_confirm;
+
   /// No description provided for @wc_title.
   ///
   /// In zh, this message translates to:

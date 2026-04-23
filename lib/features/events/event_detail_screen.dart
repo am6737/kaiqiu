@@ -2416,14 +2416,42 @@ class _BottomCta extends ConsumerWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (event.status == EventStatus.scheduling && event.creatorId == currentUserId) ...[
-            PrimaryButton(
-              label: l.schedule_generate,
-              full: true,
-              size: BtnSize.lg,
-              onPressed: () => context.push('/event/${event.id}/schedule'),
-            ),
-            const SizedBox(height: 10),
+          if (event.creatorId == currentUserId) ...[
+            if (event.status == EventStatus.registering)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: PrimaryButton(
+                  label: l.event_close_registration,
+                  full: true,
+                  size: BtnSize.lg,
+                  onPressed: () async {
+                    final confirmed = await showDialog<bool>(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                        title: Text(l.event_close_registration),
+                        content: Text(l.event_close_registration_confirm),
+                        actions: [
+                          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.common_cancel)),
+                          TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.common_confirm)),
+                        ],
+                      ),
+                    );
+                    if (confirmed != true || !context.mounted) return;
+                    await ref.read(eventsRepoProvider).updateEventStatus(event.id, EventStatus.scheduling);
+                    ref.invalidate(eventDetailProvider(event.id));
+                  },
+                ),
+              ),
+            if (event.status == EventStatus.scheduling)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: PrimaryButton(
+                  label: l.schedule_generate,
+                  full: true,
+                  size: BtnSize.lg,
+                  onPressed: () => context.push('/event/${event.id}/schedule'),
+                ),
+              ),
           ],
           Row(
             children: [

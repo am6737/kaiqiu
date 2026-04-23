@@ -843,6 +843,13 @@ class AppL10nEn extends AppL10n {
   String get schedule_assign_teams => 'Assign teams';
 
   @override
+  String get event_close_registration => 'Close Registration & Schedule';
+
+  @override
+  String get event_close_registration_confirm =>
+      'Close registration? No new teams can sign up after this.';
+
+  @override
   String get wc_title => 'World Cup';
 
   @override
