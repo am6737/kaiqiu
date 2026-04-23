@@ -7,6 +7,7 @@ import 'package:x_amap_base/x_amap_base.dart';
 
 import '../../../models/map_pin.dart';
 import '../../../models/pickup.dart';
+import 'marker_painter.dart';
 
 const double defaultCenterLat = 22.8170;
 const double defaultCenterLng = 108.3665;
@@ -48,6 +49,13 @@ class _RealPickupMapState extends State<RealPickupMap> {
   LatLng? _userLocation;
   bool _initialLocateDone = false;
   bool _pendingLocate = false;
+  Map<String, BitmapDescriptor> _markerIcons = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _renderAllIcons();
+  }
 
   @override
   void didUpdateWidget(RealPickupMap old) {
@@ -55,6 +63,39 @@ class _RealPickupMapState extends State<RealPickupMap> {
     if (widget.locateTrigger != old.locateTrigger) {
       _flyToUser();
     }
+    if (widget.pickups != old.pickups || widget.activePinId != old.activePinId) {
+      _renderAllIcons();
+    }
+  }
+
+  Future<void> _renderAllIcons() async {
+    if (!mounted) return;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final accentColor = isDark ? const Color(0xFF4CAF50) : const Color(0xFF4CAF50);
+    final warnColor = isDark ? const Color(0xFFFF6B35) : const Color(0xFFFF6B35);
+    final muteColor = isDark ? const Color(0x80FFFFFF) : const Color(0x80B8B2A8);
+
+    final icons = <String, BitmapDescriptor>{};
+    for (final p in widget.pickups) {
+      final text = '¥${p.feeYuan.toStringAsFixed(0)}';
+      final need = p.displayNeed;
+      final Color bgColor;
+      if (need > 2) {
+        bgColor = accentColor;
+      } else if (need > 0) {
+        bgColor = warnColor;
+      } else {
+        bgColor = muteColor;
+      }
+      final isActive = p.id == widget.activePinId;
+      final bytes = await renderMarkerBitmap(
+        text: text,
+        bgColor: bgColor,
+        active: isActive,
+      );
+      icons[p.id] = BitmapDescriptor.fromBytes(bytes);
+    }
+    if (mounted) setState(() => _markerIcons = icons);
   }
 
   void _flyToUser() {
@@ -125,10 +166,8 @@ class _RealPickupMapState extends State<RealPickupMap> {
       out.add(
         Marker(
           position: LatLng(la, ln),
-          infoWindow: InfoWindow(
-            title: p.venue,
-            snippet: p.hostName ?? '球局',
-          ),
+          icon: _markerIcons[p.id] ?? BitmapDescriptor.defaultMarker,
+          infoWindowEnable: false,
           onTap: (id) => widget.onPinTap(p.id),
         ),
       );
