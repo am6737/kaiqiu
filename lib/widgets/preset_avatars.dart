@@ -20,22 +20,23 @@ String? presetImageUrl(String? url) {
   return kPresetImageUrls[idx];
 }
 
+// Memo 3D avatars from alohe/avatars (MIT license)
+// https://github.com/alohe/avatars
+const _cdn = 'https://cdn.jsdelivr.net/gh/alohe/avatars@main/png';
+
 const kPresetImageUrls = [
-  // Adventurer — cartoon characters
-  'https://api.dicebear.com/9.x/adventurer/png?seed=Felix&size=256',
-  'https://api.dicebear.com/9.x/adventurer/png?seed=Nala&size=256',
-  'https://api.dicebear.com/9.x/adventurer/png?seed=Luna&size=256',
-  'https://api.dicebear.com/9.x/adventurer/png?seed=Milo&size=256',
-  // Bottts — Web3 robot style
-  'https://api.dicebear.com/9.x/bottts/png?seed=Rocket&size=256',
-  'https://api.dicebear.com/9.x/bottts/png?seed=Nova&size=256',
-  'https://api.dicebear.com/9.x/bottts/png?seed=Cyber&size=256',
-  'https://api.dicebear.com/9.x/bottts/png?seed=Bolt&size=256',
-  // Pixel-art — retro Web3 pixel style
-  'https://api.dicebear.com/9.x/pixel-art/png?seed=Storm&size=256',
-  'https://api.dicebear.com/9.x/pixel-art/png?seed=Shadow&size=256',
-  'https://api.dicebear.com/9.x/pixel-art/png?seed=Flash&size=256',
-  'https://api.dicebear.com/9.x/pixel-art/png?seed=Blaze&size=256',
+  '$_cdn/memo_2.png',
+  '$_cdn/memo_5.png',
+  '$_cdn/memo_15.png',
+  '$_cdn/memo_30.png',
+  '$_cdn/memo_33.png',
+  '$_cdn/memo_35.png',
+  '$_cdn/memo_1.png',
+  '$_cdn/memo_10.png',
+  '$_cdn/memo_18.png',
+  '$_cdn/memo_22.png',
+  '$_cdn/memo_3.png',
+  '$_cdn/memo_28.png',
 ];
 
 class PresetAvatar extends StatelessWidget {
