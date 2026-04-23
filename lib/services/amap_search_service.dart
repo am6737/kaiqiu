@@ -20,12 +20,14 @@ class PoiResult {
 class AmapSearchService {
   static const _base = 'https://restapi.amap.com/v3';
 
-  Future<List<PoiResult>> searchPoi(String keywords) async {
+  Future<List<PoiResult>> searchPoi(String keywords, {String? city}) async {
     if (keywords.trim().isEmpty) return [];
     final uri = Uri.parse('$_base/place/text').replace(queryParameters: {
       'key': Env.amapWebKey,
       'keywords': keywords.trim(),
       'offset': '20',
+      if (city != null && city.isNotEmpty) 'city': city,
+      if (city != null && city.isNotEmpty) 'city_limit': 'true',
     });
     try {
       final resp = await http.get(uri).timeout(const Duration(seconds: 6));

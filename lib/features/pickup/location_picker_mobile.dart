@@ -82,7 +82,8 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
     }
     _searchDebounce = Timer(const Duration(milliseconds: 500), () async {
       setState(() => _searching = true);
-      final results = await ref.read(amapSearchProvider).searchPoi(text);
+      final city = ref.read(cityProvider);
+      final results = await ref.read(amapSearchProvider).searchPoi(text, city: city);
       if (!mounted) return;
       setState(() {
         _searchResults = results;
