@@ -370,6 +370,9 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                             setState(() {
                               if (selected) {
                                 _visibleVenueFilterKeys.remove(f.$1);
+                                if (_venueFilter == f.$1) {
+                                  _venueFilter = 'v_all';
+                                }
                               } else {
                                 _visibleVenueFilterKeys.add(f.$1);
                               }
