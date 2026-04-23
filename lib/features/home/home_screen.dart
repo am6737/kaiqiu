@@ -1,4 +1,3 @@
-// home_screen.dart — 首页 Feed, TabBar + 4 tab views layout.
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -9,8 +8,6 @@ import '../../providers.dart';
 import '../../theme/app_tokens.dart';
 import '../../widgets/sport_icon.dart';
 import 'tabs/recommend_tab.dart';
-import 'tabs/events_tab.dart';
-import 'tabs/pickup_tab.dart';
 import 'tabs/discover_tab.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -27,7 +24,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   @override
   void initState() {
     super.initState();
-    _tabCtrl = TabController(length: 4, vsync: this);
+    _tabCtrl = TabController(length: 2, vsync: this);
   }
 
   @override
@@ -65,8 +62,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               dividerColor: t.elev1,
               tabs: [
                 Tab(text: l.home_tab_recommend),
-                Tab(text: l.home_tab_events),
-                Tab(text: l.home_tab_pickup),
                 Tab(text: l.home_tab_discover),
               ],
             ),
@@ -75,8 +70,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 controller: _tabCtrl,
                 children: const [
                   RecommendTab(),
-                  EventsTab(),
-                  PickupTab(),
                   DiscoverTab(),
                 ],
               ),
