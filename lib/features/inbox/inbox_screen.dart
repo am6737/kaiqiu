@@ -12,7 +12,7 @@ import '../../widgets/section_header.dart';
 import '../messages/messages_tab.dart';
 import '../notifications/notifications_tab.dart';
 
-enum InboxTab { messages, notifications }
+enum InboxTab { notifications, messages }
 
 class InboxScreen extends ConsumerStatefulWidget {
   final InboxTab initialTab;
@@ -64,8 +64,8 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
               child: IndexedStack(
                 index: _current.index,
                 children: const [
-                  MessagesTab(),
                   NotificationsTab(),
+                  MessagesTab(),
                 ],
               ),
             ),
@@ -102,17 +102,17 @@ class _TopTabs extends StatelessWidget {
           children: [
             Expanded(
               child: _InboxTabButton(
-                label: l.inbox_tab_messages,
-                active: current == InboxTab.messages,
-                showDot: messagesUnread,
-                onTap: () => onSelect(InboxTab.messages),
+                label: l.inbox_tab_notifications,
+                active: current == InboxTab.notifications,
+                onTap: () => onSelect(InboxTab.notifications),
               ),
             ),
             Expanded(
               child: _InboxTabButton(
-                label: l.inbox_tab_notifications,
-                active: current == InboxTab.notifications,
-                onTap: () => onSelect(InboxTab.notifications),
+                label: l.inbox_tab_messages,
+                active: current == InboxTab.messages,
+                showDot: messagesUnread,
+                onTap: () => onSelect(InboxTab.messages),
               ),
             ),
           ],
