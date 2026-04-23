@@ -113,7 +113,7 @@ class _MatchLiveRoomState extends ConsumerState<MatchLiveRoom> {
   bool get _isHost {
     final uid = currentUserId;
     if (uid == null) return false;
-    final eventAsync = ref.read(eventDetailProvider(widget.eventId));
+    final eventAsync = ref.watch(eventDetailProvider(widget.eventId));
     return eventAsync.valueOrNull?.creatorId == uid;
   }
 

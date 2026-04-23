@@ -2416,7 +2416,7 @@ class _BottomCta extends ConsumerWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (event.creatorId == currentUserId) ...[
+          if (event.creatorId != null && event.creatorId == currentUserId) ...[
             if (event.status == EventStatus.registering)
               Padding(
                 padding: const EdgeInsets.only(bottom: 10),

@@ -66,11 +66,11 @@ class _MatchControlPanelState extends ConsumerState<MatchControlPanel> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: Text(MaterialLocalizations.of(ctx).cancelButtonLabel),
+            child: Text(l.common_cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: Text(MaterialLocalizations.of(ctx).okButtonLabel),
+            child: Text(l.common_confirm),
           ),
         ],
       ),

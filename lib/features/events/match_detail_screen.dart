@@ -416,11 +416,6 @@ class _BottomCtaArea extends ConsumerStatefulWidget {
 class _BottomCtaAreaState extends ConsumerState<_BottomCtaArea> {
   bool _starting = false;
 
-  bool get _isOrganizer {
-    final event = ref.read(eventDetailProvider(widget.eventId)).valueOrNull;
-    return event?.creatorId == supabase.auth.currentUser?.id;
-  }
-
   Future<void> _startMatch() async {
     setState(() => _starting = true);
     try {
@@ -469,6 +464,9 @@ class _BottomCtaAreaState extends ConsumerState<_BottomCtaArea> {
   Widget build(BuildContext context) {
     final l = context.l10n;
     ref.watch(localStoreProvider);
+    final eventAsync = ref.watch(eventDetailProvider(widget.eventId));
+    final isOrganizer = eventAsync.valueOrNull?.creatorId != null &&
+        eventAsync.valueOrNull?.creatorId == supabase.auth.currentUser?.id;
 
     if (widget.status == MatchStatus.finished) {
       return Padding(
@@ -485,7 +483,7 @@ class _BottomCtaAreaState extends ConsumerState<_BottomCtaArea> {
     }
 
     if (widget.status == MatchStatus.upcoming) {
-      if (_isOrganizer) {
+      if (isOrganizer) {
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: PrimaryButton(
