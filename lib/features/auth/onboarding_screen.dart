@@ -53,12 +53,21 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     if (result == kUploadCustom) {
       final uid = currentUserId;
       if (uid == null) return;
-      final url = await StorageService().pickCropCompressAndUpload(
-        bucket: 'avatars',
-        pathPrefix: uid,
-        square: true,
-      );
-      if (url != null && mounted) setState(() => _avatarUrl = url);
+      try {
+        final url = await StorageService().pickCropCompressAndUpload(
+          bucket: 'avatars',
+          pathPrefix: uid,
+          square: true,
+        );
+        if (url != null && mounted) setState(() => _avatarUrl = url);
+      } catch (e) {
+        if (!mounted) return;
+        showToast(
+          context,
+          '${context.l10n.onboarding_save_fail}: $e',
+          error: true,
+        );
+      }
       return;
     }
 
