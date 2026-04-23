@@ -136,7 +136,7 @@ class _PlayerArchiveScreenState extends ConsumerState<PlayerArchiveScreen>
                                 color: context.tokens.accentSubtle,
                                 borderRadius: BorderRadius.circular(3),
                                 border: Border.all(
-                                  color: const Color(0x6600FF85),
+                                  color: context.tokens.accent.withValues(alpha: 0.4),
                                 ),
                               ),
                               child: Text(
@@ -408,16 +408,23 @@ class _CardFront extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            HSLColor.fromAHSL(1, 150, 0.15, 0.24).toColor(),
-            HSLColor.fromAHSL(1, 150, 0.15, 0.12).toColor(),
-            HSLColor.fromAHSL(1, 150, 0.3, 0.16).toColor(),
-          ],
+          colors: isDark
+              ? [
+                  HSLColor.fromAHSL(1, 150, 0.15, 0.24).toColor(),
+                  HSLColor.fromAHSL(1, 150, 0.15, 0.12).toColor(),
+                  HSLColor.fromAHSL(1, 150, 0.3, 0.16).toColor(),
+                ]
+              : [
+                  HSLColor.fromAHSL(1, 150, 0.12, 0.95).toColor(),
+                  HSLColor.fromAHSL(1, 150, 0.10, 0.92).toColor(),
+                  HSLColor.fromAHSL(1, 150, 0.15, 0.90).toColor(),
+                ],
           stops: const [0, 0.6, 1],
         ),
         border: Border.all(color: context.tokens.line),
@@ -425,7 +432,9 @@ class _CardFront extends StatelessWidget {
       ),
       child: Stack(
         children: [
-          Positioned.fill(child: CustomPaint(painter: _CardDotsPainter())),
+          Positioned.fill(child: CustomPaint(painter: _CardDotsPainter(
+            color: isDark ? const Color(0x0F00FF85) : context.tokens.accent.withValues(alpha: 0.08),
+          ))),
           Positioned(
             top: 14,
             left: 14,
@@ -472,10 +481,15 @@ class _CardFront extends StatelessWidget {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [
-                    HSLColor.fromAHSL(1, 150, 0.2, 0.28).toColor(),
-                    HSLColor.fromAHSL(1, 150, 0.2, 0.18).toColor(),
-                  ],
+                  colors: isDark
+                      ? [
+                          HSLColor.fromAHSL(1, 150, 0.2, 0.28).toColor(),
+                          HSLColor.fromAHSL(1, 150, 0.2, 0.18).toColor(),
+                        ]
+                      : [
+                          HSLColor.fromAHSL(1, 150, 0.10, 0.88).toColor(),
+                          HSLColor.fromAHSL(1, 150, 0.10, 0.84).toColor(),
+                        ],
                 ),
                 border: Border.all(color: context.tokens.lineStrong),
                 borderRadius: BorderRadius.circular(context.tokens.r2),
@@ -483,7 +497,9 @@ class _CardFront extends StatelessWidget {
               child: Stack(
                 children: [
                   Positioned.fill(
-                    child: CustomPaint(painter: _ScanLinesPainter()),
+                    child: CustomPaint(painter: _ScanLinesPainter(
+                      color: isDark ? const Color(0x0AFFFFFF) : const Color(0x0A000000),
+                    )),
                   ),
                   Center(
                     child: Text(
@@ -584,6 +600,7 @@ class _CardBack extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final entries = u.attrs.entries.toList();
     return Container(
       padding: const EdgeInsets.all(20),
@@ -591,10 +608,15 @@ class _CardBack extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            HSLColor.fromAHSL(1, 150, 0.15, 0.18).toColor(),
-            HSLColor.fromAHSL(1, 150, 0.15, 0.10).toColor(),
-          ],
+          colors: isDark
+              ? [
+                  HSLColor.fromAHSL(1, 150, 0.15, 0.18).toColor(),
+                  HSLColor.fromAHSL(1, 150, 0.15, 0.10).toColor(),
+                ]
+              : [
+                  HSLColor.fromAHSL(1, 150, 0.10, 0.94).toColor(),
+                  HSLColor.fromAHSL(1, 150, 0.10, 0.90).toColor(),
+                ],
         ),
         border: Border.all(color: context.tokens.line),
         borderRadius: BorderRadius.circular(context.tokens.r4),
@@ -615,7 +637,12 @@ class _CardBack extends StatelessWidget {
           SizedBox(
             height: 180,
             child: CustomPaint(
-              painter: _RadarPainter(u.attrs, labelColor: context.tokens.inkSub, accentColor: context.tokens.accent),
+              painter: _RadarPainter(u.attrs,
+                labelColor: context.tokens.inkSub,
+                accentColor: context.tokens.accent,
+                gridColor: isDark ? const Color(0x14FFFFFF) : const Color(0x14000000),
+                axisColor: isDark ? const Color(0x0FFFFFFF) : const Color(0x0F000000),
+              ),
               size: Size.infinite,
             ),
           ),
@@ -683,9 +710,12 @@ class _CardBack extends StatelessWidget {
 }
 
 class _CardDotsPainter extends CustomPainter {
+  final Color color;
+  const _CardDotsPainter({required this.color});
+
   @override
   void paint(Canvas canvas, Size size) {
-    final p = Paint()..color = const Color(0x0F00FF85);
+    final p = Paint()..color = color;
     for (double y = 0; y < size.height; y += 10) {
       for (double x = 0; x < size.width; x += 10) {
         canvas.drawCircle(Offset(x + 3, y + 3), 1, p);
@@ -694,14 +724,17 @@ class _CardDotsPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _CardDotsPainter old) => false;
+  bool shouldRepaint(covariant _CardDotsPainter old) => old.color != color;
 }
 
 class _ScanLinesPainter extends CustomPainter {
+  final Color color;
+  const _ScanLinesPainter({required this.color});
+
   @override
   void paint(Canvas canvas, Size size) {
     final p = Paint()
-      ..color = const Color(0x0AFFFFFF)
+      ..color = color
       ..strokeWidth = 1;
     for (double y = 0; y < size.height; y += 3) {
       canvas.drawLine(Offset(0, y), Offset(size.width, y), p);
@@ -709,14 +742,16 @@ class _ScanLinesPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _ScanLinesPainter old) => false;
+  bool shouldRepaint(covariant _ScanLinesPainter old) => old.color != color;
 }
 
 class _RadarPainter extends CustomPainter {
   final Map<String, int> attrs;
   final Color labelColor;
   final Color accentColor;
-  _RadarPainter(this.attrs, {required this.labelColor, required this.accentColor});
+  final Color gridColor;
+  final Color axisColor;
+  _RadarPainter(this.attrs, {required this.labelColor, required this.accentColor, required this.gridColor, required this.axisColor});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -733,7 +768,7 @@ class _RadarPainter extends CustomPainter {
     );
 
     final ring = Paint()
-      ..color = const Color(0x14FFFFFF)
+      ..color = gridColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = 0.6;
     for (final f in [0.25, 0.5, 0.75, 1.0]) {
@@ -754,7 +789,7 @@ class _RadarPainter extends CustomPainter {
     }
 
     final axis = Paint()
-      ..color = const Color(0x0FFFFFFF)
+      ..color = axisColor
       ..strokeWidth = 0.5;
     for (int i = 0; i < n; i++) {
       final p = pt(i, 100);
@@ -806,7 +841,7 @@ class _RadarPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _RadarPainter old) => old.attrs != attrs || old.labelColor != labelColor || old.accentColor != accentColor;
+  bool shouldRepaint(covariant _RadarPainter old) => old.attrs != attrs || old.labelColor != labelColor || old.accentColor != accentColor || old.gridColor != gridColor || old.axisColor != axisColor;
 }
 
 class _TrendPainter extends CustomPainter {
@@ -863,6 +898,7 @@ class _RatingPanel extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final profile = ref.watch(myProfileProvider).valueOrNull;
     final matchId = ref.watch(latestUnratedMatchProvider).valueOrNull;
     final score = profile != null && profile.rating > 0
@@ -876,12 +912,17 @@ class _RatingPanel extends ConsumerWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            HSLColor.fromAHSL(1, 150, 0.25, 0.20).toColor(),
-            HSLColor.fromAHSL(1, 150, 0.10, 0.14).toColor(),
-          ],
+          colors: isDark
+              ? [
+                  HSLColor.fromAHSL(1, 150, 0.25, 0.20).toColor(),
+                  HSLColor.fromAHSL(1, 150, 0.10, 0.14).toColor(),
+                ]
+              : [
+                  HSLColor.fromAHSL(1, 150, 0.18, 0.94).toColor(),
+                  HSLColor.fromAHSL(1, 150, 0.10, 0.90).toColor(),
+                ],
         ),
-        border: Border.all(color: const Color(0x6600FF85)),
+        border: Border.all(color: context.tokens.accent.withValues(alpha: 0.4)),
         borderRadius: BorderRadius.circular(context.tokens.r3),
       ),
       child: Row(

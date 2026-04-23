@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../../models/feed.dart';
 import '../../../providers.dart';
@@ -52,32 +53,14 @@ class EventsTab extends ConsumerWidget {
               // Registering section
               if (registering.isNotEmpty) ...[
                 _SectionHeader(
-                  icon: '🔥',
+                  icon: null,
                   label: l.home_events_registering,
                   color: t.warn,
                 ),
                 ...registering.map((e) => _EventStatusCard(
                       event: e,
                       tokens: t,
-                      trailing: GestureDetector(
-                        onTap: () => context.push('/event/${e.id}'),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 14, vertical: 5),
-                          decoration: BoxDecoration(
-                            color: t.accent,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            l.home_events_register,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
+                      l10n: l,
                     )),
               ],
             ],
@@ -128,12 +111,12 @@ class _SectionHeader extends StatelessWidget {
 class _EventStatusCard extends StatelessWidget {
   final FeedEvent event;
   final AppTokens tokens;
-  final Widget? trailing;
+  final AppL10n l10n;
 
   const _EventStatusCard({
     required this.event,
     required this.tokens,
-    this.trailing,
+    required this.l10n,
   });
 
   @override
@@ -141,53 +124,117 @@ class _EventStatusCard extends StatelessWidget {
     final progress = event.teamsMax > 0
         ? event.teamsRegistered / event.teamsMax
         : 0.0;
+    final spotsLeft = event.teamsMax - event.teamsRegistered;
+    final percentText = '${(progress * 100).toInt()}%';
+    final dateText = event.startsAt != null
+        ? DateFormat('MM/dd HH:mm').format(event.startsAt!)
+        : '';
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: tokens.elev1,
-        borderRadius: BorderRadius.circular(tokens.r3),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+    return GestureDetector(
+      onTap: () => context.push('/event/${event.id}'),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: tokens.elev1,
+          borderRadius: BorderRadius.circular(tokens.r3),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Event name
+            Text(
+              event.eventName,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: tokens.ink,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 10),
+            // Start time
+            if (dateText.isNotEmpty || event.startIn.isNotEmpty)
+              Row(
+                children: [
+                  Icon(Icons.schedule, size: 14, color: tokens.inkDim),
+                  const SizedBox(width: 4),
+                  if (dateText.isNotEmpty) ...[
                     Text(
-                      event.eventName,
+                      dateText,
+                      style: TextStyle(fontSize: 12, color: tokens.inkSub),
+                    ),
+                    const SizedBox(width: 8),
+                  ],
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: tokens.warnSubtle,
+                      borderRadius: BorderRadius.circular(tokens.r1),
+                    ),
+                    child: Text(
+                      event.startIn,
                       style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: tokens.ink,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: tokens.warn,
                       ),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '${event.teamsRegistered}/${event.teamsMax} · ${event.startIn}',
-                      style: TextStyle(fontSize: 11, color: tokens.inkDim),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              ?trailing,
-            ],
-          ),
-          const SizedBox(height: 8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(2),
-            child: LinearProgressIndicator(
-              value: progress,
-              backgroundColor: tokens.elev2,
-              valueColor: AlwaysStoppedAnimation(tokens.accent),
-              minHeight: 3,
+            const SizedBox(height: 12),
+            // Progress bar with percentage
+            Row(
+              children: [
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(3),
+                    child: LinearProgressIndicator(
+                      value: progress,
+                      backgroundColor: tokens.elev2,
+                      valueColor: AlwaysStoppedAnimation(tokens.accent),
+                      minHeight: 6,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  percentText,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: tokens.accent,
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
+            const SizedBox(height: 8),
+            // Teams count and spots left
+            Row(
+              children: [
+                Icon(Icons.groups_outlined, size: 14, color: tokens.inkDim),
+                const SizedBox(width: 4),
+                Text(
+                  '${l10n.home_events_teams} ${event.teamsRegistered}/${event.teamsMax}',
+                  style: TextStyle(fontSize: 12, color: tokens.inkSub),
+                ),
+                const Spacer(),
+                if (spotsLeft > 0)
+                  Text(
+                    '${l10n.home_events_spots_left} $spotsLeft',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: tokens.warn,
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

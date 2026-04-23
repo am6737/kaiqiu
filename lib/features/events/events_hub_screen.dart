@@ -1,4 +1,6 @@
 // events_hub_screen.dart — 赛事中心
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -48,6 +50,7 @@ class _EventsHubScreenState extends ConsumerState<EventsHubScreen> {
           backgroundColor: context.tokens.elev1,
           onRefresh: () async {
             ref.invalidate(wcMatchesProvider);
+            ref.invalidate(featuredEventsProvider);
             if (statusForTab != null) {
               ref.invalidate(liveEventsProvider(statusForTab));
             }
@@ -102,8 +105,8 @@ class _EventsHubScreenState extends ConsumerState<EventsHubScreen> {
                 ],
               ),
             ),
-            // World Cup banner
-            _WcBanner(onTap: () => context.push('/worldcup')),
+            // Featured carousel (World Cup + hot events)
+            const _FeaturedCarousel(),
             // Tabs
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
@@ -246,99 +249,339 @@ class _EventsHubScreenState extends ConsumerState<EventsHubScreen> {
   }
 }
 
-class _WcBanner extends ConsumerWidget {
+class _FeaturedCarousel extends ConsumerStatefulWidget {
+  const _FeaturedCarousel();
+
+  @override
+  ConsumerState<_FeaturedCarousel> createState() => _FeaturedCarouselState();
+}
+
+class _FeaturedCarouselState extends ConsumerState<_FeaturedCarousel> {
+  late final PageController _ctrl;
+  Timer? _timer;
+  int _current = 0;
+  int _totalPages = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = PageController();
+  }
+
+  void _startAutoScroll(int count) {
+    _timer?.cancel();
+    _totalPages = count;
+    if (count > 1) {
+      _timer = Timer.periodic(const Duration(seconds: 4), (_) {
+        _current = (_current + 1) % _totalPages;
+        _ctrl.animateToPage(
+          _current,
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeInOut,
+        );
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final featured = ref.watch(featuredEventsProvider).valueOrNull ?? [];
+
+    final pages = <Widget>[
+      _WcBannerPage(onTap: () => context.push('/worldcup')),
+      for (final e in featured)
+        _EventBannerPage(
+          event: e,
+          onTap: () => context.push('/event/${e.id}'),
+        ),
+    ];
+
+    if (pages.length != _totalPages) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _startAutoScroll(pages.length);
+      });
+    }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0, 4, 0, 14),
+      child: Column(
+        children: [
+          SizedBox(
+            height: 160,
+            child: PageView.builder(
+              controller: _ctrl,
+              onPageChanged: (i) => setState(() => _current = i),
+              itemCount: pages.length,
+              itemBuilder: (_, i) => Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: pages[i],
+              ),
+            ),
+          ),
+          if (pages.length > 1)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(pages.length, (i) {
+                  final active = i == _current;
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 250),
+                    margin: const EdgeInsets.symmetric(horizontal: 3),
+                    width: active ? 18 : 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: active ? t.accent : t.inkMute,
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                  );
+                }),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WcBannerPage extends ConsumerWidget {
   final VoidCallback onTap;
-  const _WcBanner({required this.onTap});
+  const _WcBannerPage({required this.onTap});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
     final wcMatches = ref.watch(wcMatchesProvider).valueOrNull ?? const [];
     final liveCount = wcMatches.where((m) => m.isLive).length;
-    // Feature banner: keep the purple identity vivid in both themes,
-    // override text to white so the card always reads as "premium / live".
     const titleColor = Color(0xFFFFFFFF);
     const subColor = Color(0xCCFFFFFF);
     const labelColor = Color(0x99FFFFFF);
     const dividerColor = Color(0x33FFFFFF);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 14),
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Color(0xFF4A2380), // rich royal purple
-                Color(0xFF7A2A8A), // magenta-purple
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF4A2380),
+              Color(0xFF7A2A8A),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(context.tokens.r3),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const LivePill(),
+                const SizedBox(width: 6),
+                Label(l.events_pro, color: titleColor),
               ],
             ),
-            borderRadius: BorderRadius.circular(context.tokens.r3),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  const LivePill(),
-                  const SizedBox(width: 6),
-                  Label(l.events_pro, color: titleColor),
-                ],
+            const SizedBox(height: 10),
+            Text(
+              l.events_wc_banner_title,
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+                color: titleColor,
+                letterSpacing: -0.5,
               ),
-              const SizedBox(height: 10),
-              Text(
-                l.events_wc_banner_title,
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
-                  color: titleColor,
-                  letterSpacing: -0.5,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              l.events_wc_banner_sub,
+              style: const TextStyle(fontSize: 13, color: subColor),
+            ),
+            const Spacer(),
+            Row(
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Label(l.events_wc_live_now, color: labelColor),
+                    const SizedBox(height: 2),
+                    N(
+                      '$liveCount',
+                      size: 20,
+                      weight: FontWeight.w700,
+                      color: const Color(0xFF00FF85),
+                    ),
+                  ],
+                ),
+                Container(
+                  width: 1,
+                  height: 28,
+                  color: dividerColor,
+                  margin: const EdgeInsets.symmetric(horizontal: 14),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Label(l.events_wc_predicts, color: labelColor),
+                    const SizedBox(height: 2),
+                    N('${wcMatches.length}', size: 20, weight: FontWeight.w700, color: titleColor),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _EventBannerPage extends StatelessWidget {
+  final Event event;
+  final VoidCallback onTap;
+  const _EventBannerPage({required this.event, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final l = context.l10n;
+    final isReg = event.status == EventStatus.registering;
+    final hue = (event.id.codeUnitAt(0) * 7 + event.id.codeUnitAt(1)) % 360.0;
+    final statusLabel = isReg
+        ? l.events_tab_registering
+        : l.events_tab_ongoing;
+    final prizeLabel = event.prizeCents != null
+        ? l.event_prize_wan((event.prizeCents! / 1000000).toStringAsFixed(1))
+        : null;
+    final subtitle = [
+      if (event.sub?.isNotEmpty ?? false) event.sub!,
+      if (event.city?.isNotEmpty ?? false) event.city!,
+    ].join(' · ');
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(t.r3),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            NetworkCover(
+              url: (event.coverUrl?.isNotEmpty ?? false)
+                  ? event.coverUrl
+                  : DemoImages.pickCoverFor(event.id),
+              fallbackLabel: event.name,
+              height: 160,
+              hue: hue,
+              variant: HalftoneVariant.lines,
+            ),
+            const DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color(0x00000000),
+                    Color(0x33000000),
+                    Color(0xCC000000),
+                  ],
+                  stops: [0.0, 0.4, 1.0],
                 ),
               ),
-              const SizedBox(height: 4),
-              Text(
-                l.events_wc_banner_sub,
-                style: const TextStyle(fontSize: 13, color: subColor),
-              ),
-              const SizedBox(height: 14),
-              Row(
+            ),
+            Padding(
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  Row(
                     children: [
-                      Label(l.events_wc_live_now, color: labelColor),
-                      const SizedBox(height: 2),
-                      N(
-                        '$liveCount',
-                        size: 20,
-                        weight: FontWeight.w700,
-                        color: const Color(0xFF00FF85),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isReg
+                              ? t.accentSubtle
+                              : const Color(0x80000000),
+                          border: Border.all(
+                            color: isReg ? t.accent : const Color(0x33FFFFFF),
+                          ),
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                        child: Text(
+                          statusLabel,
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: isReg ? t.accent : Colors.white,
+                          ),
+                        ),
                       ),
-                    ],
-                  ),
-                  Container(
-                    width: 1,
-                    height: 28,
-                    color: dividerColor,
-                    margin: const EdgeInsets.symmetric(horizontal: 14),
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Label(l.events_wc_predicts, color: labelColor),
-                      const SizedBox(height: 2),
-                      N('${wcMatches.length}', size: 20, weight: FontWeight.w700, color: titleColor),
+                      if (prizeLabel != null) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0x80000000),
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.emoji_events, size: 10, color: t.warn),
+                              const SizedBox(width: 3),
+                              Text(
+                                prizeLabel,
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                   const Spacer(),
-                  const Icon(Icons.arrow_forward, size: 20, color: titleColor),
+                  Text(
+                    event.name,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                      letterSpacing: -0.3,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (subtitle.isNotEmpty) ...[
+                    const SizedBox(height: 3),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(fontSize: 12, color: Color(0xCCFFFFFF)),
+                    ),
+                  ],
                 ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

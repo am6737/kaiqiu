@@ -7,6 +7,7 @@
 
 import 'package:flutter/material.dart';
 
+import '../../../models/map_pin.dart';
 import '../../../models/pickup.dart';
 import '../../../widgets/sport_icon.dart';
 import '../../../theme/app_tokens.dart';
@@ -18,6 +19,7 @@ const double defaultCenterLng = 108.3665;
 
 class RealPickupMap extends StatelessWidget {
   final List<Pickup> pickups;
+  final List<MapPin> extraPins;
   final String? activePinId;
   final ValueChanged<String> onPinTap;
   final VoidCallback? onLocateMe;
@@ -31,6 +33,7 @@ class RealPickupMap extends StatelessWidget {
   const RealPickupMap({
     super.key,
     required this.pickups,
+    this.extraPins = const [],
     required this.onPinTap,
     this.activePinId,
     this.onLocateMe,
@@ -72,6 +75,13 @@ class RealPickupMap extends StatelessWidget {
               size: size,
               isActive: activePinId == p.id,
               onTap: () => onPinTap(p.id),
+            ),
+          for (final pin in extraPins)
+            _VenuePin(
+              pin: pin,
+              size: size,
+              isActive: activePinId == pin.id,
+              onTap: () => onPinTap(pin.id),
             ),
         ],
       ),
@@ -156,6 +166,87 @@ class _Pin extends StatelessWidget {
       return (lng, lat);
     }
     // Real lat/lng (assume Nanning window). Map to 0-1.
+    const lngMin = 108.1;
+    const lngMax = 108.6;
+    const latMin = 22.6;
+    const latMax = 22.95;
+    final nx = ((lng - lngMin) / (lngMax - lngMin)).clamp(0.02, 0.98);
+    final ny = ((latMax - lat) / (latMax - latMin)).clamp(0.02, 0.98);
+    return (nx.toDouble(), ny.toDouble());
+  }
+}
+
+class _VenuePin extends StatelessWidget {
+  final MapPin pin;
+  final Size size;
+  final bool isActive;
+  final VoidCallback onTap;
+  const _VenuePin({
+    required this.pin,
+    required this.size,
+    required this.isActive,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final lngRaw = pin.lng;
+    final latRaw = pin.lat;
+    final (normX, normY) = _normalise(lngRaw, latRaw);
+    final x = normX * size.width;
+    final y = normY * (size.height * 0.7) + 120;
+
+    return Positioned(
+      left: x - 16,
+      top: y - 40,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: isActive ? 40 : 32,
+              height: isActive ? 40 : 32,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: context.tokens.elev1,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: const Color(0xFF2196F3),
+                  width: 2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF2196F3).withValues(alpha: 0.25),
+                    blurRadius: 12,
+                  ),
+                ],
+              ),
+              child: Icon(
+                Icons.stadium,
+                size: isActive ? 18 : 14,
+                color: const Color(0xFF2196F3),
+              ),
+            ),
+            Container(
+              width: 6,
+              height: 6,
+              margin: const EdgeInsets.only(top: -3),
+              decoration: const BoxDecoration(
+                color: Color(0xFF2196F3),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  (double, double) _normalise(double lng, double lat) {
+    if (lng >= 0 && lng <= 1 && lat >= 0 && lat <= 1) {
+      return (lng, lat);
+    }
     const lngMin = 108.1;
     const lngMax = 108.6;
     const latMin = 22.6;

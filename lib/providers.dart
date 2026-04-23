@@ -15,6 +15,7 @@ import 'models/pickup_filter.dart';
 import 'models/player_profile.dart';
 import 'models/profile.dart';
 import 'models/teammate.dart';
+import 'models/venue.dart';
 import 'repositories/comments_repository.dart';
 import 'repositories/events_repository.dart';
 import 'repositories/external_matches_repository.dart';
@@ -33,6 +34,7 @@ import 'repositories/livekit_repository.dart';
 import 'models/livekit_token.dart';
 import 'repositories/reminders_repository.dart';
 import 'repositories/user_teams_repository.dart';
+import 'repositories/venues_repository.dart';
 import 'services/amap_search_service.dart';
 import 'services/local_storage.dart';
 import 'services/location.dart';
@@ -61,6 +63,7 @@ final notificationsRepoProvider =
 final likesRepoProvider = Provider((_) => LikesRepository());
 final livekitRepoProvider = Provider((_) => LiveKitRepository());
 final amapSearchProvider = Provider((_) => AmapSearchService());
+final venuesRepoProvider = Provider((_) => VenuesRepository());
 
 final likedPostIdsProvider = FutureProvider<Set<String>>((ref) async {
   return ref.read(likesRepoProvider).likedIds('post');
@@ -544,6 +547,50 @@ final filteredPickupsProvider = FutureProvider<List<Pickup>>((ref) async {
 /// User device position (for distance calc)
 final userPositionProvider = FutureProvider((ref) async {
   return LocationService().currentPosition();
+});
+
+// ─────────────────────────────────────────────────────────────
+// Venue providers (场馆)
+// ─────────────────────────────────────────────────────────────
+
+final liveVenuesProvider = FutureProvider<List<Venue>>((ref) async {
+  return ref.read(venuesRepoProvider).listAll();
+});
+
+final venueDetailProvider = FutureProvider.family<Venue, String>((
+  ref,
+  id,
+) async {
+  return ref.read(venuesRepoProvider).fetch(id);
+});
+
+final venueBookingsProvider =
+    FutureProvider.family<List<VenueBooking>, ({String venueId, DateTime? date})>((
+  ref,
+  params,
+) async {
+  return ref
+      .read(venuesRepoProvider)
+      .bookingsForVenue(params.venueId, date: params.date);
+});
+
+final myVenuesProvider = FutureProvider<List<Venue>>((ref) async {
+  final uid = currentUserId;
+  if (uid == null) return [];
+  return ref.read(venuesRepoProvider).listByOwner(uid);
+});
+
+final myBookingsProvider = FutureProvider<List<VenueBooking>>((ref) async {
+  final uid = currentUserId;
+  if (uid == null) return [];
+  return ref.read(venuesRepoProvider).bookingsByUser(uid);
+});
+
+final venueOwnerBookingsProvider =
+    FutureProvider<List<VenueBooking>>((ref) async {
+  final uid = currentUserId;
+  if (uid == null) return [];
+  return ref.read(venuesRepoProvider).bookingsForOwner(uid);
 });
 
 // ─────────────────────────────────────────────────────────────

@@ -9,6 +9,7 @@ import '../../models/event.dart';
 import '../../providers.dart';
 import '../../repositories/goals_repository.dart';
 import '../../services/local_storage.dart';
+import '../../services/supabase.dart';
 import '../../utils/toast.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/typography.dart';
@@ -413,6 +414,29 @@ class _BottomCtaArea extends ConsumerStatefulWidget {
 }
 
 class _BottomCtaAreaState extends ConsumerState<_BottomCtaArea> {
+  bool _starting = false;
+
+  bool get _isOrganizer {
+    final event = ref.read(eventDetailProvider(widget.eventId)).valueOrNull;
+    return event?.creatorId == supabase.auth.currentUser?.id;
+  }
+
+  Future<void> _startMatch() async {
+    setState(() => _starting = true);
+    try {
+      await ref.read(eventsRepoProvider).startMatch(widget.match.id);
+      if (!mounted) return;
+      context.push(
+        '/event/${widget.eventId}/match/${widget.match.id}/live',
+      );
+    } catch (e) {
+      if (!mounted) return;
+      showToast(context, '$e', error: true);
+    } finally {
+      if (mounted) setState(() => _starting = false);
+    }
+  }
+
   Future<void> _toggleReminder() async {
     final repo = ref.read(remindersRepoProvider);
     final matchId = widget.match.id;
@@ -461,6 +485,18 @@ class _BottomCtaAreaState extends ConsumerState<_BottomCtaArea> {
     }
 
     if (widget.status == MatchStatus.upcoming) {
+      if (_isOrganizer) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: PrimaryButton(
+            label: l.live_room_start,
+            full: true,
+            size: BtnSize.lg,
+            disabled: _starting,
+            onPressed: _startMatch,
+          ),
+        );
+      }
       final set = LocalStore.hasReminder(widget.match.id);
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),

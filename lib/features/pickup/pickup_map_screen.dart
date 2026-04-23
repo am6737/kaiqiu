@@ -5,7 +5,9 @@ import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../l10n/l10n_extension.dart';
+import '../../models/map_pin.dart';
 import '../../models/pickup.dart';
+import '../../models/venue.dart';
 import '../../providers.dart';
 import '../../services/local_storage.dart';
 import '../../widgets/chip_pill.dart';
@@ -23,7 +25,10 @@ class PickupMapScreen extends ConsumerStatefulWidget {
   ConsumerState<PickupMapScreen> createState() => _PickupMapScreenState();
 }
 
+enum _MapMode { pickup, venue }
+
 class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
+  _MapMode _mode = _MapMode.pickup;
   String _filter = 'today';
   String? _activePin;
   final _sheetCtrl = DraggableScrollableController();
@@ -110,6 +115,11 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
     final meters = Geolocator.distanceBetween(
       _userLat, _userLng, p.lat!, p.lng!,
     );
+    return (meters / 1000).toStringAsFixed(1);
+  }
+
+  String? _distanceToPoint(double lat, double lng) {
+    final meters = Geolocator.distanceBetween(_userLat, _userLng, lat, lng);
     return (meters / 1000).toStringAsFixed(1);
   }
 
@@ -303,49 +313,63 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final async = ref.watch(livePickupsProvider);
-    return async.when(
+    final pickupsAsync = ref.watch(livePickupsProvider);
+    final venuesAsync = ref.watch(liveVenuesProvider);
+
+    if (_mode == _MapMode.venue) {
+      return venuesAsync.when(
+        data: (venues) => _buildMap(context, const [], venues: venues),
+        loading: () => Scaffold(
+          backgroundColor: context.tokens.bg,
+          body: Center(child: CircularProgressIndicator(color: context.tokens.accent)),
+        ),
+        error: (e, _) => _buildError(context, e, () => ref.invalidate(liveVenuesProvider)),
+      );
+    }
+
+    return pickupsAsync.when(
       data: (list) => _buildMap(context, list),
       loading: () => Scaffold(
         backgroundColor: context.tokens.bg,
         body: Center(child: CircularProgressIndicator(color: context.tokens.accent)),
       ),
-      error: (e, _) => Scaffold(
-        backgroundColor: context.tokens.bg,
-        body: SafeArea(
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.error_outline, size: 32, color: context.tokens.danger),
-                  const SizedBox(height: 8),
-                  Text(
-                    '${context.l10n.error_load_failed}: $e',
-                    style: TextStyle(fontSize: 13, color: context.tokens.inkSub),
-                  ),
-                  const SizedBox(height: 12),
-                  GestureDetector(
-                    onTap: () => ref.invalidate(livePickupsProvider),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: context.tokens.elev3,
-                        border: Border.all(color: context.tokens.line),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        context.l10n.common_retry,
-                        style: TextStyle(color: context.tokens.ink, fontSize: 12),
-                      ),
+      error: (e, _) => _buildError(context, e, () => ref.invalidate(livePickupsProvider)),
+    );
+  }
+
+  Widget _buildError(BuildContext context, Object e, VoidCallback onRetry) {
+    return Scaffold(
+      backgroundColor: context.tokens.bg,
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.error_outline, size: 32, color: context.tokens.danger),
+                const SizedBox(height: 8),
+                Text(
+                  '${context.l10n.error_load_failed}: $e',
+                  style: TextStyle(fontSize: 13, color: context.tokens.inkSub),
+                ),
+                const SizedBox(height: 12),
+                GestureDetector(
+                  onTap: onRetry,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: context.tokens.elev3,
+                      border: Border.all(color: context.tokens.line),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      context.l10n.common_retry,
+                      style: TextStyle(color: context.tokens.ink, fontSize: 12),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -353,7 +377,19 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
     );
   }
 
-  Widget _buildMap(BuildContext context, List<Pickup> pickups) {
+  List<MapPin> _venuesToPins(List<Venue> venues) {
+    return venues.map((v) => MapPin(
+      id: v.id,
+      lat: v.lat,
+      lng: v.lng,
+      label: v.name,
+      sublabel: v.sportTypeLabel,
+      type: MapPinType.venue,
+    )).toList();
+  }
+
+  Widget _buildMap(BuildContext context, List<Pickup> pickups, {List<Venue> venues = const []}) {
+    final isVenueMode = _mode == _MapMode.venue;
     return Scaffold(
       backgroundColor: context.tokens.bg,
       body: Stack(
@@ -361,7 +397,8 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
           // Real map (AMap on mobile, SVG canvas on web via conditional import).
           Positioned.fill(
             child: RealPickupMap(
-              pickups: pickups,
+              pickups: isVenueMode ? const [] : pickups,
+              extraPins: isVenueMode ? _venuesToPins(venues) : const [],
               activePinId: _activePin,
               locateTrigger: _locateTrigger,
               centerLat: _userLat != _fallbackLat ? _userLat : null,
@@ -419,27 +456,32 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                   children: [
                   Row(
                     children: [
-                      Text(
-                        context.l10n.pickup_map_title_city(LocalStore.city),
-                        style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w700,
-                          color: context.tokens.ink,
-                        ),
+                      // Mode toggle: 约球 / 场馆
+                      _ModeToggle(
+                        mode: _mode,
+                        onChanged: (m) => setState(() {
+                          _mode = m;
+                          _activePin = null;
+                        }),
                       ),
                       const Spacer(),
                       _CircleBtn(
                         icon: Icons.add,
-                        onTap: () => context.push('/pickup/create'),
+                        onTap: () => context.push(
+                          isVenueMode ? '/venue/create' : '/pickup/create',
+                        ),
                       ),
-                      const SizedBox(width: 8),
-                      _CircleBtn(
-                        icon: Icons.filter_list,
-                        onTap: () => _showFilterSheet(context),
-                      ),
+                      if (!isVenueMode) ...[
+                        const SizedBox(width: 8),
+                        _CircleBtn(
+                          icon: Icons.filter_list,
+                          onTap: () => _showFilterSheet(context),
+                        ),
+                      ],
                     ],
                   ),
                   const SizedBox(height: 10),
+                  if (!isVenueMode)
                   Builder(
                     builder: (ctx) {
                       final filters = _filterOptions(ctx);
@@ -466,7 +508,8 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
               ),
             ),
           ),
-          // Legend (right side)
+          // Legend (right side) — only for pickup mode
+          if (!isVenueMode)
           Positioned(
             right: 14,
             top: 180,
@@ -576,9 +619,11 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                           child: Row(
                             children: [
                               Text(
-                                context.l10n.pickup_city_pickup_count(
-                                  pickups.length,
-                                ),
+                                isVenueMode
+                                    ? '${venues.length} 个场馆'
+                                    : context.l10n.pickup_city_pickup_count(
+                                        pickups.length,
+                                      ),
                                 style: TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w600,
@@ -593,6 +638,18 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                       ],
                     ),
                   ),
+                  if (isVenueMode)
+                    SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (_, i) => _VenueListRow(
+                          venue: venues[i],
+                          distanceKm: _distanceToPoint(venues[i].lat, venues[i].lng),
+                          onTap: () => context.push('/venue/${venues[i].id}'),
+                        ),
+                        childCount: venues.length,
+                      ),
+                    )
+                  else
                   SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (_, i) => _MapListRow(
@@ -624,6 +681,21 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                   ignoring: _activePin == null,
                   child: Builder(
                     builder: (context) {
+                      if (isVenueMode) {
+                        final venue = _activePin != null
+                            ? venues.where((v) => v.id == _activePin).firstOrNull
+                            : null;
+                        if (venue == null) return const SizedBox.shrink();
+                        return AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 200),
+                          child: _VenueFloatingCard(
+                            key: ValueKey(venue.id),
+                            venue: venue,
+                            distanceKm: _distanceToPoint(venue.lat, venue.lng),
+                            onTap: () => context.push('/venue/${venue.id}'),
+                          ),
+                        );
+                      }
                       final pickup = _activePin != null
                           ? pickups.where((p) => p.id == _activePin).firstOrNull
                           : null;
@@ -936,6 +1008,328 @@ class _PickupFloatingCard extends StatelessWidget {
         text,
         style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: fg),
       ),
+    );
+  }
+}
+
+// ── Mode toggle (约球 / 场馆) ──
+
+class _ModeToggle extends StatelessWidget {
+  final _MapMode mode;
+  final ValueChanged<_MapMode> onChanged;
+  const _ModeToggle({required this.mode, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    return Container(
+      decoration: BoxDecoration(
+        color: t.elev2,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: t.line),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _ModeButton(
+            label: '约球',
+            icon: Icons.sports_soccer,
+            active: mode == _MapMode.pickup,
+            onTap: () => onChanged(_MapMode.pickup),
+          ),
+          _ModeButton(
+            label: '场馆',
+            icon: Icons.stadium,
+            active: mode == _MapMode.venue,
+            onTap: () => onChanged(_MapMode.venue),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ModeButton extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool active;
+  final VoidCallback onTap;
+  const _ModeButton({
+    required this.label,
+    required this.icon,
+    required this.active,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        decoration: BoxDecoration(
+          color: active ? t.accent : Colors.transparent,
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 14, color: active ? t.accentInk : t.inkSub),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: active ? t.accentInk : t.inkSub,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Venue list row (bottom sheet) ──
+
+class _VenueListRow extends StatelessWidget {
+  final Venue venue;
+  final String? distanceKm;
+  final VoidCallback onTap;
+  const _VenueListRow({required this.venue, this.distanceKm, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: t.line, width: 1)),
+        ),
+        child: Row(
+          children: [
+            // Venue icon
+            Container(
+              width: 52,
+              height: 52,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: venue.coverUrl != null ? null : t.elev3,
+                borderRadius: BorderRadius.circular(8),
+                image: venue.coverUrl != null
+                    ? DecorationImage(
+                        image: NetworkImage(venue.coverUrl!),
+                        fit: BoxFit.cover,
+                      )
+                    : null,
+              ),
+              child: venue.coverUrl == null
+                  ? Icon(Icons.stadium, size: 20, color: t.inkSub)
+                  : null,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    venue.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: t.ink,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      Text(
+                        venue.sportTypeLabel,
+                        style: TextStyle(fontSize: 11, color: t.accent),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        venue.fieldTypeLabel,
+                        style: TextStyle(fontSize: 11, color: t.inkSub),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        venue.pricePerHourCents > 0
+                            ? '¥${venue.pricePerHourYuan.toStringAsFixed(0)}/h'
+                            : '免费',
+                        style: TextStyle(fontSize: 11, color: t.inkSub),
+                      ),
+                      if (distanceKm != null) ...[
+                        const SizedBox(width: 8),
+                        Icon(Icons.near_me, size: 10, color: t.inkMute),
+                        const SizedBox(width: 2),
+                        Text(
+                          '${distanceKm}km',
+                          style: TextStyle(fontSize: 11, color: t.inkMute),
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            if (venue.rating != null) ...[
+              Icon(Icons.star, size: 14, color: const Color(0xFFFFB800)),
+              const SizedBox(width: 2),
+              Text(
+                venue.rating!.toStringAsFixed(1),
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: t.ink,
+                ),
+              ),
+            ] else
+              Icon(Icons.chevron_right, size: 18, color: t.inkMute),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Venue floating card ──
+
+class _VenueFloatingCard extends StatelessWidget {
+  final Venue venue;
+  final String? distanceKm;
+  final VoidCallback onTap;
+  const _VenueFloatingCard({
+    super.key,
+    required this.venue,
+    this.distanceKm,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: t.elev2,
+          borderRadius: BorderRadius.circular(t.r3),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.12),
+              blurRadius: 12,
+              offset: const Offset(0, -2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: venue.coverUrl != null
+                  ? Image.network(
+                      venue.coverUrl!,
+                      width: 56,
+                      height: 56,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => _venuePlaceholder(t),
+                    )
+                  : _venuePlaceholder(t),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    venue.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: t.ink,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    [venue.sportTypeLabel, venue.fieldTypeLabel]
+                        .join(' · '),
+                    style: TextStyle(fontSize: 11, color: t.inkSub),
+                  ),
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      Text(
+                        venue.pricePerHourCents > 0
+                            ? '¥${venue.pricePerHourYuan.toStringAsFixed(0)}/小时'
+                            : '免费',
+                        style: TextStyle(fontSize: 11, color: t.inkSub),
+                      ),
+                      if (distanceKm != null) ...[
+                        const SizedBox(width: 8),
+                        Icon(Icons.near_me, size: 10, color: t.inkMute),
+                        const SizedBox(width: 2),
+                        Text(
+                          '${distanceKm}km',
+                          style: TextStyle(fontSize: 11, color: t.inkMute),
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2196F3).withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Text(
+                    '预约',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF2196F3),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Icon(Icons.chevron_right, size: 18, color: t.inkMute),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _venuePlaceholder(AppTokens t) {
+    return Container(
+      width: 56,
+      height: 56,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: t.elev3,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Icon(Icons.stadium, size: 22, color: t.inkSub),
     );
   }
 }

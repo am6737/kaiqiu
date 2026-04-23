@@ -8,14 +8,47 @@ import '../../l10n/l10n_extension.dart';
 import '../../models/player_profile.dart';
 import '../../providers.dart';
 import '../../services/local_storage.dart';
+import '../../services/storage.dart';
 import '../../services/supabase.dart';
-import '../../widgets/avatar.dart';
+import '../../widgets/avatar_picker_sheet.dart';
+import '../../widgets/network_avatar.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/typography.dart';
 import '../../theme/app_tokens.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
+
+  Future<void> _pickAvatar(
+    BuildContext context,
+    WidgetRef ref,
+    PlayerProfile? profile,
+  ) async {
+    final result = await showAvatarPickerSheet(
+      context,
+      current: profile?.avatarUrl,
+      name: profile?.name ?? '',
+    );
+    if (result == null) return;
+
+    final uid = currentUserId;
+    if (uid == null) return;
+
+    String? newUrl;
+    if (result == kUploadCustom) {
+      newUrl = await StorageService().pickCropCompressAndUpload(
+        bucket: 'avatars',
+        pathPrefix: uid,
+        square: true,
+      );
+      if (newUrl == null) return;
+    } else {
+      newUrl = result;
+    }
+
+    await ref.read(profilesRepoProvider).update(uid, {'avatar_url': newUrl});
+    ref.invalidate(myProfileProvider);
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -30,6 +63,7 @@ class ProfileScreen extends ConsumerWidget {
     final hostedPickupsCount = ref.watch(myHostedPickupsProvider).valueOrNull?.length ?? 0;
     final joinedPickupsCount = ref.watch(myJoinedPickupsProvider).valueOrNull?.length ?? 0;
     final pickupsCount = hostedPickupsCount + joinedPickupsCount;
+    final venuesCount = ref.watch(myVenuesProvider).valueOrNull?.length ?? 0;
 
     final activity = <_MenuItem>[
       _MenuItem(
@@ -43,6 +77,12 @@ class ProfileScreen extends ConsumerWidget {
         label: l.profile_menu_my_pickups,
         badge: pickupsCount > 0 ? '$pickupsCount' : null,
         onTap: () => context.push('/me/pickups'),
+      ),
+      _MenuItem(
+        icon: Icons.stadium_outlined,
+        label: '我的场馆',
+        badge: venuesCount > 0 ? '$venuesCount' : null,
+        onTap: () => context.push('/me/venues'),
       ),
       _MenuItem(
         icon: Icons.person_outline,
@@ -137,7 +177,16 @@ class ProfileScreen extends ConsumerWidget {
             // Centered avatar
             Padding(
               padding: const EdgeInsets.only(top: 8),
-              child: Center(child: Avatar(u?.name ?? '新球友', size: 72)),
+              child: Center(
+                child: GestureDetector(
+                  onTap: () => _pickAvatar(context, ref, u),
+                  child: NetworkAvatar(
+                    u?.name ?? '新球友',
+                    url: u?.avatarUrl,
+                    size: 72,
+                  ),
+                ),
+              ),
             ),
             // Name
             Padding(

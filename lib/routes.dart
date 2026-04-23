@@ -21,6 +21,7 @@ import 'features/me/following_screen.dart';
 import 'features/me/my_events_screen.dart';
 import 'features/me/my_pickups_screen.dart';
 import 'features/me/my_teams_screen.dart';
+import 'features/me/my_venues_screen.dart';
 import 'features/messages/chat_screen.dart';
 import 'features/pickup/create_pickup_screen.dart';
 import 'features/pickup/pickup_detail_screen.dart';
@@ -32,6 +33,8 @@ import 'features/profile/profile_screen.dart';
 import 'features/rating/formation_rating_screen.dart';
 import 'features/rating/post_match_rating_screen.dart';
 import 'features/search/search_screen.dart';
+import 'features/venue/create_venue_screen.dart';
+import 'features/venue/venue_detail_screen.dart';
 import 'features/settings/about_screen.dart';
 import 'features/settings/account_settings_screen.dart';
 import 'features/settings/appearance_settings_screen.dart';
@@ -148,6 +151,15 @@ final router = GoRouter(
       path: '/create-event',
       builder: (_, s) => const CreateEventScreen(),
     ),
+    // Venues
+    GoRoute(
+      path: '/venue/create',
+      builder: (_, s) => const CreateVenueScreen(),
+    ),
+    GoRoute(
+      path: '/venue/:id',
+      builder: (_, s) => VenueDetailScreen(id: s.pathParameters['id']!),
+    ),
     GoRoute(
       path: '/rate/:matchId',
       builder: (_, s) =>
@@ -187,6 +199,7 @@ final router = GoRouter(
     GoRoute(path: '/me/events', builder: (_, s) => const MyEventsScreen()),
     GoRoute(path: '/me/pickups', builder: (_, s) => const MyPickupsScreen()),
     GoRoute(path: '/me/teams', builder: (_, s) => const MyTeamsScreen()),
+    GoRoute(path: '/me/venues', builder: (_, s) => const MyVenuesScreen()),
     GoRoute(path: '/me/favorites', builder: (_, s) => const FavoritesScreen()),
     GoRoute(
       path: '/me/following',

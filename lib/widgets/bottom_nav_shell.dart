@@ -14,7 +14,7 @@ class BottomNavShell extends StatelessWidget {
     final l = context.l10n;
     final tabs = <(String, IconData, IconData)>[
       (l.tab_home, Icons.home_outlined, Icons.home),
-      (l.tab_pickup, Icons.map_outlined, Icons.map),
+      (l.tab_pickup, Icons.sports_soccer_outlined, Icons.sports_soccer),
       (l.tab_events, Icons.emoji_events_outlined, Icons.emoji_events),
       (l.tab_me, Icons.person_outline, Icons.person),
     ];
@@ -77,7 +77,7 @@ class _Tab extends StatelessWidget {
             Icon(
               active ? iconActive : icon,
               size: 22,
-              color: active ? context.tokens.ink : context.tokens.inkDim,
+              color: active ? context.tokens.accent : context.tokens.inkDim,
             ),
             const SizedBox(height: 3),
             Text(
@@ -85,7 +85,7 @@ class _Tab extends StatelessWidget {
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w500,
-                color: active ? context.tokens.ink : context.tokens.inkDim,
+                color: active ? context.tokens.accent : context.tokens.inkDim,
                 letterSpacing: 0.5,
               ),
             ),

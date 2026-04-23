@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:x_amap_base/x_amap_base.dart';
 
+import '../../../models/map_pin.dart';
 import '../../../models/pickup.dart';
 
 const double defaultCenterLat = 22.8170;
@@ -12,6 +13,7 @@ const double defaultCenterLng = 108.3665;
 
 class RealPickupMap extends StatefulWidget {
   final List<Pickup> pickups;
+  final List<MapPin> extraPins;
   final String? activePinId;
   final ValueChanged<String> onPinTap;
   final VoidCallback? onLocateMe;
@@ -20,11 +22,12 @@ class RealPickupMap extends StatefulWidget {
   final int locateTrigger;
   final ValueChanged<LatLng>? onUserLocationChanged;
   final VoidCallback? onMapPanned;
-  final VoidCallback? onMapTap;  // ← ADD
+  final VoidCallback? onMapTap;
 
   const RealPickupMap({
     super.key,
     required this.pickups,
+    this.extraPins = const [],
     required this.onPinTap,
     this.activePinId,
     this.onLocateMe,
@@ -33,7 +36,7 @@ class RealPickupMap extends StatefulWidget {
     this.locateTrigger = 0,
     this.onUserLocationChanged,
     this.onMapPanned,
-    this.onMapTap,  // ← ADD
+    this.onMapTap,
   });
 
   @override
@@ -127,6 +130,19 @@ class _RealPickupMapState extends State<RealPickupMap> {
             snippet: p.hostName ?? '球局',
           ),
           onTap: (id) => widget.onPinTap(p.id),
+        ),
+      );
+    }
+    for (final pin in widget.extraPins) {
+      final (la, ln) = _normaliseToNanning(pin.lat, pin.lng);
+      out.add(
+        Marker(
+          position: LatLng(la, ln),
+          infoWindow: InfoWindow(
+            title: pin.label,
+            snippet: pin.sublabel ?? '场馆',
+          ),
+          onTap: (id) => widget.onPinTap(pin.id),
         ),
       );
     }

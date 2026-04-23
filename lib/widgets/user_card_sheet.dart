@@ -9,7 +9,7 @@ import '../providers.dart';
 import '../services/supabase.dart';
 import '../theme/app_tokens.dart';
 import '../utils/toast.dart';
-import 'avatar.dart';
+import 'network_avatar.dart';
 import 'primary_button.dart';
 
 /// Shows a modal bottom sheet with the profile for [userId] and a
@@ -139,7 +139,7 @@ class _UserCardSheetBodyState extends ConsumerState<_UserCardSheetBody> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Center(child: Avatar(profile.name, size: 72)),
+                    Center(child: NetworkAvatar(profile.name, url: profile.avatarUrl, size: 72)),
                     const SizedBox(height: 12),
                     Text(
                       profile.name,

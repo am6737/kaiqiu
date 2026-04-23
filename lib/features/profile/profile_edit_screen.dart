@@ -8,6 +8,7 @@ import '../../providers.dart';
 import '../../services/storage.dart';
 import '../../services/supabase.dart';
 import '../../utils/toast.dart';
+import '../../widgets/avatar_picker_sheet.dart';
 import '../../widgets/network_avatar.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/section_header.dart';
@@ -61,7 +62,36 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
     });
   }
 
-  Future<void> _pickAvatar() async {
+  Future<void> _showAvatarPicker() async {
+    final result = await showAvatarPickerSheet(
+      context,
+      current: _avatarUrl,
+      name: _name.text,
+    );
+    if (result == null || !mounted) return;
+
+    if (result == kUploadCustom) {
+      await _uploadCustomAvatar();
+      return;
+    }
+
+    final uid = currentUserId;
+    if (uid == null) return;
+    setState(() => _avatarUrl = result);
+    try {
+      await ref.read(profilesRepoProvider).update(uid, {'avatar_url': result});
+      ref.invalidate(myProfileProvider);
+    } catch (e) {
+      if (!mounted) return;
+      showToast(
+        context,
+        '${context.l10n.profile_edit_save_fail}: $e',
+        error: true,
+      );
+    }
+  }
+
+  Future<void> _uploadCustomAvatar() async {
     final uid = currentUserId;
     if (uid == null) {
       showToast(context, context.l10n.error_please_login, error: true);
@@ -271,7 +301,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
       child: Row(
         children: [
           GestureDetector(
-            onTap: _uploadingAvatar ? null : _pickAvatar,
+            onTap: _uploadingAvatar ? null : _showAvatarPicker,
             child: Stack(
               children: [
                 NetworkAvatar(n, url: _avatarUrl, size: 56),
@@ -295,7 +325,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
           Expanded(
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: _uploadingAvatar ? null : _pickAvatar,
+              onTap: _uploadingAvatar ? null : _showAvatarPicker,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

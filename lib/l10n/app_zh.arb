@@ -311,6 +311,8 @@
   "@schedule_auto_hint": { "placeholders": { "template": { "type": "String" } } },
   "schedule_set_time": "设置比赛时间",
   "schedule_assign_teams": "指定对阵队伍",
+  "event_close_registration": "关闭报名，编排赛程",
+  "event_close_registration_confirm": "确定关闭报名？关闭后无法再接受新队伍报名。",
 
   "wc_title": "世界杯专区",
   "wc_subtitle": "小组赛 · 第 2 轮 · 今晚 5 场直播",

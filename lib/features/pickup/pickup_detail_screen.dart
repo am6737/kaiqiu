@@ -117,21 +117,22 @@ class _Header extends ConsumerWidget {
     final label = venue == null || venue.isEmpty
         ? '场地外景'
         : '场地外景 · $venue';
+    final statusBar = MediaQuery.of(context).padding.top;
     return Stack(
       children: [
         NetworkCover(
           url: pickup?.venuePhotoUrl,
           fallbackLabel: label,
-          height: 200,
+          height: 200 + statusBar,
           hue: 140,
         ),
         Positioned(
-          top: 12,
+          top: statusBar + 12,
           left: 12,
           child: _CircleBtn(icon: Icons.arrow_back_ios_new, onTap: onBack),
         ),
         Positioned(
-          top: 12,
+          top: statusBar + 12,
           right: 12,
           child: Row(
             children: [
@@ -343,25 +344,7 @@ class _HostStrip extends ConsumerWidget {
               ],
             ),
           ),
-          GestureDetector(
-            onTap: () => context.push('/messages'),
-            child: Container(
-              width: 34,
-              height: 34,
-              alignment: Alignment.center,
-              margin: const EdgeInsets.only(right: 8),
-              decoration: BoxDecoration(
-                color: context.tokens.elev3,
-                border: Border.all(color: context.tokens.line),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.chat_bubble_outline,
-                size: 14,
-                color: context.tokens.ink,
-              ),
-            ),
-          ),
+          _DmButton(hostId: pickup?.hostId),
           PrimaryButton(
             label: followed ? l.common_unfollow : l.common_follow,
             variant: followed ? BtnVariant.secondary : BtnVariant.ghost,
@@ -386,6 +369,68 @@ class _HostStrip extends ConsumerWidget {
   }
 }
 
+class _DmButton extends ConsumerStatefulWidget {
+  final String? hostId;
+  const _DmButton({this.hostId});
+
+  @override
+  ConsumerState<_DmButton> createState() => _DmButtonState();
+}
+
+class _DmButtonState extends ConsumerState<_DmButton> {
+  bool _busy = false;
+
+  Future<void> _openDm() async {
+    final hostId = widget.hostId;
+    if (hostId == null || _busy) return;
+    setState(() => _busy = true);
+    try {
+      final convId =
+          await ref.read(messagesRepoProvider).ensureDmWith(hostId);
+      if (!mounted) return;
+      ref.invalidate(conversationsProvider);
+      context.push('/chat/$convId');
+    } catch (_) {
+      if (mounted) {
+        showToast(context, context.l10n.pickup_detail_join_failed(''), error: true);
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: _openDm,
+      child: Container(
+        width: 34,
+        height: 34,
+        alignment: Alignment.center,
+        margin: const EdgeInsets.only(right: 8),
+        decoration: BoxDecoration(
+          color: context.tokens.elev3,
+          border: Border.all(color: context.tokens.line),
+          shape: BoxShape.circle,
+        ),
+        child: _busy
+            ? SizedBox(
+                width: 14,
+                height: 14,
+                child: CircularProgressIndicator(
+                  strokeWidth: 1.5,
+                  color: context.tokens.ink,
+                ),
+              )
+            : Icon(
+                Icons.chat_bubble_outline,
+                size: 14,
+                color: context.tokens.ink,
+              ),
+      ),
+    );
+  }
+}
 
 class _Formation extends ConsumerWidget {
   final String pickupId;

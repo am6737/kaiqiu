@@ -1,10 +1,9 @@
-// network_avatar.dart — Avatar that prefers a network URL, falls back to the
-// monogram rendering in `avatar.dart`.
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../theme/app_tokens.dart';
 import 'avatar.dart';
+import 'preset_avatars.dart';
 
 class NetworkAvatar extends StatelessWidget {
   final String name;
@@ -25,9 +24,12 @@ class NetworkAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final u = url;
-    // 无 URL 时退化到字母 Avatar：square 时再套 ClipRRect 裁方，免得圆角下
-    // 出现"方框里一个圆头"的古怪效果。
+    var u = url;
+
+    // Resolve preset: protocol to actual image URL
+    final resolved = presetImageUrl(u);
+    if (resolved != null) u = resolved;
+
     if (u == null || u.isEmpty) {
       if (!square) return Avatar(name, size: size);
       return ClipRRect(
