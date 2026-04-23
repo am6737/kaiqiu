@@ -378,7 +378,7 @@ class AccountSettingsScreen extends ConsumerWidget {
     final l = context.l10n;
     final confirmWord = l.settings_account_delete_confirm_word;
 
-    await showModalBottomSheet(
+    final deleted = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       backgroundColor: context.tokens.elev1,
@@ -393,6 +393,10 @@ class AccountSettingsScreen extends ConsumerWidget {
         ),
       ),
     );
+    if (deleted == true && context.mounted) {
+      showToast(context, l.settings_account_delete_done, success: true);
+      context.go('/sign-in');
+    }
   }
 }
 
@@ -468,8 +472,11 @@ class _DeleteAccountSheetState extends ConsumerState<_DeleteAccountSheet> {
     try {
       final res = await supabase.functions.invoke('delete-account');
       if (res.status != 200) {
-        final body = res.data is String ? jsonDecode(res.data as String) : res.data;
-        final msg = (body is Map ? body['error'] : null) ?? 'Unexpected error (${res.status})';
+        final body = res.data is String
+            ? jsonDecode(res.data as String)
+            : res.data;
+        final msg = (body is Map ? body['error'] : null) ??
+            'Unexpected error (${res.status})';
         if (mounted) {
           showToast(context, '$msg', error: true);
           setState(() => _loading = false);
@@ -478,11 +485,7 @@ class _DeleteAccountSheetState extends ConsumerState<_DeleteAccountSheet> {
       }
       await LocalStore.clearAll();
       try { await supabase.auth.signOut(); } catch (_) {}
-      if (mounted) {
-        final l = context.l10n;
-        showToast(context, l.settings_account_delete_done, success: true);
-        context.go('/sign-in');
-      }
+      if (mounted) Navigator.of(context).pop(true);
     } catch (e) {
       if (mounted) {
         showToast(context, '$e', error: true);
