@@ -1,4 +1,6 @@
 // account_settings_screen.dart — 账号设置
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -374,42 +376,27 @@ class AccountSettingsScreen extends ConsumerWidget {
 
   Future<void> _deleteAccount(BuildContext context) async {
     final l = context.l10n;
-    final ok =
-        await showDialog<bool>(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            backgroundColor: context.tokens.elev2,
-            content: Text(
-              l.settings_account_delete_confirm,
-              style: TextStyle(color: context.tokens.ink),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(false),
-                child: Text(
-                  l.common_cancel,
-                  style: TextStyle(color: context.tokens.inkSub),
-                ),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(true),
-                child: Text(
-                  l.common_confirm,
-                  style: TextStyle(color: context.tokens.danger),
-                ),
-              ),
-            ],
+    final confirmWord = l.settings_account_delete_confirm_word;
+    final controller = TextEditingController();
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: context.tokens.elev1,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+          child: _DeleteAccountSheet(
+            confirmWord: confirmWord,
+            controller: controller,
           ),
-        ) ??
-        false;
-    if (!ok) return;
-    // Without elevated perms we can't actually delete; sign out + clear locally.
-    try {
-      await supabase.auth.signOut();
-    } catch (_) {}
-    if (context.mounted) {
-      showToast(context, l.settings_account_delete_done, success: true);
-    }
+        ),
+      ),
+    );
   }
 }
 
@@ -447,6 +434,125 @@ class _PwField extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _DeleteAccountSheet extends ConsumerStatefulWidget {
+  final String confirmWord;
+  final TextEditingController controller;
+  const _DeleteAccountSheet({
+    required this.confirmWord,
+    required this.controller,
+  });
+
+  @override
+  ConsumerState<_DeleteAccountSheet> createState() =>
+      _DeleteAccountSheetState();
+}
+
+class _DeleteAccountSheetState extends ConsumerState<_DeleteAccountSheet> {
+  bool _loading = false;
+
+  bool get _matched =>
+      widget.controller.text.trim() == widget.confirmWord;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.addListener(() => setState(() {}));
+  }
+
+  Future<void> _submit() async {
+    if (!_matched || _loading) return;
+    setState(() => _loading = true);
+    try {
+      final res = await supabase.functions.invoke('delete-account');
+      final body = res.data is String ? jsonDecode(res.data as String) : res.data;
+      if (body is Map && body['error'] != null) {
+        if (mounted) {
+          showToast(context, '${body['error']}', error: true);
+          setState(() => _loading = false);
+        }
+        return;
+      }
+      await LocalStore.clearAll();
+      if (mounted) {
+        final l = context.l10n;
+        showToast(context, l.settings_account_delete_done, success: true);
+        context.go('/sign-in');
+      }
+    } catch (e) {
+      if (mounted) {
+        showToast(context, '$e', error: true);
+        setState(() => _loading = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l.settings_account_delete,
+          style: TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.w700,
+            color: context.tokens.ink,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          l.settings_account_delete_warning,
+          style: TextStyle(
+            fontSize: 13,
+            color: context.tokens.danger,
+            height: 1.5,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Text(
+          l.settings_account_delete_input_hint,
+          style: TextStyle(
+            fontSize: 13,
+            color: context.tokens.inkSub,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: context.tokens.elev2,
+            border: Border.all(color: context.tokens.line),
+            borderRadius: BorderRadius.circular(context.tokens.r2),
+          ),
+          child: TextField(
+            controller: widget.controller,
+            enabled: !_loading,
+            style: TextStyle(color: context.tokens.ink, fontSize: 14),
+            decoration: const InputDecoration(
+              border: InputBorder.none,
+              isDense: true,
+              contentPadding: EdgeInsets.symmetric(vertical: 12),
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        _loading
+            ? const Center(child: CircularProgressIndicator())
+            : PrimaryButton(
+                label: l.settings_account_delete,
+                variant: BtnVariant.warn,
+                size: BtnSize.lg,
+                full: true,
+                disabled: !_matched,
+                onPressed: _matched ? _submit : null,
+              ),
+      ],
     );
   }
 }
