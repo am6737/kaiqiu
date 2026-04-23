@@ -34,6 +34,8 @@ class _CreateVenueScreenState extends ConsumerState<CreateVenueScreen> {
   bool _submitting = false;
   String? _coverUrl;
   bool _uploadingCover = false;
+  final List<String> _photoUrls = [];
+  bool _uploadingPhoto = false;
 
   final List<String> _selectedFacilities = [];
   final _customFacility = TextEditingController();
@@ -72,6 +74,28 @@ class _CreateVenueScreenState extends ConsumerState<CreateVenueScreen> {
       if (mounted) showToast(context, '$e', error: true);
     } finally {
       if (mounted) setState(() => _uploadingCover = false);
+    }
+  }
+
+  Future<void> _pickPhoto() async {
+    if (_photoUrls.length >= 9) {
+      showToast(context, '最多上传9张照片', error: true);
+      return;
+    }
+    final uid = currentUserId;
+    if (uid == null) return;
+    setState(() => _uploadingPhoto = true);
+    try {
+      final url = await StorageService().pickCropCompressAndUpload(
+        bucket: 'venue-covers',
+        pathPrefix: '$uid/photos',
+        square: false,
+      );
+      if (url != null && mounted) setState(() => _photoUrls.add(url));
+    } catch (e) {
+      if (mounted) showToast(context, '$e', error: true);
+    } finally {
+      if (mounted) setState(() => _uploadingPhoto = false);
     }
   }
 
@@ -124,6 +148,7 @@ class _CreateVenueScreenState extends ConsumerState<CreateVenueScreen> {
         'lng': _location!.lng,
         'phone': _phone.text.trim().isNotEmpty ? _phone.text.trim() : null,
         'cover_url': _coverUrl,
+        'photos': _photoUrls,
         'field_type': _fieldType,
         'field_count': int.tryParse(_fieldCount.text.trim()) ?? 1,
         'price_per_hour_cents': priceCents,
@@ -164,6 +189,14 @@ class _CreateVenueScreenState extends ConsumerState<CreateVenueScreen> {
                     url: _coverUrl,
                     uploading: _uploadingCover,
                     onTap: _pickCover,
+                  ),
+
+                  // Venue photos
+                  _PhotoGrid(
+                    urls: _photoUrls,
+                    uploading: _uploadingPhoto,
+                    onAdd: _pickPhoto,
+                    onRemove: (i) => setState(() => _photoUrls.removeAt(i)),
                   ),
 
                   _TextField(label: '场馆名称', controller: _name, hint: '如：阳光足球公园'),
@@ -549,6 +582,128 @@ class _ChoiceChip extends StatelessWidget {
               Icon(Icons.close, size: 14, color: t.accent),
             ],
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PhotoGrid extends StatelessWidget {
+  final List<String> urls;
+  final bool uploading;
+  final VoidCallback onAdd;
+  final void Function(int index) onRemove;
+  const _PhotoGrid({
+    required this.urls,
+    required this.uploading,
+    required this.onAdd,
+    required this.onRemove,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    if (urls.isEmpty && !uploading) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+        child: GestureDetector(
+          onTap: onAdd,
+          child: Container(
+            height: 72,
+            decoration: BoxDecoration(
+              color: t.elev2,
+              borderRadius: BorderRadius.circular(t.r2),
+              border: Border.all(color: t.line),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.add_photo_alternate_outlined, size: 22, color: t.inkDim),
+                const SizedBox(width: 8),
+                Text(
+                  '添加场馆照片（最多9张）',
+                  style: TextStyle(fontSize: 13, color: t.inkDim),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+    final itemCount = urls.length + (urls.length < 9 ? 1 : 0);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      child: SizedBox(
+        height: 88,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          itemCount: itemCount,
+          separatorBuilder: (_, _) => const SizedBox(width: 8),
+          itemBuilder: (_, i) {
+            if (i == urls.length) {
+              return GestureDetector(
+                onTap: uploading ? null : onAdd,
+                child: Container(
+                  width: 88,
+                  height: 88,
+                  decoration: BoxDecoration(
+                    color: t.elev2,
+                    borderRadius: BorderRadius.circular(t.r2),
+                    border: Border.all(color: t.line),
+                  ),
+                  child: uploading
+                      ? Center(
+                          child: SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: t.accent,
+                            ),
+                          ),
+                        )
+                      : Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.add, size: 24, color: t.inkDim),
+                            Text(
+                              '${urls.length}/9',
+                              style: TextStyle(fontSize: 11, color: t.inkDim),
+                            ),
+                          ],
+                        ),
+                ),
+              );
+            }
+            return Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(t.r2),
+                  child: Image.network(
+                    urls[i],
+                    width: 88,
+                    height: 88,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                Positioned(
+                  top: 4,
+                  right: 4,
+                  child: GestureDetector(
+                    onTap: () => onRemove(i),
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.5),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.close, size: 14, color: Colors.white),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
