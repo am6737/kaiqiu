@@ -1361,6 +1361,15 @@ class AppL10nZh extends AppL10n {
   String get settings_account_delete_done => '账号已注销';
 
   @override
+  String get settings_account_delete_warning => '注销后所有数据将被永久删除，此操作不可撤销。';
+
+  @override
+  String get settings_account_delete_input_hint => '请输入「注销账号」以确认';
+
+  @override
+  String get settings_account_delete_confirm_word => '注销账号';
+
+  @override
   String get settings_lang_title => '语言 / Language';
 
   @override

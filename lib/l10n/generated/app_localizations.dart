@@ -2689,6 +2689,24 @@ abstract class AppL10n {
   /// **'账号已注销'**
   String get settings_account_delete_done;
 
+  /// No description provided for @settings_account_delete_warning.
+  ///
+  /// In zh, this message translates to:
+  /// **'注销后所有数据将被永久删除，此操作不可撤销。'**
+  String get settings_account_delete_warning;
+
+  /// No description provided for @settings_account_delete_input_hint.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入「注销账号」以确认'**
+  String get settings_account_delete_input_hint;
+
+  /// No description provided for @settings_account_delete_confirm_word.
+  ///
+  /// In zh, this message translates to:
+  /// **'注销账号'**
+  String get settings_account_delete_confirm_word;
+
   /// No description provided for @settings_lang_title.
   ///
   /// In zh, this message translates to:

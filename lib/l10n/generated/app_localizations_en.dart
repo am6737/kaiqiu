@@ -1374,6 +1374,16 @@ class AppL10nEn extends AppL10n {
   String get settings_account_delete_done => 'Account deleted';
 
   @override
+  String get settings_account_delete_warning =>
+      'All your data will be permanently deleted. This action cannot be undone.';
+
+  @override
+  String get settings_account_delete_input_hint => 'Type DELETE to confirm';
+
+  @override
+  String get settings_account_delete_confirm_word => 'DELETE';
+
+  @override
   String get settings_lang_title => 'Language';
 
   @override

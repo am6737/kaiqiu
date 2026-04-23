@@ -526,6 +526,9 @@
   "settings_account_delete": "Delete account",
   "settings_account_delete_confirm": "Your data will be permanently removed. Continue?",
   "settings_account_delete_done": "Account deleted",
+  "settings_account_delete_warning": "All your data will be permanently deleted. This action cannot be undone.",
+  "settings_account_delete_input_hint": "Type DELETE to confirm",
+  "settings_account_delete_confirm_word": "DELETE",
 
   "settings_lang_title": "Language",
   "settings_lang_zh": "Chinese (Simplified)",

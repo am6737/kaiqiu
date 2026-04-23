@@ -526,6 +526,9 @@
   "settings_account_delete": "注销账号",
   "settings_account_delete_confirm": "注销后所有数据将不可恢复，是否继续？",
   "settings_account_delete_done": "账号已注销",
+  "settings_account_delete_warning": "注销后所有数据将被永久删除，此操作不可撤销。",
+  "settings_account_delete_input_hint": "请输入「注销账号」以确认",
+  "settings_account_delete_confirm_word": "注销账号",
 
   "settings_lang_title": "语言 / Language",
   "settings_lang_zh": "中文 简体",
