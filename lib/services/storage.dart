@@ -8,7 +8,7 @@
 //   );
 //
 // bucket 必须是在 Supabase Dashboard → Storage 预先创建好的 public bucket。
-// 返回 publicUrl（上传失败返回 null）。
+// 返回 publicUrl（用户取消返回 null，上传失败抛异常）。
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
@@ -23,7 +23,7 @@ class StorageService {
 
   /// End-to-end: pick → optionally crop (mobile) → compress → upload → publicUrl.
   ///
-  /// Returns `null` if the user cancels or upload fails.
+  /// Returns `null` if the user cancels. Throws on upload failure.
   Future<String?> pickCropCompressAndUpload({
     required String bucket,
     required String pathPrefix,
@@ -73,18 +73,14 @@ class StorageService {
 
     final storagePath =
         '$pathPrefix/${DateTime.now().millisecondsSinceEpoch}.$extension';
-    try {
-      await supabase.storage
-          .from(bucket)
-          .uploadBinary(
-            storagePath,
-            bytes,
-            fileOptions: FileOptions(upsert: true, contentType: contentType),
-          );
-      return supabase.storage.from(bucket).getPublicUrl(storagePath);
-    } catch (_) {
-      return null;
-    }
+    await supabase.storage
+        .from(bucket)
+        .uploadBinary(
+          storagePath,
+          bytes,
+          fileOptions: FileOptions(upsert: true, contentType: contentType),
+        );
+    return supabase.storage.from(bucket).getPublicUrl(storagePath);
   }
 
   Future<CroppedFile?> _cropSquare(String sourcePath) async {
