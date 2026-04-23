@@ -63,9 +63,54 @@ class _ScheduleMatchesScreenState
       _slots = slots;
       _generated = true;
     });
+
+    final minTeams = switch (template) {
+      'knockout16' => 16,
+      'group8' => 8,
+      'wc' => 8,
+      'league' => event.teamsMax ?? 8,
+      _ => 8,
+    };
+    final teamsCount = ref.read(eventTeamsCountProvider(event.id)).valueOrNull ?? 0;
+    if (teamsCount < minTeams && mounted) {
+      showToast(
+        context,
+        context.l10n.schedule_teams_insufficient('$teamsCount', '$minTeams'),
+      );
+    }
   }
 
   Future<void> _confirm(Event event) async {
+    final l = context.l10n;
+
+    for (int i = 0; i < _slots.length; i++) {
+      final s = _slots[i];
+      if ((s.teamALabel ?? '').trim().isEmpty || (s.teamBLabel ?? '').trim().isEmpty) {
+        showToast(
+          context,
+          l.schedule_slot_missing_teams(s.round.toUpperCase(), '${s.index + 1}'),
+          error: true,
+        );
+        return;
+      }
+    }
+
+    final noTime = _slots.where((s) => s.playedAt == null).length;
+    if (noTime > 0) {
+      final proceed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(l.schedule_time_warning_title),
+          content: Text(l.schedule_time_warning_body('$noTime')),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.common_cancel)),
+            TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.common_confirm)),
+          ],
+        ),
+      );
+      if (proceed != true || !mounted) return;
+    }
+
     setState(() => _busy = true);
     try {
       final rows = _slots.map((s) => {
@@ -78,13 +123,11 @@ class _ScheduleMatchesScreenState
         'done': false,
       }).toList();
       await ref.read(eventsRepoProvider).insertMatches(rows);
-      await ref
-          .read(eventsRepoProvider)
-          .updateEventStatus(event.id, EventStatus.ongoing);
+      await ref.read(eventsRepoProvider).updateEventStatus(event.id, EventStatus.ongoing);
       ref.invalidate(eventMatchesProvider(event.id));
       ref.invalidate(eventDetailProvider(event.id));
       if (mounted) {
-        showToast(context, context.l10n.schedule_confirm, success: true);
+        showToast(context, l.schedule_confirm, success: true);
         context.pop();
       }
     } catch (e) {
