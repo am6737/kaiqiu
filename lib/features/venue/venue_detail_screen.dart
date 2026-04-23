@@ -160,6 +160,41 @@ class _Body extends StatelessWidget {
                       _InfoChips(venue: venue),
                       const SizedBox(height: 20),
 
+                      // Photo gallery
+                      if (venue.photos.isNotEmpty) ...[
+                        Text(
+                          '场馆照片',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: t.ink,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        SizedBox(
+                          height: 160,
+                          child: ListView.separated(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: venue.photos.length,
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(width: 10),
+                            itemBuilder: (ctx, i) => GestureDetector(
+                              onTap: () => _showPhoto(ctx, venue.photos, i),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(t.r2),
+                                child: Image.network(
+                                  venue.photos[i],
+                                  height: 160,
+                                  width: 220,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                      ],
+
                       // Description
                       if (venue.description != null &&
                           venue.description!.isNotEmpty) ...[
@@ -322,6 +357,14 @@ class _Body extends StatelessWidget {
             child: _BottomBar(venue: venue),
           ),
         ],
+      ),
+    );
+  }
+
+  static void _showPhoto(BuildContext context, List<String> photos, int index) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => _PhotoViewer(photos: photos, initialIndex: index),
       ),
     );
   }
@@ -579,6 +622,89 @@ class _BottomBar extends ConsumerWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (_) => VenueBookingSheet(venue: venue),
+    );
+  }
+}
+
+class _PhotoViewer extends StatefulWidget {
+  final List<String> photos;
+  final int initialIndex;
+  const _PhotoViewer({required this.photos, required this.initialIndex});
+
+  @override
+  State<_PhotoViewer> createState() => _PhotoViewerState();
+}
+
+class _PhotoViewerState extends State<_PhotoViewer> {
+  late final PageController _controller;
+  late int _current;
+
+  @override
+  void initState() {
+    super.initState();
+    _current = widget.initialIndex;
+    _controller = PageController(initialPage: widget.initialIndex);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        children: [
+          PageView.builder(
+            controller: _controller,
+            itemCount: widget.photos.length,
+            onPageChanged: (i) => setState(() => _current = i),
+            itemBuilder: (_, i) => InteractiveViewer(
+              child: Center(
+                child: Image.network(widget.photos[i], fit: BoxFit.contain),
+              ),
+            ),
+          ),
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 8,
+            left: 8,
+            child: GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.4),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.close, color: Colors.white, size: 22),
+              ),
+            ),
+          ),
+          if (widget.photos.length > 1)
+            Positioned(
+              bottom: MediaQuery.of(context).padding.bottom + 16,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    '${_current + 1} / ${widget.photos.length}',
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

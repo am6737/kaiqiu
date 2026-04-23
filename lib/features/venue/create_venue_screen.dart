@@ -34,6 +34,8 @@ class _CreateVenueScreenState extends ConsumerState<CreateVenueScreen> {
   bool _submitting = false;
   String? _coverUrl;
   bool _uploadingCover = false;
+  final List<String> _photoUrls = [];
+  final Set<int> _uploadingPhotoIndices = {};
 
   final List<String> _selectedFacilities = [];
   final _customFacility = TextEditingController();
@@ -73,6 +75,31 @@ class _CreateVenueScreenState extends ConsumerState<CreateVenueScreen> {
     } finally {
       if (mounted) setState(() => _uploadingCover = false);
     }
+  }
+
+  Future<void> _addPhoto() async {
+    final uid = currentUserId;
+    if (uid == null) return;
+    final idx = _photoUrls.length;
+    setState(() => _uploadingPhotoIndices.add(idx));
+    try {
+      final url = await StorageService().pickCropCompressAndUpload(
+        bucket: 'venue-covers',
+        pathPrefix: '$uid/photos',
+        square: false,
+      );
+      if (url != null && mounted) {
+        setState(() => _photoUrls.add(url));
+      }
+    } catch (e) {
+      if (mounted) showToast(context, '$e', error: true);
+    } finally {
+      if (mounted) setState(() => _uploadingPhotoIndices.remove(idx));
+    }
+  }
+
+  void _removePhoto(int index) {
+    setState(() => _photoUrls.removeAt(index));
   }
 
   void _addCustomFacility() {
@@ -124,6 +151,7 @@ class _CreateVenueScreenState extends ConsumerState<CreateVenueScreen> {
         'lng': _location!.lng,
         'phone': _phone.text.trim().isNotEmpty ? _phone.text.trim() : null,
         'cover_url': _coverUrl,
+        'photos': _photoUrls,
         'field_type': _fieldType,
         'field_count': int.tryParse(_fieldCount.text.trim()) ?? 1,
         'price_per_hour_cents': priceCents,
@@ -164,6 +192,14 @@ class _CreateVenueScreenState extends ConsumerState<CreateVenueScreen> {
                     url: _coverUrl,
                     uploading: _uploadingCover,
                     onTap: _pickCover,
+                  ),
+
+                  // Extra photos
+                  _PhotoGrid(
+                    urls: _photoUrls,
+                    uploading: _uploadingPhotoIndices.isNotEmpty,
+                    onAdd: _addPhoto,
+                    onRemove: _removePhoto,
                   ),
 
                   _TextField(label: '场馆名称', controller: _name, hint: '如：阳光足球公园'),
@@ -484,6 +520,122 @@ class _CoverPicker extends StatelessWidget {
                       ),
               )
             : null,
+      ),
+    );
+  }
+}
+
+class _PhotoGrid extends StatelessWidget {
+  final List<String> urls;
+  final bool uploading;
+  final VoidCallback onAdd;
+  final ValueChanged<int> onRemove;
+  const _PhotoGrid({
+    required this.urls,
+    required this.uploading,
+    required this.onAdd,
+    required this.onRemove,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '场馆照片',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: t.inkSub,
+            ),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            height: 88,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              children: [
+                for (var i = 0; i < urls.length; i++)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(t.r2),
+                          child: Image.network(
+                            urls[i],
+                            width: 88,
+                            height: 88,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        Positioned(
+                          top: 4,
+                          right: 4,
+                          child: GestureDetector(
+                            onTap: () => onRemove(i),
+                            child: Container(
+                              padding: const EdgeInsets.all(2),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.5),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.close,
+                                size: 14,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                if (urls.length < 9)
+                  GestureDetector(
+                    onTap: uploading ? null : onAdd,
+                    child: Container(
+                      width: 88,
+                      height: 88,
+                      decoration: BoxDecoration(
+                        color: t.elev2,
+                        border: Border.all(color: t.line),
+                        borderRadius: BorderRadius.circular(t.r2),
+                      ),
+                      child: Center(
+                        child: uploading
+                            ? SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: t.accent,
+                                ),
+                              )
+                            : Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.add_photo_alternate_outlined,
+                                      size: 24, color: t.inkDim),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '${urls.length}/9',
+                                    style: TextStyle(
+                                        fontSize: 11, color: t.inkDim),
+                                  ),
+                                ],
+                              ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
