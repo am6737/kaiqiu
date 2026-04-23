@@ -16,6 +16,8 @@ import 'step_template.dart';
 import 'step_basic_info.dart';
 import 'step_registration.dart';
 import 'step_preview.dart';
+import '../../models/picked_location.dart';
+import '../pickup/location_picker.dart';
 
 class CreateEventScreen extends ConsumerStatefulWidget {
   final String? editEventId;
@@ -32,7 +34,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   final _name = TextEditingController();
   DateTime? _startDate;
   DateTime? _endDate;
-  final _venue = TextEditingController();
+  PickedLocation? _pickedLocation;
   final _fee = TextEditingController();
   final _prize = TextEditingController();
   DateTime? _deadlineDate;
@@ -72,7 +74,14 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         _name.text = event.name;
         _startDate = event.startsAt;
         _endDate = event.endsAt;
-        _venue.text = event.sub ?? '';
+        if (event.lat != null && event.lng != null) {
+          _pickedLocation = PickedLocation(
+            name: event.sub ?? '',
+            address: event.address ?? '',
+            lat: event.lat!,
+            lng: event.lng!,
+          );
+        }
         _fee.text = event.feeCents != null ? '${event.feeCents! ~/ 100}' : '';
         _prize.text = event.prizeCents != null ? '${event.prizeCents! ~/ 100}' : '';
         _deadlineDate = event.deadline;
@@ -86,11 +95,19 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     }
   }
 
+  Future<void> _pickLocation() async {
+    final result = await Navigator.of(context).push<PickedLocation>(
+      MaterialPageRoute(builder: (_) => const LocationPickerScreen()),
+    );
+    if (result != null && mounted) {
+      setState(() => _pickedLocation = result);
+    }
+  }
+
   @override
   void dispose() {
     for (final c in [
       _name,
-      _venue,
       _fee,
       _prize,
       _teamSize,
@@ -117,7 +134,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       } else if (_startDate != null && !_endDate!.isAfter(_startDate!)) {
         errors['end'] = l.validation_end_after_start;
       }
-      if (_venue.text.trim().isEmpty) errors['venue'] = l.validation_venue_required;
+      if (_pickedLocation == null) errors['venue'] = l.validation_venue_required;
       final feeVal = _fee.text.trim();
       if (feeVal.isNotEmpty) {
         final n = int.tryParse(feeVal);
@@ -316,7 +333,9 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
           nameController: _name,
           startDate: _startDate,
           endDate: _endDate,
-          venueController: _venue,
+          pickedLocation: _pickedLocation,
+          onPickLocation: _pickLocation,
+          onClearLocation: () => setState(() => _pickedLocation = null),
           feeController: _fee,
           prizeController: _prize,
           errors: _errors,
@@ -344,7 +363,8 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       _ => StepPreview(
           selectedTemplate: _tpl,
           eventName: _name.text,
-          venueName: _venue.text,
+          venueName: _pickedLocation?.name ?? '',
+          venueAddress: _pickedLocation?.address,
           prizeText: _prize.text,
           maxTeamsText: _maxTeams.text,
           startDate: _startDate,
@@ -402,7 +422,10 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       final payload = {
         'creator_id': uid,
         'name': _name.text.trim(),
-        'sub': _venue.text.trim().isEmpty ? null : _venue.text.trim(),
+        'sub': _pickedLocation?.name,
+        'address': _pickedLocation?.address,
+        'lat': _pickedLocation?.lat,
+        'lng': _pickedLocation?.lng,
         'template': _tpl,
         'team_size': int.tryParse(_teamSize.text) ?? 11,
         'teams_max': int.tryParse(_maxTeams.text) ?? 16,
