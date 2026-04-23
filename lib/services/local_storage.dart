@@ -280,6 +280,11 @@ class LocalStore {
     localStoreNotifier.bump();
   }
 
+  static Future<void> clearAll() async {
+    await _prefs.clear();
+    localStoreNotifier.bump();
+  }
+
   // ─── theme
   static ThemeMode get themeMode {
     final raw = _prefs.getString(_kThemeMode) ?? 'system';
