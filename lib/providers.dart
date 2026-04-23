@@ -168,6 +168,13 @@ final eventTeamsCountProvider =
   return (rows['teams_registered'] as num?)?.toInt() ?? 0;
 });
 
+final isUserRegisteredProvider =
+    FutureProvider.family<bool, String>((ref, eventId) async {
+  final uid = currentUserId;
+  if (uid == null) return false;
+  return ref.read(eventsRepoProvider).isUserRegistered(eventId, uid);
+});
+
 // Sport selection (for top bar)
 final sportProvider = StateProvider<String>((_) => 'football');
 // City now backed by LocalStore so it persists across launches.

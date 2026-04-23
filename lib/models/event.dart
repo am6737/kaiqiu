@@ -1,11 +1,12 @@
 // event.dart — 赛事 + 比赛
-enum EventStatus { draft, registering, scheduling, ongoing, completed }
+enum EventStatus { draft, registering, scheduling, ongoing, completed, cancelled }
 
 EventStatus _parseEventStatus(String? s) => switch (s) {
   'draft' => EventStatus.draft,
   'scheduling' => EventStatus.scheduling,
   'ongoing' => EventStatus.ongoing,
   'completed' || 'done' => EventStatus.completed,
+  'cancelled' => EventStatus.cancelled,
   _ => EventStatus.registering,
 };
 
@@ -25,6 +26,7 @@ class Event {
   final DateTime? endsAt;
   final EventStatus status;
   final String? coverUrl;
+  final String? reviewMode;
 
   const Event({
     required this.id,
@@ -42,6 +44,7 @@ class Event {
     this.endsAt,
     this.status = EventStatus.registering,
     this.coverUrl,
+    this.reviewMode,
   });
 
   factory Event.fromMap(Map<String, dynamic> m) => Event(
@@ -60,6 +63,7 @@ class Event {
     endsAt: m['ends_at'] != null ? DateTime.parse(m['ends_at']) : null,
     status: _parseEventStatus(m['status'] as String?),
     coverUrl: m['cover_url'] as String?,
+    reviewMode: m['review_mode'] as String?,
   );
 }
 
