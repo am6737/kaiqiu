@@ -2,6 +2,7 @@
 import 'package:go_router/go_router.dart';
 
 import 'features/article/article_detail_screen.dart';
+import 'features/auth/onboarding_screen.dart';
 import 'features/auth/sign_in_screen.dart';
 import 'features/create_event/create_event_screen.dart';
 import 'features/events/event_detail_screen.dart';
@@ -53,12 +54,15 @@ final router = GoRouter(
   redirect: (ctx, state) {
     final signedIn = supabase.auth.currentUser != null;
     final atSignIn = state.matchedLocation == '/sign-in';
+    final atOnboarding = state.matchedLocation == '/onboarding';
     if (!signedIn && !atSignIn) return '/sign-in';
     if (signedIn && atSignIn) return '/home';
+    if (!signedIn && atOnboarding) return '/sign-in';
     return null;
   },
   routes: [
     GoRoute(path: '/sign-in', builder: (_, s) => const SignInScreen()),
+    GoRoute(path: '/onboarding', builder: (_, s) => const OnboardingScreen()),
     // Bottom-tab shell — 4 persistent tabs
     StatefulShellRoute.indexedStack(
       builder: (context, state, shell) => BottomNavShell(shell: shell),

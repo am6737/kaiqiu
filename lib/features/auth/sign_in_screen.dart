@@ -1,6 +1,7 @@
 // sign_in_screen.dart — 登录 / 注册 / 匿名
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../l10n/l10n_extension.dart';
@@ -55,12 +56,21 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     });
     try {
       if (_isNewUser) {
-        await supabase.auth.signUp(email: email, password: pwd);
+        final res = await supabase.auth.signUp(email: email, password: pwd);
+        await LocalStore.setRemember(_remember, _remember ? email : null);
+        if (res.session == null) {
+          if (mounted) {
+            showToast(context, l.auth_signup_check_email, success: true);
+          }
+          return;
+        }
+        if (mounted) context.go('/onboarding');
+        return;
       } else {
         await supabase.auth.signInWithPassword(email: email, password: pwd);
+        await LocalStore.setRemember(_remember, _remember ? email : null);
       }
-      await LocalStore.setRemember(_remember, _remember ? email : null);
-      // Router redirect will fire automatically.
+      // Router redirect will fire automatically for login.
     } on AuthException catch (e) {
       setState(() => _error = e.message);
     } catch (e) {
@@ -70,23 +80,14 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     }
   }
 
-  String _randomGuestName() {
-    const charset = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    final ms = DateTime.now().millisecondsSinceEpoch;
-    final suffix = List.generate(5, (i) {
-      return charset[(ms >> (i * 5)) % charset.length];
-    }).join();
-    final prefix = mounted ? context.l10n.auth_guest_prefix : '游客-';
-    return '$prefix$suffix';
-  }
-
   Future<void> _anonymous() async {
     setState(() {
       _busy = true;
       _error = null;
     });
     try {
-      await supabase.auth.signInAnonymously(data: {'name': _randomGuestName()});
+      await supabase.auth.signInAnonymously();
+      if (mounted) context.go('/onboarding');
     } on AuthException catch (e) {
       setState(() => _error = e.message);
     } catch (e) {
