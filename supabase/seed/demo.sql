@@ -293,27 +293,35 @@ insert into pickup_slots (pickup_id, user_id, display_name, position, x, y) valu
 -- 5. Events — 4 场赛事
 -- ═══════════════════════════════════════════════════════════════
 
-insert into events (id, creator_id, name, sub, city, status, template, team_size, teams_max,
+insert into events (id, creator_id, name, sub, city, address, lat, lng, status, template, team_size, teams_max,
   prize_cents, deadline, starts_at, cover_url
 ) values
   ('11111111-1111-1111-1111-111111111111',
    '10000000-0000-0000-0000-000000000001',
-   '2026 青秀村超', '第三届社区联赛', '南宁 · 青秀区', 'ongoing', 'knockout16', 11, 16,
+   '2026 青秀村超', '青秀体育中心', '南宁 · 青秀区',
+   '南宁市青秀区民族大道162号', 22.8170, 108.3665,
+   'ongoing', 'knockout16', 11, 16,
    5000000, now() - interval '10 days', now() - interval '6 days',
    'https://images.unsplash.com/photo-1654462977797-a349656aadcf?auto=format&fit=crop&w=1200&h=600&q=70'),
   ('11111111-1111-1111-1111-222222222222',
    null,
-   '邕企杯 · 春季', '企业员工八人制', '南宁 · 兴宁区', 'ongoing', 'group8', 8, 24,
+   '邕企杯 · 春季', '广西体育中心', '南宁 · 兴宁区',
+   '南宁市兴宁区五村岭路1号', 22.8489, 108.2983,
+   'ongoing', 'group8', 8, 24,
    3000000, now() - interval '20 days', now() - interval '14 days',
    'https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&w=1200&h=600&q=70'),
   ('11111111-1111-1111-1111-333333333333',
    null,
-   '邕江夜联赛', '7v7 业余联赛', '南宁 · 青秀', 'registering', 'league', 7, 12,
+   '邕江夜联赛', '邕江滨水公园足球场', '南宁 · 青秀',
+   '南宁市青秀区邕江南岸', 22.8050, 108.3700,
+   'registering', 'league', 7, 12,
    2000000, now() + interval '11 days', now() + interval '14 days',
    'https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?auto=format&fit=crop&w=1200&h=600&q=70'),
   ('11111111-1111-1111-1111-444444444444',
    null,
-   '广西校友杯', '高校校友足球赛', '南宁 · 西乡塘', 'ongoing', 'knockout16', 11, 16,
+   '广西校友杯', '广西大学体育场', '南宁 · 西乡塘',
+   '南宁市西乡塘区大学东路100号', 22.8380, 108.2900,
+   'ongoing', 'knockout16', 11, 16,
    1500000, now() - interval '30 days', now() - interval '21 days',
    'https://images.unsplash.com/photo-1560272564-c83b66b1ad12?auto=format&fit=crop&w=1200&h=600&q=70');
 
@@ -1316,3 +1324,83 @@ UPDATE posts SET comments = (
   SELECT COUNT(*) FROM comments
   WHERE comments.target_type = 'post' AND comments.target_id = posts.id
 );
+
+
+-- ═══════════════════════════════════════════════════════════════
+-- 18. Venues + bookings — 场馆 demo 数据
+-- ═══════════════════════════════════════════════════════════════
+
+delete from venue_bookings where venue_id in (
+  'aaaaaaaa-aaaa-aaaa-aaaa-000000000001',
+  'aaaaaaaa-aaaa-aaaa-aaaa-000000000002',
+  'aaaaaaaa-aaaa-aaaa-aaaa-000000000003',
+  'aaaaaaaa-aaaa-aaaa-aaaa-000000000004',
+  'aaaaaaaa-aaaa-aaaa-aaaa-000000000005'
+);
+
+delete from venues where id in (
+  'aaaaaaaa-aaaa-aaaa-aaaa-000000000001',
+  'aaaaaaaa-aaaa-aaaa-aaaa-000000000002',
+  'aaaaaaaa-aaaa-aaaa-aaaa-000000000003',
+  'aaaaaaaa-aaaa-aaaa-aaaa-000000000004',
+  'aaaaaaaa-aaaa-aaaa-aaaa-000000000005'
+);
+
+insert into venues (id, owner_id, owner_name, name, sport_type, description, address, lat, lng, phone, field_type, field_count, price_per_hour_cents, facilities, opening_hours, status, rating, review_count) values
+  ('aaaaaaaa-aaaa-aaaa-aaaa-000000000001',
+   '10000000-0000-0000-0000-000000000001', '赵铁柱',
+   '阳光足球公园', 'football',
+   '南宁市最大的业余足球场地，配备人工草皮和专业灯光。周末经常举办业余联赛，氛围很好。',
+   '广西南宁市青秀区民族大道168号', 22.8170, 108.3665,
+   '0771-5551234', 'outdoor', 3, 15000,
+   '{"停车场","灯光","更衣室","饮水","洗手间"}',
+   '08:00-22:00', 'active', 4.5, 128),
+
+  ('aaaaaaaa-aaaa-aaaa-aaaa-000000000002',
+   '10000000-0000-0000-0000-000000000001', '赵铁柱',
+   '翡翠室内球馆', 'football',
+   '全天候室内五人制足球场，空调恒温，不受天气影响。适合下雨天约球。',
+   '广西南宁市西乡塘区大学东路98号', 22.8350, 108.2880,
+   '0771-5559876', 'indoor', 2, 20000,
+   '{"空调","灯光","更衣室","淋浴","停车场","WiFi","储物柜"}',
+   '09:00-23:00', 'active', 4.2, 56),
+
+  ('aaaaaaaa-aaaa-aaaa-aaaa-000000000003',
+   '10000000-0000-0000-0000-000000000002', '王大锤',
+   '江南体育中心足球场', 'football',
+   '市政体育中心内的标准11人制足球场，天然草皮，可承办正式比赛。',
+   '广西南宁市江南区壮锦大道16号', 22.7900, 108.3200,
+   '0771-4882000', 'outdoor', 2, 30000,
+   '{"观众席","停车场","灯光","更衣室","淋浴","洗手间"}',
+   '06:00-22:00', 'active', 4.8, 210),
+
+  ('aaaaaaaa-aaaa-aaaa-aaaa-000000000004',
+   '10000000-0000-0000-0000-000000000003', '李小龙',
+   '南湖野球场', 'football',
+   '南湖公园内的免费草地球场，适合周末休闲踢球。无围栏，需自带球门。',
+   '广西南宁市青秀区南湖路1号（南湖公园内）', 22.8100, 108.3700,
+   null, 'outdoor', 1, 0,
+   '{"饮水","洗手间"}',
+   '全天开放', 'active', 3.8, 42),
+
+  ('aaaaaaaa-aaaa-aaaa-aaaa-000000000005',
+   '10000000-0000-0000-0000-000000000002', '王大锤',
+   '万达篮球公园', 'basketball',
+   '万达广场旁边的室外篮球场，4个标准全场，周末人多建议提前预约。',
+   '广西南宁市青秀区东葛路118号', 22.8200, 108.3800,
+   '13800138000', 'outdoor', 4, 5000,
+   '{"灯光","饮水","停车场"}',
+   '07:00-22:00', 'active', 4.0, 88);
+
+insert into venue_bookings (venue_id, user_id, user_name, date, start_time, end_time, total_cents, status, note) values
+  ('aaaaaaaa-aaaa-aaaa-aaaa-000000000001',
+   '10000000-0000-0000-0000-000000000002', '王大锤',
+   current_date + interval '1 day', '19:00', '21:00', 30000, 'confirmed', '11人约球，需要一号场地'),
+
+  ('aaaaaaaa-aaaa-aaaa-aaaa-000000000001',
+   '10000000-0000-0000-0000-000000000003', '李小龙',
+   current_date + interval '2 days', '14:00', '16:00', 30000, 'pending', null),
+
+  ('aaaaaaaa-aaaa-aaaa-aaaa-000000000002',
+   '10000000-0000-0000-0000-000000000004', '陈七',
+   current_date + interval '1 day', '20:00', '22:00', 40000, 'confirmed', '五人制友谊赛');

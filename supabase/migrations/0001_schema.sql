@@ -159,6 +159,9 @@ create table public.events (
   name text not null,
   sub text,
   city text,
+  address text,
+  lat double precision,
+  lng double precision,
   template text,                        -- knockout16/group8/wc/league
   team_size int default 11,
   teams_max int,
@@ -167,7 +170,7 @@ create table public.events (
   deadline timestamptz,
   starts_at timestamptz,
   ends_at timestamptz,
-  status text default 'registering',    -- registering/ongoing/done
+  status text default 'registering' check (status in ('draft','registering','scheduling','ongoing','completed','done')),
   cover_url text,
   created_at timestamptz default now()
 );
@@ -205,13 +208,35 @@ create table public.matches (
   is_live boolean default false,
   minute text,
   viewers int default 0,
-  poster_url text
+  poster_url text,
+  status text default 'upcoming' check (status in ('upcoming','live','finished')),
+  livekit_room text,
+  started_at timestamptz,
+  ended_at timestamptz
 );
 
 create index matches_event_idx on public.matches (event_id);
 create index matches_live_idx on public.matches(is_live) where is_live = true;
+create index matches_status_idx on public.matches(status);
+create index matches_event_status_idx on public.matches(event_id, status);
 alter table public.matches enable row level security;
 create policy "matches public read" on public.matches for select using (true);
+
+create policy "matches_update_by_event_creator" on public.matches for update using (
+  exists (
+    select 1 from public.events
+    where events.id = matches.event_id
+    and events.creator_id = auth.uid()
+  )
+);
+
+create policy "matches_insert_by_event_creator" on public.matches for insert with check (
+  exists (
+    select 1 from public.events
+    where events.id = matches.event_id
+    and events.creator_id = auth.uid()
+  )
+);
 
 -- ratings: ratee_id nullable（demo 模式下被评价者无真实 auth.users）；
 -- ratings_demo_unique 在 ratee_id 为 null 时用 ratee_name 做去重，
@@ -412,6 +437,7 @@ create trigger message_created
 
 -- Realtime 订阅（新消息推送）
 alter publication supabase_realtime add table public.messages;
+alter publication supabase_realtime add table public.matches;
 
 -- ensure_demo_conversation: 每个匿名用户首次打开 Messages tab 时调用 rpc，
 -- 已在任意会话里则 no-op 返回现有 conv_id，否则建 "球局 · 新手大厅" + 欢迎消息。
@@ -758,7 +784,7 @@ drop table if exists public.favorites cascade;
 create table public.favorites (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references public.profiles(id) on delete cascade,
-  entity_type text not null check (entity_type in ('pickup', 'event', 'user')),
+  entity_type text not null check (entity_type in ('pickup', 'event', 'user', 'article')),
   entity_id text not null,
   created_at timestamptz not null default now(),
   unique (user_id, entity_type, entity_id)
@@ -823,11 +849,17 @@ create policy feedback_self_read on public.feedback for select
 
 
 -- ═══════════════════════════════════════════════════════════════
--- 12. storage_policies — Supabase Storage RLS
---     先在 Dashboard → Storage 建 3 个 public bucket：
---       avatars / event-covers / pickup-photos
+-- 12. storage — 自动创建 public bucket + RLS 策略
 --     规则：任何人读，用户只能写 / 改 / 删以自己 uid 为前缀的路径
 -- ═══════════════════════════════════════════════════════════════
+
+insert into storage.buckets (id, name, public)
+values
+  ('avatars',       'avatars',       true),
+  ('event-covers',  'event-covers',  true),
+  ('pickup-photos', 'pickup-photos', true),
+  ('venue-covers',  'venue-covers',  true)
+on conflict (id) do nothing;
 
 drop policy if exists "avatars_public_read" on storage.objects;
 create policy "avatars_public_read" on storage.objects
@@ -887,6 +919,31 @@ drop policy if exists "pickup_photos_self_update" on storage.objects;
 create policy "pickup_photos_self_update" on storage.objects
   for update using (
     bucket_id = 'pickup-photos'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+drop policy if exists "venue_covers_public_read" on storage.objects;
+create policy "venue_covers_public_read" on storage.objects
+  for select using (bucket_id = 'venue-covers');
+
+drop policy if exists "venue_covers_self_write" on storage.objects;
+create policy "venue_covers_self_write" on storage.objects
+  for insert with check (
+    bucket_id = 'venue-covers'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+drop policy if exists "venue_covers_self_update" on storage.objects;
+create policy "venue_covers_self_update" on storage.objects
+  for update using (
+    bucket_id = 'venue-covers'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+drop policy if exists "venue_covers_self_delete" on storage.objects;
+create policy "venue_covers_self_delete" on storage.objects
+  for delete using (
+    bucket_id = 'venue-covers'
     and (storage.foldername(name))[1] = auth.uid()::text
   );
 
@@ -1190,6 +1247,22 @@ as $$
     and entity_id = target_name;
 $$;
 
+-- followers_list — 返回关注某用户的所有用户名
+create or replace function public.followers_list(target_name text)
+returns table(follower_name text)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select p.name
+  from public.favorites f
+  join public.profiles p on p.id = f.user_id
+  where f.entity_type = 'user'
+    and f.entity_id = target_name
+  order by f.created_at desc;
+$$;
+
 
 -- ═══════════════════════════════════════════════════════════════
 -- 23. articles — 文章（资讯、战报、战术分析等）
@@ -1208,6 +1281,7 @@ create table public.articles (
   read_time_min int default 5,
   view_count int default 0,
   comment_count int default 0,
+  likes int not null default 0,
   created_at timestamptz default now()
 );
 
@@ -1290,6 +1364,159 @@ create trigger trg_comment_count
 
 
 -- ═══════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════
+-- 25. likes — 统一点赞表（帖子 / 文章）
+-- ═══════════════════════════════════════════════════════════════
+
+drop table if exists public.likes cascade;
+
+create table public.likes (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  target_type text not null check (target_type in ('post', 'article')),
+  target_id uuid not null,
+  created_at timestamptz not null default now(),
+  unique (user_id, target_type, target_id)
+);
+
+create index likes_target_idx on public.likes(target_type, target_id);
+
+alter table public.likes enable row level security;
+
+create policy "likes public read" on public.likes for select using (true);
+create policy "likes self insert" on public.likes for insert
+  with check (auth.uid() = user_id);
+create policy "likes self delete" on public.likes for delete
+  using (auth.uid() = user_id);
+
+create or replace function public.sync_likes_count() returns trigger as $$
+begin
+  if tg_op = 'INSERT' then
+    if new.target_type = 'post' then
+      update public.posts set likes = likes + 1 where id = new.target_id;
+    elsif new.target_type = 'article' then
+      update public.articles set likes = likes + 1 where id = new.target_id;
+    end if;
+  elsif tg_op = 'DELETE' then
+    if old.target_type = 'post' then
+      update public.posts set likes = greatest(likes - 1, 0) where id = old.target_id;
+    elsif old.target_type = 'article' then
+      update public.articles set likes = greatest(likes - 1, 0) where id = old.target_id;
+    end if;
+  end if;
+  return null;
+end;
+$$ language plpgsql security definer;
+
+drop trigger if exists trg_sync_likes on public.likes;
+create trigger trg_sync_likes
+  after insert or delete on public.likes
+  for each row execute function public.sync_likes_count();
+
+
+-- ═══════════════════════════════════════════════════════════════
+-- 26. venues + venue_bookings — 场馆 + 预约
+-- ═══════════════════════════════════════════════════════════════
+
+drop table if exists public.venue_bookings cascade;
+drop table if exists public.venues cascade;
+
+create table public.venues (
+  id uuid primary key default gen_random_uuid(),
+  owner_id uuid not null references auth.users(id) on delete cascade,
+  owner_name text,
+  name text not null,
+  sport_type text default 'football',
+  description text,
+  address text not null,
+  lat double precision not null,
+  lng double precision not null,
+  phone text,
+  cover_url text,
+  photos text[] default '{}',
+  field_type text default 'outdoor',
+  field_count int default 1,
+  price_per_hour_cents int default 0,
+  facilities text[] default '{}',
+  opening_hours text,
+  status text default 'active',
+  rating double precision,
+  review_count int default 0,
+  created_at timestamptz default now()
+);
+
+create index venues_owner_idx on public.venues(owner_id);
+create index venues_sport_idx on public.venues(sport_type);
+create index venues_status_idx on public.venues(status);
+create index venues_location_idx on public.venues(lat, lng);
+
+alter table public.venues enable row level security;
+create policy "venues readable by all" on public.venues for select using (true);
+create policy "venues insertable by auth" on public.venues for insert with check (auth.uid() = owner_id);
+create policy "venues updatable by owner" on public.venues for update using (auth.uid() = owner_id);
+create policy "venues deletable by owner" on public.venues for delete using (auth.uid() = owner_id);
+
+create or replace function public.populate_venue_owner_name()
+returns trigger as $$
+begin
+  select name into new.owner_name
+  from public.profiles
+  where id = new.owner_id;
+  return new;
+end;
+$$ language plpgsql security definer;
+
+create trigger trg_venue_owner_name
+  before insert on public.venues
+  for each row execute function public.populate_venue_owner_name();
+
+create table public.venue_bookings (
+  id uuid primary key default gen_random_uuid(),
+  venue_id uuid not null references public.venues(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  user_name text,
+  user_phone text,
+  date date not null,
+  start_time text not null,
+  end_time text not null,
+  total_cents int default 0,
+  status text default 'pending',
+  note text,
+  created_at timestamptz default now()
+);
+
+create index venue_bookings_venue_idx on public.venue_bookings(venue_id);
+create index venue_bookings_user_idx on public.venue_bookings(user_id);
+create index venue_bookings_date_idx on public.venue_bookings(venue_id, date);
+
+alter table public.venue_bookings enable row level security;
+create policy "bookings readable by venue owner or booker" on public.venue_bookings
+  for select using (
+    auth.uid() = user_id
+    or auth.uid() in (select owner_id from public.venues where id = venue_id)
+  );
+create policy "bookings insertable by auth" on public.venue_bookings
+  for insert with check (auth.uid() = user_id);
+create policy "bookings updatable by venue owner" on public.venue_bookings
+  for update using (
+    auth.uid() in (select owner_id from public.venues where id = venue_id)
+  );
+
+create or replace function public.populate_booking_user_name()
+returns trigger as $$
+begin
+  select name into new.user_name
+  from public.profiles
+  where id = new.user_id;
+  return new;
+end;
+$$ language plpgsql security definer;
+
+create trigger trg_booking_user_name
+  before insert on public.venue_bookings
+  for each row execute function public.populate_booking_user_name();
+
+
 -- 附录 · pg_cron 提醒扫描（未启用，按需手动执行）
 --
 -- 前置：Dashboard → Database → Extensions 启用 pg_cron + pg_net，
