@@ -178,6 +178,8 @@ class _Header extends StatelessWidget {
       EventStatus.ongoing => (context.tokens.accent, context.tokens.accent, l.event_status_ongoing),
       EventStatus.registering => (context.tokens.warn, context.tokens.warn, l.event_status_registering),
       EventStatus.completed => (context.tokens.inkDim, context.tokens.inkSub, l.event_status_done),
+      EventStatus.scheduling => (context.tokens.warn, context.tokens.warn, l.event_status_scheduling),
+      EventStatus.cancelled => (context.tokens.danger, context.tokens.danger, l.event_status_cancelled),
       _ => (context.tokens.inkDim, context.tokens.inkSub, l.event_status_done),
     };
     return Stack(
@@ -2407,6 +2409,23 @@ class _BottomCta extends ConsumerWidget {
     final l = context.l10n;
     ref.watch(localStoreProvider);
     final registered = LocalStore.isEventFavorited(event.id);
+    final isCreator = event.creatorId != null && event.creatorId == currentUserId;
+    final teamsCount = ref.watch(eventTeamsCountProvider(event.id)).valueOrNull ?? 0;
+    final isFull = event.teamsMax != null && teamsCount >= event.teamsMax!;
+    final deadlinePassed = event.deadline != null && DateTime.now().isAfter(event.deadline!);
+    final isRegistering = event.status == EventStatus.registering;
+
+    String? disabledReason;
+    if (registered) {
+      disabledReason = l.event_already_registered;
+    } else if (!isRegistering) {
+      disabledReason = l.event_registration_closed;
+    } else if (isFull) {
+      disabledReason = l.event_registration_full;
+    } else if (deadlinePassed) {
+      disabledReason = l.event_registration_deadline_passed;
+    }
+
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 32),
       decoration: BoxDecoration(
@@ -2416,7 +2435,7 @@ class _BottomCta extends ConsumerWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (event.creatorId != null && event.creatorId == currentUserId) ...[
+          if (isCreator) ...[
             if (event.status == EventStatus.registering)
               Padding(
                 padding: const EdgeInsets.only(bottom: 10),
@@ -2452,6 +2471,83 @@ class _BottomCta extends ConsumerWidget {
                   onPressed: () => context.push('/event/${event.id}/schedule'),
                 ),
               ),
+            if (event.status == EventStatus.ongoing)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: PrimaryButton(
+                  label: l.event_complete,
+                  full: true,
+                  size: BtnSize.lg,
+                  variant: BtnVariant.warn,
+                  onPressed: () async {
+                    final confirmed = await showDialog<bool>(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                        title: Text(l.event_complete),
+                        content: Text(l.event_complete_confirm),
+                        actions: [
+                          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.common_cancel)),
+                          TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.common_confirm)),
+                        ],
+                      ),
+                    );
+                    if (confirmed != true || !context.mounted) return;
+                    await ref.read(eventsRepoProvider).updateEventStatus(event.id, EventStatus.completed);
+                    ref.invalidate(eventDetailProvider(event.id));
+                    if (context.mounted) showToast(context, l.event_complete_success, success: true);
+                  },
+                ),
+              ),
+            if (event.status == EventStatus.draft ||
+                event.status == EventStatus.registering ||
+                event.status == EventStatus.scheduling) ...[
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: PrimaryButton(
+                        label: l.event_edit,
+                        variant: BtnVariant.ghost,
+                        size: BtnSize.lg,
+                        full: true,
+                        onPressed: () => context.push('/event/${event.id}/edit'),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: PrimaryButton(
+                        label: l.event_cancel,
+                        variant: BtnVariant.warn,
+                        size: BtnSize.lg,
+                        full: true,
+                        onPressed: () async {
+                          final confirmed = await showDialog<bool>(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              title: Text(l.event_cancel),
+                              content: Text(l.event_cancel_confirm),
+                              actions: [
+                                TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.common_cancel)),
+                                TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.common_confirm)),
+                              ],
+                            ),
+                          );
+                          if (confirmed != true || !context.mounted) return;
+                          await ref.read(eventsRepoProvider).cancelEvent(event.id);
+                          ref.invalidate(eventDetailProvider(event.id));
+                          ref.invalidate(myHostedEventsProvider);
+                          if (context.mounted) {
+                            showToast(context, l.event_cancel_success, success: true);
+                            context.go('/events');
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ],
           Row(
             children: [
@@ -2479,18 +2575,20 @@ class _BottomCta extends ConsumerWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: PrimaryButton(
-                  label: registered ? l.event_cta_registered : l.event_cta_register,
-                  variant: registered ? BtnVariant.secondary : BtnVariant.primary,
-                  size: BtnSize.lg,
-                  full: true,
-                  onPressed: registered
-                      ? null
-                      : () => _showRegisterSheet(context, ref),
+              if (isRegistering) ...[
+                const SizedBox(width: 10),
+                Expanded(
+                  child: PrimaryButton(
+                    label: disabledReason ?? l.event_cta_register,
+                    variant: disabledReason != null ? BtnVariant.secondary : BtnVariant.primary,
+                    size: BtnSize.lg,
+                    full: true,
+                    onPressed: disabledReason != null
+                        ? null
+                        : () => _showRegisterSheet(context, ref),
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
         ],
@@ -2499,6 +2597,17 @@ class _BottomCta extends ConsumerWidget {
   }
 
   Future<void> _showRegisterSheet(BuildContext context, WidgetRef ref) async {
+    // Double-check duplicate registration
+    final uid = currentUserId;
+    if (uid != null) {
+      final alreadyRegistered = await ref.read(eventsRepoProvider).isUserRegistered(event.id, uid);
+      if (alreadyRegistered && context.mounted) {
+        showToast(context, context.l10n.event_already_registered, error: true);
+        return;
+      }
+    }
+
+    if (!context.mounted) return;
     final l = context.l10n;
     final teamC = TextEditingController();
     final contactC = TextEditingController();
@@ -2556,19 +2665,45 @@ class _BottomCta extends ConsumerWidget {
                     showToast(ctx, l.error_required_field, error: true);
                     return;
                   }
-                  try {
-                    await ref
-                        .read(messagesRepoProvider)
-                        .createConversation(
-                          title: 'event:${event.id}:reg:${teamC.text.trim()}',
-                          kind: 'team',
-                        );
-                  } catch (_) {
-                    /* ignore: registration in offline / mock mode still persists locally. */
+                  if (contactC.text.trim().isEmpty) {
+                    showToast(ctx, l.validation_contact_required, error: true);
+                    return;
                   }
-                  await ref
-                      .read(favoritesRepoProvider)
-                      .toggle(FavoriteEntity.event, event.id);
+                  if (phoneC.text.trim().isEmpty) {
+                    showToast(ctx, l.validation_phone_required, error: true);
+                    return;
+                  }
+                  if (!RegExp(r'^\+?\d{7,15}$').hasMatch(phoneC.text.trim())) {
+                    showToast(ctx, l.validation_phone_format, error: true);
+                    return;
+                  }
+                  try {
+                    // Write to teams table
+                    await ref.read(eventsRepoProvider).insertTeam({
+                      'event_id': event.id,
+                      'captain_id': currentUserId,
+                      'name': teamC.text.trim(),
+                      'contact': contactC.text.trim(),
+                      'phone': phoneC.text.trim(),
+                    });
+                    // Also create conversation for communication
+                    try {
+                      await ref
+                          .read(messagesRepoProvider)
+                          .createConversation(
+                            title: 'event:${event.id}:reg:${teamC.text.trim()}',
+                            kind: 'team',
+                          );
+                    } catch (_) {}
+                    await ref
+                        .read(favoritesRepoProvider)
+                        .toggle(FavoriteEntity.event, event.id);
+                    ref.invalidate(eventTeamsCountProvider(event.id));
+                    ref.invalidate(isUserRegisteredProvider(event.id));
+                  } catch (e) {
+                    if (ctx.mounted) showToast(ctx, '$e', error: true);
+                    return;
+                  }
                   if (ctx.mounted) Navigator.of(ctx).pop();
                   if (context.mounted) {
                     showToast(context, l.event_register_success, success: true);
