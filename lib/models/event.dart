@@ -224,6 +224,8 @@ class TeamRow {
   final String? captainAvatar;
   final String? contact;
   final String? phone;
+  final String? logoUrl;
+  final String? slogan;
   final String status;
   final DateTime? createdAt;
 
@@ -236,6 +238,8 @@ class TeamRow {
     this.captainAvatar,
     this.contact,
     this.phone,
+    this.logoUrl,
+    this.slogan,
     this.status = 'pending',
     this.createdAt,
   });
@@ -252,9 +256,42 @@ class TeamRow {
       captainAvatar: captain['avatar_url'] as String?,
       contact: m['contact'] as String?,
       phone: m['phone'] as String?,
+      logoUrl: m['logo_url'] as String?,
+      slogan: m['slogan'] as String?,
       status: (m['status'] as String?) ?? 'pending',
       createdAt:
           m['created_at'] != null ? DateTime.parse(m['created_at']) : null,
+    );
+  }
+}
+
+class TeamMember {
+  final String id;
+  final String userId;
+  final String? name;
+  final String? avatarUrl;
+  final int? jerseyNumber;
+  final String role;
+
+  const TeamMember({
+    required this.id,
+    required this.userId,
+    this.name,
+    this.avatarUrl,
+    this.jerseyNumber,
+    this.role = 'player',
+  });
+
+  factory TeamMember.fromMap(Map<String, dynamic> m) {
+    final profile =
+        (m['profile'] as Map?)?.cast<String, dynamic>() ?? const {};
+    return TeamMember(
+      id: m['id'] as String,
+      userId: m['user_id'] as String,
+      name: profile['name'] as String?,
+      avatarUrl: profile['avatar_url'] as String?,
+      jerseyNumber: m['jersey_number'] as int?,
+      role: (m['role'] as String?) ?? 'player',
     );
   }
 }
