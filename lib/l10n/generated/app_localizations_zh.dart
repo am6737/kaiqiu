@@ -624,6 +624,41 @@ class AppL10nZh extends AppL10n {
   String get event_register_success => '报名已提交，等待组委会审核';
 
   @override
+  String get event_register_slogan => '口号（选填）';
+
+  @override
+  String get event_register_members => '队员';
+
+  @override
+  String get event_register_add_member => '添加队员';
+
+  @override
+  String get event_register_search_user => '搜索用户';
+
+  @override
+  String get event_register_jersey => '球衣号';
+
+  @override
+  String get team_detail_slogan => '口号';
+
+  @override
+  String get team_detail_members => '队员';
+
+  @override
+  String team_detail_member_count(int n) {
+    return '$n 人';
+  }
+
+  @override
+  String get team_detail_stats => '战绩';
+
+  @override
+  String get team_detail_no_matches => '暂无比赛';
+
+  @override
+  String get team_detail_captain => '队长';
+
+  @override
   String get event_rating_team_all => '全部';
 
   @override

@@ -631,6 +631,41 @@ class AppL10nEn extends AppL10n {
   String get event_register_success => 'Submitted · awaiting review';
 
   @override
+  String get event_register_slogan => 'Slogan (optional)';
+
+  @override
+  String get event_register_members => 'Members';
+
+  @override
+  String get event_register_add_member => 'Add member';
+
+  @override
+  String get event_register_search_user => 'Search user';
+
+  @override
+  String get event_register_jersey => 'Jersey #';
+
+  @override
+  String get team_detail_slogan => 'Slogan';
+
+  @override
+  String get team_detail_members => 'Members';
+
+  @override
+  String team_detail_member_count(int n) {
+    return '$n members';
+  }
+
+  @override
+  String get team_detail_stats => 'Stats';
+
+  @override
+  String get team_detail_no_matches => 'No matches yet';
+
+  @override
+  String get team_detail_captain => 'Captain';
+
+  @override
   String get event_rating_team_all => 'All';
 
   @override
