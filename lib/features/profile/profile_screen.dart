@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../l10n/l10n_extension.dart';
-import '../../models/feed.dart';
 import '../../models/player_profile.dart';
 import '../../providers.dart';
 import '../../services/storage.dart';
