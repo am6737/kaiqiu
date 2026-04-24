@@ -168,6 +168,11 @@ final eventTeamsCountProvider =
   return (rows['teams_registered'] as num?)?.toInt() ?? 0;
 });
 
+final eventTeamsProvider =
+    FutureProvider.family<List<TeamRow>, String>((ref, eventId) async {
+  return ref.read(eventsRepoProvider).listTeams(eventId);
+});
+
 final isUserRegisteredProvider =
     FutureProvider.family<bool, String>((ref, eventId) async {
   final uid = currentUserId;
@@ -366,6 +371,21 @@ final myFavoritePickupsProvider = FutureProvider<List<Pickup>>((ref) async {
   final ids = await ref.read(favoritesRepoProvider).list(FavoriteEntity.pickup);
   if (ids.isEmpty) return [];
   return ref.read(pickupsRepoProvider).listByIds(ids);
+});
+
+/// 我的动态 — activities authored by current user (posts with stats).
+final myActivitiesProvider = FutureProvider<List<FeedActivity>>((ref) async {
+  return ref.read(feedRepoProvider).myActivities();
+});
+
+/// 我的帖子 — plain posts authored by current user (no activity stats).
+final myPostsProvider = FutureProvider<List<FeedPost>>((ref) async {
+  return ref.read(feedRepoProvider).myPosts();
+});
+
+/// 我的文章 — articles authored by current user.
+final myArticlesProvider = FutureProvider<List<FeedArticle>>((ref) async {
+  return ref.read(feedRepoProvider).myArticles();
 });
 
 // ─────────────────────────────────────────────────────────────
