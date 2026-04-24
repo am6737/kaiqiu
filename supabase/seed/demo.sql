@@ -345,9 +345,11 @@ values (
 -- ═══════════════════════════════════════════════════════════════
 
 -- e1: 青秀村超 16 队
+insert into teams (event_id, name, captain_id, status, slogan) values
+  ('11111111-1111-1111-1111-111111111111', '青秀狼队', '10000000-0000-0000-0000-000000000001', 'approved', '狼行千里，志在必得'),
+  ('11111111-1111-1111-1111-111111111111', 'FC 黑马',  '10000000-0000-0000-0000-000000000003', 'approved', '逆风翻盘，向阳而生');
+
 insert into teams (event_id, name, captain_id, status) values
-  ('11111111-1111-1111-1111-111111111111', '青秀狼队', '10000000-0000-0000-0000-000000000001', 'approved'),
-  ('11111111-1111-1111-1111-111111111111', 'FC 黑马',  '10000000-0000-0000-0000-000000000003', 'approved'),
   ('11111111-1111-1111-1111-111111111111', '邕宁闪电',  null, 'approved'),
   ('11111111-1111-1111-1111-111111111111', '江南联',    null, 'approved'),
   ('11111111-1111-1111-1111-111111111111', '良庆渔民',  null, 'approved'),
@@ -380,6 +382,24 @@ from generate_series(1, 8) n;
 insert into teams (event_id, name, status)
 select '11111111-1111-1111-1111-444444444444', '校友队' || n, 'approved'
 from generate_series(1, 12) n;
+
+
+-- Team members for demo teams
+INSERT INTO team_members (team_id, user_id, jersey_number, role)
+SELECT t.id, '10000000-0000-0000-0000-000000000001', 10, 'captain'
+FROM teams t WHERE t.name = '青秀狼队' AND t.event_id = '11111111-1111-1111-1111-111111111111';
+
+INSERT INTO team_members (team_id, user_id, jersey_number, role)
+SELECT t.id, '10000000-0000-0000-0000-000000000002', 7, 'player'
+FROM teams t WHERE t.name = '青秀狼队' AND t.event_id = '11111111-1111-1111-1111-111111111111';
+
+INSERT INTO team_members (team_id, user_id, jersey_number, role)
+SELECT t.id, '10000000-0000-0000-0000-000000000003', 9, 'captain'
+FROM teams t WHERE t.name = 'FC 黑马' AND t.event_id = '11111111-1111-1111-1111-111111111111';
+
+INSERT INTO team_members (team_id, user_id, jersey_number, role)
+SELECT t.id, '10000000-0000-0000-0000-000000000004', 11, 'player'
+FROM teams t WHERE t.name = 'FC 黑马' AND t.event_id = '11111111-1111-1111-1111-111111111111';
 
 
 -- ═══════════════════════════════════════════════════════════════
