@@ -1,35 +1,53 @@
-// profile_screen.dart — 我的 (tab root, menu-style)
-// Matches new prototype: identity strip → archive entry card → activity → settings
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../l10n/l10n_extension.dart';
+import '../../models/feed.dart';
 import '../../models/player_profile.dart';
 import '../../providers.dart';
-import '../../services/local_storage.dart';
 import '../../services/storage.dart';
 import '../../services/supabase.dart';
+import '../../theme/app_tokens.dart';
 import '../../widgets/avatar_picker_sheet.dart';
+import '../../widgets/empty_state.dart';
 import '../../widgets/network_avatar.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/typography.dart';
-import '../../theme/app_tokens.dart';
+import '../home/cards/activity_feed_card.dart';
+import '../home/cards/article_feed_card.dart';
+import '../home/cards/post_feed_card.dart';
 
-class ProfileScreen extends ConsumerWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
-  Future<void> _pickAvatar(
-    BuildContext context,
-    WidgetRef ref,
-    PlayerProfile? profile,
-  ) async {
+  @override
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends ConsumerState<ProfileScreen>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickAvatar(PlayerProfile? profile) async {
     final result = await showAvatarPickerSheet(
       context,
       current: profile?.avatarUrl,
       name: profile?.name ?? '',
     );
-    if (result == null || !context.mounted) return;
+    if (result == null || !mounted) return;
 
     final uid = currentUserId;
     if (uid == null) return;
@@ -42,424 +60,375 @@ class ProfileScreen extends ConsumerWidget {
           pathPrefix: uid,
           square: true,
         );
-        if (newUrl == null || !context.mounted) return;
+        if (newUrl == null || !mounted) return;
       } else {
         newUrl = result;
       }
 
       await ref.read(profilesRepoProvider).update(uid, {'avatar_url': newUrl});
       ref.invalidate(myProfileProvider);
-    } catch (_) {
-      // silently ignore upload / save failures
-    }
+    } catch (_) {}
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final l = context.l10n;
+    final t = context.tokens;
     final PlayerProfile? u = ref.watch(myProfileProvider).valueOrNull;
-    final teammatesAsync = ref.watch(teammatesProvider);
     ref.watch(localStoreProvider);
 
-    final regEventsCount = ref.watch(myRegisteredEventsProvider).valueOrNull?.length ?? 0;
-    final hostedEventsCount = ref.watch(myHostedEventsProvider).valueOrNull?.length ?? 0;
-    final eventsCount = regEventsCount + hostedEventsCount;
-    final hostedPickupsCount = ref.watch(myHostedPickupsProvider).valueOrNull?.length ?? 0;
-    final joinedPickupsCount = ref.watch(myJoinedPickupsProvider).valueOrNull?.length ?? 0;
-    final pickupsCount = hostedPickupsCount + joinedPickupsCount;
-    final venuesCount = ref.watch(myVenuesProvider).valueOrNull?.length ?? 0;
-
-    final activity = <_MenuItem>[
-      _MenuItem(
-        icon: Icons.calendar_today,
-        label: l.profile_menu_my_events,
-        badge: eventsCount > 0 ? '$eventsCount' : null,
-        onTap: () => context.push('/me/events'),
-      ),
-      _MenuItem(
-        icon: Icons.map_outlined,
-        label: l.profile_menu_my_pickups,
-        badge: pickupsCount > 0 ? '$pickupsCount' : null,
-        onTap: () => context.push('/me/pickups'),
-      ),
-      _MenuItem(
-        icon: Icons.stadium_outlined,
-        label: '我的场馆',
-        badge: venuesCount > 0 ? '$venuesCount' : null,
-        onTap: () => context.push('/me/venues'),
-      ),
-      _MenuItem(
-        icon: Icons.person_outline,
-        label: l.profile_menu_my_teams,
-        badge: (teammatesAsync.valueOrNull?.length ?? 0) > 0
-            ? '${teammatesAsync.valueOrNull?.length ?? 0}'
-            : null,
-        onTap: () => context.push('/me/teams'),
-      ),
-      _MenuItem(
-        icon: Icons.bookmark_border,
-        label: l.profile_menu_favorites,
-        onTap: () => context.push('/me/favorites'),
-      ),
-    ];
-
-    final settings = <_MenuItem>[
-      _MenuItem(
-        icon: Icons.settings_outlined,
-        label: l.profile_menu_account,
-        onTap: () => context.push('/settings/account'),
-      ),
-      _MenuItem(
-        icon: Icons.notifications_none,
-        label: l.profile_menu_notif,
-        onTap: () => context.push('/settings/notifications'),
-      ),
-      _MenuItem(
-        icon: Icons.palette_outlined,
-        label: l.profile_menu_appearance,
-        onTap: () => context.push('/settings/appearance'),
-      ),
-      _MenuItem(
-        icon: Icons.chat_bubble_outline,
-        label: l.profile_menu_help,
-        onTap: () => context.push('/settings/help'),
-      ),
-      _MenuItem(
-        icon: Icons.emoji_events_outlined,
-        label: l.profile_menu_about,
-        trailing: 'v0.1',
-        onTap: () => context.push('/settings/about'),
-      ),
-    ];
-
     final followingCount = ref.watch(followingCountProvider);
-    final followersCount = ref.watch(followersCountProvider).valueOrNull ?? 0;
+    final followersCount =
+        ref.watch(followersCountProvider).valueOrNull ?? 0;
 
     return Scaffold(
-      backgroundColor: context.tokens.bg,
+      backgroundColor: t.bg,
       body: SafeArea(
         bottom: false,
-        child: ListView(
-          padding: const EdgeInsets.only(bottom: 100),
-          children: [
-            // Title row
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 6, 16, 8),
-              child: Text(
-                l.profile_title,
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w800,
-                  color: context.tokens.ink,
-                  letterSpacing: -0.5,
-                ),
-              ),
-            ),
-            // Centered avatar
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Center(
-                child: GestureDetector(
-                  onTap: () => _pickAvatar(context, ref, u),
-                  child: NetworkAvatar(
-                    u?.name ?? '新球友',
-                    url: u?.avatarUrl,
-                    size: 72,
-                  ),
-                ),
-              ),
-            ),
-            // Name
-            Padding(
-              padding: const EdgeInsets.only(top: 12),
-              child: Center(
-                child: Text(
-                  u?.name ?? '新球友',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: context.tokens.ink,
-                    letterSpacing: -0.3,
-                  ),
-                ),
-              ),
-            ),
-            // Handle
-            Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Center(
-                child: Text(
-                  u?.handle ?? '',
-                  style: TextStyle(
-                    fontFamily: context.tokens.fontMono,
-                    fontFamilyFallback: context.tokens.monoFallbacks,
-                    fontSize: 13,
-                    color: context.tokens.inkSub,
-                    letterSpacing: 0.2,
-                  ),
-                ),
-              ),
-            ),
-            // Stats row: Following | Followers
-            Padding(
-              padding: const EdgeInsets.fromLTRB(40, 20, 40, 0),
-              child: Row(
+        child: NestedScrollView(
+          headerSliverBuilder: (context, innerBoxIsScrolled) => [
+            SliverToBoxAdapter(
+              child: Column(
                 children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => context.push('/me/following'),
-                      child: _StatColumn(
-                        count: followingCount,
-                        label: l.profile_following,
+                  // Title row with gear icon
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 6, 8, 8),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            l.profile_title,
+                            style: TextStyle(
+                              fontSize: 26,
+                              fontWeight: FontWeight.w800,
+                              color: t.ink,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => context.push('/me/settings'),
+                          icon: Icon(
+                            Icons.settings_outlined,
+                            size: 22,
+                            color: t.inkSub,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Centered avatar
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Center(
+                      child: GestureDetector(
+                        onTap: () => _pickAvatar(u),
+                        child: NetworkAvatar(
+                          u?.name ?? '新球友',
+                          url: u?.avatarUrl,
+                          size: 72,
+                        ),
                       ),
                     ),
                   ),
-                  Container(
-                    width: 1,
-                    height: 32,
-                    color: context.tokens.line,
-                  ),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => context.push('/me/following?tab=1'),
-                      child: _StatColumn(
-                        count: followersCount,
-                        label: l.profile_followers,
+                  // Name
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: Center(
+                      child: Text(
+                        u?.name ?? '新球友',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          color: t.ink,
+                          letterSpacing: -0.3,
+                        ),
                       ),
+                    ),
+                  ),
+                  // Handle
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Center(
+                      child: Text(
+                        u?.handle ?? '',
+                        style: TextStyle(
+                          fontFamily: t.fontMono,
+                          fontFamilyFallback: t.monoFallbacks,
+                          fontSize: 13,
+                          color: t.inkSub,
+                          letterSpacing: 0.2,
+                        ),
+                      ),
+                    ),
+                  ),
+                  // Stats row
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(40, 20, 40, 0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => context.push('/me/following'),
+                            child: _StatColumn(
+                              count: followingCount,
+                              label: l.profile_following,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          width: 1,
+                          height: 32,
+                          color: t.line,
+                        ),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () =>
+                                context.push('/me/following?tab=1'),
+                            child: _StatColumn(
+                              count: followersCount,
+                              label: l.profile_followers,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Action buttons row
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 18, 16, 8),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: PrimaryButton(
+                            label: l.profile_edit_btn,
+                            variant: BtnVariant.ghost,
+                            size: BtnSize.md,
+                            full: true,
+                            onPressed: () => context.push('/profile/edit'),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        GestureDetector(
+                          onTap: () => context.push('/archive'),
+                          child: Container(
+                            height: 40,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 14),
+                            decoration: BoxDecoration(
+                              color: t.accentSubtle,
+                              border: Border.all(
+                                  color: t.accent.withAlpha(0x66)),
+                              borderRadius:
+                                  BorderRadius.circular(t.r2),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  u?.position ?? '',
+                                  style: TextStyle(
+                                    fontFamily: t.fontMono,
+                                    fontFamilyFallback:
+                                        t.monoFallbacks,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w800,
+                                    color: t.accent,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Icon(
+                                  Icons.chevron_right,
+                                  size: 14,
+                                  color: t.accent,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
             ),
-            // Edit profile button
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
-              child: PrimaryButton(
-                label: l.profile_edit_btn,
-                variant: BtnVariant.ghost,
-                size: BtnSize.md,
-                full: true,
-                onPressed: () => context.push('/profile/edit'),
-              ),
-            ),
-            // Archive entry card
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 18),
-              child: GestureDetector(
-                onTap: () => context.push('/archive'),
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: () {
-                        final isDark = Theme.of(context).brightness == Brightness.dark;
-                        final l1 = isDark ? 0.20 : 0.92;
-                        final l2 = isDark ? 0.14 : 0.86;
-                        final s1 = isDark ? 0.25 : 0.18;
-                        final s2 = isDark ? 0.10 : 0.10;
-                        return [
-                          HSLColor.fromAHSL(1, 150, s1, l1).toColor(),
-                          HSLColor.fromAHSL(1, 150, s2, l2).toColor(),
-                        ];
-                      }(),
-                    ),
-                    border: Border.all(color: context.tokens.accent.withAlpha(0x66)),
-                    borderRadius: BorderRadius.circular(context.tokens.r3),
+            // Sticky TabBar
+            SliverPersistentHeader(
+              pinned: true,
+              delegate: _TabBarDelegate(
+                tabBar: TabBar(
+                  controller: _tabController,
+                  labelColor: t.ink,
+                  unselectedLabelColor: t.inkDim,
+                  labelStyle: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
                   ),
-                  child: Row(
-                    children: [
-                      // Position big tag
-                      Container(
-                        width: 44,
-                        height: 44,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: context.tokens.accentSubtle,
-                          border: Border.all(color: context.tokens.accent.withAlpha(0x66)),
-                          borderRadius: BorderRadius.circular(context.tokens.r2),
-                        ),
-                        child: Text(
-                          u?.position ?? '',
-                          style: TextStyle(
-                            fontFamily: context.tokens.fontMono,
-                            fontFamilyFallback: context.tokens.monoFallbacks,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w800,
-                            color: context.tokens.accent,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Text(
-                                  l.profile_archive_title,
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w700,
-                                    color: context.tokens.ink,
-                                  ),
-                                ),
-                                const SizedBox(width: 6),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 5,
-                                    vertical: 1,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: context.tokens.accentSubtle,
-                                    border: Border.all(
-                                      color: context.tokens.accent.withAlpha(0x66),
-                                    ),
-                                    borderRadius: BorderRadius.circular(2),
-                                  ),
-                                  child: Text(
-                                    l.profile_archive_new_badge,
-                                    style: TextStyle(
-                                      fontFamily: context.tokens.fontMono,
-                                      fontFamilyFallback: context.tokens.monoFallbacks,
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.w700,
-                                      color: context.tokens.accent,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '${u?.positionFull ?? ''} · ${u?.city ?? ''} ${u?.district ?? ''}',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: context.tokens.inkSub,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Wrap(
-                              spacing: 10,
-                              runSpacing: 2,
-                              children: [
-                                _MiniStat(
-                                  label: l.profile_mini_overall,
-                                  value: '${u?.rating ?? 0}',
-                                  color: context.tokens.accent,
-                                ),
-                                _MiniStat(
-                                  label: l.profile_mini_matches,
-                                  value: '${u?.stats.matches ?? 0}',
-                                  color: context.tokens.ink,
-                                ),
-                                _MiniStat(
-                                  label: l.profile_mini_goals,
-                                  value: '${u?.stats.goals ?? 0}',
-                                  color: context.tokens.ink,
-                                ),
-                                _MiniStat(
-                                  label: l.profile_mini_mvp,
-                                  value: '${u?.stats.assists ?? 0}',
-                                  color: context.tokens.warn,
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Icon(
-                        Icons.chevron_right,
-                        size: 14,
-                        color: context.tokens.inkDim,
-                      ),
-                    ],
+                  unselectedLabelStyle: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
                   ),
+                  indicatorColor: t.accent,
+                  indicatorSize: TabBarIndicatorSize.label,
+                  dividerColor: t.line,
+                  tabs: [
+                    Tab(text: l.profile_tab_activities),
+                    Tab(text: l.profile_tab_posts),
+                    Tab(text: l.profile_tab_articles),
+                  ],
                 ),
-              ),
-            ),
-            _EntrySection(title: l.profile_section_activity, items: activity),
-            _EntrySection(title: l.profile_section_settings, items: settings),
-            // Sign-out
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-              child: GestureDetector(
-                onTap: () async {
-                  final ok =
-                      await showDialog<bool>(
-                        context: context,
-                        builder: (ctx) => AlertDialog(
-                          backgroundColor: context.tokens.elev2,
-                          content: Text(
-                            l.profile_logout_confirm,
-                            style: TextStyle(color: context.tokens.ink),
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(ctx).pop(false),
-                              child: Text(
-                                l.common_cancel,
-                                style: TextStyle(color: context.tokens.inkSub),
-                              ),
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.of(ctx).pop(true),
-                              child: Text(
-                                l.settings_account_logout,
-                                style: TextStyle(color: context.tokens.danger),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ) ??
-                      false;
-                  if (!ok) return;
-                  await supabase.auth.signOut();
-                  await LocalStore.setRemember(false, null);
-                  // Router redirect will push to /sign-in automatically.
-                },
-                child: Container(
-                  height: 48,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: context.tokens.elev2,
-                    border: Border.all(color: context.tokens.line),
-                    borderRadius: BorderRadius.circular(context.tokens.r2),
-                  ),
-                  child: Text(
-                    l.profile_logout,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: context.tokens.danger,
-                    ),
-                  ),
-                ),
+                backgroundColor: t.bg,
               ),
             ),
           ],
+          body: TabBarView(
+            controller: _tabController,
+            children: const [
+              _ActivitiesTab(),
+              _PostsTab(),
+              _ArticlesTab(),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-class _MenuItem {
-  final IconData icon;
-  final String label;
-  final String? badge;
-  final String? trailing;
-  final VoidCallback? onTap;
-  const _MenuItem({
-    required this.icon,
-    required this.label,
-    this.badge,
-    this.trailing,
-    this.onTap,
-  });
+class _TabBarDelegate extends SliverPersistentHeaderDelegate {
+  final TabBar tabBar;
+  final Color backgroundColor;
+
+  _TabBarDelegate({required this.tabBar, required this.backgroundColor});
+
+  @override
+  double get minExtent => tabBar.preferredSize.height;
+
+  @override
+  double get maxExtent => tabBar.preferredSize.height;
+
+  @override
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return Container(color: backgroundColor, child: tabBar);
+  }
+
+  @override
+  bool shouldRebuild(_TabBarDelegate oldDelegate) => false;
+}
+
+class _ActivitiesTab extends ConsumerWidget {
+  const _ActivitiesTab();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = context.l10n;
+    final async = ref.watch(myActivitiesProvider);
+
+    return RefreshIndicator(
+      color: context.tokens.accent,
+      backgroundColor: context.tokens.elev1,
+      onRefresh: () async => ref.invalidate(myActivitiesProvider),
+      child: async.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text('$e')),
+        data: (items) {
+          if (items.isEmpty) {
+            return ListView(
+              children: [
+                EmptyState(
+                  icon: Icons.directions_run,
+                  title: l.profile_empty_activities,
+                  subtitle: l.profile_empty_activities_sub,
+                ),
+              ],
+            );
+          }
+          return ListView.builder(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+            itemCount: items.length,
+            itemBuilder: (_, i) => ActivityFeedCard(item: items[i]),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _PostsTab extends ConsumerWidget {
+  const _PostsTab();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = context.l10n;
+    final async = ref.watch(myPostsProvider);
+
+    return RefreshIndicator(
+      color: context.tokens.accent,
+      backgroundColor: context.tokens.elev1,
+      onRefresh: () async => ref.invalidate(myPostsProvider),
+      child: async.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text('$e')),
+        data: (items) {
+          if (items.isEmpty) {
+            return ListView(
+              children: [
+                EmptyState(
+                  icon: Icons.chat_bubble_outline,
+                  title: l.profile_empty_posts,
+                  subtitle: l.profile_empty_posts_sub,
+                ),
+              ],
+            );
+          }
+          return ListView.builder(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+            itemCount: items.length,
+            itemBuilder: (_, i) => PostFeedCard(item: items[i]),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _ArticlesTab extends ConsumerWidget {
+  const _ArticlesTab();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = context.l10n;
+    final async = ref.watch(myArticlesProvider);
+
+    return RefreshIndicator(
+      color: context.tokens.accent,
+      backgroundColor: context.tokens.elev1,
+      onRefresh: () async => ref.invalidate(myArticlesProvider),
+      child: async.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text('$e')),
+        data: (items) {
+          if (items.isEmpty) {
+            return ListView(
+              children: [
+                EmptyState(
+                  icon: Icons.article_outlined,
+                  title: l.profile_empty_articles,
+                  subtitle: l.profile_empty_articles_sub,
+                ),
+              ],
+            );
+          }
+          return ListView.builder(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+            itemCount: items.length,
+            itemBuilder: (_, i) => ArticleFeedCard(item: items[i]),
+          );
+        },
+      ),
+    );
+  }
 }
 
 class _StatColumn extends StatelessWidget {
@@ -487,125 +456,6 @@ class _StatColumn extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _MiniStat extends StatelessWidget {
-  final String label, value;
-  final Color color;
-  const _MiniStat({
-    required this.label,
-    required this.value,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text('$label ', style: TextStyle(fontSize: 11, color: context.tokens.inkSub)),
-        N(value, size: 11, weight: FontWeight.w700, color: color),
-      ],
-    );
-  }
-}
-
-class _EntrySection extends StatelessWidget {
-  final String title;
-  final List<_MenuItem> items;
-  const _EntrySection({required this.title, required this.items});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 18),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Label(title),
-          const SizedBox(height: 10),
-          Container(
-            decoration: BoxDecoration(
-              color: context.tokens.elev2,
-              border: Border.all(color: context.tokens.line),
-              borderRadius: BorderRadius.circular(context.tokens.r2),
-            ),
-            child: Column(
-              children: [
-                for (int i = 0; i < items.length; i++) _row(context, items[i], i > 0),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _row(BuildContext context, _MenuItem item, bool divider) {
-    return InkWell(
-      onTap: item.onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: divider
-            ? BoxDecoration(
-                border: Border(top: BorderSide(color: context.tokens.line, width: 1)),
-              )
-            : null,
-        child: Row(
-          children: [
-            Container(
-              width: 30,
-              height: 30,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: context.tokens.elev3,
-                border: Border.all(color: context.tokens.line),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Icon(item.icon, size: 14, color: context.tokens.inkSub),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                item.label,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: context.tokens.ink,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-            if (item.badge != null) ...[
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
-                decoration: BoxDecoration(
-                  color: context.tokens.elev3,
-                  border: Border.all(color: context.tokens.line),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  item.badge!,
-                  style: TextStyle(
-                    fontFamily: context.tokens.fontMono,
-                    fontFamilyFallback: context.tokens.monoFallbacks,
-                    fontSize: 10,
-                    color: context.tokens.inkSub,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-            ],
-            if (item.trailing != null) ...[
-              Label(item.trailing!),
-              const SizedBox(width: 8),
-            ],
-            Icon(Icons.chevron_right, size: 14, color: context.tokens.inkDim),
-          ],
-        ),
-      ),
     );
   }
 }
