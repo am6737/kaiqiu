@@ -268,6 +268,49 @@ class EventsRepository {
         .maybeSingle();
     return row != null;
   }
+
+  Future<TeamRow> fetchTeamDetail(String teamId) async {
+    final m = await supabase
+        .from('teams')
+        .select('*, captain:profiles!captain_id(name, avatar_url)')
+        .eq('id', teamId)
+        .single();
+    return TeamRow.fromMap(m);
+  }
+
+  Future<List<TeamMember>> listTeamMembers(String teamId) async {
+    final rows = await supabase
+        .from('team_members')
+        .select('*, profile:profiles!user_id(name, avatar_url)')
+        .eq('team_id', teamId)
+        .order('role')
+        .order('jersey_number');
+    return (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map(TeamMember.fromMap)
+        .toList();
+  }
+
+  Future<void> addTeamMember(String teamId, String userId, int? jerseyNumber) async {
+    await supabase.from('team_members').insert({
+      'team_id': teamId,
+      'user_id': userId,
+      'jersey_number': jerseyNumber,
+    });
+  }
+
+  Future<void> removeTeamMember(String memberId) async {
+    await supabase.from('team_members').delete().eq('id', memberId);
+  }
+
+  Future<List<Map<String, dynamic>>> searchProfiles(String query) async {
+    final rows = await supabase
+        .from('profiles')
+        .select('id, name, avatar_url')
+        .ilike('name', '%$query%')
+        .limit(10);
+    return (rows as List).cast<Map<String, dynamic>>();
+  }
 }
 
 class _RatingAgg {
