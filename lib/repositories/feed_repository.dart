@@ -138,6 +138,56 @@ class FeedRepository {
         .toList();
   }
 
+  /// Activities (posts with stats) authored by the current user.
+  Future<List<FeedActivity>> myActivities({int limit = 50}) async {
+    final uid = currentUserId;
+    if (uid == null) return [];
+    final rows = await supabase
+        .from('posts')
+        .select('*, author:profiles!author_id(name)')
+        .eq('author_id', uid)
+        .not('match_count', 'is', null)
+        .order('created_at', ascending: false)
+        .limit(limit);
+    return (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map(FeedActivity.fromMap)
+        .toList();
+  }
+
+  /// Plain posts (no activity stats) authored by the current user.
+  Future<List<FeedPost>> myPosts({int limit = 50}) async {
+    final uid = currentUserId;
+    if (uid == null) return [];
+    final rows = await supabase
+        .from('posts')
+        .select('*, author:profiles!author_id(name)')
+        .eq('author_id', uid)
+        .isFilter('match_count', null)
+        .order('created_at', ascending: false)
+        .limit(limit);
+    return (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map(FeedPost.fromMap)
+        .toList();
+  }
+
+  /// Articles authored by the current user.
+  Future<List<FeedArticle>> myArticles({int limit = 50}) async {
+    final uid = currentUserId;
+    if (uid == null) return [];
+    final rows = await supabase
+        .from('articles')
+        .select()
+        .eq('author_id', uid)
+        .order('created_at', ascending: false)
+        .limit(limit);
+    return (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map(FeedArticle.fromMap)
+        .toList();
+  }
+
   Future<List<FeedEvent>> _registeringEvents({required int limit}) async {
     final rows = await supabase
         .from('events')
