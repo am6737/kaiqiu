@@ -1,9 +1,5 @@
 // event_detail_screen.dart — 赛事详情 (5 tabs)
 //
-// Live tabs:  overview (from event row) · bracket / standings (from matches)
-//             · scorers (from goals table)
-// Mock tabs:  chat   (needs chat schema, Session D)
-//
 // 球员评分已移至比赛详情子页：/event/:eventId/match/:matchId/ratings
 // 文件 match_ratings_screen.dart。
 import 'package:flutter/material.dart';
@@ -13,13 +9,15 @@ import 'package:go_router/go_router.dart';
 import '../../l10n/l10n_extension.dart';
 import '../../models/event.dart';
 import '../../providers.dart';
+import '../../services/supabase.dart';
 import '../../theme/app_tokens.dart';
+import '../../utils/toast.dart';
 
-import 'panels/bracket_panel.dart';
 import 'panels/chat_panel.dart';
+import 'panels/competition_panel.dart';
 import 'panels/overview_panel.dart';
 import 'panels/scorers_panel.dart';
-import 'panels/standings_panel.dart';
+import 'panels/teams_panel.dart';
 import 'widgets/bottom_cta.dart';
 import 'widgets/event_header.dart';
 import 'widgets/kpi_strip.dart';
@@ -33,7 +31,35 @@ class EventDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
-  String _tab = 'bracket';
+  String _tab = 'competition';
+
+  Future<void> _confirmCancelEvent(Event event) async {
+    final l = context.l10n;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l.event_cancel),
+        content: Text(l.event_cancel_confirm),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.common_cancel)),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.common_confirm)),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    await ref.read(eventsRepoProvider).cancelEvent(event.id);
+    ref.invalidate(eventDetailProvider(event.id));
+    ref.invalidate(myHostedEventsProvider);
+    if (mounted) {
+      showToast(context, l.event_cancel_success, success: true);
+      context.go('/events');
+    }
+  }
+
+  void _showCreatorRegisterSheet(Event event) {
+    final bottomCta = BottomCta(event: event);
+    bottomCta.showRegisterSheet(context, ref);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -93,8 +119,8 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
     final l = context.l10n;
     final tabs = [
       ('overview', l.event_tab_overview),
-      ('bracket', l.event_tab_bracket),
-      ('standings', l.event_tab_standings),
+      ('teams', l.event_tab_teams),
+      ('competition', l.event_tab_competition),
       ('scorers', l.event_tab_scorers),
       ('chat', l.event_tab_chat),
     ];
@@ -110,7 +136,14 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  EventHeader(event: event, onBack: () => context.pop()),
+                  EventHeader(
+                    event: event,
+                    onBack: () => context.pop(),
+                    isCreator: event.creatorId != null && event.creatorId == currentUserId,
+                    onEdit: () => context.push('/event/${event.id}/edit'),
+                    onCancel: () => _confirmCancelEvent(event),
+                    onRegister: () => _showCreatorRegisterSheet(event),
+                  ),
                   KpiStrip(
                     eventId: event.id,
                     prizeCents: event.prizeCents,
@@ -125,8 +158,14 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                     constraints: BoxConstraints(minHeight: panelMinHeight),
                     child: switch (_tab) {
                       'overview' => OverviewPanel(event: event),
-                      'bracket' => BracketPanel(eventId: event.id),
-                      'standings' => StandingsPanel(eventId: event.id),
+                      'teams' => TeamsPanel(
+                        eventId: event.id,
+                        isCreator: event.creatorId != null &&
+                            event.creatorId == currentUserId,
+                        reviewMode: event.reviewMode,
+                        teamsMax: event.teamsMax,
+                      ),
+                      'competition' => CompetitionPanel(eventId: event.id),
                       'scorers' => ScorersPanel(eventId: event.id),
                       _ => ChatPanel(eventId: event.id),
                     },

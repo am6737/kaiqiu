@@ -184,6 +184,7 @@
   "event_tab_standings": "Standings",
   "event_tab_scorers": "Scorers",
   "event_tab_ratings": "Ratings",
+  "event_tab_competition": "Competition",
   "event_tab_chat": "Chat",
   "event_tab_teams": "Teams",
   "event_teams_summary": "{count}/{max} teams registered",

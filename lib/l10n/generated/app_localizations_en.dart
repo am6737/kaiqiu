@@ -511,6 +511,9 @@ class AppL10nEn extends AppL10n {
   String get event_tab_ratings => 'Ratings';
 
   @override
+  String get event_tab_competition => 'Competition';
+
+  @override
   String get event_tab_chat => 'Chat';
 
   @override

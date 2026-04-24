@@ -505,6 +505,9 @@ class AppL10nZh extends AppL10n {
   String get event_tab_ratings => '评分榜';
 
   @override
+  String get event_tab_competition => '赛况';
+
+  @override
   String get event_tab_chat => '讨论';
 
   @override

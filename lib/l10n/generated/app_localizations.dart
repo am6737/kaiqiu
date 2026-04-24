@@ -1057,6 +1057,12 @@ abstract class AppL10n {
   /// **'评分榜'**
   String get event_tab_ratings;
 
+  /// No description provided for @event_tab_competition.
+  ///
+  /// In zh, this message translates to:
+  /// **'赛况'**
+  String get event_tab_competition;
+
   /// No description provided for @event_tab_chat.
   ///
   /// In zh, this message translates to:

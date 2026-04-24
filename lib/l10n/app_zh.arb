@@ -184,6 +184,7 @@
   "event_tab_standings": "积分榜",
   "event_tab_scorers": "射手榜",
   "event_tab_ratings": "评分榜",
+  "event_tab_competition": "赛况",
   "event_tab_chat": "讨论",
   "event_tab_teams": "队伍",
   "event_teams_summary": "已报名 {count}/{max} 支队伍",
