@@ -16,7 +16,6 @@ import '../../utils/toast.dart';
 import 'panels/chat_panel.dart';
 import 'panels/competition_panel.dart';
 import 'panels/overview_panel.dart';
-import 'panels/scorers_panel.dart';
 import 'panels/teams_panel.dart';
 import 'widgets/bottom_cta.dart';
 import 'widgets/event_header.dart';
@@ -121,7 +120,6 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
       ('overview', l.event_tab_overview),
       ('teams', l.event_tab_teams),
       ('competition', l.event_tab_competition),
-      ('scorers', l.event_tab_scorers),
       ('chat', l.event_tab_chat),
     ];
     return LayoutBuilder(
@@ -166,7 +164,6 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                         teamsMax: event.teamsMax,
                       ),
                       'competition' => CompetitionPanel(eventId: event.id),
-                      'scorers' => ScorersPanel(eventId: event.id),
                       _ => ChatPanel(eventId: event.id),
                     },
                   ),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../l10n/l10n_extension.dart';
 import '../../../theme/app_tokens.dart';
 import 'bracket_panel.dart';
+import 'scorers_panel.dart';
 import 'standings_panel.dart';
 
 class CompetitionPanel extends StatefulWidget {
@@ -29,14 +30,16 @@ class _CompetitionPanelState extends State<CompetitionPanel> {
             items: [
               ('bracket', l.event_tab_bracket),
               ('standings', l.event_tab_standings),
+              ('scorers', l.event_tab_scorers),
             ],
             onChanged: (v) => setState(() => _sub = v),
           ),
         ),
-        if (_sub == 'bracket')
-          BracketPanel(eventId: widget.eventId)
-        else
-          StandingsPanel(eventId: widget.eventId),
+        switch (_sub) {
+          'bracket' => BracketPanel(eventId: widget.eventId),
+          'standings' => StandingsPanel(eventId: widget.eventId),
+          _ => ScorersPanel(eventId: widget.eventId),
+        },
       ],
     );
   }
