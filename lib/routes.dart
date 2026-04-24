@@ -8,6 +8,7 @@ import 'features/auth/onboarding_screen.dart';
 import 'features/auth/sign_in_screen.dart';
 import 'features/create_event/create_event_screen.dart';
 import 'features/events/event_detail_screen.dart';
+import 'features/events/team_detail_screen.dart';
 import 'features/events/events_hub_screen.dart';
 import 'features/events/match_detail_screen.dart';
 import 'features/events/match_ratings_screen.dart';
@@ -33,6 +34,7 @@ import 'features/post/post_detail_screen.dart';
 import 'features/profile/player_archive_screen.dart';
 import 'features/profile/profile_edit_screen.dart';
 import 'features/profile/profile_screen.dart';
+import 'features/profile/user_profile_screen.dart';
 import 'features/profile/profile_settings_screen.dart';
 import 'features/rating/formation_rating_screen.dart';
 import 'features/rating/post_match_rating_screen.dart';
@@ -118,6 +120,13 @@ final router = GoRouter(
     GoRoute(
       path: '/event/:id',
       builder: (_, s) => EventDetailScreen(id: s.pathParameters['id']!),
+    ),
+    GoRoute(
+      path: '/event/:eventId/team/:teamId',
+      builder: (_, s) => TeamDetailScreen(
+        eventId: s.pathParameters['eventId']!,
+        teamId: s.pathParameters['teamId']!,
+      ),
     ),
     GoRoute(
       path: '/event/:eventId/match/:matchId',
@@ -227,6 +236,11 @@ final router = GoRouter(
         final tab = int.tryParse(s.uri.queryParameters['tab'] ?? '') ?? 0;
         return FollowingScreen(initialTab: tab);
       },
+    ),
+    // User profile (other users)
+    GoRoute(
+      path: '/user/:id',
+      builder: (_, s) => UserProfileScreen(userId: s.pathParameters['id']!),
     ),
     // Profile edit
     GoRoute(
