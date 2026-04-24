@@ -69,6 +69,47 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     } catch (_) {}
   }
 
+  void _showCreateSheet(BuildContext context) {
+    final l = context.l10n;
+    final t = context.tokens;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: t.elev2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(t.r3)),
+      ),
+      builder: (_) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(Icons.edit_note, color: t.accent),
+                title: Text(l.profile_fab_post,
+                    style: TextStyle(color: t.ink, fontWeight: FontWeight.w500)),
+                onTap: () {
+                  Navigator.pop(context);
+                  context.push('/create-post');
+                },
+              ),
+              Divider(height: 1, color: t.line),
+              ListTile(
+                leading: Icon(Icons.article_outlined, color: t.accent),
+                title: Text(l.profile_fab_article,
+                    style: TextStyle(color: t.ink, fontWeight: FontWeight.w500)),
+                onTap: () {
+                  Navigator.pop(context);
+                  context.push('/create-article');
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
@@ -82,6 +123,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
 
     return Scaffold(
       backgroundColor: t.bg,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showCreateSheet(context),
+        backgroundColor: t.accent,
+        child: Icon(Icons.add, color: t.accentInk),
+      ),
       body: SafeArea(
         bottom: false,
         child: NestedScrollView(
