@@ -31,6 +31,7 @@ import 'features/post/post_detail_screen.dart';
 import 'features/profile/player_archive_screen.dart';
 import 'features/profile/profile_edit_screen.dart';
 import 'features/profile/profile_screen.dart';
+import 'features/profile/profile_settings_screen.dart';
 import 'features/rating/formation_rating_screen.dart';
 import 'features/rating/post_match_rating_screen.dart';
 import 'features/search/search_screen.dart';
@@ -209,6 +210,7 @@ final router = GoRouter(
     GoRoute(path: '/me/teams', builder: (_, s) => const MyTeamsScreen()),
     GoRoute(path: '/me/venues', builder: (_, s) => const MyVenuesScreen()),
     GoRoute(path: '/me/favorites', builder: (_, s) => const FavoritesScreen()),
+    GoRoute(path: '/me/settings', builder: (_, s) => const ProfileSettingsScreen()),
     GoRoute(
       path: '/me/following',
       builder: (_, s) {
