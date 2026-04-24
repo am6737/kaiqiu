@@ -2,6 +2,8 @@
 import 'package:go_router/go_router.dart';
 
 import 'features/article/article_detail_screen.dart';
+import 'features/article/create_article_screen.dart';
+import 'features/post/create_post_screen.dart';
 import 'features/auth/onboarding_screen.dart';
 import 'features/auth/sign_in_screen.dart';
 import 'features/create_event/create_event_screen.dart';
@@ -155,6 +157,14 @@ final router = GoRouter(
     GoRoute(
       path: '/create-event',
       builder: (_, s) => const CreateEventScreen(),
+    ),
+    GoRoute(
+      path: '/create-post',
+      builder: (_, s) => const CreatePostScreen(),
+    ),
+    GoRoute(
+      path: '/create-article',
+      builder: (_, s) => const CreateArticleScreen(),
     ),
     GoRoute(
       path: '/event/:id/edit',
