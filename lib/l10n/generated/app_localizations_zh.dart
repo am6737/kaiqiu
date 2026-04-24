@@ -508,6 +508,38 @@ class AppL10nZh extends AppL10n {
   String get event_tab_chat => '讨论';
 
   @override
+  String get event_tab_teams => '队伍';
+
+  @override
+  String event_teams_summary(int count, int max) {
+    return '已报名 $count/$max 支队伍';
+  }
+
+  @override
+  String get event_teams_empty => '暂无队伍报名';
+
+  @override
+  String get event_teams_approved => '已通过';
+
+  @override
+  String get event_teams_pending => '待审核';
+
+  @override
+  String get event_teams_rejected => '已拒绝';
+
+  @override
+  String get event_teams_approve => '通过';
+
+  @override
+  String get event_teams_reject => '拒绝';
+
+  @override
+  String get event_teams_reject_confirm => '确定要拒绝该队伍的报名吗？';
+
+  @override
+  String get event_teams_contact => '联系人';
+
+  @override
   String get event_overview_rules => '规则';
 
   @override
@@ -1151,6 +1183,36 @@ class AppL10nZh extends AppL10n {
 
   @override
   String get profile_logout_confirm => '确认退出登录？';
+
+  @override
+  String get profile_tab_activities => '动态';
+
+  @override
+  String get profile_tab_posts => '帖子';
+
+  @override
+  String get profile_tab_articles => '文章';
+
+  @override
+  String get profile_empty_activities => '还没发过动态';
+
+  @override
+  String get profile_empty_activities_sub => '踢完球后记录一下运动数据吧';
+
+  @override
+  String get profile_empty_posts => '还没发过帖子';
+
+  @override
+  String get profile_empty_posts_sub => '分享你的足球故事';
+
+  @override
+  String get profile_empty_articles => '还没写过文章';
+
+  @override
+  String get profile_empty_articles_sub => '写一篇战术分析或赛事回顾';
+
+  @override
+  String get profile_settings_title => '设置与管理';
 
   @override
   String get archive_share => '分享档案';

@@ -1063,6 +1063,66 @@ abstract class AppL10n {
   /// **'讨论'**
   String get event_tab_chat;
 
+  /// No description provided for @event_tab_teams.
+  ///
+  /// In zh, this message translates to:
+  /// **'队伍'**
+  String get event_tab_teams;
+
+  /// No description provided for @event_teams_summary.
+  ///
+  /// In zh, this message translates to:
+  /// **'已报名 {count}/{max} 支队伍'**
+  String event_teams_summary(int count, int max);
+
+  /// No description provided for @event_teams_empty.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无队伍报名'**
+  String get event_teams_empty;
+
+  /// No description provided for @event_teams_approved.
+  ///
+  /// In zh, this message translates to:
+  /// **'已通过'**
+  String get event_teams_approved;
+
+  /// No description provided for @event_teams_pending.
+  ///
+  /// In zh, this message translates to:
+  /// **'待审核'**
+  String get event_teams_pending;
+
+  /// No description provided for @event_teams_rejected.
+  ///
+  /// In zh, this message translates to:
+  /// **'已拒绝'**
+  String get event_teams_rejected;
+
+  /// No description provided for @event_teams_approve.
+  ///
+  /// In zh, this message translates to:
+  /// **'通过'**
+  String get event_teams_approve;
+
+  /// No description provided for @event_teams_reject.
+  ///
+  /// In zh, this message translates to:
+  /// **'拒绝'**
+  String get event_teams_reject;
+
+  /// No description provided for @event_teams_reject_confirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确定要拒绝该队伍的报名吗？'**
+  String get event_teams_reject_confirm;
+
+  /// No description provided for @event_teams_contact.
+  ///
+  /// In zh, this message translates to:
+  /// **'联系人'**
+  String get event_teams_contact;
+
   /// No description provided for @event_overview_rules.
   ///
   /// In zh, this message translates to:
@@ -2292,6 +2352,66 @@ abstract class AppL10n {
   /// In zh, this message translates to:
   /// **'确认退出登录？'**
   String get profile_logout_confirm;
+
+  /// No description provided for @profile_tab_activities.
+  ///
+  /// In zh, this message translates to:
+  /// **'动态'**
+  String get profile_tab_activities;
+
+  /// No description provided for @profile_tab_posts.
+  ///
+  /// In zh, this message translates to:
+  /// **'帖子'**
+  String get profile_tab_posts;
+
+  /// No description provided for @profile_tab_articles.
+  ///
+  /// In zh, this message translates to:
+  /// **'文章'**
+  String get profile_tab_articles;
+
+  /// No description provided for @profile_empty_activities.
+  ///
+  /// In zh, this message translates to:
+  /// **'还没发过动态'**
+  String get profile_empty_activities;
+
+  /// No description provided for @profile_empty_activities_sub.
+  ///
+  /// In zh, this message translates to:
+  /// **'踢完球后记录一下运动数据吧'**
+  String get profile_empty_activities_sub;
+
+  /// No description provided for @profile_empty_posts.
+  ///
+  /// In zh, this message translates to:
+  /// **'还没发过帖子'**
+  String get profile_empty_posts;
+
+  /// No description provided for @profile_empty_posts_sub.
+  ///
+  /// In zh, this message translates to:
+  /// **'分享你的足球故事'**
+  String get profile_empty_posts_sub;
+
+  /// No description provided for @profile_empty_articles.
+  ///
+  /// In zh, this message translates to:
+  /// **'还没写过文章'**
+  String get profile_empty_articles;
+
+  /// No description provided for @profile_empty_articles_sub.
+  ///
+  /// In zh, this message translates to:
+  /// **'写一篇战术分析或赛事回顾'**
+  String get profile_empty_articles_sub;
+
+  /// No description provided for @profile_settings_title.
+  ///
+  /// In zh, this message translates to:
+  /// **'设置与管理'**
+  String get profile_settings_title;
 
   /// No description provided for @archive_share.
   ///

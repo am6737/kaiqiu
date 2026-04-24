@@ -514,6 +514,39 @@ class AppL10nEn extends AppL10n {
   String get event_tab_chat => 'Chat';
 
   @override
+  String get event_tab_teams => 'Teams';
+
+  @override
+  String event_teams_summary(int count, int max) {
+    return '$count/$max teams registered';
+  }
+
+  @override
+  String get event_teams_empty => 'No teams registered yet';
+
+  @override
+  String get event_teams_approved => 'Approved';
+
+  @override
+  String get event_teams_pending => 'Pending';
+
+  @override
+  String get event_teams_rejected => 'Rejected';
+
+  @override
+  String get event_teams_approve => 'Approve';
+
+  @override
+  String get event_teams_reject => 'Reject';
+
+  @override
+  String get event_teams_reject_confirm =>
+      'Are you sure you want to reject this team?';
+
+  @override
+  String get event_teams_contact => 'Contact';
+
+  @override
   String get event_overview_rules => 'Rules';
 
   @override
@@ -1163,6 +1196,38 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get profile_logout_confirm => 'Sign out of GameOn?';
+
+  @override
+  String get profile_tab_activities => 'Activities';
+
+  @override
+  String get profile_tab_posts => 'Posts';
+
+  @override
+  String get profile_tab_articles => 'Articles';
+
+  @override
+  String get profile_empty_activities => 'No activities yet';
+
+  @override
+  String get profile_empty_activities_sub =>
+      'Record your match stats after a game';
+
+  @override
+  String get profile_empty_posts => 'No posts yet';
+
+  @override
+  String get profile_empty_posts_sub => 'Share your football stories';
+
+  @override
+  String get profile_empty_articles => 'No articles yet';
+
+  @override
+  String get profile_empty_articles_sub =>
+      'Write a tactical analysis or match review';
+
+  @override
+  String get profile_settings_title => 'Settings';
 
   @override
   String get archive_share => 'Share archive';
