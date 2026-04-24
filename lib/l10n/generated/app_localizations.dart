@@ -2572,7 +2572,7 @@ abstract class AppL10n {
   /// No description provided for @profile_edit_handle.
   ///
   /// In zh, this message translates to:
-  /// **'用户名'**
+  /// **'ID'**
   String get profile_edit_handle;
 
   /// No description provided for @profile_edit_city.
@@ -5020,7 +5020,7 @@ abstract class AppL10n {
   /// No description provided for @messages_new_dm_hint.
   ///
   /// In zh, this message translates to:
-  /// **'输入对方 @handle'**
+  /// **'输入对方 ID'**
   String get messages_new_dm_hint;
 
   /// No description provided for @messages_new_dm_not_found.
@@ -5376,6 +5376,162 @@ abstract class AppL10n {
   /// In zh, this message translates to:
   /// **'所有比赛已结束，是否标记赛事为已完赛？'**
   String get event_all_matches_done;
+
+  /// No description provided for @create_post_title.
+  ///
+  /// In zh, this message translates to:
+  /// **'发帖子'**
+  String get create_post_title;
+
+  /// No description provided for @create_post_body_hint.
+  ///
+  /// In zh, this message translates to:
+  /// **'写点什么...'**
+  String get create_post_body_hint;
+
+  /// No description provided for @create_post_tags_hint.
+  ///
+  /// In zh, this message translates to:
+  /// **'添加标签'**
+  String get create_post_tags_hint;
+
+  /// No description provided for @create_post_hot_tags.
+  ///
+  /// In zh, this message translates to:
+  /// **'热门标签'**
+  String get create_post_hot_tags;
+
+  /// No description provided for @create_post_activity_toggle.
+  ///
+  /// In zh, this message translates to:
+  /// **'添加运动数据'**
+  String get create_post_activity_toggle;
+
+  /// No description provided for @create_post_match_count.
+  ///
+  /// In zh, this message translates to:
+  /// **'场次'**
+  String get create_post_match_count;
+
+  /// No description provided for @create_post_win_count.
+  ///
+  /// In zh, this message translates to:
+  /// **'胜场'**
+  String get create_post_win_count;
+
+  /// No description provided for @create_post_duration.
+  ///
+  /// In zh, this message translates to:
+  /// **'时长(分钟)'**
+  String get create_post_duration;
+
+  /// No description provided for @create_post_venue.
+  ///
+  /// In zh, this message translates to:
+  /// **'场馆'**
+  String get create_post_venue;
+
+  /// No description provided for @create_post_published.
+  ///
+  /// In zh, this message translates to:
+  /// **'已发布'**
+  String get create_post_published;
+
+  /// No description provided for @create_post_body_required.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入内容'**
+  String get create_post_body_required;
+
+  /// No description provided for @create_article_title.
+  ///
+  /// In zh, this message translates to:
+  /// **'写文章'**
+  String get create_article_title;
+
+  /// No description provided for @create_article_title_hint.
+  ///
+  /// In zh, this message translates to:
+  /// **'文章标题'**
+  String get create_article_title_hint;
+
+  /// No description provided for @create_article_category.
+  ///
+  /// In zh, this message translates to:
+  /// **'分类'**
+  String get create_article_category;
+
+  /// No description provided for @create_article_summary_hint.
+  ///
+  /// In zh, this message translates to:
+  /// **'一句话摘要（选填）'**
+  String get create_article_summary_hint;
+
+  /// No description provided for @create_article_body_hint.
+  ///
+  /// In zh, this message translates to:
+  /// **'正文...'**
+  String get create_article_body_hint;
+
+  /// No description provided for @create_article_published.
+  ///
+  /// In zh, this message translates to:
+  /// **'已发布'**
+  String get create_article_published;
+
+  /// No description provided for @create_article_title_required.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入标题'**
+  String get create_article_title_required;
+
+  /// No description provided for @create_article_body_required.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入正文'**
+  String get create_article_body_required;
+
+  /// No description provided for @create_article_cat_analysis.
+  ///
+  /// In zh, this message translates to:
+  /// **'战术分析'**
+  String get create_article_cat_analysis;
+
+  /// No description provided for @create_article_cat_review.
+  ///
+  /// In zh, this message translates to:
+  /// **'赛事回顾'**
+  String get create_article_cat_review;
+
+  /// No description provided for @create_article_cat_news.
+  ///
+  /// In zh, this message translates to:
+  /// **'资讯'**
+  String get create_article_cat_news;
+
+  /// No description provided for @create_article_cat_opinion.
+  ///
+  /// In zh, this message translates to:
+  /// **'观点'**
+  String get create_article_cat_opinion;
+
+  /// No description provided for @profile_fab_post.
+  ///
+  /// In zh, this message translates to:
+  /// **'发帖子'**
+  String get profile_fab_post;
+
+  /// No description provided for @profile_fab_article.
+  ///
+  /// In zh, this message translates to:
+  /// **'写文章'**
+  String get profile_fab_article;
+
+  /// No description provided for @common_publish.
+  ///
+  /// In zh, this message translates to:
+  /// **'发布'**
+  String get common_publish;
 }
 
 class _AppL10nDelegate extends LocalizationsDelegate<AppL10n> {

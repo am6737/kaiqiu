@@ -1303,7 +1303,7 @@ class AppL10nZh extends AppL10n {
   String get profile_edit_name => '昵称';
 
   @override
-  String get profile_edit_handle => '用户名';
+  String get profile_edit_handle => 'ID';
 
   @override
   String get profile_edit_city => '所在城市';
@@ -2601,7 +2601,7 @@ class AppL10nZh extends AppL10n {
   String get messages_new_dm => '发起私聊';
 
   @override
-  String get messages_new_dm_hint => '输入对方 @handle';
+  String get messages_new_dm_hint => '输入对方 ID';
 
   @override
   String get messages_new_dm_not_found => '用户不存在';
@@ -2785,4 +2785,82 @@ class AppL10nZh extends AppL10n {
 
   @override
   String get event_all_matches_done => '所有比赛已结束，是否标记赛事为已完赛？';
+
+  @override
+  String get create_post_title => '发帖子';
+
+  @override
+  String get create_post_body_hint => '写点什么...';
+
+  @override
+  String get create_post_tags_hint => '添加标签';
+
+  @override
+  String get create_post_hot_tags => '热门标签';
+
+  @override
+  String get create_post_activity_toggle => '添加运动数据';
+
+  @override
+  String get create_post_match_count => '场次';
+
+  @override
+  String get create_post_win_count => '胜场';
+
+  @override
+  String get create_post_duration => '时长(分钟)';
+
+  @override
+  String get create_post_venue => '场馆';
+
+  @override
+  String get create_post_published => '已发布';
+
+  @override
+  String get create_post_body_required => '请输入内容';
+
+  @override
+  String get create_article_title => '写文章';
+
+  @override
+  String get create_article_title_hint => '文章标题';
+
+  @override
+  String get create_article_category => '分类';
+
+  @override
+  String get create_article_summary_hint => '一句话摘要（选填）';
+
+  @override
+  String get create_article_body_hint => '正文...';
+
+  @override
+  String get create_article_published => '已发布';
+
+  @override
+  String get create_article_title_required => '请输入标题';
+
+  @override
+  String get create_article_body_required => '请输入正文';
+
+  @override
+  String get create_article_cat_analysis => '战术分析';
+
+  @override
+  String get create_article_cat_review => '赛事回顾';
+
+  @override
+  String get create_article_cat_news => '资讯';
+
+  @override
+  String get create_article_cat_opinion => '观点';
+
+  @override
+  String get profile_fab_post => '发帖子';
+
+  @override
+  String get profile_fab_article => '写文章';
+
+  @override
+  String get common_publish => '发布';
 }

@@ -1318,7 +1318,7 @@ class AppL10nEn extends AppL10n {
   String get profile_edit_name => 'Display name';
 
   @override
-  String get profile_edit_handle => 'Username';
+  String get profile_edit_handle => 'ID';
 
   @override
   String get profile_edit_city => 'City';
@@ -2643,7 +2643,7 @@ class AppL10nEn extends AppL10n {
   String get messages_new_dm => 'Start DM';
 
   @override
-  String get messages_new_dm_hint => 'Enter the user\'s handle';
+  String get messages_new_dm_hint => 'Enter the user\'s ID';
 
   @override
   String get messages_new_dm_not_found => 'User not found';
@@ -2836,4 +2836,82 @@ class AppL10nEn extends AppL10n {
   @override
   String get event_all_matches_done =>
       'All matches finished. Mark event as completed?';
+
+  @override
+  String get create_post_title => 'New Post';
+
+  @override
+  String get create_post_body_hint => 'What\'s on your mind...';
+
+  @override
+  String get create_post_tags_hint => 'Add tag';
+
+  @override
+  String get create_post_hot_tags => 'Trending';
+
+  @override
+  String get create_post_activity_toggle => 'Add activity data';
+
+  @override
+  String get create_post_match_count => 'Matches';
+
+  @override
+  String get create_post_win_count => 'Wins';
+
+  @override
+  String get create_post_duration => 'Duration (min)';
+
+  @override
+  String get create_post_venue => 'Venue';
+
+  @override
+  String get create_post_published => 'Published';
+
+  @override
+  String get create_post_body_required => 'Content is required';
+
+  @override
+  String get create_article_title => 'New Article';
+
+  @override
+  String get create_article_title_hint => 'Article title';
+
+  @override
+  String get create_article_category => 'Category';
+
+  @override
+  String get create_article_summary_hint => 'Brief summary (optional)';
+
+  @override
+  String get create_article_body_hint => 'Body...';
+
+  @override
+  String get create_article_published => 'Published';
+
+  @override
+  String get create_article_title_required => 'Title is required';
+
+  @override
+  String get create_article_body_required => 'Body is required';
+
+  @override
+  String get create_article_cat_analysis => 'Tactical Analysis';
+
+  @override
+  String get create_article_cat_review => 'Match Review';
+
+  @override
+  String get create_article_cat_news => 'News';
+
+  @override
+  String get create_article_cat_opinion => 'Opinion';
+
+  @override
+  String get profile_fab_post => 'New Post';
+
+  @override
+  String get profile_fab_article => 'New Article';
+
+  @override
+  String get common_publish => 'Publish';
 }
