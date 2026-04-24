@@ -184,6 +184,22 @@ final isUserRegisteredProvider =
   return ref.read(eventsRepoProvider).isUserRegistered(eventId, uid);
 });
 
+final teamDetailProvider =
+    FutureProvider.family<TeamRow, String>((ref, teamId) async {
+  return ref.read(eventsRepoProvider).fetchTeamDetail(teamId);
+});
+
+final teamMembersProvider =
+    FutureProvider.family<List<TeamMember>, String>((ref, teamId) async {
+  return ref.read(eventsRepoProvider).listTeamMembers(teamId);
+});
+
+final profileSearchProvider =
+    FutureProvider.family<List<Map<String, dynamic>>, String>((ref, query) async {
+  if (query.trim().length < 2) return [];
+  return ref.read(eventsRepoProvider).searchProfiles(query);
+});
+
 // Sport selection (for top bar)
 final sportProvider = StateProvider<String>((_) => 'football');
 // City now backed by LocalStore so it persists across launches.
@@ -455,6 +471,12 @@ final conversationByIdProvider =
     if (c.id == convId) return c;
   }
   return null;
+});
+
+/// Any user's full profile (profile + stats + attrs + honors) by id.
+final fullProfileByIdProvider =
+    FutureProvider.family.autoDispose<PlayerProfile?, String>((ref, uid) async {
+  return ref.read(profilesRepoProvider).fetchFullProfile(uid);
 });
 
 /// Current user's full profile from Supabase (profile + stats + attrs + honors).
