@@ -185,6 +185,12 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     return DateTime(date.year, date.month, date.day, time.hour, time.minute);
   }
 
+  bool get _configOk =>
+      _name.text.trim().isNotEmpty &&
+      _startDate != null &&
+      _pickedLocation != null &&
+      _deadlineDate != null;
+
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
@@ -304,7 +310,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                 variant: BtnVariant.primary,
                 size: BtnSize.lg,
                 full: true,
-                onPressed: _submitting
+                onPressed: _submitting || (_step == 4 && !_configOk)
                     ? null
                     : () {
                         if (_step < 4) {
@@ -419,6 +425,12 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     final uid = supabase.auth.currentUser?.id;
     if (uid == null) return;
     try {
+      await supabase.from('profiles').upsert(
+        {'id': uid, 'name': '新球友'},
+        onConflict: 'id',
+        ignoreDuplicates: true,
+      );
+
       final payload = {
         'creator_id': uid,
         'name': _name.text.trim(),

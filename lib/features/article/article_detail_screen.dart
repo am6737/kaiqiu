@@ -229,12 +229,19 @@ class _Body extends ConsumerWidget {
             onTap: () => context.pop(),
             child: Container(
               margin: const EdgeInsets.all(8),
-              decoration: const BoxDecoration(
-                color: Color(0x66000000),
+              decoration: BoxDecoration(
+                color: const Color(0xB3FFFFFF),
                 shape: BoxShape.circle,
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x26000000),
+                    blurRadius: 8,
+                    offset: Offset(0, 2),
+                  ),
+                ],
               ),
               child: const Icon(Icons.arrow_back_ios_new,
-                  size: 16, color: Colors.white),
+                  size: 16, color: Color(0xFF1A1A1A)),
             ),
           ),
           flexibleSpace: article.coverUrl != null
@@ -495,8 +502,10 @@ class _CommentTile extends StatelessWidget {
                         TextStyle(fontSize: 13, color: t.ink, height: 1.5)),
                 const SizedBox(height: 6),
                 if (comment.likes > 0)
-                  Text('❤️ ${comment.likes}',
-                      style: TextStyle(fontSize: 11, color: t.inkMute)),
+                  InteractionBtn(
+                      icon: Icons.favorite,
+                      label: '${comment.likes}',
+                      color: t.inkMute),
               ],
             ),
           ),

@@ -52,6 +52,7 @@ create table public.profiles (
 
 alter table public.profiles enable row level security;
 create policy "profiles public read" on public.profiles for select using (true);
+create policy "profiles self insert" on public.profiles for insert with check (auth.uid() = id);
 create policy "profiles self update" on public.profiles for update using (auth.uid() = id);
 
 -- handle_new_user: SECURITY DEFINER 必须设 search_path，否则找不到 public.profiles；
@@ -172,6 +173,7 @@ create table public.events (
   ends_at timestamptz,
   status text default 'registering' check (status in ('draft','registering','scheduling','ongoing','completed','done')),
   cover_url text,
+  review_mode text default 'auto' check (review_mode in ('auto', 'manual')),
   created_at timestamptz default now()
 );
 
@@ -185,7 +187,9 @@ create table public.teams (
   name text not null,
   captain_id uuid references public.profiles,
   logo_url text,
-  approved boolean default false,
+  contact text,
+  phone text,
+  status text default 'pending' check (status in ('pending', 'approved', 'rejected')),
   created_at timestamptz default now()
 );
 

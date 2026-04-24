@@ -79,17 +79,22 @@ delete from auth.users where id::text like '10000000-0000-0000-0000-%';
 insert into auth.users (
   instance_id, id, aud, role, email, encrypted_password,
   email_confirmed_at, raw_app_meta_data, raw_user_meta_data,
-  created_at, updated_at
+  created_at, updated_at,
+  confirmation_token, recovery_token,
+  email_change, email_change_token_new, email_change_token_current,
+  phone_change, phone_change_token, reauthentication_token
 )
 select
   '00000000-0000-0000-0000-000000000000'::uuid,
   dp.id::uuid, 'authenticated', 'authenticated',
   dp.email,
-  crypt('demo-password', gen_salt('bf')),
+  crypt('demo-password', gen_salt('bf', 10)),
   now(),
   '{"provider":"email","providers":["email"]}'::jsonb,
-  jsonb_build_object('name', dp.name),
-  now(), now()
+  jsonb_build_object('name', dp.name, 'email', dp.email,
+    'email_verified', true, 'phone_verified', false, 'sub', dp.id),
+  now(), now(),
+  '', '', '', '', '', '', '', ''
 from (values
   ('10000000-0000-0000-0000-000000000001', 'demo-chenzirui@qiuju.local', '陈子睿'),
   ('10000000-0000-0000-0000-000000000002', 'demo-laowang@qiuju.local',   '老王'),
@@ -340,40 +345,40 @@ values (
 -- ═══════════════════════════════════════════════════════════════
 
 -- e1: 青秀村超 16 队
-insert into teams (event_id, name, captain_id, approved) values
-  ('11111111-1111-1111-1111-111111111111', '青秀狼队', '10000000-0000-0000-0000-000000000001', true),
-  ('11111111-1111-1111-1111-111111111111', 'FC 黑马',  '10000000-0000-0000-0000-000000000003', true),
-  ('11111111-1111-1111-1111-111111111111', '邕宁闪电',  null, true),
-  ('11111111-1111-1111-1111-111111111111', '江南联',    null, true),
-  ('11111111-1111-1111-1111-111111111111', '良庆渔民',  null, true),
-  ('11111111-1111-1111-1111-111111111111', '五象 FC', null, true),
-  ('11111111-1111-1111-1111-111111111111', '兴宁联队',  null, true),
-  ('11111111-1111-1111-1111-111111111111', '相思湖雄鹰',  null, true),
-  ('11111111-1111-1111-1111-111111111111', '武鸣野牛',  null, true),
-  ('11111111-1111-1111-1111-111111111111', '昆仑猛虎',  null, true),
-  ('11111111-1111-1111-1111-111111111111', '仙葫雷霆',  null, true),
-  ('11111111-1111-1111-1111-111111111111', '安吉雄狮',  null, true),
-  ('11111111-1111-1111-1111-111111111111', '金桥骑士',  null, true),
-  ('11111111-1111-1111-1111-111111111111', '邕江航海',  null, true),
-  ('11111111-1111-1111-1111-111111111111', '三塘铁骑',  null, true),
-  ('11111111-1111-1111-1111-111111111111', '青山飞翼', null, true);
+insert into teams (event_id, name, captain_id, status) values
+  ('11111111-1111-1111-1111-111111111111', '青秀狼队', '10000000-0000-0000-0000-000000000001', 'approved'),
+  ('11111111-1111-1111-1111-111111111111', 'FC 黑马',  '10000000-0000-0000-0000-000000000003', 'approved'),
+  ('11111111-1111-1111-1111-111111111111', '邕宁闪电',  null, 'approved'),
+  ('11111111-1111-1111-1111-111111111111', '江南联',    null, 'approved'),
+  ('11111111-1111-1111-1111-111111111111', '良庆渔民',  null, 'approved'),
+  ('11111111-1111-1111-1111-111111111111', '五象 FC', null, 'approved'),
+  ('11111111-1111-1111-1111-111111111111', '兴宁联队',  null, 'approved'),
+  ('11111111-1111-1111-1111-111111111111', '相思湖雄鹰',  null, 'approved'),
+  ('11111111-1111-1111-1111-111111111111', '武鸣野牛',  null, 'approved'),
+  ('11111111-1111-1111-1111-111111111111', '昆仑猛虎',  null, 'approved'),
+  ('11111111-1111-1111-1111-111111111111', '仙葫雷霆',  null, 'approved'),
+  ('11111111-1111-1111-1111-111111111111', '安吉雄狮',  null, 'approved'),
+  ('11111111-1111-1111-1111-111111111111', '金桥骑士',  null, 'approved'),
+  ('11111111-1111-1111-1111-111111111111', '邕江航海',  null, 'approved'),
+  ('11111111-1111-1111-1111-111111111111', '三塘铁骑',  null, 'approved'),
+  ('11111111-1111-1111-1111-111111111111', '青山飞翼', null, 'approved');
 
 -- e2: 邕企杯 24 队
-insert into teams (event_id, name, approved) values
-  ('11111111-1111-1111-1111-222222222222', '青秀电竞', true),
-  ('11111111-1111-1111-1111-222222222222', '柳药绿城', true);
-insert into teams (event_id, name, approved)
-select '11111111-1111-1111-1111-222222222222', '邕企队' || n, true
+insert into teams (event_id, name, status) values
+  ('11111111-1111-1111-1111-222222222222', '青秀电竞', 'approved'),
+  ('11111111-1111-1111-1111-222222222222', '柳药绿城', 'approved');
+insert into teams (event_id, name, status)
+select '11111111-1111-1111-1111-222222222222', '邕企队' || n, 'approved'
 from generate_series(1, 22) n;
 
 -- e3: 邕江夜联赛 8 队
-insert into teams (event_id, name, approved)
-select '11111111-1111-1111-1111-333333333333', '邕江队' || n, true
+insert into teams (event_id, name, status)
+select '11111111-1111-1111-1111-333333333333', '邕江队' || n, 'approved'
 from generate_series(1, 8) n;
 
 -- e4: 广西校友杯 12 队
-insert into teams (event_id, name, approved)
-select '11111111-1111-1111-1111-444444444444', '校友队' || n, true
+insert into teams (event_id, name, status)
+select '11111111-1111-1111-1111-444444444444', '校友队' || n, 'approved'
 from generate_series(1, 12) n;
 
 

@@ -15,7 +15,6 @@ import '../../widgets/primary_button.dart';
 import '../../widgets/typography.dart';
 import '../home/cards/activity_feed_card.dart';
 import '../home/cards/article_feed_card.dart';
-import '../home/cards/post_feed_card.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -31,7 +30,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
   }
 
   @override
@@ -86,7 +85,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
             children: [
               ListTile(
                 leading: Icon(Icons.edit_note, color: t.accent),
-                title: Text(l.profile_fab_post,
+                title: Text(l.profile_tab_activities,
                     style: TextStyle(color: t.ink, fontWeight: FontWeight.w500)),
                 onTap: () {
                   Navigator.pop(context);
@@ -318,7 +317,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   dividerColor: t.line,
                   tabs: [
                     Tab(text: l.profile_tab_activities),
-                    Tab(text: l.profile_tab_posts),
                     Tab(text: l.profile_tab_articles),
                   ],
                 ),
@@ -330,7 +328,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
             controller: _tabController,
             children: const [
               _ActivitiesTab(),
-              _PostsTab(),
               _ArticlesTab(),
             ],
           ),
@@ -393,44 +390,6 @@ class _ActivitiesTab extends ConsumerWidget {
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
             itemCount: items.length,
             itemBuilder: (_, i) => ActivityFeedCard(item: items[i]),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _PostsTab extends ConsumerWidget {
-  const _PostsTab();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l = context.l10n;
-    final async = ref.watch(myPostsProvider);
-
-    return RefreshIndicator(
-      color: context.tokens.accent,
-      backgroundColor: context.tokens.elev1,
-      onRefresh: () async => ref.invalidate(myPostsProvider),
-      child: async.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('$e')),
-        data: (items) {
-          if (items.isEmpty) {
-            return ListView(
-              children: [
-                EmptyState(
-                  icon: Icons.chat_bubble_outline,
-                  title: l.profile_empty_posts,
-                  subtitle: l.profile_empty_posts_sub,
-                ),
-              ],
-            );
-          }
-          return ListView.builder(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
-            itemCount: items.length,
-            itemBuilder: (_, i) => PostFeedCard(item: items[i]),
           );
         },
       ),

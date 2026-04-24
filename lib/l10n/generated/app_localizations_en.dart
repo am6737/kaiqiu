@@ -2838,7 +2838,7 @@ class AppL10nEn extends AppL10n {
       'All matches finished. Mark event as completed?';
 
   @override
-  String get create_post_title => 'New Post';
+  String get create_post_title => 'New Activity';
 
   @override
   String get create_post_body_hint => 'What\'s on your mind...';
@@ -2907,7 +2907,7 @@ class AppL10nEn extends AppL10n {
   String get create_article_cat_opinion => 'Opinion';
 
   @override
-  String get profile_fab_post => 'New Post';
+  String get profile_fab_post => 'New Activity';
 
   @override
   String get profile_fab_article => 'New Article';

@@ -27,6 +27,7 @@ class BottomCta extends ConsumerWidget {
     final isFull = event.teamsMax != null && teamsCount >= event.teamsMax!;
     final deadlinePassed = event.deadline != null && DateTime.now().isAfter(event.deadline!);
     final isRegistering = event.status == EventStatus.registering;
+    final isOngoing = event.status == EventStatus.ongoing;
 
     String? disabledReason;
     if (registered) {
@@ -39,177 +40,140 @@ class BottomCta extends ConsumerWidget {
       disabledReason = l.event_registration_deadline_passed;
     }
 
+    final rightButton = _buildRightButton(context, ref, l,
+      isCreator: isCreator,
+      isRegistering: isRegistering,
+      disabledReason: disabledReason,
+    );
+
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 32),
       decoration: BoxDecoration(
         color: context.tokens.elev1,
         border: Border(top: BorderSide(color: context.tokens.line, width: 1)),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+      child: Row(
         children: [
-          if (isCreator) ...[
-            if (event.status == EventStatus.registering)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: PrimaryButton(
-                  label: l.event_close_registration,
-                  full: true,
-                  size: BtnSize.lg,
-                  onPressed: () async {
-                    final confirmed = await showDialog<bool>(
-                      context: context,
-                      builder: (ctx) => AlertDialog(
-                        title: Text(l.event_close_registration),
-                        content: Text(l.event_close_registration_confirm),
-                        actions: [
-                          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.common_cancel)),
-                          TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.common_confirm)),
-                        ],
-                      ),
-                    );
-                    if (confirmed != true || !context.mounted) return;
-                    await ref.read(eventsRepoProvider).updateEventStatus(event.id, EventStatus.scheduling);
-                    ref.invalidate(eventDetailProvider(event.id));
-                  },
-                ),
-              ),
-            if (event.status == EventStatus.scheduling)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: PrimaryButton(
-                  label: l.schedule_generate,
-                  full: true,
-                  size: BtnSize.lg,
-                  onPressed: () => context.push('/event/${event.id}/schedule'),
-                ),
-              ),
-            if (event.status == EventStatus.ongoing)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: PrimaryButton(
-                  label: l.event_complete,
-                  full: true,
-                  size: BtnSize.lg,
-                  variant: BtnVariant.warn,
-                  onPressed: () async {
-                    final confirmed = await showDialog<bool>(
-                      context: context,
-                      builder: (ctx) => AlertDialog(
-                        title: Text(l.event_complete),
-                        content: Text(l.event_complete_confirm),
-                        actions: [
-                          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.common_cancel)),
-                          TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.common_confirm)),
-                        ],
-                      ),
-                    );
-                    if (confirmed != true || !context.mounted) return;
-                    await ref.read(eventsRepoProvider).updateEventStatus(event.id, EventStatus.completed);
-                    ref.invalidate(eventDetailProvider(event.id));
-                    if (context.mounted) showToast(context, l.event_complete_success, success: true);
-                  },
-                ),
-              ),
-            if (event.status == EventStatus.draft ||
-                event.status == EventStatus.registering ||
-                event.status == EventStatus.scheduling) ...[
-              Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: PrimaryButton(
-                        label: l.event_edit,
-                        variant: BtnVariant.ghost,
-                        size: BtnSize.lg,
-                        full: true,
-                        onPressed: () => context.push('/event/${event.id}/edit'),
-                      ),
+          Expanded(
+            child: PrimaryButton(
+              variant: BtnVariant.ghost,
+              size: BtnSize.lg,
+              full: true,
+              onPressed: isOngoing
+                  ? () => context.push('/worldcup/live/${event.id}')
+                  : null,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.tv, size: 16,
+                    color: isOngoing ? context.tokens.ink : context.tokens.inkDim),
+                  const SizedBox(width: 6),
+                  Text(
+                    l.event_cta_watch_live,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: isOngoing ? context.tokens.ink : context.tokens.inkDim,
                     ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: PrimaryButton(
-                        label: l.event_cancel,
-                        variant: BtnVariant.warn,
-                        size: BtnSize.lg,
-                        full: true,
-                        onPressed: () async {
-                          final confirmed = await showDialog<bool>(
-                            context: context,
-                            builder: (ctx) => AlertDialog(
-                              title: Text(l.event_cancel),
-                              content: Text(l.event_cancel_confirm),
-                              actions: [
-                                TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.common_cancel)),
-                                TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.common_confirm)),
-                              ],
-                            ),
-                          );
-                          if (confirmed != true || !context.mounted) return;
-                          await ref.read(eventsRepoProvider).cancelEvent(event.id);
-                          ref.invalidate(eventDetailProvider(event.id));
-                          ref.invalidate(myHostedEventsProvider);
-                          if (context.mounted) {
-                            showToast(context, l.event_cancel_success, success: true);
-                            context.go('/events');
-                          }
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ],
-          Row(
-            children: [
-              Expanded(
-                child: PrimaryButton(
-                  variant: BtnVariant.ghost,
-                  size: BtnSize.lg,
-                  full: true,
-                  onPressed: () => context.push('/worldcup/live/${event.id}'),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.tv, size: 16, color: context.tokens.ink),
-                      const SizedBox(width: 6),
-                      Text(
-                        l.event_cta_watch_live,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: context.tokens.ink,
-                        ),
-                      ),
-                    ],
                   ),
-                ),
+                ],
               ),
-              if (isRegistering) ...[
-                const SizedBox(width: 10),
-                Expanded(
-                  child: PrimaryButton(
-                    label: disabledReason ?? l.event_cta_register,
-                    variant: disabledReason != null ? BtnVariant.secondary : BtnVariant.primary,
-                    size: BtnSize.lg,
-                    full: true,
-                    onPressed: disabledReason != null
-                        ? null
-                        : () => _showRegisterSheet(context, ref),
-                  ),
-                ),
-              ],
-            ],
+            ),
           ),
+          if (rightButton != null) ...[
+            const SizedBox(width: 10),
+            Expanded(child: rightButton),
+          ],
         ],
       ),
     );
   }
 
-  Future<void> _showRegisterSheet(BuildContext context, WidgetRef ref) async {
+  Widget? _buildRightButton(
+    BuildContext context,
+    WidgetRef ref,
+    dynamic l, {
+    required bool isCreator,
+    required bool isRegistering,
+    required String? disabledReason,
+  }) {
+    if (isCreator) {
+      if (event.status == EventStatus.registering) {
+        return PrimaryButton(
+          label: l.event_close_registration,
+          full: true,
+          size: BtnSize.lg,
+          onPressed: () async {
+            final confirmed = await showDialog<bool>(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                title: Text(l.event_close_registration),
+                content: Text(l.event_close_registration_confirm),
+                actions: [
+                  TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.common_cancel)),
+                  TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.common_confirm)),
+                ],
+              ),
+            );
+            if (confirmed != true || !context.mounted) return;
+            await ref.read(eventsRepoProvider).updateEventStatus(event.id, EventStatus.scheduling);
+            ref.invalidate(eventDetailProvider(event.id));
+          },
+        );
+      }
+      if (event.status == EventStatus.scheduling) {
+        return PrimaryButton(
+          label: l.schedule_generate,
+          full: true,
+          size: BtnSize.lg,
+          onPressed: () => context.push('/event/${event.id}/schedule'),
+        );
+      }
+      if (event.status == EventStatus.ongoing) {
+        return PrimaryButton(
+          label: l.event_complete,
+          full: true,
+          size: BtnSize.lg,
+          variant: BtnVariant.warn,
+          onPressed: () async {
+            final confirmed = await showDialog<bool>(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                title: Text(l.event_complete),
+                content: Text(l.event_complete_confirm),
+                actions: [
+                  TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.common_cancel)),
+                  TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.common_confirm)),
+                ],
+              ),
+            );
+            if (confirmed != true || !context.mounted) return;
+            await ref.read(eventsRepoProvider).updateEventStatus(event.id, EventStatus.completed);
+            ref.invalidate(eventDetailProvider(event.id));
+            if (context.mounted) showToast(context, l.event_complete_success, success: true);
+          },
+        );
+      }
+      return null;
+    }
+
+    if (isRegistering) {
+      return PrimaryButton(
+        label: disabledReason ?? l.event_cta_register,
+        variant: disabledReason != null ? BtnVariant.secondary : BtnVariant.primary,
+        size: BtnSize.lg,
+        full: true,
+        onPressed: disabledReason != null
+            ? null
+            : () => showRegisterSheet(context, ref),
+      );
+    }
+
+    return null;
+  }
+
+  Future<void> showRegisterSheet(BuildContext context, WidgetRef ref) async {
     // Double-check duplicate registration
     final uid = currentUserId;
     if (uid != null) {
@@ -298,6 +262,9 @@ class BottomCta extends ConsumerWidget {
                       'name': teamC.text.trim(),
                       'contact': contactC.text.trim(),
                       'phone': phoneC.text.trim(),
+                      'status': event.reviewMode == 'manual'
+                          ? 'pending'
+                          : 'approved',
                     });
                     // Also create conversation for communication
                     try {
@@ -313,6 +280,7 @@ class BottomCta extends ConsumerWidget {
                         .toggle(FavoriteEntity.event, event.id);
                     ref.invalidate(eventTeamsCountProvider(event.id));
                     ref.invalidate(isUserRegisteredProvider(event.id));
+                    ref.invalidate(eventTeamsProvider(event.id));
                   } catch (e) {
                     if (ctx.mounted) showToast(ctx, '$e', error: true);
                     return;

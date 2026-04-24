@@ -166,17 +166,23 @@ class _CircleBtn extends StatelessWidget {
   });
   @override
   Widget build(BuildContext context) {
-    final c = color ?? context.tokens.ink;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final c = color ?? const Color(0xFF1A1A1A);
     return GestureDetector(
       onTap: onTap,
       child: Container(
         width: 36,
         height: 36,
         alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0x80000000) : const Color(0x33000000),
+        decoration: const BoxDecoration(
+          color: Color(0xB3FFFFFF),
           shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Color(0x26000000),
+              blurRadius: 8,
+              offset: Offset(0, 2),
+            ),
+          ],
         ),
         child: Icon(icon, size: 16, color: c),
       ),

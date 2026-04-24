@@ -462,8 +462,10 @@ class _CommentTile extends StatelessWidget {
                         TextStyle(fontSize: 13, color: t.ink, height: 1.5)),
                 const SizedBox(height: 6),
                 if (comment.likes > 0)
-                  Text('❤️ ${comment.likes}',
-                      style: TextStyle(fontSize: 11, color: t.inkMute)),
+                  InteractionBtn(
+                      icon: Icons.favorite,
+                      label: '${comment.likes}',
+                      color: t.inkMute),
               ],
             ),
           ),

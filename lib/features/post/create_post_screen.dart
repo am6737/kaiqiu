@@ -86,7 +86,6 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
             venue: _showStats ? _venueCtrl.text.trim() : null,
           );
 
-      ref.invalidate(myPostsProvider);
       ref.invalidate(myActivitiesProvider);
       ref.invalidate(discoverFeedProvider);
       ref.invalidate(recommendFeedProvider);

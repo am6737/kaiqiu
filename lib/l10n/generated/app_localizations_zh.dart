@@ -2787,7 +2787,7 @@ class AppL10nZh extends AppL10n {
   String get event_all_matches_done => '所有比赛已结束，是否标记赛事为已完赛？';
 
   @override
-  String get create_post_title => '发帖子';
+  String get create_post_title => '发动态';
 
   @override
   String get create_post_body_hint => '写点什么...';
@@ -2856,7 +2856,7 @@ class AppL10nZh extends AppL10n {
   String get create_article_cat_opinion => '观点';
 
   @override
-  String get profile_fab_post => '发帖子';
+  String get profile_fab_post => '发动态';
 
   @override
   String get profile_fab_article => '写文章';

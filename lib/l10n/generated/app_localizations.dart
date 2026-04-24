@@ -5380,7 +5380,7 @@ abstract class AppL10n {
   /// No description provided for @create_post_title.
   ///
   /// In zh, this message translates to:
-  /// **'发帖子'**
+  /// **'发动态'**
   String get create_post_title;
 
   /// No description provided for @create_post_body_hint.
@@ -5518,7 +5518,7 @@ abstract class AppL10n {
   /// No description provided for @profile_fab_post.
   ///
   /// In zh, this message translates to:
-  /// **'发帖子'**
+  /// **'发动态'**
   String get profile_fab_post;
 
   /// No description provided for @profile_fab_article.

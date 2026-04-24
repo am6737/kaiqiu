@@ -377,14 +377,9 @@ final myFavoritePickupsProvider = FutureProvider<List<Pickup>>((ref) async {
   return ref.read(pickupsRepoProvider).listByIds(ids);
 });
 
-/// 我的动态 — activities authored by current user (posts with stats).
+/// 我的动态 — all posts authored by current user.
 final myActivitiesProvider = FutureProvider<List<FeedActivity>>((ref) async {
   return ref.read(feedRepoProvider).myActivities();
-});
-
-/// 我的帖子 — plain posts authored by current user (no activity stats).
-final myPostsProvider = FutureProvider<List<FeedPost>>((ref) async {
-  return ref.read(feedRepoProvider).myPosts();
 });
 
 /// 我的文章 — articles authored by current user.

@@ -1084,7 +1084,7 @@
   "event_already_registered": "Already registered",
   "event_all_matches_done": "All matches finished. Mark event as completed?",
 
-  "create_post_title": "New Post",
+  "create_post_title": "New Activity",
   "create_post_body_hint": "What's on your mind...",
   "create_post_tags_hint": "Add tag",
   "create_post_hot_tags": "Trending",
@@ -1107,7 +1107,7 @@
   "create_article_cat_review": "Match Review",
   "create_article_cat_news": "News",
   "create_article_cat_opinion": "Opinion",
-  "profile_fab_post": "New Post",
+  "profile_fab_post": "New Activity",
   "profile_fab_article": "New Article",
   "common_publish": "Publish"
 }

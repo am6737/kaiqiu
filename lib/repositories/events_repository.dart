@@ -234,6 +234,27 @@ class EventsRepository {
         .eq('id', eventId);
   }
 
+  Future<List<TeamRow>> listTeams(String eventId) async {
+    final rows = await supabase
+        .from('teams')
+        .select(
+          '*, captain:profiles!captain_id(name, avatar_url)',
+        )
+        .eq('event_id', eventId)
+        .order('created_at');
+    return (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map(TeamRow.fromMap)
+        .toList();
+  }
+
+  Future<void> updateTeamStatus(String teamId, String status) async {
+    await supabase
+        .from('teams')
+        .update({'status': status})
+        .eq('id', teamId);
+  }
+
   Future<void> insertTeam(Map<String, dynamic> payload) async {
     await supabase.from('teams').insert(payload);
   }

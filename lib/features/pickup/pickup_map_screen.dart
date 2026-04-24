@@ -147,7 +147,7 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
   }
 
   double _sheetMinSize(BuildContext context) =>
-      80 / MediaQuery.of(context).size.height;
+      60 / MediaQuery.of(context).size.height;
 
   void _onSheetChanged() {
     if (!_sheetCtrl.isAttached) return;

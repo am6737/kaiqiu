@@ -138,7 +138,7 @@ class FeedRepository {
         .toList();
   }
 
-  /// Activities (posts with stats) authored by the current user.
+  /// All posts (with or without stats) authored by the current user.
   Future<List<FeedActivity>> myActivities({int limit = 50}) async {
     final uid = currentUserId;
     if (uid == null) return [];
@@ -146,29 +146,11 @@ class FeedRepository {
         .from('posts')
         .select('*, author:profiles!author_id(name)')
         .eq('author_id', uid)
-        .not('match_count', 'is', null)
         .order('created_at', ascending: false)
         .limit(limit);
     return (rows as List)
         .cast<Map<String, dynamic>>()
         .map(FeedActivity.fromMap)
-        .toList();
-  }
-
-  /// Plain posts (no activity stats) authored by the current user.
-  Future<List<FeedPost>> myPosts({int limit = 50}) async {
-    final uid = currentUserId;
-    if (uid == null) return [];
-    final rows = await supabase
-        .from('posts')
-        .select('*, author:profiles!author_id(name)')
-        .eq('author_id', uid)
-        .isFilter('match_count', null)
-        .order('created_at', ascending: false)
-        .limit(limit);
-    return (rows as List)
-        .cast<Map<String, dynamic>>()
-        .map(FeedPost.fromMap)
         .toList();
   }
 

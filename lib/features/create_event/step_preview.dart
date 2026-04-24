@@ -83,10 +83,6 @@ class StepPreview extends StatelessWidget {
     final prizeWan = (int.tryParse(prizeText) ?? 0) / 10000;
     final startStr = startDate != null ? _fmtDate(startDate!) : '';
     final deadlineStr = deadlineDate != null ? _fmtDate(deadlineDate!) : '';
-    final configOk = eventName.trim().isNotEmpty &&
-        startDate != null &&
-        venueName.trim().isNotEmpty &&
-        deadlineDate != null;
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -257,33 +253,6 @@ class StepPreview extends StatelessWidget {
                         ),
                       ),
                     ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: configOk ? context.tokens.accentSubtle : context.tokens.elev2,
-              border: Border.all(color: configOk ? const Color(0x6600FF85) : context.tokens.line),
-              borderRadius: BorderRadius.circular(context.tokens.r2),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  configOk ? Icons.check : Icons.warning_amber_rounded,
-                  size: 14,
-                  color: configOk ? context.tokens.accent : context.tokens.warn,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  l.create_event_preview_config_ok,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: configOk ? context.tokens.accent : context.tokens.warn,
                   ),
                 ),
               ],

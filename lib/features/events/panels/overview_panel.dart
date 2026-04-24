@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../l10n/l10n_extension.dart';
 import '../../../models/event.dart';
+import '../../../providers.dart';
 import '../../../services/map_launcher.dart';
+import '../../../widgets/network_avatar.dart';
 import '../../../widgets/typography.dart';
+import '../../../widgets/user_card_sheet.dart';
 import '../../../theme/app_tokens.dart';
 
-class OverviewPanel extends StatelessWidget {
+class OverviewPanel extends ConsumerWidget {
   final Event event;
   const OverviewPanel({super.key, required this.event});
 
@@ -34,8 +38,11 @@ class OverviewPanel extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
+    final creatorProfile = event.creatorId != null
+        ? ref.watch(profileByIdProvider(event.creatorId!))
+        : null;
     return Container(
       padding: const EdgeInsets.all(16),
       color: context.tokens.elev1,
@@ -119,39 +126,76 @@ class OverviewPanel extends StatelessWidget {
           ],
           Label(l.event_overview_organizer),
           const SizedBox(height: 10),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: context.tokens.elev2,
-              border: Border.all(color: context.tokens.line),
-              borderRadius: BorderRadius.circular(context.tokens.r2),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: context.tokens.elev3,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      event.city ?? '—',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: context.tokens.ink,
+          GestureDetector(
+            onTap: event.creatorId != null
+                ? () => showUserCardSheet(context, ref,
+                    userId: event.creatorId!)
+                : null,
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: context.tokens.elev2,
+                border: Border.all(color: context.tokens.line),
+                borderRadius: BorderRadius.circular(context.tokens.r2),
+              ),
+              child: Row(
+                children: [
+                  if (creatorProfile != null)
+                    creatorProfile.when(
+                      data: (p) => NetworkAvatar(
+                        p?.name ?? '?',
+                        url: p?.avatarUrl,
+                        size: 36,
+                        square: true,
+                      ),
+                      loading: () => Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: context.tokens.elev3,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                      error: (_, _) => Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: context.tokens.elev3,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                    )
+                  else
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: context.tokens.elev3,
+                        borderRadius: BorderRadius.circular(6),
                       ),
                     ),
-                    Label(l.event_overview_organizer_label),
-                  ],
-                ),
-              ],
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          creatorProfile?.valueOrNull?.name ?? '—',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: context.tokens.ink,
+                          ),
+                        ),
+                        Label(l.event_overview_organizer_label),
+                      ],
+                    ),
+                  ),
+                  if (event.creatorId != null)
+                    Icon(Icons.chevron_right,
+                        size: 18, color: context.tokens.inkMute),
+                ],
+              ),
             ),
           ),
         ],

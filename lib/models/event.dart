@@ -214,3 +214,47 @@ class PlayerRatingRow {
     side: side ?? this.side,
   );
 }
+
+class TeamRow {
+  final String id;
+  final String eventId;
+  final String name;
+  final String? captainId;
+  final String? captainName;
+  final String? captainAvatar;
+  final String? contact;
+  final String? phone;
+  final String status;
+  final DateTime? createdAt;
+
+  const TeamRow({
+    required this.id,
+    required this.eventId,
+    required this.name,
+    this.captainId,
+    this.captainName,
+    this.captainAvatar,
+    this.contact,
+    this.phone,
+    this.status = 'pending',
+    this.createdAt,
+  });
+
+  factory TeamRow.fromMap(Map<String, dynamic> m) {
+    final captain =
+        (m['captain'] as Map?)?.cast<String, dynamic>() ?? const {};
+    return TeamRow(
+      id: m['id'] as String,
+      eventId: m['event_id'] as String,
+      name: m['name'] as String,
+      captainId: m['captain_id'] as String?,
+      captainName: captain['name'] as String?,
+      captainAvatar: captain['avatar_url'] as String?,
+      contact: m['contact'] as String?,
+      phone: m['phone'] as String?,
+      status: (m['status'] as String?) ?? 'pending',
+      createdAt:
+          m['created_at'] != null ? DateTime.parse(m['created_at']) : null,
+    );
+  }
+}

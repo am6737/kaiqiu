@@ -10,7 +10,7 @@ import '../../providers.dart';
 import '../../repositories/messages_repository.dart';
 import '../../services/local_storage.dart';
 import '../../utils/toast.dart';
-import '../../widgets/avatar.dart';
+import '../../widgets/network_avatar.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/typography.dart';
 import '../../theme/app_tokens.dart';
@@ -262,9 +262,11 @@ class _ThreadRow extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(localStoreProvider);
     String title;
+    String? avatarUrl;
     if (thread.kind == 'dm') {
       final peer = ref.watch(dmPeerProfileProvider(thread.id)).valueOrNull;
       title = peer?.name ?? context.l10n.messages_thread_default_title;
+      avatarUrl = peer?.avatarUrl;
     } else {
       title = thread.title ?? context.l10n.messages_thread_default_title;
     }
@@ -337,7 +339,7 @@ class _ThreadRow extends ConsumerWidget {
               Stack(
                 clipBehavior: Clip.none,
                 children: [
-                  Avatar(title, size: 44),
+                  NetworkAvatar(title, url: avatarUrl, size: 44),
                   if (thread.unread > 0)
                     Positioned(
                       top: -2,

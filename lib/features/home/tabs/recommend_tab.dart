@@ -84,6 +84,7 @@ class RecommendTab extends ConsumerWidget {
   Pickup _pickupFromFeed(FeedPickup fp) {
     return Pickup.fromMap({
       'id': fp.id,
+      'host_name': fp.hostName,
       'title': fp.title,
       'venue': fp.venue,
       'start_at': fp.startAt.toIso8601String(),
