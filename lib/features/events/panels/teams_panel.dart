@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../l10n/l10n_extension.dart';
 import '../../../models/event.dart';
 import '../../../providers.dart';
-import '../../../services/supabase.dart';
 import '../../../theme/app_tokens.dart';
 import '../../../utils/toast.dart';
 import '../../../widgets/typography.dart';
@@ -81,6 +81,7 @@ class TeamsPanel extends ConsumerWidget {
           const SizedBox(height: 12),
           for (final team in sorted) _TeamTile(
             team: team,
+            eventId: eventId,
             isCreator: isCreator,
             isManual: reviewMode == 'manual',
             onApprove: () => _updateStatus(context, ref, team.id, 'approved'),
@@ -136,6 +137,7 @@ class TeamsPanel extends ConsumerWidget {
 
 class _TeamTile extends StatelessWidget {
   final TeamRow team;
+  final String eventId;
   final bool isCreator;
   final bool isManual;
   final VoidCallback onApprove;
@@ -143,6 +145,7 @@ class _TeamTile extends StatelessWidget {
 
   const _TeamTile({
     required this.team,
+    required this.eventId,
     required this.isCreator,
     required this.isManual,
     required this.onApprove,
@@ -153,9 +156,11 @@ class _TeamTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = context.l10n;
     final isRejected = team.status == 'rejected';
-    return Opacity(
-      opacity: isRejected ? 0.5 : 1.0,
-      child: Container(
+    return GestureDetector(
+      onTap: () => context.push('/event/$eventId/team/${team.id}'),
+      child: Opacity(
+        opacity: isRejected ? 0.5 : 1.0,
+        child: Container(
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
@@ -284,6 +289,7 @@ class _TeamTile extends StatelessWidget {
             ],
           ],
         ),
+      ),
       ),
     );
   }
