@@ -30,19 +30,20 @@ class BottomCta extends ConsumerWidget {
     final isOngoing = event.status == EventStatus.ongoing;
 
     String? disabledReason;
-    if (registered) {
+    if (registered && !isRegistering) {
       disabledReason = l.event_already_registered;
-    } else if (!isRegistering) {
+    } else if (!registered && !isRegistering) {
       disabledReason = l.event_registration_closed;
-    } else if (isFull) {
+    } else if (!registered && isFull) {
       disabledReason = l.event_registration_full;
-    } else if (deadlinePassed) {
+    } else if (!registered && deadlinePassed) {
       disabledReason = l.event_registration_deadline_passed;
     }
 
     final rightButton = _buildRightButton(context, ref, l,
       isCreator: isCreator,
       isRegistering: isRegistering,
+      registered: registered,
       disabledReason: disabledReason,
     );
 
@@ -96,6 +97,7 @@ class BottomCta extends ConsumerWidget {
     dynamic l, {
     required bool isCreator,
     required bool isRegistering,
+    required bool registered,
     required String? disabledReason,
   }) {
     if (isCreator) {
@@ -158,6 +160,18 @@ class BottomCta extends ConsumerWidget {
       return null;
     }
 
+    final canCancel = registered && isRegistering;
+
+    if (canCancel) {
+      return PrimaryButton(
+        label: l.event_register_cancel,
+        variant: BtnVariant.warn,
+        size: BtnSize.lg,
+        full: true,
+        onPressed: () => _showCancelConfirmation(context, ref),
+      );
+    }
+
     if (isRegistering) {
       return PrimaryButton(
         label: disabledReason ?? l.event_cta_register,
@@ -186,11 +200,8 @@ class BottomCta extends ConsumerWidget {
 
     if (!context.mounted) return;
     final l = context.l10n;
+    final profile = ref.read(myProfileProvider).valueOrNull;
     final teamC = TextEditingController();
-    final contactC = TextEditingController();
-    final phoneC = TextEditingController();
-    final sloganC = TextEditingController();
-    final membersNotifier = ValueNotifier<List<({String userId, String name, String? avatarUrl, int? jersey})>>([]);
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -227,114 +238,6 @@ class BottomCta extends ConsumerWidget {
               ),
               const SizedBox(height: 16),
               RegField(label: l.event_register_team_name, controller: teamC),
-              RegField(label: l.event_register_contact, controller: contactC),
-              RegField(
-                label: l.event_register_phone,
-                controller: phoneC,
-                keyboardType: TextInputType.phone,
-              ),
-              RegField(
-                label: l.event_register_slogan,
-                controller: sloganC,
-              ),
-              const SizedBox(height: 12),
-              ValueListenableBuilder(
-                valueListenable: membersNotifier,
-                builder: (ctx, members, _) => Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          l.event_register_members,
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: context.tokens.ink,
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () => _showUserSearchDialog(ctx, membersNotifier),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                            decoration: BoxDecoration(
-                              color: context.tokens.accentSubtle,
-                              borderRadius: BorderRadius.circular(context.tokens.r1),
-                            ),
-                            child: Text(
-                              l.event_register_add_member,
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: context.tokens.accent,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    for (int i = 0; i < members.length; i++)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 6),
-                        child: Row(
-                          children: [
-                            CircleAvatar(
-                              radius: 14,
-                              backgroundColor: context.tokens.elev3,
-                              backgroundImage: members[i].avatarUrl != null
-                                  ? NetworkImage(members[i].avatarUrl!)
-                                  : null,
-                              child: members[i].avatarUrl == null
-                                  ? Icon(Icons.person, size: 14, color: context.tokens.inkDim)
-                                  : null,
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                members[i].name,
-                                style: TextStyle(fontSize: 13, color: context.tokens.ink),
-                              ),
-                            ),
-                            SizedBox(
-                              width: 60,
-                              child: TextField(
-                                keyboardType: TextInputType.number,
-                                style: TextStyle(fontSize: 12, color: context.tokens.ink),
-                                decoration: InputDecoration(
-                                  hintText: l.event_register_jersey,
-                                  hintStyle: TextStyle(fontSize: 11, color: context.tokens.inkDim),
-                                  isDense: true,
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(4),
-                                    borderSide: BorderSide(color: context.tokens.line),
-                                  ),
-                                ),
-                                onChanged: (v) {
-                                  final list = List.of(membersNotifier.value);
-                                  final old = list[i];
-                                  list[i] = (userId: old.userId, name: old.name, avatarUrl: old.avatarUrl, jersey: int.tryParse(v));
-                                  membersNotifier.value = list;
-                                },
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            GestureDetector(
-                              onTap: () {
-                                final list = List.of(membersNotifier.value);
-                                list.removeAt(i);
-                                membersNotifier.value = list;
-                              },
-                              child: Icon(Icons.close, size: 16, color: context.tokens.inkDim),
-                            ),
-                          ],
-                        ),
-                      ),
-                  ],
-                ),
-              ),
               const SizedBox(height: 10),
               PrimaryButton(
                 label: l.event_register_submit,
@@ -346,49 +249,24 @@ class BottomCta extends ConsumerWidget {
                     showToast(ctx, l.error_required_field, error: true);
                     return;
                   }
-                  if (contactC.text.trim().isEmpty) {
-                    showToast(ctx, l.validation_contact_required, error: true);
-                    return;
-                  }
-                  if (phoneC.text.trim().isEmpty) {
-                    showToast(ctx, l.validation_phone_required, error: true);
-                    return;
-                  }
-                  if (!RegExp(r'^\+?\d{7,15}$').hasMatch(phoneC.text.trim())) {
-                    showToast(ctx, l.validation_phone_format, error: true);
-                    return;
-                  }
                   try {
-                    // Write to teams table
                     await ref.read(eventsRepoProvider).insertTeam({
                       'event_id': event.id,
                       'captain_id': currentUserId,
                       'name': teamC.text.trim(),
-                      'contact': contactC.text.trim(),
-                      'phone': phoneC.text.trim(),
-                      'slogan': sloganC.text.trim().isEmpty ? null : sloganC.text.trim(),
+                      'contact': profile?.name,
+                      'phone': profile?.phone,
                       'status': event.reviewMode == 'manual'
                           ? 'pending'
                           : 'approved',
                     });
-                    // Fetch the newly created team to get its ID
                     final newTeams = await ref.read(eventsRepoProvider).listTeams(event.id);
                     final newTeam = newTeams.where((t) => t.captainId == currentUserId).lastOrNull;
-                    if (newTeam != null) {
-                      // Insert captain as member
-                      if (currentUserId != null) {
-                        await ref.read(eventsRepoProvider).addTeamMember(
-                          newTeam.id, currentUserId!, null,
-                        );
-                      }
-                      // Insert selected members
-                      for (final m in membersNotifier.value) {
-                        await ref.read(eventsRepoProvider).addTeamMember(
-                          newTeam.id, m.userId, m.jersey,
-                        );
-                      }
+                    if (newTeam != null && currentUserId != null) {
+                      await ref.read(eventsRepoProvider).addTeamMember(
+                        newTeam.id, currentUserId!, null,
+                      );
                     }
-                    // Also create conversation for communication
                     try {
                       await ref
                           .read(messagesRepoProvider)
@@ -418,6 +296,45 @@ class BottomCta extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _showCancelConfirmation(BuildContext context, WidgetRef ref) async {
+    final l = context.l10n;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l.event_register_cancel_confirm_title),
+        content: Text(l.event_register_cancel_confirm_body),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l.common_cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(
+              l.common_confirm,
+              style: TextStyle(color: context.tokens.danger),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+    try {
+      final uid = currentUserId;
+      if (uid == null) return;
+      await ref.read(eventsRepoProvider).cancelRegistration(event.id, uid);
+      await ref.read(favoritesRepoProvider).toggle(FavoriteEntity.event, event.id);
+      ref.invalidate(eventTeamsCountProvider(event.id));
+      ref.invalidate(isUserRegisteredProvider(event.id));
+      ref.invalidate(eventTeamsProvider(event.id));
+      if (context.mounted) {
+        showToast(context, l.event_register_cancel_success, success: true);
+      }
+    } catch (e) {
+      if (context.mounted) showToast(context, '$e', error: true);
+    }
   }
 }
 
@@ -460,165 +377,6 @@ class RegField extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-Future<void> _showUserSearchDialog(
-  BuildContext context,
-  ValueNotifier<List<({String userId, String name, String? avatarUrl, int? jersey})>> membersNotifier,
-) async {
-  final searchC = TextEditingController();
-  await showDialog(
-    context: context,
-    builder: (ctx) => Dialog(
-      backgroundColor: ctx.tokens.elev1,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              ctx.l10n.event_register_search_user,
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-                color: ctx.tokens.ink,
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: searchC,
-              style: TextStyle(fontSize: 13, color: ctx.tokens.ink),
-              decoration: InputDecoration(
-                hintText: ctx.l10n.common_search,
-                hintStyle: TextStyle(color: ctx.tokens.inkDim),
-                prefixIcon: Icon(Icons.search, size: 18, color: ctx.tokens.inkDim),
-                isDense: true,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: ctx.tokens.line),
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            SizedBox(
-              height: 240,
-              child: _UserSearchResults(
-                searchController: searchC,
-                onSelect: (userId, name, avatarUrl) {
-                  final existing = membersNotifier.value.any((m) => m.userId == userId);
-                  if (!existing) {
-                    membersNotifier.value = [
-                      ...membersNotifier.value,
-                      (userId: userId, name: name, avatarUrl: avatarUrl, jersey: null),
-                    ];
-                  }
-                  Navigator.pop(ctx);
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
-}
-
-class _UserSearchResults extends ConsumerStatefulWidget {
-  final TextEditingController searchController;
-  final void Function(String userId, String name, String? avatarUrl) onSelect;
-
-  const _UserSearchResults({
-    required this.searchController,
-    required this.onSelect,
-  });
-
-  @override
-  ConsumerState<_UserSearchResults> createState() => _UserSearchResultsState();
-}
-
-class _UserSearchResultsState extends ConsumerState<_UserSearchResults> {
-  String _query = '';
-
-  @override
-  void initState() {
-    super.initState();
-    widget.searchController.addListener(_onQueryChanged);
-  }
-
-  void _onQueryChanged() {
-    final q = widget.searchController.text.trim();
-    if (q != _query) setState(() => _query = q);
-  }
-
-  @override
-  void dispose() {
-    widget.searchController.removeListener(_onQueryChanged);
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_query.length < 2) {
-      return Center(
-        child: Text(
-          '...',
-          style: TextStyle(color: context.tokens.inkDim, fontSize: 13),
-        ),
-      );
-    }
-    final async = ref.watch(profileSearchProvider(_query));
-    return async.when(
-      data: (profiles) {
-        if (profiles.isEmpty) {
-          return Center(
-            child: Text(
-              context.l10n.empty_no_search,
-              style: TextStyle(color: context.tokens.inkDim, fontSize: 13),
-            ),
-          );
-        }
-        return ListView.builder(
-          shrinkWrap: true,
-          itemCount: profiles.length,
-          itemBuilder: (ctx, i) {
-            final p = profiles[i];
-            return ListTile(
-              dense: true,
-              leading: CircleAvatar(
-                radius: 16,
-                backgroundColor: context.tokens.elev3,
-                backgroundImage: p['avatar_url'] != null
-                    ? NetworkImage(p['avatar_url'] as String)
-                    : null,
-                child: p['avatar_url'] == null
-                    ? Icon(Icons.person, size: 16, color: context.tokens.inkDim)
-                    : null,
-              ),
-              title: Text(
-                p['name'] as String? ?? '—',
-                style: TextStyle(fontSize: 13, color: context.tokens.ink),
-              ),
-              onTap: () => widget.onSelect(
-                p['id'] as String,
-                p['name'] as String? ?? '—',
-                p['avatar_url'] as String?,
-              ),
-            );
-          },
-        );
-      },
-      loading: () => Center(
-        child: CircularProgressIndicator(
-          color: context.tokens.accent,
-          strokeWidth: 2,
-        ),
-      ),
-      error: (e, _) => Center(
-        child: Text('$e', style: TextStyle(color: context.tokens.danger, fontSize: 12)),
       ),
     );
   }
