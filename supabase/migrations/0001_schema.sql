@@ -141,6 +141,10 @@ alter table public.pickup_slots enable row level security;
 create policy "slots public read" on public.pickup_slots for select using (true);
 create policy "slots self join" on public.pickup_slots for insert with check (auth.uid() = user_id);
 create policy "slots self leave" on public.pickup_slots for delete using (auth.uid() = user_id);
+create policy "slots self update" on public.pickup_slots for update
+  to authenticated
+  using (user_id is null or user_id = auth.uid())
+  with check (user_id = auth.uid());
 
 
 -- ═══════════════════════════════════════════════════════════════
@@ -195,6 +199,12 @@ create table public.teams (
 
 alter table public.teams enable row level security;
 create policy "teams public read" on public.teams for select using (true);
+create policy "teams captain insert" on public.teams for insert
+  to authenticated
+  with check (captain_id = auth.uid());
+create policy "teams captain delete" on public.teams for delete
+  to authenticated
+  using (captain_id = auth.uid());
 
 create table public.matches (
   id uuid primary key default gen_random_uuid(),
