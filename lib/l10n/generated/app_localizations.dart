@@ -3493,6 +3493,60 @@ abstract class AppL10n {
   /// **'当前定位'**
   String get city_picker_current;
 
+  /// No description provided for @city_picker_recent.
+  ///
+  /// In zh, this message translates to:
+  /// **'最近使用'**
+  String get city_picker_recent;
+
+  /// No description provided for @city_picker_search_hint.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜索城市名称或拼音'**
+  String get city_picker_search_hint;
+
+  /// No description provided for @city_picker_gps_located.
+  ///
+  /// In zh, this message translates to:
+  /// **'GPS 已定位'**
+  String get city_picker_gps_located;
+
+  /// No description provided for @city_picker_gps_locating.
+  ///
+  /// In zh, this message translates to:
+  /// **'正在定位...'**
+  String get city_picker_gps_locating;
+
+  /// No description provided for @city_picker_gps_failed.
+  ///
+  /// In zh, this message translates to:
+  /// **'定位失败，点击重试'**
+  String get city_picker_gps_failed;
+
+  /// No description provided for @city_picker_gps_not_supported.
+  ///
+  /// In zh, this message translates to:
+  /// **'当前城市暂未开通'**
+  String get city_picker_gps_not_supported;
+
+  /// No description provided for @city_picker_gps_use.
+  ///
+  /// In zh, this message translates to:
+  /// **'使用此城市'**
+  String get city_picker_gps_use;
+
+  /// No description provided for @city_picker_current_label.
+  ///
+  /// In zh, this message translates to:
+  /// **'当前'**
+  String get city_picker_current_label;
+
+  /// No description provided for @city_picker_no_result.
+  ///
+  /// In zh, this message translates to:
+  /// **'没有找到匹配的城市'**
+  String get city_picker_no_result;
+
   /// No description provided for @me_events_title.
   ///
   /// In zh, this message translates to:
@@ -5719,6 +5773,180 @@ abstract class AppL10n {
   /// **'已取消报名'**
   String get event_register_cancel_success;
 
+  /// No description provided for @event_register_logo.
+  ///
+  /// In zh, this message translates to:
+  /// **'队徽'**
+  String get event_register_logo;
+
+  /// No description provided for @event_register_logo_hint.
+  ///
+  /// In zh, this message translates to:
+  /// **'点击上传（可跳过）'**
+  String get event_register_logo_hint;
+
+  /// No description provided for @event_register_contact_label.
+  ///
+  /// In zh, this message translates to:
+  /// **'联系人信息'**
+  String get event_register_contact_label;
+
+  /// No description provided for @event_register_contact_prefill_hint.
+  ///
+  /// In zh, this message translates to:
+  /// **'来自你的资料，可修改'**
+  String get event_register_contact_prefill_hint;
+
+  /// No description provided for @event_register_post_hint.
+  ///
+  /// In zh, this message translates to:
+  /// **'报名后可在队伍详情中补充球员名单等信息'**
+  String get event_register_post_hint;
+
+  /// No description provided for @event_register_individual_title.
+  ///
+  /// In zh, this message translates to:
+  /// **'个人报名'**
+  String get event_register_individual_title;
+
+  /// No description provided for @event_register_individual_hint.
+  ///
+  /// In zh, this message translates to:
+  /// **'提交后由组委会分配队伍'**
+  String get event_register_individual_hint;
+
+  /// No description provided for @event_register_position.
+  ///
+  /// In zh, this message translates to:
+  /// **'擅长位置'**
+  String get event_register_position;
+
+  /// No description provided for @position_forward.
+  ///
+  /// In zh, this message translates to:
+  /// **'前锋'**
+  String get position_forward;
+
+  /// No description provided for @position_midfielder.
+  ///
+  /// In zh, this message translates to:
+  /// **'中场'**
+  String get position_midfielder;
+
+  /// No description provided for @position_defender.
+  ///
+  /// In zh, this message translates to:
+  /// **'后卫'**
+  String get position_defender;
+
+  /// No description provided for @position_goalkeeper.
+  ///
+  /// In zh, this message translates to:
+  /// **'门将'**
+  String get position_goalkeeper;
+
+  /// No description provided for @create_event_registration_mode.
+  ///
+  /// In zh, this message translates to:
+  /// **'报名模式'**
+  String get create_event_registration_mode;
+
+  /// No description provided for @create_event_reg_mode_team_only.
+  ///
+  /// In zh, this message translates to:
+  /// **'仅队伍报名'**
+  String get create_event_reg_mode_team_only;
+
+  /// No description provided for @create_event_reg_mode_team_and_individual.
+  ///
+  /// In zh, this message translates to:
+  /// **'队伍+个人'**
+  String get create_event_reg_mode_team_and_individual;
+
+  /// No description provided for @team_detail_edit_slogan.
+  ///
+  /// In zh, this message translates to:
+  /// **'队伍简介'**
+  String get team_detail_edit_slogan;
+
+  /// No description provided for @team_detail_slogan_hint.
+  ///
+  /// In zh, this message translates to:
+  /// **'介绍你的队伍...'**
+  String get team_detail_slogan_hint;
+
+  /// No description provided for @team_detail_add_member.
+  ///
+  /// In zh, this message translates to:
+  /// **'添加球员'**
+  String get team_detail_add_member;
+
+  /// No description provided for @team_detail_roster_progress.
+  ///
+  /// In zh, this message translates to:
+  /// **'{current}/{total}'**
+  String team_detail_roster_progress(int current, int total);
+
+  /// No description provided for @team_detail_roster_warning.
+  ///
+  /// In zh, this message translates to:
+  /// **'球员名单未满（{current}/{total}）'**
+  String team_detail_roster_warning(int current, int total);
+
+  /// No description provided for @team_detail_edit_member.
+  ///
+  /// In zh, this message translates to:
+  /// **'编辑球员'**
+  String get team_detail_edit_member;
+
+  /// No description provided for @team_detail_remove_member.
+  ///
+  /// In zh, this message translates to:
+  /// **'移除球员'**
+  String get team_detail_remove_member;
+
+  /// No description provided for @team_detail_remove_member_confirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确定要移除该球员吗？'**
+  String get team_detail_remove_member_confirm;
+
+  /// No description provided for @individual_registrations_title.
+  ///
+  /// In zh, this message translates to:
+  /// **'散客报名'**
+  String get individual_registrations_title;
+
+  /// No description provided for @individual_registrations_empty.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无散客报名'**
+  String get individual_registrations_empty;
+
+  /// No description provided for @individual_assign_to_team.
+  ///
+  /// In zh, this message translates to:
+  /// **'分配到队伍'**
+  String get individual_assign_to_team;
+
+  /// No description provided for @individual_reject.
+  ///
+  /// In zh, this message translates to:
+  /// **'拒绝'**
+  String get individual_reject;
+
+  /// No description provided for @individual_status_assigned.
+  ///
+  /// In zh, this message translates to:
+  /// **'已分配'**
+  String get individual_status_assigned;
+
+  /// No description provided for @individual_status_rejected.
+  ///
+  /// In zh, this message translates to:
+  /// **'已拒绝'**
+  String get individual_status_rejected;
+
   /// No description provided for @pickup_leave_confirm_title.
   ///
   /// In zh, this message translates to:
@@ -5736,6 +5964,24 @@ abstract class AppL10n {
   /// In zh, this message translates to:
   /// **'已退出约球'**
   String get pickup_leave_success;
+
+  /// No description provided for @profile_tab_pickups.
+  ///
+  /// In zh, this message translates to:
+  /// **'约球'**
+  String get profile_tab_pickups;
+
+  /// No description provided for @profile_pickup_organized.
+  ///
+  /// In zh, this message translates to:
+  /// **'组织'**
+  String get profile_pickup_organized;
+
+  /// No description provided for @profile_pickup_participated.
+  ///
+  /// In zh, this message translates to:
+  /// **'参加'**
+  String get profile_pickup_participated;
 }
 
 class _AppL10nDelegate extends LocalizationsDelegate<AppL10n> {

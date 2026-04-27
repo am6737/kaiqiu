@@ -1801,6 +1801,33 @@ class AppL10nEn extends AppL10n {
   String get city_picker_current => 'Current location';
 
   @override
+  String get city_picker_recent => 'Recent';
+
+  @override
+  String get city_picker_search_hint => 'Search city name or pinyin';
+
+  @override
+  String get city_picker_gps_located => 'GPS located';
+
+  @override
+  String get city_picker_gps_locating => 'Locating...';
+
+  @override
+  String get city_picker_gps_failed => 'Location failed, tap to retry';
+
+  @override
+  String get city_picker_gps_not_supported => 'City not supported yet';
+
+  @override
+  String get city_picker_gps_use => 'Use this city';
+
+  @override
+  String get city_picker_current_label => 'Current';
+
+  @override
+  String get city_picker_no_result => 'No matching city found';
+
+  @override
   String get me_events_title => 'My events';
 
   @override
@@ -3016,6 +3043,100 @@ class AppL10nEn extends AppL10n {
   String get event_register_cancel_success => 'Registration cancelled';
 
   @override
+  String get event_register_logo => 'Team logo';
+
+  @override
+  String get event_register_logo_hint => 'Tap to upload (optional)';
+
+  @override
+  String get event_register_contact_label => 'Contact info';
+
+  @override
+  String get event_register_contact_prefill_hint =>
+      'From your profile, editable';
+
+  @override
+  String get event_register_post_hint =>
+      'You can add roster and details in team page after registering';
+
+  @override
+  String get event_register_individual_title => 'Individual registration';
+
+  @override
+  String get event_register_individual_hint =>
+      'Organizer will assign you to a team';
+
+  @override
+  String get event_register_position => 'Preferred position';
+
+  @override
+  String get position_forward => 'Forward';
+
+  @override
+  String get position_midfielder => 'Midfielder';
+
+  @override
+  String get position_defender => 'Defender';
+
+  @override
+  String get position_goalkeeper => 'Goalkeeper';
+
+  @override
+  String get create_event_registration_mode => 'Registration mode';
+
+  @override
+  String get create_event_reg_mode_team_only => 'Team only';
+
+  @override
+  String get create_event_reg_mode_team_and_individual => 'Team + Individual';
+
+  @override
+  String get team_detail_edit_slogan => 'Team intro';
+
+  @override
+  String get team_detail_slogan_hint => 'Introduce your team...';
+
+  @override
+  String get team_detail_add_member => 'Add player';
+
+  @override
+  String team_detail_roster_progress(int current, int total) {
+    return '$current/$total';
+  }
+
+  @override
+  String team_detail_roster_warning(int current, int total) {
+    return 'Roster incomplete ($current/$total)';
+  }
+
+  @override
+  String get team_detail_edit_member => 'Edit player';
+
+  @override
+  String get team_detail_remove_member => 'Remove player';
+
+  @override
+  String get team_detail_remove_member_confirm => 'Remove this player?';
+
+  @override
+  String get individual_registrations_title => 'Individual registrations';
+
+  @override
+  String get individual_registrations_empty => 'No individual registrations';
+
+  @override
+  String get individual_assign_to_team => 'Assign to team';
+
+  @override
+  String get individual_reject => 'Reject';
+
+  @override
+  String get individual_status_assigned => 'Assigned';
+
+  @override
+  String get individual_status_rejected => 'Rejected';
+
+  @override
   String get pickup_leave_confirm_title => 'Leave Game';
 
   @override
@@ -3024,4 +3145,13 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get pickup_leave_success => 'Left the game';
+
+  @override
+  String get profile_tab_pickups => 'Pickups';
+
+  @override
+  String get profile_pickup_organized => 'Organized';
+
+  @override
+  String get profile_pickup_participated => 'Joined';
 }

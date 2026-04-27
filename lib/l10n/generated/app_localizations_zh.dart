@@ -1773,6 +1773,33 @@ class AppL10nZh extends AppL10n {
   String get city_picker_current => '当前定位';
 
   @override
+  String get city_picker_recent => '最近使用';
+
+  @override
+  String get city_picker_search_hint => '搜索城市名称或拼音';
+
+  @override
+  String get city_picker_gps_located => 'GPS 已定位';
+
+  @override
+  String get city_picker_gps_locating => '正在定位...';
+
+  @override
+  String get city_picker_gps_failed => '定位失败，点击重试';
+
+  @override
+  String get city_picker_gps_not_supported => '当前城市暂未开通';
+
+  @override
+  String get city_picker_gps_use => '使用此城市';
+
+  @override
+  String get city_picker_current_label => '当前';
+
+  @override
+  String get city_picker_no_result => '没有找到匹配的城市';
+
+  @override
   String get me_events_title => '我的赛事';
 
   @override
@@ -2962,6 +2989,97 @@ class AppL10nZh extends AppL10n {
   String get event_register_cancel_success => '已取消报名';
 
   @override
+  String get event_register_logo => '队徽';
+
+  @override
+  String get event_register_logo_hint => '点击上传（可跳过）';
+
+  @override
+  String get event_register_contact_label => '联系人信息';
+
+  @override
+  String get event_register_contact_prefill_hint => '来自你的资料，可修改';
+
+  @override
+  String get event_register_post_hint => '报名后可在队伍详情中补充球员名单等信息';
+
+  @override
+  String get event_register_individual_title => '个人报名';
+
+  @override
+  String get event_register_individual_hint => '提交后由组委会分配队伍';
+
+  @override
+  String get event_register_position => '擅长位置';
+
+  @override
+  String get position_forward => '前锋';
+
+  @override
+  String get position_midfielder => '中场';
+
+  @override
+  String get position_defender => '后卫';
+
+  @override
+  String get position_goalkeeper => '门将';
+
+  @override
+  String get create_event_registration_mode => '报名模式';
+
+  @override
+  String get create_event_reg_mode_team_only => '仅队伍报名';
+
+  @override
+  String get create_event_reg_mode_team_and_individual => '队伍+个人';
+
+  @override
+  String get team_detail_edit_slogan => '队伍简介';
+
+  @override
+  String get team_detail_slogan_hint => '介绍你的队伍...';
+
+  @override
+  String get team_detail_add_member => '添加球员';
+
+  @override
+  String team_detail_roster_progress(int current, int total) {
+    return '$current/$total';
+  }
+
+  @override
+  String team_detail_roster_warning(int current, int total) {
+    return '球员名单未满（$current/$total）';
+  }
+
+  @override
+  String get team_detail_edit_member => '编辑球员';
+
+  @override
+  String get team_detail_remove_member => '移除球员';
+
+  @override
+  String get team_detail_remove_member_confirm => '确定要移除该球员吗？';
+
+  @override
+  String get individual_registrations_title => '散客报名';
+
+  @override
+  String get individual_registrations_empty => '暂无散客报名';
+
+  @override
+  String get individual_assign_to_team => '分配到队伍';
+
+  @override
+  String get individual_reject => '拒绝';
+
+  @override
+  String get individual_status_assigned => '已分配';
+
+  @override
+  String get individual_status_rejected => '已拒绝';
+
+  @override
   String get pickup_leave_confirm_title => '取消报名';
 
   @override
@@ -2969,4 +3087,13 @@ class AppL10nZh extends AppL10n {
 
   @override
   String get pickup_leave_success => '已退出约球';
+
+  @override
+  String get profile_tab_pickups => '约球';
+
+  @override
+  String get profile_pickup_organized => '组织';
+
+  @override
+  String get profile_pickup_participated => '参加';
 }
