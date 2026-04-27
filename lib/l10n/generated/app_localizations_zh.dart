@@ -618,12 +618,6 @@ class AppL10nZh extends AppL10n {
   String get event_register_phone => '电话';
 
   @override
-  String get event_register_submit => '提交报名';
-
-  @override
-  String get event_register_success => '报名已提交，等待组委会审核';
-
-  @override
   String get event_register_slogan => '口号（选填）';
 
   @override
@@ -657,6 +651,12 @@ class AppL10nZh extends AppL10n {
 
   @override
   String get team_detail_captain => '队长';
+
+  @override
+  String get event_register_submit => '提交报名';
+
+  @override
+  String get event_register_success => '报名已提交，等待组委会审核';
 
   @override
   String get event_rating_team_all => '全部';
@@ -1166,6 +1166,12 @@ class AppL10nZh extends AppL10n {
   String get profile_mini_mvp => 'MVP';
 
   @override
+  String get profile_mini_assists => '助攻';
+
+  @override
+  String get profile_view_full => '查看完整资料';
+
+  @override
   String get profile_section_activity => '我的活动';
 
   @override
@@ -1345,6 +1351,9 @@ class AppL10nZh extends AppL10n {
 
   @override
   String get profile_edit_district => '城区';
+
+  @override
+  String get profile_edit_phone => '手机号';
 
   @override
   String get profile_edit_position => '位置';
@@ -2898,4 +2907,16 @@ class AppL10nZh extends AppL10n {
 
   @override
   String get common_publish => '发布';
+
+  @override
+  String get event_register_cancel => '取消报名';
+
+  @override
+  String get event_register_cancel_confirm_title => '取消报名';
+
+  @override
+  String get event_register_cancel_confirm_body => '确定要取消报名吗？队伍和成员信息将被删除且无法恢复';
+
+  @override
+  String get event_register_cancel_success => '已取消报名';
 }

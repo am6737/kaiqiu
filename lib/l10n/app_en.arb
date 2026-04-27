@@ -454,6 +454,8 @@
   "profile_mini_matches": "MP",
   "profile_mini_goals": "G",
   "profile_mini_mvp": "MVP",
+  "profile_mini_assists": "AST",
+  "profile_view_full": "View Profile",
   "profile_section_activity": "Activity",
   "profile_section_settings": "Settings",
   "profile_menu_my_events": "My Events",
@@ -528,6 +530,7 @@
   "profile_edit_handle": "ID",
   "profile_edit_city": "City",
   "profile_edit_district": "District",
+  "profile_edit_phone": "Phone",
   "profile_edit_position": "Position",
   "profile_edit_position_full": "Position name",
   "profile_edit_height": "Height (cm)",
@@ -1123,5 +1126,9 @@
   "create_article_cat_opinion": "Opinion",
   "profile_fab_post": "New Activity",
   "profile_fab_article": "New Article",
-  "common_publish": "Publish"
+  "common_publish": "Publish",
+  "event_register_cancel": "Cancel Registration",
+  "event_register_cancel_confirm_title": "Cancel Registration",
+  "event_register_cancel_confirm_body": "Are you sure? Your team and member data will be permanently deleted.",
+  "event_register_cancel_success": "Registration cancelled"
 }

@@ -625,12 +625,6 @@ class AppL10nEn extends AppL10n {
   String get event_register_phone => 'Phone';
 
   @override
-  String get event_register_submit => 'Submit';
-
-  @override
-  String get event_register_success => 'Submitted · awaiting review';
-
-  @override
   String get event_register_slogan => 'Slogan (optional)';
 
   @override
@@ -664,6 +658,12 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get team_detail_captain => 'Captain';
+
+  @override
+  String get event_register_submit => 'Submit';
+
+  @override
+  String get event_register_success => 'Submitted · awaiting review';
 
   @override
   String get event_rating_team_all => 'All';
@@ -1179,6 +1179,12 @@ class AppL10nEn extends AppL10n {
   String get profile_mini_mvp => 'MVP';
 
   @override
+  String get profile_mini_assists => 'AST';
+
+  @override
+  String get profile_view_full => 'View Profile';
+
+  @override
   String get profile_section_activity => 'Activity';
 
   @override
@@ -1360,6 +1366,9 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get profile_edit_district => 'District';
+
+  @override
+  String get profile_edit_phone => 'Phone';
 
   @override
   String get profile_edit_position => 'Position';
@@ -2949,4 +2958,17 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get common_publish => 'Publish';
+
+  @override
+  String get event_register_cancel => 'Cancel Registration';
+
+  @override
+  String get event_register_cancel_confirm_title => 'Cancel Registration';
+
+  @override
+  String get event_register_cancel_confirm_body =>
+      'Are you sure? Your team and member data will be permanently deleted.';
+
+  @override
+  String get event_register_cancel_success => 'Registration cancelled';
 }

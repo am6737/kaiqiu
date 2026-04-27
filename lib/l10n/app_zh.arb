@@ -454,6 +454,8 @@
   "profile_mini_matches": "场次",
   "profile_mini_goals": "进球",
   "profile_mini_mvp": "MVP",
+  "profile_mini_assists": "助攻",
+  "profile_view_full": "查看完整资料",
   "profile_section_activity": "我的活动",
   "profile_section_settings": "设置",
   "profile_menu_my_events": "我的赛事",
@@ -528,6 +530,7 @@
   "profile_edit_handle": "ID",
   "profile_edit_city": "所在城市",
   "profile_edit_district": "城区",
+  "profile_edit_phone": "手机号",
   "profile_edit_position": "位置",
   "profile_edit_position_full": "位置全称",
   "profile_edit_height": "身高 (cm)",
@@ -1123,5 +1126,9 @@
   "create_article_cat_opinion": "观点",
   "profile_fab_post": "发动态",
   "profile_fab_article": "写文章",
-  "common_publish": "发布"
+  "common_publish": "发布",
+  "event_register_cancel": "取消报名",
+  "event_register_cancel_confirm_title": "取消报名",
+  "event_register_cancel_confirm_body": "确定要取消报名吗？队伍和成员信息将被删除且无法恢复",
+  "event_register_cancel_success": "已取消报名"
 }

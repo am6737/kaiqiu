@@ -1075,72 +1075,6 @@ abstract class AppL10n {
   /// **'队伍'**
   String get event_tab_teams;
 
-  /// No description provided for @event_register_slogan.
-  ///
-  /// In zh, this message translates to:
-  /// **'口号（选填）'**
-  String get event_register_slogan;
-
-  /// No description provided for @event_register_members.
-  ///
-  /// In zh, this message translates to:
-  /// **'队员'**
-  String get event_register_members;
-
-  /// No description provided for @event_register_add_member.
-  ///
-  /// In zh, this message translates to:
-  /// **'添加队员'**
-  String get event_register_add_member;
-
-  /// No description provided for @event_register_search_user.
-  ///
-  /// In zh, this message translates to:
-  /// **'搜索用户'**
-  String get event_register_search_user;
-
-  /// No description provided for @event_register_jersey.
-  ///
-  /// In zh, this message translates to:
-  /// **'球衣号'**
-  String get event_register_jersey;
-
-  /// No description provided for @team_detail_slogan.
-  ///
-  /// In zh, this message translates to:
-  /// **'口号'**
-  String get team_detail_slogan;
-
-  /// No description provided for @team_detail_members.
-  ///
-  /// In zh, this message translates to:
-  /// **'队员'**
-  String get team_detail_members;
-
-  /// No description provided for @team_detail_member_count.
-  ///
-  /// In zh, this message translates to:
-  /// **'{n} 人'**
-  String team_detail_member_count(int n);
-
-  /// No description provided for @team_detail_stats.
-  ///
-  /// In zh, this message translates to:
-  /// **'战绩'**
-  String get team_detail_stats;
-
-  /// No description provided for @team_detail_no_matches.
-  ///
-  /// In zh, this message translates to:
-  /// **'暂无比赛'**
-  String get team_detail_no_matches;
-
-  /// No description provided for @team_detail_captain.
-  ///
-  /// In zh, this message translates to:
-  /// **'队长'**
-  String get team_detail_captain;
-
   /// No description provided for @event_teams_summary.
   ///
   /// In zh, this message translates to:
@@ -1344,6 +1278,72 @@ abstract class AppL10n {
   /// In zh, this message translates to:
   /// **'电话'**
   String get event_register_phone;
+
+  /// No description provided for @event_register_slogan.
+  ///
+  /// In zh, this message translates to:
+  /// **'口号（选填）'**
+  String get event_register_slogan;
+
+  /// No description provided for @event_register_members.
+  ///
+  /// In zh, this message translates to:
+  /// **'队员'**
+  String get event_register_members;
+
+  /// No description provided for @event_register_add_member.
+  ///
+  /// In zh, this message translates to:
+  /// **'添加队员'**
+  String get event_register_add_member;
+
+  /// No description provided for @event_register_search_user.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜索用户'**
+  String get event_register_search_user;
+
+  /// No description provided for @event_register_jersey.
+  ///
+  /// In zh, this message translates to:
+  /// **'球衣号'**
+  String get event_register_jersey;
+
+  /// No description provided for @team_detail_slogan.
+  ///
+  /// In zh, this message translates to:
+  /// **'口号'**
+  String get team_detail_slogan;
+
+  /// No description provided for @team_detail_members.
+  ///
+  /// In zh, this message translates to:
+  /// **'队员'**
+  String get team_detail_members;
+
+  /// No description provided for @team_detail_member_count.
+  ///
+  /// In zh, this message translates to:
+  /// **'{n} 人'**
+  String team_detail_member_count(int n);
+
+  /// No description provided for @team_detail_stats.
+  ///
+  /// In zh, this message translates to:
+  /// **'战绩'**
+  String get team_detail_stats;
+
+  /// No description provided for @team_detail_no_matches.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无比赛'**
+  String get team_detail_no_matches;
+
+  /// No description provided for @team_detail_captain.
+  ///
+  /// In zh, this message translates to:
+  /// **'队长'**
+  String get team_detail_captain;
 
   /// No description provided for @event_register_submit.
   ///
@@ -2311,6 +2311,18 @@ abstract class AppL10n {
   /// **'MVP'**
   String get profile_mini_mvp;
 
+  /// No description provided for @profile_mini_assists.
+  ///
+  /// In zh, this message translates to:
+  /// **'助攻'**
+  String get profile_mini_assists;
+
+  /// No description provided for @profile_view_full.
+  ///
+  /// In zh, this message translates to:
+  /// **'查看完整资料'**
+  String get profile_view_full;
+
   /// No description provided for @profile_section_activity.
   ///
   /// In zh, this message translates to:
@@ -2652,6 +2664,12 @@ abstract class AppL10n {
   /// In zh, this message translates to:
   /// **'城区'**
   String get profile_edit_district;
+
+  /// No description provided for @profile_edit_phone.
+  ///
+  /// In zh, this message translates to:
+  /// **'手机号'**
+  String get profile_edit_phone;
 
   /// No description provided for @profile_edit_position.
   ///
@@ -5598,6 +5616,30 @@ abstract class AppL10n {
   /// In zh, this message translates to:
   /// **'发布'**
   String get common_publish;
+
+  /// No description provided for @event_register_cancel.
+  ///
+  /// In zh, this message translates to:
+  /// **'取消报名'**
+  String get event_register_cancel;
+
+  /// No description provided for @event_register_cancel_confirm_title.
+  ///
+  /// In zh, this message translates to:
+  /// **'取消报名'**
+  String get event_register_cancel_confirm_title;
+
+  /// No description provided for @event_register_cancel_confirm_body.
+  ///
+  /// In zh, this message translates to:
+  /// **'确定要取消报名吗？队伍和成员信息将被删除且无法恢复'**
+  String get event_register_cancel_confirm_body;
+
+  /// No description provided for @event_register_cancel_success.
+  ///
+  /// In zh, this message translates to:
+  /// **'已取消报名'**
+  String get event_register_cancel_success;
 }
 
 class _AppL10nDelegate extends LocalizationsDelegate<AppL10n> {
