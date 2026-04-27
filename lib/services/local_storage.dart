@@ -20,6 +20,7 @@ const _kReminders = 'reminders';
 const _kPredictions = 'predictions';
 const _kPinnedConvs = 'pinned_convs';
 const _kCity = 'city';
+const _kRecentCities = 'recent_cities';
 const _kLocale = 'locale';
 const _kNotifPush = 'notif_push';
 const _kNotifInApp = 'notif_in_app';
@@ -139,6 +140,22 @@ class LocalStore {
   static String get city => _prefs.getString(_kCity) ?? '南宁';
   static Future<void> setCity(String city) async {
     await _prefs.setString(_kCity, city);
+    await addRecentCity(city);
+    localStoreNotifier.bump();
+  }
+
+  // ─── recent cities
+  static List<String> get recentCities =>
+      _prefs.getStringList(_kRecentCities) ?? <String>[];
+
+  static Future<void> addRecentCity(String city) async {
+    final list = recentCities;
+    list.remove(city);
+    list.insert(0, city);
+    while (list.length > 5) {
+      list.removeLast();
+    }
+    await _prefs.setStringList(_kRecentCities, list);
     localStoreNotifier.bump();
   }
 
