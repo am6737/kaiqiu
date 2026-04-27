@@ -9,7 +9,7 @@ class PickupsRepository {
     PickupStatus? status,
     int limit = 50,
   }) async {
-    var query = supabase.from('pickups').select();
+    var query = supabase.from('pickups').select().neq('status', 'cancelled');
     if (status != null) {
       query = query.eq('status', status.name);
     }
@@ -29,6 +29,7 @@ class PickupsRepository {
     final rows = await supabase
         .from('pickups')
         .select()
+        .neq('status', 'cancelled')
         .order('start_at', ascending: true)
         .limit(limit);
     return (rows as List)
@@ -82,7 +83,8 @@ class PickupsRepository {
     var query = supabase
         .from('pickups')
         .select()
-        .neq('status', 'done');
+        .neq('status', 'done')
+        .neq('status', 'cancelled');
 
     final now = DateTime.now();
     switch (filter.dateRange) {
@@ -182,6 +184,14 @@ class PickupsRepository {
         .cast<Map<String, dynamic>>()
         .map(Pickup.fromMap)
         .toList();
+  }
+
+  /// Update the status of a pickup (e.g. cancel or end).
+  Future<void> updateStatus(String id, PickupStatus status) async {
+    await supabase
+        .from('pickups')
+        .update({'status': status.name})
+        .eq('id', id);
   }
 
   /// Insert a pickup along with [totalSlots] empty `pickup_slots` rows laid
