@@ -538,6 +538,7 @@
   "profile_edit_foot_left": "Left",
   "profile_edit_foot_right": "Right",
   "profile_edit_foot_both": "Both",
+  "profile_edit_email": "Email",
   "profile_edit_avatar": "Avatar",
   "profile_edit_avatar_hint": "Tap to choose or upload",
   "avatar_picker_title": "Choose Avatar",
@@ -960,6 +961,19 @@
   "pickup_detail_join_failed": "Join failed: {err}",
   "@pickup_detail_join_failed": { "placeholders": { "err": { "type": "String" } } },
   "pickup_detail_formation_load_failed": "Formation load failed",
+  "pickup_detail_cancel_game": "Cancel Game",
+  "pickup_detail_end_game": "End Game",
+  "pickup_detail_cancel_confirm_title": "Cancel Game",
+  "pickup_detail_cancel_confirm_body": "Are you sure you want to cancel this game? Registered players will be notified.",
+  "pickup_detail_end_confirm_title": "End Game",
+  "pickup_detail_end_confirm_body": "Are you sure you want to end this game?",
+  "pickup_detail_status_cancelled": "Cancelled",
+  "pickup_detail_status_done": "Ended",
+  "pickup_detail_cancel_success": "Game cancelled",
+  "pickup_detail_end_success": "Game ended",
+  "pickup_detail_update_failed": "Update failed: {err}",
+  "@pickup_detail_update_failed": { "placeholders": { "err": { "type": "String" } } },
+  "pickup_status_cancelled": "Cancelled",
   "pickup_detail_host_stats": "Hosted {n} · {rate}% on time",
   "@pickup_detail_host_stats": {
     "placeholders": {
@@ -1130,5 +1144,8 @@
   "event_register_cancel": "Cancel Registration",
   "event_register_cancel_confirm_title": "Cancel Registration",
   "event_register_cancel_confirm_body": "Are you sure? Your team and member data will be permanently deleted.",
-  "event_register_cancel_success": "Registration cancelled"
+  "event_register_cancel_success": "Registration cancelled",
+  "pickup_leave_confirm_title": "Leave Game",
+  "pickup_leave_confirm_body": "Are you sure you want to leave? Your slot will be freed.",
+  "pickup_leave_success": "Left the game"
 }

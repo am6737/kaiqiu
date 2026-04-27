@@ -2713,6 +2713,12 @@ abstract class AppL10n {
   /// **'双脚'**
   String get profile_edit_foot_both;
 
+  /// No description provided for @profile_edit_email.
+  ///
+  /// In zh, this message translates to:
+  /// **'邮箱'**
+  String get profile_edit_email;
+
   /// No description provided for @profile_edit_avatar.
   ///
   /// In zh, this message translates to:
@@ -4819,6 +4825,78 @@ abstract class AppL10n {
   /// **'阵型加载失败'**
   String get pickup_detail_formation_load_failed;
 
+  /// No description provided for @pickup_detail_cancel_game.
+  ///
+  /// In zh, this message translates to:
+  /// **'取消约球'**
+  String get pickup_detail_cancel_game;
+
+  /// No description provided for @pickup_detail_end_game.
+  ///
+  /// In zh, this message translates to:
+  /// **'结束约球'**
+  String get pickup_detail_end_game;
+
+  /// No description provided for @pickup_detail_cancel_confirm_title.
+  ///
+  /// In zh, this message translates to:
+  /// **'取消约球'**
+  String get pickup_detail_cancel_confirm_title;
+
+  /// No description provided for @pickup_detail_cancel_confirm_body.
+  ///
+  /// In zh, this message translates to:
+  /// **'确定要取消这场约球吗？已报名的球友将收到通知。'**
+  String get pickup_detail_cancel_confirm_body;
+
+  /// No description provided for @pickup_detail_end_confirm_title.
+  ///
+  /// In zh, this message translates to:
+  /// **'结束约球'**
+  String get pickup_detail_end_confirm_title;
+
+  /// No description provided for @pickup_detail_end_confirm_body.
+  ///
+  /// In zh, this message translates to:
+  /// **'确定要结束这场约球吗？'**
+  String get pickup_detail_end_confirm_body;
+
+  /// No description provided for @pickup_detail_status_cancelled.
+  ///
+  /// In zh, this message translates to:
+  /// **'已取消'**
+  String get pickup_detail_status_cancelled;
+
+  /// No description provided for @pickup_detail_status_done.
+  ///
+  /// In zh, this message translates to:
+  /// **'已结束'**
+  String get pickup_detail_status_done;
+
+  /// No description provided for @pickup_detail_cancel_success.
+  ///
+  /// In zh, this message translates to:
+  /// **'约球已取消'**
+  String get pickup_detail_cancel_success;
+
+  /// No description provided for @pickup_detail_end_success.
+  ///
+  /// In zh, this message translates to:
+  /// **'约球已结束'**
+  String get pickup_detail_end_success;
+
+  /// No description provided for @pickup_detail_update_failed.
+  ///
+  /// In zh, this message translates to:
+  /// **'操作失败：{err}'**
+  String pickup_detail_update_failed(String err);
+
+  /// No description provided for @pickup_status_cancelled.
+  ///
+  /// In zh, this message translates to:
+  /// **'已取消'**
+  String get pickup_status_cancelled;
+
   /// No description provided for @pickup_detail_host_stats.
   ///
   /// In zh, this message translates to:
@@ -5640,6 +5718,24 @@ abstract class AppL10n {
   /// In zh, this message translates to:
   /// **'已取消报名'**
   String get event_register_cancel_success;
+
+  /// No description provided for @pickup_leave_confirm_title.
+  ///
+  /// In zh, this message translates to:
+  /// **'取消报名'**
+  String get pickup_leave_confirm_title;
+
+  /// No description provided for @pickup_leave_confirm_body.
+  ///
+  /// In zh, this message translates to:
+  /// **'确定要退出这场约球吗？你的位置将被释放。'**
+  String get pickup_leave_confirm_body;
+
+  /// No description provided for @pickup_leave_success.
+  ///
+  /// In zh, this message translates to:
+  /// **'已退出约球'**
+  String get pickup_leave_success;
 }
 
 class _AppL10nDelegate extends LocalizationsDelegate<AppL10n> {

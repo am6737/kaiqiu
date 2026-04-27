@@ -1377,6 +1377,9 @@ class AppL10nZh extends AppL10n {
   String get profile_edit_foot_both => '双脚';
 
   @override
+  String get profile_edit_email => '邮箱';
+
+  @override
   String get profile_edit_avatar => '头像';
 
   @override
@@ -2488,6 +2491,44 @@ class AppL10nZh extends AppL10n {
   String get pickup_detail_formation_load_failed => '阵型加载失败';
 
   @override
+  String get pickup_detail_cancel_game => '取消约球';
+
+  @override
+  String get pickup_detail_end_game => '结束约球';
+
+  @override
+  String get pickup_detail_cancel_confirm_title => '取消约球';
+
+  @override
+  String get pickup_detail_cancel_confirm_body => '确定要取消这场约球吗？已报名的球友将收到通知。';
+
+  @override
+  String get pickup_detail_end_confirm_title => '结束约球';
+
+  @override
+  String get pickup_detail_end_confirm_body => '确定要结束这场约球吗？';
+
+  @override
+  String get pickup_detail_status_cancelled => '已取消';
+
+  @override
+  String get pickup_detail_status_done => '已结束';
+
+  @override
+  String get pickup_detail_cancel_success => '约球已取消';
+
+  @override
+  String get pickup_detail_end_success => '约球已结束';
+
+  @override
+  String pickup_detail_update_failed(String err) {
+    return '操作失败：$err';
+  }
+
+  @override
+  String get pickup_status_cancelled => '已取消';
+
+  @override
   String pickup_detail_host_stats(int n, int rate) {
     return '发起过 $n 场 · 准时率 $rate%';
   }
@@ -2919,4 +2960,13 @@ class AppL10nZh extends AppL10n {
 
   @override
   String get event_register_cancel_success => '已取消报名';
+
+  @override
+  String get pickup_leave_confirm_title => '取消报名';
+
+  @override
+  String get pickup_leave_confirm_body => '确定要退出这场约球吗？你的位置将被释放。';
+
+  @override
+  String get pickup_leave_success => '已退出约球';
 }

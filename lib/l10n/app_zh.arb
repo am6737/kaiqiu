@@ -538,6 +538,7 @@
   "profile_edit_foot_left": "左脚",
   "profile_edit_foot_right": "右脚",
   "profile_edit_foot_both": "双脚",
+  "profile_edit_email": "邮箱",
   "profile_edit_avatar": "头像",
   "profile_edit_avatar_hint": "点击选择或上传头像",
   "avatar_picker_title": "选择头像",
@@ -960,6 +961,19 @@
   "pickup_detail_join_failed": "报名失败：{err}",
   "@pickup_detail_join_failed": { "placeholders": { "err": { "type": "String" } } },
   "pickup_detail_formation_load_failed": "阵型加载失败",
+  "pickup_detail_cancel_game": "取消约球",
+  "pickup_detail_end_game": "结束约球",
+  "pickup_detail_cancel_confirm_title": "取消约球",
+  "pickup_detail_cancel_confirm_body": "确定要取消这场约球吗？已报名的球友将收到通知。",
+  "pickup_detail_end_confirm_title": "结束约球",
+  "pickup_detail_end_confirm_body": "确定要结束这场约球吗？",
+  "pickup_detail_status_cancelled": "已取消",
+  "pickup_detail_status_done": "已结束",
+  "pickup_detail_cancel_success": "约球已取消",
+  "pickup_detail_end_success": "约球已结束",
+  "pickup_detail_update_failed": "操作失败：{err}",
+  "@pickup_detail_update_failed": { "placeholders": { "err": { "type": "String" } } },
+  "pickup_status_cancelled": "已取消",
   "pickup_detail_host_stats": "发起过 {n} 场 · 准时率 {rate}%",
   "@pickup_detail_host_stats": {
     "placeholders": {
@@ -1130,5 +1144,8 @@
   "event_register_cancel": "取消报名",
   "event_register_cancel_confirm_title": "取消报名",
   "event_register_cancel_confirm_body": "确定要取消报名吗？队伍和成员信息将被删除且无法恢复",
-  "event_register_cancel_success": "已取消报名"
+  "event_register_cancel_success": "已取消报名",
+  "pickup_leave_confirm_title": "取消报名",
+  "pickup_leave_confirm_body": "确定要退出这场约球吗？你的位置将被释放。",
+  "pickup_leave_success": "已退出约球"
 }

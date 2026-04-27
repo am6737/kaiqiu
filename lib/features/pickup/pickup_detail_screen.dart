@@ -910,6 +910,8 @@ class _BottomCta extends ConsumerStatefulWidget {
 
 class _BottomCtaState extends ConsumerState<_BottomCta> {
   bool _joining = false;
+  bool _updating = false;
+  bool _leaving = false;
 
   Future<void> _confirmJoin() async {
     final selected = ref.read(selectedSlotProvider(widget.pickupId));
@@ -939,10 +941,167 @@ class _BottomCtaState extends ConsumerState<_BottomCta> {
     }
   }
 
+  Future<void> _confirmLeave() async {
+    final uid = svc.currentUserId;
+    if (uid == null) return;
+    final l = context.l10n;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l.pickup_leave_confirm_title),
+        content: Text(l.pickup_leave_confirm_body),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l.common_cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l.common_confirm,
+                style: TextStyle(color: context.tokens.danger)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _leaving = true);
+    try {
+      final slots = ref.read(pickupSlotsProvider(widget.pickupId)).valueOrNull ?? [];
+      final mySlot = slots.firstWhere((s) => s.userId == uid);
+      await ref.read(pickupsRepoProvider).leave(slotId: mySlot.id);
+      ref.invalidate(pickupSlotsProvider(widget.pickupId));
+      if (!mounted) return;
+      showToast(context, l.pickup_leave_success, success: true);
+    } catch (e) {
+      if (!mounted) return;
+      showToast(context, '$e', error: true);
+    } finally {
+      if (mounted) setState(() => _leaving = false);
+    }
+  }
+
+  Future<void> _changeStatus(PickupStatus target) async {
+    final l = context.l10n;
+    final isCancelling = target == PickupStatus.cancelled;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(isCancelling
+            ? l.pickup_detail_cancel_confirm_title
+            : l.pickup_detail_end_confirm_title),
+        content: Text(isCancelling
+            ? l.pickup_detail_cancel_confirm_body
+            : l.pickup_detail_end_confirm_body),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l.common_cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l.common_confirm),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _updating = true);
+    try {
+      await ref
+          .read(pickupsRepoProvider)
+          .updateStatus(widget.pickupId, target);
+      ref.invalidate(pickupDetailProvider(widget.pickupId));
+      ref.invalidate(livePickupsProvider);
+      ref.invalidate(myHostedPickupsProvider);
+      if (!mounted) return;
+      showToast(
+        context,
+        isCancelling
+            ? l.pickup_detail_cancel_success
+            : l.pickup_detail_end_success,
+        success: true,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      showToast(context, l.pickup_detail_update_failed('$e'), error: true);
+    } finally {
+      if (mounted) setState(() => _updating = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final pickupAsync = ref.watch(pickupDetailProvider(widget.pickupId));
+    final pickup = pickupAsync.valueOrNull;
     final slotsAsync = ref.watch(pickupSlotsProvider(widget.pickupId));
     final uid = svc.currentUserId;
+    final isHost = uid != null && pickup?.hostId == uid;
+    final status = pickup?.status ?? PickupStatus.open;
+    final l = context.l10n;
+
+    // Terminal states — shown to everyone
+    if (status == PickupStatus.cancelled || status == PickupStatus.done) {
+      final label = status == PickupStatus.cancelled
+          ? l.pickup_detail_status_cancelled
+          : l.pickup_detail_status_done;
+      return Container(
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 32),
+        decoration: BoxDecoration(
+          color: context.tokens.elev1,
+          border: Border(top: BorderSide(color: context.tokens.line, width: 1)),
+        ),
+        child: SizedBox(
+          width: double.infinity,
+          child: PrimaryButton(
+            label: label,
+            variant: BtnVariant.secondary,
+            size: BtnSize.lg,
+            disabled: true,
+            onPressed: null,
+          ),
+        ),
+      );
+    }
+
+    // Host view — cancel & end buttons
+    if (isHost) {
+      return Container(
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 32),
+        decoration: BoxDecoration(
+          color: context.tokens.elev1,
+          border: Border(top: BorderSide(color: context.tokens.line, width: 1)),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: PrimaryButton(
+                label: _updating ? '...' : l.pickup_detail_cancel_game,
+                variant: BtnVariant.secondary,
+                size: BtnSize.lg,
+                onPressed: _updating
+                    ? null
+                    : () => _changeStatus(PickupStatus.cancelled),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: PrimaryButton(
+                label: _updating ? '...' : l.pickup_detail_end_game,
+                variant: BtnVariant.primary,
+                size: BtnSize.lg,
+                onPressed: _updating
+                    ? null
+                    : () => _changeStatus(PickupStatus.done),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Participant view — join flow
     final joined = slotsAsync.maybeWhen(
       data: (slots) => slots.any((s) => s.userId == uid),
       orElse: () => false,
@@ -955,25 +1114,22 @@ class _BottomCtaState extends ConsumerState<_BottomCta> {
     final bool disabled;
 
     if (joined) {
-      variant = BtnVariant.secondary;
-      disabled = true;
-      onPressed = null;
-      buttonChild = Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.check, size: 16, color: context.tokens.ink),
-          const SizedBox(width: 6),
-          Text(
-            context.l10n.pickup_detail_already_joined,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: context.tokens.ink,
-            ),
-          ),
-        ],
-      );
+      variant = BtnVariant.warn;
+      disabled = _leaving;
+      onPressed = _leaving ? null : _confirmLeave;
+      buttonChild = _leaving
+          ? const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+            )
+          : Text(
+              l.pickup_leave_confirm_title,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            );
     } else if (selected != null) {
       variant = BtnVariant.primary;
       disabled = _joining;
@@ -985,7 +1141,7 @@ class _BottomCtaState extends ConsumerState<_BottomCta> {
               child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
             )
           : Text(
-              context.l10n.pickup_detail_confirm_position(context.l10n.positionName(selected.$1)),
+              l.pickup_detail_confirm_position(l.positionName(selected.$1)),
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -996,10 +1152,10 @@ class _BottomCtaState extends ConsumerState<_BottomCta> {
       variant = BtnVariant.primary;
       disabled = false;
       onPressed = () {
-        showToast(context, context.l10n.pickup_detail_tap_empty_slot);
+        showToast(context, l.pickup_detail_tap_empty_slot);
       };
       buttonChild = Text(
-        context.l10n.pickup_detail_select_position,
+        l.pickup_detail_select_position,
         style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w600,
@@ -1021,7 +1177,7 @@ class _BottomCtaState extends ConsumerState<_BottomCta> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                context.l10n.pickup_detail_aa_fee,
+                l.pickup_detail_aa_fee,
                 style: TextStyle(
                   fontSize: 11,
                   color: context.tokens.inkDim,

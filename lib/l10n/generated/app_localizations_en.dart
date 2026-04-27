@@ -1392,6 +1392,9 @@ class AppL10nEn extends AppL10n {
   String get profile_edit_foot_both => 'Both';
 
   @override
+  String get profile_edit_email => 'Email';
+
+  @override
   String get profile_edit_avatar => 'Avatar';
 
   @override
@@ -2524,6 +2527,46 @@ class AppL10nEn extends AppL10n {
   String get pickup_detail_formation_load_failed => 'Formation load failed';
 
   @override
+  String get pickup_detail_cancel_game => 'Cancel Game';
+
+  @override
+  String get pickup_detail_end_game => 'End Game';
+
+  @override
+  String get pickup_detail_cancel_confirm_title => 'Cancel Game';
+
+  @override
+  String get pickup_detail_cancel_confirm_body =>
+      'Are you sure you want to cancel this game? Registered players will be notified.';
+
+  @override
+  String get pickup_detail_end_confirm_title => 'End Game';
+
+  @override
+  String get pickup_detail_end_confirm_body =>
+      'Are you sure you want to end this game?';
+
+  @override
+  String get pickup_detail_status_cancelled => 'Cancelled';
+
+  @override
+  String get pickup_detail_status_done => 'Ended';
+
+  @override
+  String get pickup_detail_cancel_success => 'Game cancelled';
+
+  @override
+  String get pickup_detail_end_success => 'Game ended';
+
+  @override
+  String pickup_detail_update_failed(String err) {
+    return 'Update failed: $err';
+  }
+
+  @override
+  String get pickup_status_cancelled => 'Cancelled';
+
+  @override
   String pickup_detail_host_stats(int n, int rate) {
     return 'Hosted $n · $rate% on time';
   }
@@ -2971,4 +3014,14 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get event_register_cancel_success => 'Registration cancelled';
+
+  @override
+  String get pickup_leave_confirm_title => 'Leave Game';
+
+  @override
+  String get pickup_leave_confirm_body =>
+      'Are you sure you want to leave? Your slot will be freed.';
+
+  @override
+  String get pickup_leave_success => 'Left the game';
 }
