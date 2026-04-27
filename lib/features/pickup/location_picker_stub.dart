@@ -9,7 +9,8 @@ import '../../services/amap_search_service.dart';
 import '../../theme/app_tokens.dart';
 
 class LocationPickerScreen extends ConsumerStatefulWidget {
-  const LocationPickerScreen({super.key});
+  final bool showVenues;
+  const LocationPickerScreen({super.key, this.showVenues = true});
 
   @override
   ConsumerState<LocationPickerScreen> createState() =>
@@ -117,27 +118,34 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
                         );
                       },
                     )
-              : venuesAsync.when(
-                  data: (venues) => venues.isEmpty
-                      ? Center(
-                          child: Text(
-                            '输入关键词搜索地点',
-                            style: TextStyle(color: t.inkDim),
-                          ),
-                        )
-                      : _VenueList(
-                          venues: venues,
-                          onSelect: _selectVenue,
+              : !widget.showVenues
+                  ? Center(
+                      child: Text(
+                        '输入关键词搜索地点',
+                        style: TextStyle(color: t.inkDim),
+                      ),
+                    )
+                  : venuesAsync.when(
+                      data: (venues) => venues.isEmpty
+                          ? Center(
+                              child: Text(
+                                '输入关键词搜索地点',
+                                style: TextStyle(color: t.inkDim),
+                              ),
+                            )
+                          : _VenueList(
+                              venues: venues,
+                              onSelect: _selectVenue,
+                            ),
+                      loading: () =>
+                          Center(child: CircularProgressIndicator(color: t.accent)),
+                      error: (_, _) => Center(
+                        child: Text(
+                          '输入关键词搜索地点',
+                          style: TextStyle(color: t.inkDim),
                         ),
-                  loading: () =>
-                      Center(child: CircularProgressIndicator(color: t.accent)),
-                  error: (_, _) => Center(
-                    child: Text(
-                      '输入关键词搜索地点',
-                      style: TextStyle(color: t.inkDim),
+                      ),
                     ),
-                  ),
-                ),
     );
   }
 }

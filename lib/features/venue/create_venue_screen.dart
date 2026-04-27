@@ -179,7 +179,7 @@ class _CreateVenueScreenState extends ConsumerState<CreateVenueScreen> {
 
   Future<void> _pickLocation() async {
     final result = await Navigator.of(context).push<PickedLocation>(
-      MaterialPageRoute(builder: (_) => const LocationPickerScreen()),
+      MaterialPageRoute(builder: (_) => const LocationPickerScreen(showVenues: false)),
     );
     if (result != null && mounted) {
       setState(() => _location = result);

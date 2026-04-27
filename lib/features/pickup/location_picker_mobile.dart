@@ -16,7 +16,8 @@ const double _defaultLat = 22.8170;
 const double _defaultLng = 108.3665;
 
 class LocationPickerScreen extends ConsumerStatefulWidget {
-  const LocationPickerScreen({super.key});
+  final bool showVenues;
+  const LocationPickerScreen({super.key, this.showVenues = true});
 
   @override
   ConsumerState<LocationPickerScreen> createState() =>
@@ -306,7 +307,14 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
                   child: _searching
                       ? const Center(child: CircularProgressIndicator())
                       : _searchResults.isEmpty
-                          ? _buildVenueQuickPick(context)
+                          ? widget.showVenues
+                              ? _buildVenueQuickPick(context)
+                              : Center(
+                                  child: Text(
+                                    '输入关键词搜索地点',
+                                    style: TextStyle(color: context.tokens.inkDim),
+                                  ),
+                                )
                           : ListView.separated(
                               itemCount: _searchResults.length,
                               separatorBuilder: (_, _) => Divider(
