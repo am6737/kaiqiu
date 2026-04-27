@@ -269,6 +269,14 @@ class EventsRepository {
     return row != null;
   }
 
+  Future<void> cancelRegistration(String eventId, String userId) async {
+    await supabase
+        .from('teams')
+        .delete()
+        .eq('event_id', eventId)
+        .eq('captain_id', userId);
+  }
+
   Future<TeamRow> fetchTeamDetail(String teamId) async {
     final m = await supabase
         .from('teams')
