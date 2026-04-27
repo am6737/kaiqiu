@@ -53,7 +53,8 @@ class PickupsRepository {
         .toList();
   }
 
-  /// Join a pickup at [position]. Throws on conflict (slot taken).
+  /// Join a pickup at [position]. Uses upsert so pre-created empty slots
+  /// (user_id=null) are claimed rather than causing a duplicate-key error.
   Future<void> join({
     required String pickupId,
     required String userId,
@@ -61,13 +62,16 @@ class PickupsRepository {
     required int x,
     required int y,
   }) async {
-    await supabase.from('pickup_slots').insert({
-      'pickup_id': pickupId,
-      'user_id': userId,
-      'position': position,
-      'x': x,
-      'y': y,
-    });
+    await supabase.from('pickup_slots').upsert(
+      {
+        'pickup_id': pickupId,
+        'user_id': userId,
+        'position': position,
+        'x': x,
+        'y': y,
+      },
+      onConflict: 'pickup_id,position,x,y',
+    );
   }
 
   Future<void> leave({required String slotId}) async {
