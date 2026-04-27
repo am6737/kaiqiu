@@ -457,7 +457,7 @@ class _Formation extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final filledCount = _formation
-        .where((p) => _slotAt(p.$2, p.$3) != null)
+        .where((p) => _slotAt(p.$2, p.$3)?.filled ?? false)
         .length;
     final uid = svc.currentUserId;
     final alreadyJoined = slots.any((s) => s.userId == uid);
@@ -676,7 +676,7 @@ class _PlayerDot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final filled = slot != null;
+    final filled = slot?.filled ?? false;
     final uid = svc.currentUserId;
     final label = filled ? slot!.initial(uid) : '+';
     final canTap = !filled && enabled;
