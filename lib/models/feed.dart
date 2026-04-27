@@ -2,6 +2,14 @@
 
 import 'package:intl/intl.dart';
 
+int? _toInt(dynamic v) {
+  if (v == null) return null;
+  if (v is int) return v;
+  if (v is num) return v.toInt();
+  if (v is String) return int.tryParse(v);
+  return null;
+}
+
 sealed class FeedItem {
   String get kind;
   String get id;
@@ -62,8 +70,8 @@ class FeedResult extends FeedItem {
       createdAt: DateTime.parse(m['played_at'] as String),
       teamA: (m['team_a_label'] as String?) ?? '队伍A',
       teamB: (m['team_b_label'] as String?) ?? '队伍B',
-      scoreA: (m['score_a'] as int?) ?? 0,
-      scoreB: (m['score_b'] as int?) ?? 0,
+      scoreA: _toInt(m['score_a']) ?? 0,
+      scoreB: _toInt(m['score_b']) ?? 0,
       eventName: (event?['name'] as String?) ?? '',
       scorers: scorerDisplay,
     );
@@ -108,9 +116,9 @@ class FeedPost extends FeedItem {
       authorName: (author?['name'] as String?) ?? '匿名',
       body: m['body'] as String,
       tags: tags,
-      likes: (m['likes'] as int?) ?? 0,
-      comments: (m['comments'] as int?) ?? 0,
-      shares: (m['shares'] as int?) ?? 0,
+      likes: _toInt(m['likes']) ?? 0,
+      comments: _toInt(m['comments']) ?? 0,
+      shares: _toInt(m['shares']) ?? 0,
     );
   }
 }
@@ -149,13 +157,13 @@ class FeedEvent extends FeedItem {
   }
 
   factory FeedEvent.fromMap(Map<String, dynamic> m) {
-    final teamsCount = (m['teams_count'] as int?) ?? 0;
+    final teamsCount = _toInt(m['teams_count']) ?? 0;
     return FeedEvent(
       id: m['id'] as String,
       createdAt: DateTime.parse(m['created_at'] as String),
       eventName: m['name'] as String,
       teamsRegistered: teamsCount,
-      teamsMax: (m['teams_max'] as int?) ?? 16,
+      teamsMax: _toInt(m['teams_max']) ?? 16,
       startsAt:
           m['starts_at'] != null ? DateTime.parse(m['starts_at']) : null,
     );
@@ -213,10 +221,10 @@ class FeedPickup extends FeedItem {
         hostName: m['host_name'] as String?,
         startAt: DateTime.parse(m['start_at'] as String),
         timeLabel: m['time_label'] as String?,
-        total: m['total'] as int,
-        need: m['need'] as int? ?? 0,
+        total: _toInt(m['total']) ?? 0,
+        need: _toInt(m['need']) ?? 0,
         level: m['level'] as String?,
-        feeCents: m['fee_cents'] as int? ?? 0,
+        feeCents: _toInt(m['fee_cents']) ?? 0,
         status: m['status'] as String? ?? 'open',
       );
 }
@@ -255,10 +263,10 @@ class FeedArticle extends FeedItem {
         summary: m['summary'] as String?,
         coverUrl: m['cover_url'] as String?,
         category: m['category'] as String? ?? 'analysis',
-        readTimeMin: m['read_time_min'] as int? ?? 5,
-        viewCount: m['view_count'] as int? ?? 0,
-        commentCount: m['comment_count'] as int? ?? 0,
-        likes: m['likes'] as int? ?? 0,
+        readTimeMin: _toInt(m['read_time_min']) ?? 5,
+        viewCount: _toInt(m['view_count']) ?? 0,
+        commentCount: _toInt(m['comment_count']) ?? 0,
+        likes: _toInt(m['likes']) ?? 0,
       );
 }
 
@@ -303,12 +311,12 @@ class FeedActivity extends FeedItem {
       authorName: author?['name'] as String? ?? '—',
       body: m['body'] as String? ?? '',
       tags: (m['tags'] as List?)?.cast<String>() ?? [],
-      likes: m['likes'] as int? ?? 0,
-      comments: m['comments'] as int? ?? 0,
-      shares: m['shares'] as int? ?? 0,
-      matchCount: m['match_count'] as int?,
-      winCount: m['win_count'] as int?,
-      playDuration: m['play_duration'] as int?,
+      likes: _toInt(m['likes']) ?? 0,
+      comments: _toInt(m['comments']) ?? 0,
+      shares: _toInt(m['shares']) ?? 0,
+      matchCount: _toInt(m['match_count']),
+      winCount: _toInt(m['win_count']),
+      playDuration: _toInt(m['play_duration']),
       venue: m['venue'] as String?,
     );
   }

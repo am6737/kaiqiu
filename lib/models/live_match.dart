@@ -1,5 +1,13 @@
 // live_match.dart — Live match from Supabase matches table.
 
+int? _toInt(dynamic v) {
+  if (v == null) return null;
+  if (v is int) return v;
+  if (v is num) return v.toInt();
+  if (v is String) return int.tryParse(v);
+  return null;
+}
+
 class LiveMatch {
   final String id;
   final String eventId;
@@ -33,10 +41,10 @@ class LiveMatch {
     eventId: m['event_id'] as String,
     teamA: (m['team_a_label'] as String?) ?? '队伍A',
     teamB: (m['team_b_label'] as String?) ?? '队伍B',
-    scoreA: (m['score_a'] as int?) ?? 0,
-    scoreB: (m['score_b'] as int?) ?? 0,
+    scoreA: _toInt(m['score_a']) ?? 0,
+    scoreB: _toInt(m['score_b']) ?? 0,
     minute: (m['minute'] as String?) ?? '',
-    viewers: (m['viewers'] as int?) ?? 0,
+    viewers: _toInt(m['viewers']) ?? 0,
     posterUrl: m['poster_url'] as String?,
   );
 }

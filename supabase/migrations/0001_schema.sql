@@ -47,6 +47,8 @@ create table public.profiles (
   height int,
   foot text,
   avatar_url text,
+  banner_url text,
+  phone text,
   created_at timestamptz default now()
 );
 
@@ -140,6 +142,9 @@ create index pickup_slots_pickup_idx on public.pickup_slots (pickup_id);
 alter table public.pickup_slots enable row level security;
 create policy "slots public read" on public.pickup_slots for select using (true);
 create policy "slots self join" on public.pickup_slots for insert with check (auth.uid() = user_id);
+create policy "slots host insert" on public.pickup_slots for insert with check (
+  exists (select 1 from public.pickups where id = pickup_id and host_id = auth.uid())
+);
 create policy "slots self leave" on public.pickup_slots for delete using (auth.uid() = user_id);
 create policy "slots self update" on public.pickup_slots for update
   to authenticated
@@ -155,6 +160,7 @@ drop view if exists public.event_player_ratings;
 drop view if exists public.player_rating_summary;
 drop table if exists public.ratings cascade;
 drop table if exists public.matches cascade;
+drop table if exists public.team_members cascade;
 drop table if exists public.teams cascade;
 drop table if exists public.events cascade;
 
@@ -193,6 +199,7 @@ create table public.teams (
   logo_url text,
   contact text,
   phone text,
+  slogan text,
   status text default 'pending' check (status in ('pending', 'approved', 'rejected')),
   created_at timestamptz default now()
 );
@@ -205,6 +212,31 @@ create policy "teams captain insert" on public.teams for insert
 create policy "teams captain delete" on public.teams for delete
   to authenticated
   using (captain_id = auth.uid());
+
+create table public.team_members (
+  id uuid primary key default gen_random_uuid(),
+  team_id uuid not null references public.teams(id) on delete cascade,
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  jersey_number int,
+  role text not null default 'player' check (role in ('captain', 'player')),
+  joined_at timestamptz not null default now(),
+  unique (team_id, user_id)
+);
+
+alter table public.team_members enable row level security;
+
+create policy "team_members public read" on public.team_members
+  for select using (true);
+
+create policy "team_members captain insert" on public.team_members
+  for insert with check (
+    exists (select 1 from public.teams where id = team_id and captain_id = auth.uid())
+  );
+
+create policy "team_members captain delete" on public.team_members
+  for delete using (
+    exists (select 1 from public.teams where id = team_id and captain_id = auth.uid())
+  );
 
 create table public.matches (
   id uuid primary key default gen_random_uuid(),
@@ -357,9 +389,8 @@ create view public.event_scorers as
 
 drop function if exists public.ensure_demo_conversation();
 drop function if exists public.ensure_event_conversation(text);
-drop trigger if exists message_created on public.messages;
-drop function if exists public.on_message_created();
 drop table if exists public.messages cascade;
+drop function if exists public.on_message_created();
 drop table if exists public.conversation_members cascade;
 drop table if exists public.conversations cascade;
 
@@ -1304,6 +1335,12 @@ create table public.articles (
 
 alter table public.articles enable row level security;
 create policy "articles public read" on public.articles for select using (true);
+create policy "articles self insert" on public.articles for insert
+  with check (auth.uid() = author_id);
+create policy "articles self update" on public.articles for update
+  using (auth.uid() = author_id);
+create policy "articles self delete" on public.articles for delete
+  using (auth.uid() = author_id);
 
 create or replace function public.increment_article_views(article_id uuid)
 returns void as $$
@@ -1441,6 +1478,7 @@ drop table if exists public.venues cascade;
 create table public.venues (
   id uuid primary key default gen_random_uuid(),
   owner_id uuid not null references auth.users(id) on delete cascade,
+  venue_type text default 'private',
   owner_name text,
   name text not null,
   sport_type text default 'football',
@@ -1473,19 +1511,7 @@ create policy "venues insertable by auth" on public.venues for insert with check
 create policy "venues updatable by owner" on public.venues for update using (auth.uid() = owner_id);
 create policy "venues deletable by owner" on public.venues for delete using (auth.uid() = owner_id);
 
-create or replace function public.populate_venue_owner_name()
-returns trigger as $$
-begin
-  select name into new.owner_name
-  from public.profiles
-  where id = new.owner_id;
-  return new;
-end;
-$$ language plpgsql security definer;
-
-create trigger trg_venue_owner_name
-  before insert on public.venues
-  for each row execute function public.populate_venue_owner_name();
+-- owner_name is user-supplied, no auto-populate
 
 create table public.venue_bookings (
   id uuid primary key default gen_random_uuid(),

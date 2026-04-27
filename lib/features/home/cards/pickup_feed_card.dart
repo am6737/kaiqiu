@@ -54,6 +54,9 @@ class PickupFeedCard extends StatelessWidget {
     final Color dotColor;
     final String statusText;
     switch (pickup.status) {
+      case PickupStatus.cancelled:
+        dotColor = t.danger;
+        statusText = l.pickup_status_cancelled;
       case PickupStatus.almost:
         dotColor = t.warn;
         statusText = l.home_status_almost;
@@ -183,15 +186,6 @@ class PickupFeedCard extends StatelessWidget {
           ),
         ),
       ])),
-      const Spacer(),
-      Text(
-        needed > 0 ? l.home_join_cta : l.home_full,
-        style: TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w600,
-          color: needed > 0 ? t.accent : t.inkDim,
-        ),
-      ),
     ]);
   }
 

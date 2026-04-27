@@ -203,6 +203,8 @@ class _Row extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = switch (p.status) {
+      PickupStatus.cancelled => 'cancelled',
+      PickupStatus.done => 'done',
       PickupStatus.full => 'full',
       PickupStatus.almost => 'almost',
       _ => 'open',

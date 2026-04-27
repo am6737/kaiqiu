@@ -64,6 +64,7 @@ delete from pickup_slots where pickup_id in (
     '广西体育中心 5号场', '李宁体育园足球场', '南宁市体育场', '五象湖足球场'
   )
 );
+delete from pickup_slots where user_id::text like '10000000-0000-0000-0000-%';
 delete from pickups where venue in (
   '广西体育中心 5号场', '李宁体育园足球场', '南宁市体育场', '五象湖足球场'
 );

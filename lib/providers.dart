@@ -403,6 +403,45 @@ final myArticlesProvider = FutureProvider<List<FeedArticle>>((ref) async {
   return ref.read(feedRepoProvider).myArticles();
 });
 
+final userFollowingCountProvider =
+    FutureProvider.family.autoDispose<int, String>((ref, userId) async {
+  try {
+    final rows = await supabase
+        .from('favorites')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('entity_type', 'user');
+    return (rows as List).length;
+  } catch (_) {
+    return 0;
+  }
+});
+
+final userFollowersCountProvider =
+    FutureProvider.family.autoDispose<int, String>((ref, userName) async {
+  try {
+    final result = await supabase.rpc(
+      'followers_count',
+      params: {'target_name': userName},
+    );
+    return (result as num?)?.toInt() ?? 0;
+  } catch (_) {
+    return 0;
+  }
+});
+
+final userActivitiesProvider =
+    FutureProvider.family.autoDispose<List<FeedActivity>, String>(
+        (ref, userId) async {
+  return ref.read(feedRepoProvider).userActivities(userId);
+});
+
+final userArticlesProvider =
+    FutureProvider.family.autoDispose<List<FeedArticle>, String>(
+        (ref, userId) async {
+  return ref.read(feedRepoProvider).userArticles(userId);
+});
+
 // ─────────────────────────────────────────────────────────────
 // S3 providers (user_teams / goals / predictions / reminders / favorites)
 // ─────────────────────────────────────────────────────────────

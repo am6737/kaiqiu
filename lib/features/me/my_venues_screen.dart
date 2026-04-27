@@ -193,7 +193,7 @@ class _VenueRow extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '${venue.sportTypeLabel} · ${venue.fieldTypeLabel} · ${venue.fieldCount}块场地',
+                    '${venue.isPublic ? '公共' : '私人'} · ${venue.sportTypeLabel} · ${venue.fieldTypeLabel} · ${venue.fieldCount}块场地',
                     style: TextStyle(fontSize: 12, color: t.inkSub),
                   ),
                   const SizedBox(height: 2),
@@ -318,22 +318,36 @@ class _BookingRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                if (booking.venueName != null) ...[
+                  Text(
+                    booking.venueName!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: t.ink,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                ],
                 Text(
                   '${booking.startTime} - ${booking.endTime}',
                   style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: t.ink,
+                    fontSize: 13,
+                    fontWeight: booking.venueName != null ? FontWeight.w500 : FontWeight.w600,
+                    color: booking.venueName != null ? t.inkSub : t.ink,
                   ),
                 ),
-                const SizedBox(height: 2),
-                if (booking.note != null && booking.note!.isNotEmpty)
+                if (booking.note != null && booking.note!.isNotEmpty) ...[
+                  const SizedBox(height: 2),
                   Text(
                     booking.note!,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 12, color: t.inkSub),
+                    style: TextStyle(fontSize: 12, color: t.inkDim),
                   ),
+                ],
               ],
             ),
           ),

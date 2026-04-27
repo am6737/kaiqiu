@@ -268,7 +268,16 @@ class _ThreadRow extends ConsumerWidget {
       title = peer?.name ?? context.l10n.messages_thread_default_title;
       avatarUrl = peer?.avatarUrl;
     } else {
-      title = thread.title ?? context.l10n.messages_thread_default_title;
+      final raw = thread.title ?? '';
+      if (raw.startsWith('event:')) {
+        final eventId = raw.substring(6);
+        final event = ref.watch(eventDetailProvider(eventId)).valueOrNull;
+        title = event?.name ?? context.l10n.messages_thread_default_title;
+      } else {
+        title = raw.isEmpty
+            ? context.l10n.messages_thread_default_title
+            : raw;
+      }
     }
     final time = DateFormat('HH:mm').format(thread.updatedAt.toLocal());
     final pinned = LocalStore.isPinned(thread.id);
@@ -398,9 +407,10 @@ class _ThreadRow extends ConsumerWidget {
                     ),
                     const SizedBox(height: 3),
                     Label(
-                      thread.kind == 'group'
-                          ? context.l10n.messages_kind_group
-                          : context.l10n.messages_kind_dm,
+                      thread.lastMessageBody ??
+                          (thread.kind == 'group'
+                              ? context.l10n.messages_kind_group
+                              : context.l10n.messages_kind_dm),
                     ),
                   ],
                 ),

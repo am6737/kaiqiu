@@ -55,6 +55,18 @@ class ProfilesRepository {
     return Profile.fromMap(row);
   }
 
+  Future<List<Profile>> searchByName(String query, {int limit = 10}) async {
+    final rows = await supabase
+        .from('profiles')
+        .select()
+        .ilike('name', '%$query%')
+        .limit(limit);
+    return (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map(Profile.fromMap)
+        .toList();
+  }
+
   /// Full player profile: base profile + stats + attributes + honors.
   Future<PlayerProfile?> fetchFullProfile(String uid) async {
     final results = await Future.wait([

@@ -1,3 +1,11 @@
+int? _toInt(dynamic v) {
+  if (v == null) return null;
+  if (v is int) return v;
+  if (v is num) return v.toInt();
+  if (v is String) return int.tryParse(v);
+  return null;
+}
+
 class MatchHistoryEntry {
   final String matchId;
   final DateTime playedAt;
@@ -30,9 +38,9 @@ class MatchHistoryEntry {
         eventName: (m['event_name'] as String?) ?? '',
         teamA: (m['team_a'] as String?) ?? '',
         teamB: (m['team_b'] as String?) ?? '',
-        scoreA: (m['score_a'] as int?) ?? 0,
-        scoreB: (m['score_b'] as int?) ?? 0,
-        myGoals: (m['my_goals'] as int?) ?? 0,
-        myAssists: (m['my_assists'] as int?) ?? 0,
+        scoreA: _toInt(m['score_a']) ?? 0,
+        scoreB: _toInt(m['score_b']) ?? 0,
+        myGoals: _toInt(m['my_goals']) ?? 0,
+        myAssists: _toInt(m['my_assists']) ?? 0,
       );
 }

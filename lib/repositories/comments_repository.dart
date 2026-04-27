@@ -24,8 +24,15 @@ class CommentsRepository {
     required String body,
   }) async {
     final uid = supabase.auth.currentUser?.id;
-    final name =
-        supabase.auth.currentUser?.userMetadata?['name'] as String? ?? '匿名球友';
+    String name = '匿名球友';
+    if (uid != null) {
+      final profile = await supabase
+          .from('profiles')
+          .select('name')
+          .eq('id', uid)
+          .maybeSingle();
+      name = (profile?['name'] as String?) ?? '匿名球友';
+    }
     final row = await supabase
         .from('comments')
         .insert({

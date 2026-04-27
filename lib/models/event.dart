@@ -1,4 +1,13 @@
 // event.dart — 赛事 + 比赛
+
+int? _toInt(dynamic v) {
+  if (v == null) return null;
+  if (v is int) return v;
+  if (v is num) return v.toInt();
+  if (v is String) return int.tryParse(v);
+  return null;
+}
+
 enum EventStatus { draft, registering, scheduling, ongoing, completed, cancelled }
 
 EventStatus _parseEventStatus(String? s) => switch (s) {
@@ -63,10 +72,10 @@ class Event {
     lat: (m['lat'] as num?)?.toDouble(),
     lng: (m['lng'] as num?)?.toDouble(),
     template: m['template'] as String?,
-    teamSize: (m['team_size'] as int?) ?? 11,
-    teamsMax: m['teams_max'] as int?,
-    prizeCents: m['prize_cents'] as int?,
-    feeCents: m['fee_cents'] as int?,
+    teamSize: _toInt(m['team_size']) ?? 11,
+    teamsMax: _toInt(m['teams_max']),
+    prizeCents: _toInt(m['prize_cents']),
+    feeCents: _toInt(m['fee_cents']),
     deadline: m['deadline'] != null ? DateTime.parse(m['deadline']) : null,
     startsAt: m['starts_at'] != null ? DateTime.parse(m['starts_at']) : null,
     endsAt: m['ends_at'] != null ? DateTime.parse(m['ends_at']) : null,
@@ -135,8 +144,8 @@ class Match {
       teamBId: m['team_b_id'] as String?,
       teamALabel: m['team_a_label'] as String?,
       teamBLabel: m['team_b_label'] as String?,
-      scoreA: m['score_a'] as int?,
-      scoreB: m['score_b'] as int?,
+      scoreA: _toInt(m['score_a']),
+      scoreB: _toInt(m['score_b']),
       pkScore: m['pk_score'] as String?,
       playedAt: m['played_at'] != null ? DateTime.parse(m['played_at']) : null,
       done: done,
@@ -144,8 +153,8 @@ class Match {
       livekitRoom: m['livekit_room'] as String?,
       startedAt: m['started_at'] != null ? DateTime.parse(m['started_at']) : null,
       endedAt: m['ended_at'] != null ? DateTime.parse(m['ended_at']) : null,
-      minute: m['minute'] as int?,
-      viewers: (m['viewers'] as int?) ?? 0,
+      minute: _toInt(m['minute']),
+      viewers: _toInt(m['viewers']) ?? 0,
     );
   }
 }
@@ -290,7 +299,7 @@ class TeamMember {
       userId: m['user_id'] as String,
       name: profile['name'] as String?,
       avatarUrl: profile['avatar_url'] as String?,
-      jerseyNumber: m['jersey_number'] as int?,
+      jerseyNumber: _toInt(m['jersey_number']),
       role: (m['role'] as String?) ?? 'player',
     );
   }

@@ -219,7 +219,16 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         error: (_, _) => '…',
       );
     } else {
-      title = conv.title ?? context.l10n.chat_default_group_title;
+      final raw = conv.title ?? '';
+      if (raw.startsWith('event:')) {
+        final eventId = raw.substring(6);
+        final event = ref.watch(eventDetailProvider(eventId)).valueOrNull;
+        title = event?.name ?? context.l10n.chat_default_group_title;
+      } else {
+        title = raw.isEmpty
+            ? context.l10n.chat_default_group_title
+            : raw;
+      }
     }
 
     // Auto-scroll to bottom when new data arrives.

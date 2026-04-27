@@ -1,4 +1,11 @@
 // venue.dart — 场馆 + 预约时段
+enum VenueType { public, private_ }
+
+VenueType _parseVenueType(String? s) => switch (s) {
+  'public' => VenueType.public,
+  _ => VenueType.private_,
+};
+
 enum VenueStatus { active, inactive, pending }
 
 VenueStatus _parseVenueStatus(String? s) => switch (s) {
@@ -18,6 +25,7 @@ VenueFieldType _parseFieldType(String? s) => switch (s) {
 class Venue {
   final String id;
   final String ownerId;
+  final VenueType venueType;
   final String? ownerName;
   final String name;
   final String? sportType;
@@ -41,6 +49,7 @@ class Venue {
   const Venue({
     required this.id,
     required this.ownerId,
+    this.venueType = VenueType.private_,
     this.ownerName,
     required this.name,
     this.sportType,
@@ -65,6 +74,7 @@ class Venue {
   factory Venue.fromMap(Map<String, dynamic> m) => Venue(
     id: m['id'] as String,
     ownerId: m['owner_id'] as String,
+    venueType: _parseVenueType(m['venue_type'] as String?),
     ownerName: m['owner_name'] as String?,
     name: m['name'] as String,
     sportType: m['sport_type'] as String?,
@@ -85,6 +95,8 @@ class Venue {
     reviewCount: (m['review_count'] as int?) ?? 0,
     createdAt: DateTime.parse(m['created_at'] as String),
   );
+
+  bool get isPublic => venueType == VenueType.public;
 
   double get pricePerHourYuan => pricePerHourCents / 100;
 
@@ -117,6 +129,7 @@ BookingStatus _parseBookingStatus(String? s) => switch (s) {
 class VenueBooking {
   final String id;
   final String venueId;
+  final String? venueName;
   final String userId;
   final String? userName;
   final String? userPhone;
@@ -131,6 +144,7 @@ class VenueBooking {
   const VenueBooking({
     required this.id,
     required this.venueId,
+    this.venueName,
     required this.userId,
     this.userName,
     this.userPhone,
@@ -143,20 +157,28 @@ class VenueBooking {
     required this.createdAt,
   });
 
-  factory VenueBooking.fromMap(Map<String, dynamic> m) => VenueBooking(
-    id: m['id'] as String,
-    venueId: m['venue_id'] as String,
-    userId: m['user_id'] as String,
-    userName: m['user_name'] as String?,
-    userPhone: m['user_phone'] as String?,
-    date: DateTime.parse(m['date'] as String),
-    startTime: m['start_time'] as String,
-    endTime: m['end_time'] as String,
-    totalCents: (m['total_cents'] as int?) ?? 0,
-    status: _parseBookingStatus(m['status'] as String?),
-    note: m['note'] as String?,
-    createdAt: DateTime.parse(m['created_at'] as String),
-  );
+  factory VenueBooking.fromMap(Map<String, dynamic> m) {
+    String? venueName;
+    final venuesData = m['venues'];
+    if (venuesData is Map) {
+      venueName = venuesData['name'] as String?;
+    }
+    return VenueBooking(
+      id: m['id'] as String,
+      venueId: m['venue_id'] as String,
+      venueName: venueName ?? m['venue_name'] as String?,
+      userId: m['user_id'] as String,
+      userName: m['user_name'] as String?,
+      userPhone: m['user_phone'] as String?,
+      date: DateTime.parse(m['date'] as String),
+      startTime: m['start_time'] as String,
+      endTime: m['end_time'] as String,
+      totalCents: (m['total_cents'] as int?) ?? 0,
+      status: _parseBookingStatus(m['status'] as String?),
+      note: m['note'] as String?,
+      createdAt: DateTime.parse(m['created_at'] as String),
+    );
+  }
 
   double get totalYuan => totalCents / 100;
 

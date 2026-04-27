@@ -39,6 +39,21 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     super.dispose();
   }
 
+  Future<void> _pickBanner(PlayerProfile? profile) async {
+    final uid = currentUserId;
+    if (uid == null) return;
+    try {
+      final newUrl = await StorageService().pickCropCompressAndUpload(
+        bucket: 'avatars',
+        pathPrefix: '$uid/banner',
+        square: false,
+      );
+      if (newUrl == null || !mounted) return;
+      await ref.read(profilesRepoProvider).update(uid, {'banner_url': newUrl});
+      ref.invalidate(myProfileProvider);
+    } catch (_) {}
+  }
+
   Future<void> _pickAvatar(PlayerProfile? profile) async {
     final result = await showAvatarPickerSheet(
       context,
@@ -68,45 +83,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     } catch (_) {}
   }
 
-  void _showCreateSheet(BuildContext context) {
-    final l = context.l10n;
-    final t = context.tokens;
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: t.elev2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(t.r3)),
-      ),
-      builder: (_) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: Icon(Icons.edit_note, color: t.accent),
-                title: Text(l.profile_tab_activities,
-                    style: TextStyle(color: t.ink, fontWeight: FontWeight.w500)),
-                onTap: () {
-                  Navigator.pop(context);
-                  context.push('/create-post');
-                },
-              ),
-              Divider(height: 1, color: t.line),
-              ListTile(
-                leading: Icon(Icons.article_outlined, color: t.accent),
-                title: Text(l.profile_fab_article,
-                    style: TextStyle(color: t.ink, fontWeight: FontWeight.w500)),
-                onTap: () {
-                  Navigator.pop(context);
-                  context.push('/create-article');
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+  void _create() {
+    final route = _tabController.index == 0 ? '/create-post' : '/create-article';
+    context.push(route);
   }
 
   @override
@@ -123,7 +102,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     return Scaffold(
       backgroundColor: t.bg,
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _showCreateSheet(context),
+        onPressed: _create,
         backgroundColor: t.accent,
         child: Icon(Icons.add, color: t.accentInk),
       ),
@@ -134,50 +113,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
             SliverToBoxAdapter(
               child: Column(
                 children: [
-                  // Title row with gear icon
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 6, 8, 8),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            l.profile_title,
-                            style: TextStyle(
-                              fontSize: 26,
-                              fontWeight: FontWeight.w800,
-                              color: t.ink,
-                              letterSpacing: -0.5,
-                            ),
-                          ),
-                        ),
-                        IconButton(
-                          onPressed: () => context.push('/me/settings'),
-                          icon: Icon(
-                            Icons.settings_outlined,
-                            size: 22,
-                            color: t.inkSub,
-                          ),
-                        ),
-                      ],
-                    ),
+                  // Banner + avatar
+                  _ProfileBanner(
+                    profile: u,
+                    onTapAvatar: () => _pickAvatar(u),
+                    onTapBanner: () => _pickBanner(u),
+                    onSettings: () => context.push('/me/settings'),
                   ),
-                  // Centered avatar
+                  // Name (extra top for avatar overhang)
                   Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Center(
-                      child: GestureDetector(
-                        onTap: () => _pickAvatar(u),
-                        child: NetworkAvatar(
-                          u?.name ?? '新球友',
-                          url: u?.avatarUrl,
-                          size: 72,
-                        ),
-                      ),
-                    ),
-                  ),
-                  // Name
-                  Padding(
-                    padding: const EdgeInsets.only(top: 12),
+                    padding: const EdgeInsets.only(top: 44),
                     child: Center(
                       child: Text(
                         u?.name ?? '新球友',
@@ -462,4 +407,123 @@ class _StatColumn extends StatelessWidget {
       ],
     );
   }
+}
+
+class _ProfileBanner extends StatelessWidget {
+  final PlayerProfile? profile;
+  final VoidCallback onTapAvatar;
+  final VoidCallback onTapBanner;
+  final VoidCallback onSettings;
+  const _ProfileBanner({
+    required this.profile,
+    required this.onTapAvatar,
+    required this.onTapBanner,
+    required this.onSettings,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final bannerUrl = profile?.bannerUrl;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final uid = profile?.profile.id ?? '';
+    final hue = uid.isNotEmpty
+        ? (uid.codeUnitAt(0) * 7 + uid.codeUnitAt(1)) % 360.0
+        : 210.0;
+    final bannerColor = HSLColor.fromAHSL(1, hue, 0.4, isDark ? 0.18 : 0.82);
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        // Banner area
+        GestureDetector(
+          onTap: onTapBanner,
+          child: Stack(
+            children: [
+              if (bannerUrl != null && bannerUrl.isNotEmpty)
+                SizedBox(
+                  height: 180,
+                  width: double.infinity,
+                  child: Image.network(bannerUrl, fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => _fallback(bannerColor, isDark)),
+                )
+              else
+                _fallback(bannerColor, isDark),
+              // Camera hint
+              Positioned(
+                right: 12,
+                bottom: 8,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0x66000000),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.camera_alt_outlined,
+                          size: 14, color: Colors.white70),
+                      SizedBox(width: 4),
+                      Text('换背景',
+                          style: TextStyle(
+                              fontSize: 11, color: Colors.white70)),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        // Settings button
+        Positioned(
+          top: 6,
+          right: 8,
+          child: IconButton(
+            onPressed: onSettings,
+            icon: Icon(Icons.settings_outlined, size: 20,
+                color: bannerUrl != null ? Colors.white70 : t.inkSub),
+          ),
+        ),
+        // Avatar overlapping bottom edge
+        Positioned(
+          bottom: -36,
+          left: 0,
+          right: 0,
+          child: Center(
+            child: GestureDetector(
+              onTap: onTapAvatar,
+              child: Container(
+                padding: const EdgeInsets.all(3),
+                decoration: BoxDecoration(
+                  color: t.bg,
+                  shape: BoxShape.circle,
+                ),
+                child: NetworkAvatar(
+                  profile?.name ?? '新球友',
+                  url: profile?.avatarUrl,
+                  size: 72,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _fallback(HSLColor c, bool isDark) => Container(
+        height: 180,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              c.toColor(),
+              c.withLightness(isDark ? 0.12 : 0.72).toColor(),
+            ],
+          ),
+        ),
+      );
 }

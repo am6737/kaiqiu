@@ -1,12 +1,28 @@
 // pickup.dart — 约球 + slots
-enum PickupStatus { open, almost, full, done }
+import 'dart:convert';
+
+enum PickupStatus { open, almost, full, done, cancelled }
 
 PickupStatus _parseStatus(String? s) => switch (s) {
   'almost' => PickupStatus.almost,
   'full' => PickupStatus.full,
   'done' => PickupStatus.done,
+  'cancelled' => PickupStatus.cancelled,
   _ => PickupStatus.open,
 };
+
+List<String> _parsePhotos(dynamic raw) {
+  if (raw == null) return [];
+  if (raw is String) {
+    if (raw.startsWith('[')) {
+      try {
+        return (jsonDecode(raw) as List).cast<String>();
+      } catch (_) {}
+    }
+    return raw.isEmpty ? [] : [raw];
+  }
+  return [];
+}
 
 class Pickup {
   final String id;
@@ -15,7 +31,7 @@ class Pickup {
   final String? title;
   final String venue;
   final String? address;
-  final String? venuePhotoUrl;
+  final List<String> venuePhotos;
   final double? lat;
   final double? lng;
   final DateTime startAt;
@@ -37,7 +53,7 @@ class Pickup {
     this.title,
     required this.venue,
     this.address,
-    this.venuePhotoUrl,
+    this.venuePhotos = const [],
     this.lat,
     this.lng,
     required this.startAt,
@@ -60,7 +76,7 @@ class Pickup {
     title: m['title'] as String?,
     venue: m['venue'] as String,
     address: m['address'] as String?,
-    venuePhotoUrl: m['venue_photo_url'] as String?,
+    venuePhotos: _parsePhotos(m['venue_photo_url']),
     lat: (m['lat'] as num?)?.toDouble(),
     lng: (m['lng'] as num?)?.toDouble(),
     startAt: DateTime.parse(m['start_at'] as String),
@@ -76,6 +92,7 @@ class Pickup {
     createdAt: DateTime.parse(m['created_at'] as String),
   );
 
+  String? get venuePhotoUrl => venuePhotos.isNotEmpty ? venuePhotos.first : null;
   double get feeYuan => feeCents / 100;
   String get displayTitle => title ?? venue;
   String get displayHost => hostName ?? '—';

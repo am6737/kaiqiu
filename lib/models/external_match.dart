@@ -1,3 +1,11 @@
+int? _toInt(dynamic v) {
+  if (v == null) return null;
+  if (v is int) return v;
+  if (v is num) return v.toInt();
+  if (v is String) return int.tryParse(v);
+  return null;
+}
+
 class ExternalMatch {
   final String id;
   final String teamA;
@@ -46,8 +54,8 @@ class ExternalMatch {
         ? DateTime.parse(m['kick_off'] as String)
         : null,
     isLive: (m['is_live'] as bool?) ?? false,
-    scoreA: m['score_a'] as int?,
-    scoreB: m['score_b'] as int?,
+    scoreA: _toInt(m['score_a']),
+    scoreB: _toInt(m['score_b']),
     minute: m['minute'] as String?,
     status: m['status'] as String?,
     viewers: (m['viewers'] as num?)?.toInt() ?? 0,

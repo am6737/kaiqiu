@@ -109,7 +109,7 @@ class VenuesRepository {
   }) async {
     final rows = await supabase
         .from('venue_bookings')
-        .select()
+        .select('*, venues(name)')
         .eq('user_id', userId)
         .order('date', ascending: false)
         .limit(limit);
@@ -154,7 +154,7 @@ class VenuesRepository {
     if (venueIds.isEmpty) return [];
     final rows = await supabase
         .from('venue_bookings')
-        .select()
+        .select('*, venues(name)')
         .inFilter('venue_id', venueIds)
         .order('date', ascending: false)
         .limit(limit);

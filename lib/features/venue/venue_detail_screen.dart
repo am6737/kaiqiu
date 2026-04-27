@@ -14,6 +14,7 @@ import '../../utils/toast.dart';
 import '../../widgets/network_cover.dart';
 import '../../widgets/primary_button.dart';
 import 'venue_booking_sheet.dart';
+import 'venue_owner_bookings_sheet.dart';
 
 class VenueDetailScreen extends ConsumerWidget {
   final String id;
@@ -101,6 +102,26 @@ class _Body extends StatelessWidget {
                               ),
                             ),
                           ),
+                          if (venue.isPublic)
+                            Container(
+                              margin: const EdgeInsets.only(right: 6),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF4CAF50).withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: Text(
+                                '公共',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: const Color(0xFF4CAF50),
+                                ),
+                              ),
+                            ),
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 10,
@@ -333,17 +354,19 @@ class _Body extends StatelessWidget {
                       ),
                       const SizedBox(height: 20),
 
-                      // Contact info
-                      Text(
-                        '联系方式',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: t.ink,
+                      // Contact info (private venues only)
+                      if (!venue.isPublic) ...[
+                        Text(
+                          '联系方式',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: t.ink,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 10),
-                      _ContactRow(venue: venue),
+                        const SizedBox(height: 10),
+                        _ContactRow(venue: venue),
+                      ],
                     ],
                   ),
                 ),
@@ -438,13 +461,16 @@ class _InfoChips extends StatelessWidget {
     final chips = <(IconData, String)>[
       (Icons.grass, venue.fieldTypeLabel),
       (Icons.grid_view, '${venue.fieldCount}块场地'),
-      (
-        Icons.monetization_on_outlined,
-        venue.pricePerHourCents > 0
-            ? '¥${venue.pricePerHourYuan.toStringAsFixed(0)}/小时'
-            : '免费',
-      ),
-      if (venue.openingHours != null)
+      if (venue.isPublic)
+        (Icons.public, '免费开放')
+      else
+        (
+          Icons.monetization_on_outlined,
+          venue.pricePerHourCents > 0
+              ? '¥${venue.pricePerHourYuan.toStringAsFixed(0)}/小时'
+              : '免费',
+        ),
+      if (!venue.isPublic && venue.openingHours != null)
         (Icons.access_time, venue.openingHours!),
     ];
     return Wrap(
@@ -578,8 +604,29 @@ class _BottomBar extends ConsumerWidget {
       ),
       child: Row(
         children: [
-          // Chat with owner
-          if (!isOwner) ...[
+          if (isOwner) ...[
+            Expanded(
+              child: PrimaryButton(
+                label: '编辑场馆',
+                variant: BtnVariant.secondary,
+                size: BtnSize.md,
+                full: true,
+                onPressed: () => context.push('/venue/${venue.id}/edit'),
+              ),
+            ),
+            if (!venue.isPublic) ...[
+              const SizedBox(width: 10),
+              Expanded(
+                child: PrimaryButton(
+                  label: '管理预约',
+                  variant: BtnVariant.primary,
+                  size: BtnSize.md,
+                  full: true,
+                  onPressed: () => _showOwnerBookings(context),
+                ),
+              ),
+            ],
+          ] else if (!venue.isPublic) ...[
             Expanded(
               child: PrimaryButton(
                 label: '联系场馆',
@@ -590,17 +637,16 @@ class _BottomBar extends ConsumerWidget {
               ),
             ),
             const SizedBox(width: 10),
-          ],
-          // Book
-          Expanded(
-            child: PrimaryButton(
-              label: isOwner ? '管理预约' : '预约场地',
-              variant: BtnVariant.primary,
-              size: BtnSize.md,
-              full: true,
-              onPressed: () => _showBooking(context),
+            Expanded(
+              child: PrimaryButton(
+                label: '预约场地',
+                variant: BtnVariant.primary,
+                size: BtnSize.md,
+                full: true,
+                onPressed: () => _showBooking(context),
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );
@@ -638,6 +684,18 @@ class _BottomBar extends ConsumerWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (_) => VenueBookingSheet(venue: venue),
+    );
+  }
+
+  void _showOwnerBookings(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: context.tokens.elev1,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => const VenueOwnerBookingsSheet(),
     );
   }
 }

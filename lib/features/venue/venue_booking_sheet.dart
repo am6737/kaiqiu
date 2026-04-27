@@ -46,10 +46,19 @@ class _VenueBookingSheetState extends ConsumerState<VenueBookingSheet> {
   }
 
   List<String> get _timeSlots {
+    int startH = 8, endH = 22;
+    final oh = widget.venue.openingHours;
+    if (oh != null && oh.contains('-')) {
+      final parts = oh.split('-');
+      final sh = int.tryParse(parts[0].split(':')[0]);
+      final eh = int.tryParse(parts[1].split(':')[0]);
+      if (sh != null) startH = sh;
+      if (eh != null) endH = eh;
+    }
     final slots = <String>[];
-    for (int h = 8; h <= 22; h++) {
+    for (int h = startH; h <= endH; h++) {
       slots.add('${h.toString().padLeft(2, '0')}:00');
-      if (h < 22) slots.add('${h.toString().padLeft(2, '0')}:30');
+      if (h < endH) slots.add('${h.toString().padLeft(2, '0')}:30');
     }
     return slots;
   }
@@ -87,6 +96,25 @@ class _VenueBookingSheetState extends ConsumerState<VenueBookingSheet> {
 
     setState(() => _submitting = true);
     try {
+      final freshBookings = await ref
+          .read(venuesRepoProvider)
+          .bookingsForVenue(widget.venue.id, date: _selectedDate);
+      final conflicting = freshBookings.where((b) {
+        if (b.status == BookingStatus.cancelled) return false;
+        final bsi = _timeSlots.indexOf(b.startTime);
+        final bei = _timeSlots.indexOf(b.endTime);
+        return bsi < endIdx && bei > startIdx;
+      });
+      if (conflicting.isNotEmpty) {
+        if (mounted) {
+          showToast(context, '该时段已被预约，请选择其他时段', error: true);
+          ref.invalidate(venueBookingsProvider(
+            (venueId: widget.venue.id, date: _selectedDate),
+          ));
+        }
+        return;
+      }
+
       final hours = (endIdx - startIdx) * 0.5;
       final totalCents = (widget.venue.pricePerHourCents * hours).round();
       final dateStr =

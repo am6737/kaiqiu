@@ -226,7 +226,7 @@ class _Body extends ConsumerWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    hasStats ? l.activity_detail_title : l.post_detail_title,
+                    l.activity_detail_title,
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,

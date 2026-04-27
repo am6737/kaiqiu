@@ -98,7 +98,7 @@ class PickupDetailScreen extends ConsumerWidget {
   }
 }
 
-class _Header extends ConsumerWidget {
+class _Header extends ConsumerStatefulWidget {
   final VoidCallback onBack;
   final VoidCallback onShare;
   final String pickupId;
@@ -109,48 +109,117 @@ class _Header extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_Header> createState() => _HeaderState();
+}
+
+class _HeaderState extends ConsumerState<_Header> {
+  int _page = 0;
+
+  @override
+  Widget build(BuildContext context) {
     ref.watch(localStoreProvider);
-    final faved = LocalStore.isPickupFavorited(pickupId);
-    final pickup = ref.watch(pickupDetailProvider(pickupId)).valueOrNull;
+    final faved = LocalStore.isPickupFavorited(widget.pickupId);
+    final pickup = ref.watch(pickupDetailProvider(widget.pickupId)).valueOrNull;
     final venue = pickup?.venue;
     final label = venue == null || venue.isEmpty
         ? '场地外景'
         : '场地外景 · $venue';
     final statusBar = MediaQuery.of(context).padding.top;
-    return Stack(
-      children: [
-        NetworkCover(
-          url: pickup?.venuePhotoUrl,
-          fallbackLabel: label,
-          height: 200 + statusBar,
-          hue: 140,
-        ),
-        Positioned(
-          top: statusBar + 12,
-          left: 12,
-          child: _CircleBtn(icon: Icons.arrow_back_ios_new, onTap: onBack),
-        ),
-        Positioned(
-          top: statusBar + 12,
-          right: 12,
-          child: Row(
-            children: [
-              _CircleBtn(
-                icon: faved ? Icons.favorite : Icons.favorite_border,
-                onTap: () async {
-                  await ref
-                      .read(favoritesRepoProvider)
-                      .toggle(FavoriteEntity.pickup, pickupId);
-                },
-                color: faved ? context.tokens.accent : context.tokens.ink,
+    final h = 200.0 + statusBar;
+    final photos = pickup?.venuePhotos ?? [];
+
+    return SizedBox(
+      height: h,
+      child: Stack(
+        children: [
+          if (photos.length <= 1)
+            NetworkCover(
+              url: pickup?.venuePhotoUrl,
+              fallbackLabel: label,
+              height: h,
+              hue: 140,
+            )
+          else
+            PageView.builder(
+              itemCount: photos.length,
+              onPageChanged: (i) => setState(() => _page = i),
+              itemBuilder: (_, i) => NetworkCover(
+                url: photos[i],
+                fallbackLabel: label,
+                height: h,
+                hue: 140,
               ),
-              const SizedBox(width: 8),
-              _CircleBtn(icon: Icons.ios_share, onTap: onShare),
-            ],
+            ),
+          if (photos.length > 1)
+            Positioned(
+              bottom: 10,
+              left: 0,
+              right: 0,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(photos.length, (i) {
+                  final active = i == _page;
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    width: active ? 16 : 6,
+                    height: 6,
+                    margin: const EdgeInsets.symmetric(horizontal: 2),
+                    decoration: BoxDecoration(
+                      color: active
+                          ? Colors.white
+                          : Colors.white.withAlpha(0x80),
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                  );
+                }),
+              ),
+            ),
+          Positioned(
+            top: statusBar + 12,
+            left: 12,
+            child: _CircleBtn(icon: Icons.arrow_back_ios_new, onTap: widget.onBack),
           ),
-        ),
-      ],
+          Positioned(
+            top: statusBar + 12,
+            right: 12,
+            child: Row(
+              children: [
+                _CircleBtn(
+                  icon: faved ? Icons.favorite : Icons.favorite_border,
+                  onTap: () async {
+                    await ref
+                        .read(favoritesRepoProvider)
+                        .toggle(FavoriteEntity.pickup, widget.pickupId);
+                  },
+                  color: faved ? context.tokens.accent : context.tokens.ink,
+                ),
+                const SizedBox(width: 8),
+                _CircleBtn(icon: Icons.ios_share, onTap: widget.onShare),
+              ],
+            ),
+          ),
+          if (photos.length > 1)
+            Positioned(
+              top: statusBar + 16,
+              right: 90,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: const Color(0x80000000),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  '${_page + 1}/${photos.length}',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

@@ -13,6 +13,7 @@ class ConversationRow {
   final String kind;
   final DateTime updatedAt;
   final int unread;
+  final String? lastMessageBody;
 
   const ConversationRow({
     required this.id,
@@ -20,7 +21,17 @@ class ConversationRow {
     required this.kind,
     required this.updatedAt,
     this.unread = 0,
+    this.lastMessageBody,
   });
+
+  ConversationRow copyWith({String? lastMessageBody}) => ConversationRow(
+        id: id,
+        title: title,
+        kind: kind,
+        updatedAt: updatedAt,
+        unread: unread,
+        lastMessageBody: lastMessageBody ?? this.lastMessageBody,
+      );
 
   static ConversationRow? fromJoined(Map<String, dynamic> m) {
     final conv = (m['conversations'] as Map?)?.cast<String, dynamic>();
@@ -39,6 +50,7 @@ class ConversationRow {
 
 class MessagesRepository {
   /// Conversations the current user belongs to. Sorted by most recent.
+  /// Also fetches the latest message body for each conversation.
   Future<List<ConversationRow>> listConversations() async {
     final rows = await supabase
         .from('conversation_members')
@@ -49,11 +61,30 @@ class MessagesRepository {
           referencedTable: 'conversations',
           ascending: false,
         );
-    return (rows as List)
+    const hiddenTitles = {'球局 · 新手大厅', '系统通知'};
+    final convs = (rows as List)
         .cast<Map<String, dynamic>>()
         .map(ConversationRow.fromJoined)
         .whereType<ConversationRow>()
+        .where((c) => !hiddenTitles.contains(c.title))
         .toList();
+    if (convs.isEmpty) return convs;
+
+    final futures = convs.map((c) => supabase
+        .from('messages')
+        .select('body')
+        .eq('conv_id', c.id)
+        .order('created_at', ascending: false)
+        .limit(1)
+        .maybeSingle());
+    final results = await Future.wait(futures);
+
+    return [
+      for (var i = 0; i < convs.length; i++)
+        convs[i].copyWith(
+          lastMessageBody: (results[i]?['body'] as String?),
+        ),
+    ];
   }
 
   /// Initial fetch of a conversation's messages (oldest first).

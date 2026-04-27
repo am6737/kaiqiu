@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:x_amap_base/x_amap_base.dart';
 
 import '../../models/picked_location.dart';
+import '../../models/venue.dart';
 import '../../providers.dart';
 import '../../services/amap_search_service.dart';
 import '../../services/location.dart';
@@ -109,6 +110,22 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
     FocusScope.of(context).unfocus();
   }
 
+  void _selectVenue(Venue v) {
+    _searchCtrl.clear();
+    setState(() {
+      _showSearchResults = false;
+      _searchResults = [];
+      _poiName = v.name;
+      _poiAddress = v.address;
+      _centerLat = v.lat;
+      _centerLng = v.lng;
+    });
+    _mapController?.moveCamera(
+      CameraUpdate.newLatLngZoom(LatLng(v.lat, v.lng), 16),
+    );
+    FocusScope.of(context).unfocus();
+  }
+
   void _onCameraMoveEnd(CameraPosition pos) {
     _cameraDebounce?.cancel();
     final lat = pos.target.latitude;
@@ -131,6 +148,49 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
         _poiAddress = result.address;
       }
     });
+  }
+
+  Widget _buildVenueQuickPick(BuildContext context) {
+    final t = context.tokens;
+    final venuesAsync = ref.watch(liveVenuesProvider);
+    return venuesAsync.when(
+      data: (venues) => venues.isEmpty
+          ? Center(
+              child: Text('无搜索结果', style: TextStyle(color: t.inkDim)),
+            )
+          : ListView(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
+                  child: Text(
+                    '平台场馆',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: t.inkSub,
+                    ),
+                  ),
+                ),
+                for (final v in venues)
+                  ListTile(
+                    dense: true,
+                    leading: Icon(Icons.stadium_outlined, color: t.accent, size: 18),
+                    title: Text(v.name, style: TextStyle(color: t.ink, fontSize: 14)),
+                    subtitle: Text(
+                      v.address,
+                      style: TextStyle(color: t.inkDim, fontSize: 12),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    onTap: () => _selectVenue(v),
+                  ),
+              ],
+            ),
+      loading: () => Center(child: CircularProgressIndicator(color: t.accent)),
+      error: (_, _) => Center(
+        child: Text('无搜索结果', style: TextStyle(color: t.inkDim)),
+      ),
+    );
   }
 
   void _confirm() {
@@ -201,12 +261,17 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
                         child: TextField(
                           controller: _searchCtrl,
                           onChanged: _onSearchChanged,
+                          onTap: () {
+                            if (!_showSearchResults) {
+                              setState(() => _showSearchResults = true);
+                            }
+                          },
                           style: TextStyle(
                             color: context.tokens.ink,
                             fontSize: 14,
                           ),
                           decoration: InputDecoration(
-                            hintText: '搜索地点',
+                            hintText: '搜索地点或选择场馆',
                             hintStyle: TextStyle(
                               color: context.tokens.inkDim,
                               fontSize: 14,
@@ -241,14 +306,7 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
                   child: _searching
                       ? const Center(child: CircularProgressIndicator())
                       : _searchResults.isEmpty
-                          ? Center(
-                              child: Text(
-                                '无搜索结果',
-                                style: TextStyle(
-                                  color: context.tokens.inkDim,
-                                ),
-                              ),
-                            )
+                          ? _buildVenueQuickPick(context)
                           : ListView.separated(
                               itemCount: _searchResults.length,
                               separatorBuilder: (_, _) => Divider(

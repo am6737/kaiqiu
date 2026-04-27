@@ -7,8 +7,8 @@ import '../../../providers.dart';
 import '../../../services/map_launcher.dart';
 import '../../../widgets/network_avatar.dart';
 import '../../../widgets/typography.dart';
-import '../../../widgets/user_card_sheet.dart';
 import '../../../theme/app_tokens.dart';
+import 'package:go_router/go_router.dart';
 
 class OverviewPanel extends ConsumerWidget {
   final Event event;
@@ -128,8 +128,7 @@ class OverviewPanel extends ConsumerWidget {
           const SizedBox(height: 10),
           GestureDetector(
             onTap: event.creatorId != null
-                ? () => showUserCardSheet(context, ref,
-                    userId: event.creatorId!)
+                ? () => context.push('/user/${event.creatorId!}')
                 : null,
             child: Container(
               padding: const EdgeInsets.all(12),

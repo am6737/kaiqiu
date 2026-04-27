@@ -17,10 +17,12 @@ class PlayerProfile {
   String get handle => profile.handle ?? '@${profile.id.substring(0, 6)}';
   String get city => profile.city ?? '';
   String get district => profile.district ?? '';
+  String? get phone => profile.phone;
   String get position => profile.position ?? '';
   int get height => profile.height ?? 0;
   String get foot => profile.foot ?? '';
   String? get avatarUrl => profile.avatarUrl;
+  String? get bannerUrl => profile.bannerUrl;
 
   int get rating {
     if (attrs.isEmpty) return 0;

@@ -1,4 +1,6 @@
 // create_pickup_screen.dart — 发起约球
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -33,10 +35,12 @@ class _CreatePickupScreenState extends ConsumerState<CreatePickupScreen> {
   String _formation = '4-3-3';
   String _fieldType = '11人制';
   bool _submitting = false;
-  String? _venuePhotoUrl;
+  final List<String> _venuePhotos = [];
   bool _uploadingPhoto = false;
+  static const _maxPhotos = 9;
 
   Future<void> _pickVenuePhoto() async {
+    if (_venuePhotos.length >= _maxPhotos) return;
     final uid = currentUserId;
     if (uid == null) {
       showToast(context, context.l10n.error_please_login, error: true);
@@ -50,7 +54,7 @@ class _CreatePickupScreenState extends ConsumerState<CreatePickupScreen> {
         square: false,
       );
       if (url == null) return;
-      setState(() => _venuePhotoUrl = url);
+      setState(() => _venuePhotos.add(url));
     } catch (e) {
       if (!mounted) return;
       showToast(context, '$e', error: true);
@@ -165,7 +169,7 @@ class _CreatePickupScreenState extends ConsumerState<CreatePickupScreen> {
               'formation': _formation,
               'field_type': _fieldType,
               'status': 'open',
-              if (_venuePhotoUrl != null) 'venue_photo_url': _venuePhotoUrl,
+              if (_venuePhotos.isNotEmpty) 'venue_photo_url': jsonEncode(_venuePhotos),
             },
             totalSlots: total,
             formation: _formation,
@@ -400,54 +404,11 @@ class _CreatePickupScreenState extends ConsumerState<CreatePickupScreen> {
                       ],
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-                    child: GestureDetector(
-                      onTap: _uploadingPhoto ? null : _pickVenuePhoto,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 12,
-                        ),
-                        decoration: BoxDecoration(
-                          color: context.tokens.elev2,
-                          border: Border.all(color: context.tokens.line),
-                          borderRadius: BorderRadius.circular(context.tokens.r2),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              _venuePhotoUrl == null
-                                  ? Icons.add_photo_alternate_outlined
-                                  : Icons.check_circle,
-                              size: 18,
-                              color: _venuePhotoUrl == null ? context.tokens.inkSub : context.tokens.accent,
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                _venuePhotoUrl == null
-                                    ? '场地照片（可选）· 点击上传'
-                                    : '已上传场地照片',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: context.tokens.inkSub,
-                                ),
-                              ),
-                            ),
-                            if (_uploadingPhoto)
-                              SizedBox(
-                                width: 14,
-                                height: 14,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: context.tokens.accent,
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                    ),
+                  _PhotoGrid(
+                    photos: _venuePhotos,
+                    uploading: _uploadingPhoto,
+                    onAdd: _pickVenuePhoto,
+                    onRemove: (i) => setState(() => _venuePhotos.removeAt(i)),
                   ),
                 ],
               ),
@@ -588,6 +549,148 @@ class _Chip extends StatelessWidget {
             color: active ? context.tokens.accent : context.tokens.ink,
             fontWeight: FontWeight.w600,
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PhotoGrid extends StatelessWidget {
+  final List<String> photos;
+  final bool uploading;
+  final VoidCallback onAdd;
+  final void Function(int index) onRemove;
+  const _PhotoGrid({
+    required this.photos,
+    required this.uploading,
+    required this.onAdd,
+    required this.onRemove,
+  });
+
+  static const _maxPhotos = 9;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final showAdd = photos.length < _maxPhotos;
+    final itemCount = photos.length + (showAdd ? 1 : 0);
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Label('场地照片'),
+              const SizedBox(width: 6),
+              Text(
+                '${photos.length}/$_maxPhotos',
+                style: TextStyle(fontSize: 11, color: t.inkDim),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              mainAxisSpacing: 8,
+              crossAxisSpacing: 8,
+            ),
+            itemCount: itemCount,
+            itemBuilder: (ctx, i) {
+              if (i < photos.length) {
+                return _PhotoTile(
+                  url: photos[i],
+                  onRemove: () => onRemove(i),
+                );
+              }
+              return _AddTile(uploading: uploading, onTap: onAdd);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PhotoTile extends StatelessWidget {
+  final String url;
+  final VoidCallback onRemove;
+  const _PhotoTile({required this.url, required this.onRemove});
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(t.r2),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Image.network(url, fit: BoxFit.cover),
+          Positioned(
+            top: 4,
+            right: 4,
+            child: GestureDetector(
+              onTap: onRemove,
+              child: Container(
+                width: 22,
+                height: 22,
+                alignment: Alignment.center,
+                decoration: const BoxDecoration(
+                  color: Color(0x99000000),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.close, size: 14, color: Colors.white),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AddTile extends StatelessWidget {
+  final bool uploading;
+  final VoidCallback onTap;
+  const _AddTile({required this.uploading, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    return GestureDetector(
+      onTap: uploading ? null : onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: t.elev2,
+          border: Border.all(color: t.line),
+          borderRadius: BorderRadius.circular(t.r2),
+        ),
+        child: Center(
+          child: uploading
+              ? SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: t.accent,
+                  ),
+                )
+              : Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.add_photo_alternate_outlined,
+                        size: 24, color: t.inkDim),
+                    const SizedBox(height: 4),
+                    Text(
+                      '添加',
+                      style: TextStyle(fontSize: 11, color: t.inkDim),
+                    ),
+                  ],
+                ),
         ),
       ),
     );

@@ -189,6 +189,10 @@ final router = GoRouter(
       builder: (_, s) => VenueDetailScreen(id: s.pathParameters['id']!),
     ),
     GoRoute(
+      path: '/venue/:id/edit',
+      builder: (_, s) => CreateVenueScreen(editVenueId: s.pathParameters['id']),
+    ),
+    GoRoute(
       path: '/rate/:matchId',
       builder: (_, s) =>
           PostMatchRatingScreen(matchId: s.pathParameters['matchId']!),

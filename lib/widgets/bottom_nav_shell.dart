@@ -16,15 +16,21 @@ class BottomNavShell extends ConsumerStatefulWidget {
 }
 
 class _BottomNavShellState extends ConsumerState<BottomNavShell> {
+  bool _checkedOnboarding = false;
+
   @override
   void initState() {
     super.initState();
     ref.listenManual(myProfileProvider, (_, next) {
+      if (_checkedOnboarding) return;
       final profile = next.valueOrNull?.profile;
       if (profile != null &&
           profile.name == '新球友' &&
           profile.avatarUrl == null) {
+        _checkedOnboarding = true;
         context.go('/onboarding');
+      } else if (profile != null) {
+        _checkedOnboarding = true;
       }
     });
   }

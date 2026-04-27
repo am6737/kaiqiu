@@ -73,6 +73,8 @@ class StatusDot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = switch (state) {
+      'cancelled' => context.tokens.danger,
+      'done' => context.tokens.inkMute,
       'almost' => context.tokens.warn,
       'full' => context.tokens.inkMute,
       _ => context.tokens.accent, // open / live

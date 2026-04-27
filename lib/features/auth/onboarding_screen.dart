@@ -92,6 +92,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         'avatar_url': _avatarUrl,
       });
       ref.invalidate(myProfileProvider);
+      await ref.read(myProfileProvider.future);
       if (mounted) context.go('/home');
     } catch (e) {
       if (mounted) {

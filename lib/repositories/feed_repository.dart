@@ -170,6 +170,34 @@ class FeedRepository {
         .toList();
   }
 
+  Future<List<FeedActivity>> userActivities(String userId,
+      {int limit = 5}) async {
+    final rows = await supabase
+        .from('posts')
+        .select('*, author:profiles!author_id(name)')
+        .eq('author_id', userId)
+        .order('created_at', ascending: false)
+        .limit(limit);
+    return (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map(FeedActivity.fromMap)
+        .toList();
+  }
+
+  Future<List<FeedArticle>> userArticles(String userId,
+      {int limit = 5}) async {
+    final rows = await supabase
+        .from('articles')
+        .select()
+        .eq('author_id', userId)
+        .order('created_at', ascending: false)
+        .limit(limit);
+    return (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map(FeedArticle.fromMap)
+        .toList();
+  }
+
   Future<List<FeedEvent>> _registeringEvents({required int limit}) async {
     final rows = await supabase
         .from('events')

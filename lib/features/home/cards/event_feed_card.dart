@@ -35,20 +35,11 @@ class EventFeedCard extends StatelessWidget {
           Text('${item.teamsRegistered}/${item.teamsMax} ${l.home_event_registered_label} · ${item.startIn}',
               style: TextStyle(fontSize: 11, color: t.inkDim)),
           const SizedBox(height: 10),
-          Row(children: [
-            Expanded(child: ClipRRect(
-              borderRadius: BorderRadius.circular(2),
-              child: LinearProgressIndicator(value: progress, backgroundColor: t.elev2,
-                  valueColor: AlwaysStoppedAnimation(t.accent), minHeight: 4),
-            )),
-            const SizedBox(width: 10),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
-              decoration: BoxDecoration(color: t.accent, borderRadius: BorderRadius.circular(8)),
-              child: Text(l.home_event_register_now,
-                  style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w600)),
-            ),
-          ]),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(2),
+            child: LinearProgressIndicator(value: progress, backgroundColor: t.elev2,
+                valueColor: AlwaysStoppedAnimation(t.accent), minHeight: 4),
+          ),
         ]),
       ),
     );

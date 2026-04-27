@@ -83,6 +83,7 @@ class _RichInputState extends State<RichInput> {
             top: false,
             bottom: !_emojiOpen,
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 if (widget.showAttachments) ...[
                   GestureDetector(
@@ -107,6 +108,8 @@ class _RichInputState extends State<RichInput> {
                 ],
                 Expanded(
                   child: Container(
+                    constraints: const BoxConstraints(minHeight: 38),
+                    alignment: Alignment.center,
                     padding: const EdgeInsets.symmetric(horizontal: 14),
                     decoration: BoxDecoration(
                       color: context.tokens.elev2,
@@ -129,25 +132,34 @@ class _RichInputState extends State<RichInput> {
                         hintStyle: TextStyle(color: context.tokens.inkDim),
                         border: InputBorder.none,
                         isDense: true,
+                        contentPadding:
+                            const EdgeInsets.symmetric(vertical: 9),
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 8),
                 GestureDetector(
                   onTap: _toggleEmoji,
-                  child: Padding(
-                    padding: const EdgeInsets.all(4),
+                  child: Container(
+                    width: 34,
+                    height: 34,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: context.tokens.elev2,
+                      border: Border.all(color: context.tokens.line),
+                      shape: BoxShape.circle,
+                    ),
                     child: Icon(
                       _emojiOpen
                           ? Icons.keyboard
                           : Icons.emoji_emotions_outlined,
-                      size: 24,
+                      size: 18,
                       color: context.tokens.inkSub,
                     ),
                   ),
                 ),
-                const SizedBox(width: 4),
+                const SizedBox(width: 8),
                 GestureDetector(
                   onTap: widget.sending ? null : widget.onSend,
                   child: Container(
