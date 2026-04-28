@@ -104,6 +104,9 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
         event.creatorId != null && event.creatorId == currentUserId;
     final tab = _tab ?? _defaultTab(event);
     final showCta = !isCreator;
+    final ctaVisible = showCta &&
+        (event.status == EventStatus.registering ||
+         event.status == EventStatus.ongoing);
 
     final tabs = <(String, String)>[
       ('teams', l.event_tab_teams),
@@ -118,7 +121,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
       builder: (ctx, constraints) {
         final bottomPad = tab == 'chat'
             ? 166.0
-            : (showCta ? 110.0 : 24.0);
+            : (ctaVisible ? 110.0 : 24.0);
 
         return Stack(
           children: [

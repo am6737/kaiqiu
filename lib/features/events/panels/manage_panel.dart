@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../l10n/generated/app_localizations.dart';
 import '../../../l10n/l10n_extension.dart';
 import '../../../models/event.dart';
 import '../../../providers.dart';
@@ -67,7 +68,7 @@ class _StatusCard extends ConsumerWidget {
     );
   }
 
-  Widget _buildStatusContent(BuildContext context, WidgetRef ref, dynamic l) {
+  Widget _buildStatusContent(BuildContext context, WidgetRef ref, AppL10n l) {
     switch (event.status) {
       case EventStatus.registering:
         return _buildActionRow(
