@@ -520,6 +520,35 @@ class AppL10nEn extends AppL10n {
   String get event_tab_teams => 'Teams';
 
   @override
+  String get event_tab_manage => 'Manage';
+
+  @override
+  String get event_info_section => 'Event Info';
+
+  @override
+  String get manage_status_title => 'Event Status';
+
+  @override
+  String get manage_review_title => 'Registration Review';
+
+  @override
+  String manage_review_stats(int pending, int approved, int rejected) {
+    return 'Pending $pending · Approved $approved · Rejected $rejected';
+  }
+
+  @override
+  String get manage_settings_title => 'Event Settings';
+
+  @override
+  String get manage_register_on_behalf => 'Register on Behalf';
+
+  @override
+  String get manage_status_completed_label => 'Event completed';
+
+  @override
+  String get manage_status_cancelled_label => 'Event cancelled';
+
+  @override
   String event_teams_summary(int count, int max) {
     return '$count/$max teams registered';
   }
@@ -1753,40 +1782,6 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get notif_group_follow => 'Follow';
-
-  @override
-  String get notif_demo_welcome_t => 'Welcome to GameOn ⚽';
-
-  @override
-  String get notif_demo_welcome_b =>
-      'Complete your archive to start the season.';
-
-  @override
-  String get notif_demo_rate_t => 'A match is waiting for your rating';
-
-  @override
-  String get notif_demo_rate_b =>
-      'Longgang Cun-Chao · Wolves vs Black Horse FC — 3 teammates waiting.';
-
-  @override
-  String get notif_demo_pickup_t => 'Sat 19:30 pickup needs 1 more';
-
-  @override
-  String get notif_demo_pickup_b =>
-      'Lianhuashan Football Field · Tap to see the formation.';
-
-  @override
-  String get notif_demo_event_t =>
-      '2026 Longgang Summer Cup registration is open';
-
-  @override
-  String get notif_demo_event_b => '16-team KO, 20k prize, closes 05-25.';
-
-  @override
-  String get notif_demo_follow_t => 'LaoWang followed you';
-
-  @override
-  String get notif_demo_follow_b => 'Follow back to chat.';
 
   @override
   String get city_picker_title => 'Choose city';

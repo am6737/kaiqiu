@@ -1075,6 +1075,60 @@ abstract class AppL10n {
   /// **'队伍'**
   String get event_tab_teams;
 
+  /// No description provided for @event_tab_manage.
+  ///
+  /// In zh, this message translates to:
+  /// **'管理'**
+  String get event_tab_manage;
+
+  /// No description provided for @event_info_section.
+  ///
+  /// In zh, this message translates to:
+  /// **'赛事信息'**
+  String get event_info_section;
+
+  /// No description provided for @manage_status_title.
+  ///
+  /// In zh, this message translates to:
+  /// **'赛事状态'**
+  String get manage_status_title;
+
+  /// No description provided for @manage_review_title.
+  ///
+  /// In zh, this message translates to:
+  /// **'报名审核'**
+  String get manage_review_title;
+
+  /// No description provided for @manage_review_stats.
+  ///
+  /// In zh, this message translates to:
+  /// **'待审 {pending} · 已通过 {approved} · 已拒绝 {rejected}'**
+  String manage_review_stats(int pending, int approved, int rejected);
+
+  /// No description provided for @manage_settings_title.
+  ///
+  /// In zh, this message translates to:
+  /// **'赛事设置'**
+  String get manage_settings_title;
+
+  /// No description provided for @manage_register_on_behalf.
+  ///
+  /// In zh, this message translates to:
+  /// **'代队报名'**
+  String get manage_register_on_behalf;
+
+  /// No description provided for @manage_status_completed_label.
+  ///
+  /// In zh, this message translates to:
+  /// **'赛事已结束'**
+  String get manage_status_completed_label;
+
+  /// No description provided for @manage_status_cancelled_label.
+  ///
+  /// In zh, this message translates to:
+  /// **'赛事已取消'**
+  String get manage_status_cancelled_label;
+
   /// No description provided for @event_teams_summary.
   ///
   /// In zh, this message translates to:
@@ -3408,66 +3462,6 @@ abstract class AppL10n {
   /// In zh, this message translates to:
   /// **'关注'**
   String get notif_group_follow;
-
-  /// No description provided for @notif_demo_welcome_t.
-  ///
-  /// In zh, this message translates to:
-  /// **'欢迎来到开球 ⚽'**
-  String get notif_demo_welcome_t;
-
-  /// No description provided for @notif_demo_welcome_b.
-  ///
-  /// In zh, this message translates to:
-  /// **'完善档案，开启你的赛季之旅。'**
-  String get notif_demo_welcome_b;
-
-  /// No description provided for @notif_demo_rate_t.
-  ///
-  /// In zh, this message translates to:
-  /// **'你有一场比赛待评分'**
-  String get notif_demo_rate_t;
-
-  /// No description provided for @notif_demo_rate_b.
-  ///
-  /// In zh, this message translates to:
-  /// **'龙岗村超 · 狼队 vs FC 黑马，3 位队友等你打分。'**
-  String get notif_demo_rate_b;
-
-  /// No description provided for @notif_demo_pickup_t.
-  ///
-  /// In zh, this message translates to:
-  /// **'周六 19:30 约球还差 1 人'**
-  String get notif_demo_pickup_t;
-
-  /// No description provided for @notif_demo_pickup_b.
-  ///
-  /// In zh, this message translates to:
-  /// **'莲花山足球场 · 点击查看阵型。'**
-  String get notif_demo_pickup_b;
-
-  /// No description provided for @notif_demo_event_t.
-  ///
-  /// In zh, this message translates to:
-  /// **'2026 龙岗夏季杯开始报名'**
-  String get notif_demo_event_t;
-
-  /// No description provided for @notif_demo_event_b.
-  ///
-  /// In zh, this message translates to:
-  /// **'16 队淘汰制，奖金 2 万，截止 05-25。'**
-  String get notif_demo_event_b;
-
-  /// No description provided for @notif_demo_follow_t.
-  ///
-  /// In zh, this message translates to:
-  /// **'老王 关注了你'**
-  String get notif_demo_follow_t;
-
-  /// No description provided for @notif_demo_follow_b.
-  ///
-  /// In zh, this message translates to:
-  /// **'互相关注后即可私信。'**
-  String get notif_demo_follow_b;
 
   /// No description provided for @city_picker_title.
   ///

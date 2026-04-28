@@ -514,6 +514,35 @@ class AppL10nZh extends AppL10n {
   String get event_tab_teams => '队伍';
 
   @override
+  String get event_tab_manage => '管理';
+
+  @override
+  String get event_info_section => '赛事信息';
+
+  @override
+  String get manage_status_title => '赛事状态';
+
+  @override
+  String get manage_review_title => '报名审核';
+
+  @override
+  String manage_review_stats(int pending, int approved, int rejected) {
+    return '待审 $pending · 已通过 $approved · 已拒绝 $rejected';
+  }
+
+  @override
+  String get manage_settings_title => '赛事设置';
+
+  @override
+  String get manage_register_on_behalf => '代队报名';
+
+  @override
+  String get manage_status_completed_label => '赛事已结束';
+
+  @override
+  String get manage_status_cancelled_label => '赛事已取消';
+
+  @override
   String event_teams_summary(int count, int max) {
     return '已报名 $count/$max 支队伍';
   }
@@ -1729,36 +1758,6 @@ class AppL10nZh extends AppL10n {
 
   @override
   String get notif_group_follow => '关注';
-
-  @override
-  String get notif_demo_welcome_t => '欢迎来到开球 ⚽';
-
-  @override
-  String get notif_demo_welcome_b => '完善档案，开启你的赛季之旅。';
-
-  @override
-  String get notif_demo_rate_t => '你有一场比赛待评分';
-
-  @override
-  String get notif_demo_rate_b => '龙岗村超 · 狼队 vs FC 黑马，3 位队友等你打分。';
-
-  @override
-  String get notif_demo_pickup_t => '周六 19:30 约球还差 1 人';
-
-  @override
-  String get notif_demo_pickup_b => '莲花山足球场 · 点击查看阵型。';
-
-  @override
-  String get notif_demo_event_t => '2026 龙岗夏季杯开始报名';
-
-  @override
-  String get notif_demo_event_b => '16 队淘汰制，奖金 2 万，截止 05-25。';
-
-  @override
-  String get notif_demo_follow_t => '老王 关注了你';
-
-  @override
-  String get notif_demo_follow_b => '互相关注后即可私信。';
 
   @override
   String get city_picker_title => '选择城市';
