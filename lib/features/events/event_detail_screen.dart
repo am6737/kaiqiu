@@ -158,9 +158,6 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                       'overview' => OverviewPanel(event: event),
                       'teams' => TeamsPanel(
                         eventId: event.id,
-                        isCreator: event.creatorId != null &&
-                            event.creatorId == currentUserId,
-                        reviewMode: event.reviewMode,
                         teamsMax: event.teamsMax,
                       ),
                       'competition' => CompetitionPanel(eventId: event.id),
