@@ -6,13 +6,16 @@ import '../../l10n/l10n_extension.dart';
 import '../../models/player_profile.dart';
 import '../../providers.dart';
 import '../../repositories/favorites_repository.dart';
-import '../../services/local_storage.dart';
 import '../../services/supabase.dart';
 import '../../theme/app_tokens.dart';
 import '../../utils/toast.dart';
+import '../../widgets/empty_state.dart';
 import '../../widgets/network_avatar.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/typography.dart';
+import '../home/cards/activity_feed_card.dart';
+import '../home/cards/article_feed_card.dart';
+import '../home/cards/pickup_feed_card.dart';
 
 class UserProfileScreen extends ConsumerStatefulWidget {
   final String userId;
@@ -22,7 +25,9 @@ class UserProfileScreen extends ConsumerStatefulWidget {
   ConsumerState<UserProfileScreen> createState() => _UserProfileScreenState();
 }
 
-class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
+class _UserProfileScreenState extends ConsumerState<UserProfileScreen>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tabController;
   bool _dmBusy = false;
 
   bool get _isSelf {
@@ -31,6 +36,18 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
     } catch (_) {
       return false;
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   Future<void> _startDm() async {
@@ -57,21 +74,43 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
     }
   }
 
-  void _toggleFollow() {
-    ref
+  Future<void> _toggleFollow() async {
+    final isFollowing =
+        ref.read(isFollowingProvider(widget.userId)).valueOrNull ?? false;
+    if (isFollowing) {
+      final l = context.l10n;
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(l.common_unfollow_confirm_title),
+          content: Text(l.common_unfollow_confirm_body),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(l.common_cancel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(l.common_confirm),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true) return;
+    }
+    await ref
         .read(favoritesRepoProvider)
         .toggle(FavoriteEntity.user, widget.userId);
+    ref.invalidate(isFollowingProvider(widget.userId));
+    ref.invalidate(userFollowersCountProvider);
+    ref.invalidate(userFollowingCountProvider);
   }
-
-  double _bannerHue(String id) =>
-      (id.codeUnitAt(0) * 7 + id.codeUnitAt(1)) % 360.0;
 
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
     final async = ref.watch(fullProfileByIdProvider(widget.userId));
-    ref.watch(localStoreProvider);
-    final following = LocalStore.isFollowing(widget.userId);
+    final following = ref.watch(isFollowingProvider(widget.userId)).valueOrNull ?? false;
 
     return Scaffold(
       backgroundColor: t.bg,
@@ -141,474 +180,377 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
   Widget _buildContent(PlayerProfile u, bool following) {
     final l = context.l10n;
     final t = context.tokens;
-    final hue = _bannerHue(widget.userId);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bannerColor = HSLColor.fromAHSL(1, hue, 0.4, isDark ? 0.18 : 0.82);
 
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          // ── Header banner + avatar ──
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              // Banner: custom image or gradient fallback
-              if (u.bannerUrl != null && u.bannerUrl!.isNotEmpty)
-                SizedBox(
-                  height: 160,
-                  width: double.infinity,
-                  child: Image.network(
-                    u.bannerUrl!,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) => _GradientBanner(
-                        color: bannerColor, isDark: isDark),
-                  ),
-                )
-              else
-                _GradientBanner(color: bannerColor, isDark: isDark),
-              // Back button
-              Positioned(
-                top: 12,
-                left: 8,
-                child: SafeArea(
-                  child: GestureDetector(
-                    onTap: () => context.pop(),
-                    child: Container(
-                      width: 36,
-                      height: 36,
-                      alignment: Alignment.center,
-                      decoration: const BoxDecoration(
-                        color: Color(0x40000000),
-                        shape: BoxShape.circle,
+    final followingCount =
+        ref.watch(userFollowingCountProvider(widget.userId)).valueOrNull ?? 0;
+    final followersCount = ref
+            .watch(userFollowersCountProvider(widget.userId))
+            .valueOrNull ??
+        0;
+
+    return SafeArea(
+      bottom: false,
+      child: NestedScrollView(
+        headerSliverBuilder: (context, innerBoxIsScrolled) => [
+          SliverToBoxAdapter(
+            child: Column(
+              children: [
+                // ── Banner + avatar ──
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    if (u.bannerUrl != null && u.bannerUrl!.isNotEmpty)
+                      SizedBox(
+                        height: 160,
+                        width: double.infinity,
+                        child: Image.network(
+                          u.bannerUrl!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, _, _) =>
+                              const _GradientBanner(),
+                        ),
+                      )
+                    else
+                      const _GradientBanner(),
+                    Positioned(
+                      top: 12,
+                      left: 8,
+                      child: GestureDetector(
+                        onTap: () => context.pop(),
+                        child: Container(
+                          width: 36,
+                          height: 36,
+                          alignment: Alignment.center,
+                          decoration: const BoxDecoration(
+                            color: Color(0x40000000),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.arrow_back_ios_new,
+                              size: 16, color: Colors.white),
+                        ),
                       ),
-                      child: const Icon(Icons.arrow_back_ios_new,
-                          size: 16, color: Colors.white),
                     ),
+                    Positioned(
+                      bottom: -44,
+                      left: 0,
+                      right: 0,
+                      child: Center(
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: t.bg,
+                            shape: BoxShape.circle,
+                          ),
+                          child:
+                              NetworkAvatar(u.name, url: u.avatarUrl, size: 84),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 52),
+                // ── Name ──
+                Text(
+                  u.name,
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    color: t.ink,
+                    letterSpacing: -0.3,
                   ),
                 ),
-              ),
-              // Avatar, overlapping the banner bottom edge
-              Positioned(
-                bottom: -44,
-                left: 0,
-                right: 0,
-                child: Center(
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: t.bg,
-                      shape: BoxShape.circle,
-                    ),
-                    child: NetworkAvatar(u.name, url: u.avatarUrl, size: 84),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 52),
-          // ── Name ──
-          Text(
-            u.name,
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
-              color: t.ink,
-              letterSpacing: -0.3,
-            ),
-          ),
-          if (u.handle.isNotEmpty) ...[
-            const SizedBox(height: 3),
-            Text(
-              u.handle,
-              style: TextStyle(
-                fontFamily: t.fontMono,
-                fontFamilyFallback: t.monoFallbacks,
-                fontSize: 13,
-                color: t.inkSub,
-              ),
-            ),
-          ],
-          // ── Position + Location tag ──
-          const SizedBox(height: 10),
-          _TagsRow(profile: u),
-          // ── Action buttons ──
-          if (!_isSelf) ...[
-            const SizedBox(height: 20),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 40),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: PrimaryButton(
-                      label: following ? l.common_unfollow : l.common_follow,
-                      variant:
-                          following ? BtnVariant.ghost : BtnVariant.primary,
-                      size: BtnSize.md,
-                      full: true,
-                      onPressed: _toggleFollow,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: PrimaryButton(
-                      label: l.messages_new_dm,
-                      variant: BtnVariant.ghost,
-                      size: BtnSize.md,
-                      full: true,
-                      disabled: _dmBusy,
-                      onPressed: _dmBusy ? null : _startDm,
+                if (u.handle.isNotEmpty) ...[
+                  const SizedBox(height: 3),
+                  Text(
+                    u.handle,
+                    style: TextStyle(
+                      fontFamily: t.fontMono,
+                      fontFamilyFallback: t.monoFallbacks,
+                      fontSize: 13,
+                      color: t.inkSub,
                     ),
                   ),
                 ],
-              ),
-            ),
-          ],
-          const SizedBox(height: 24),
-          // ── Stats strip (always show) ──
-          _StatsStrip(stats: u.stats, rating: u.rating),
-          const SizedBox(height: 16),
-          // ── Info section (always show) ──
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: _InfoSection(profile: u),
-          ),
-          // ── Attributes ──
-          if (u.attrs.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: _AttrsCard(attrs: u.attrs),
-            ),
-          ],
-          // ── Honors ──
-          if (u.honors.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: _HonorsCard(honors: u.honors),
-            ),
-          ],
-          const SizedBox(height: 60),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Tags row: position badge + location ──
-class _TagsRow extends StatelessWidget {
-  final PlayerProfile profile;
-  const _TagsRow({required this.profile});
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.tokens;
-    final tags = <Widget>[];
-
-    if (profile.position.isNotEmpty) {
-      tags.add(_chip(
-        profile.position,
-        bg: t.accentSubtle,
-        fg: t.accent,
-        mono: true,
-        t: t,
-      ));
-    }
-    if (profile.city.isNotEmpty) {
-      final loc = [
-        profile.city,
-        if (profile.district.isNotEmpty) profile.district,
-      ].join(' · ');
-      tags.add(_chip(loc, bg: t.elev2, fg: t.inkSub, mono: false, t: t));
-    }
-
-    if (tags.isEmpty) return const SizedBox.shrink();
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Wrap(
-        spacing: 8,
-        alignment: WrapAlignment.center,
-        children: tags,
-      ),
-    );
-  }
-
-  Widget _chip(String text,
-      {required Color bg,
-      required Color fg,
-      required bool mono,
-      required AppTokens t}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: fg,
-          fontFamily: mono ? t.fontMono : null,
-          fontFamilyFallback: mono ? t.monoFallbacks : null,
-        ),
-      ),
-    );
-  }
-}
-
-// ── Stats strip ──
-class _StatsStrip extends StatelessWidget {
-  final PlayerStats stats;
-  final int rating;
-  const _StatsStrip({required this.stats, required this.rating});
-
-  @override
-  Widget build(BuildContext context) {
-    final l = context.l10n;
-    final t = context.tokens;
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.symmetric(vertical: 18),
-      decoration: BoxDecoration(
-        color: t.elev2,
-        borderRadius: BorderRadius.circular(t.r2),
-      ),
-      child: Row(
-        children: [
-          _tile(rating > 0 ? '$rating' : '—', l.profile_mini_overall, t),
-          _div(t),
-          _tile('${stats.matches}', l.profile_mini_matches, t),
-          _div(t),
-          _tile('${stats.goals}', l.profile_mini_goals, t),
-          _div(t),
-          _tile('${stats.assists}', '助攻', t),
-        ],
-      ),
-    );
-  }
-
-  Widget _tile(String value, String label, AppTokens t) => Expanded(
-        child: Column(
-          children: [
-            N(value, size: 20, weight: FontWeight.w800, color: t.ink),
-            const SizedBox(height: 2),
-            Text(label, style: TextStyle(fontSize: 11, color: t.inkSub)),
-          ],
-        ),
-      );
-
-  Widget _div(AppTokens t) =>
-      Container(width: 1, height: 28, color: t.line);
-}
-
-// ── Info section: always-visible card ──
-class _InfoSection extends StatelessWidget {
-  final PlayerProfile profile;
-  const _InfoSection({required this.profile});
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.tokens;
-    final rows = <(IconData, String, String)>[
-      if (profile.positionFull.isNotEmpty)
-        (Icons.sports_soccer, '位置', profile.positionFull),
-      if (profile.height > 0)
-        (Icons.straighten, '身高', '${profile.height} cm'),
-      if (profile.foot.isNotEmpty)
-        (Icons.directions_walk, '惯用脚', _footLabel(profile.foot)),
-      if (profile.city.isNotEmpty)
-        (Icons.location_on_outlined, '所在地', [
-          profile.city,
-          if (profile.district.isNotEmpty) profile.district,
-        ].join(' ')),
-    ];
-
-    if (rows.isEmpty) return const SizedBox.shrink();
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: t.elev2,
-        borderRadius: BorderRadius.circular(t.r2),
-      ),
-      child: Column(
-        children: [
-          for (var i = 0; i < rows.length; i++) ...[
-            if (i > 0)
-              Divider(height: 20, thickness: 1, color: t.line),
-            Row(
-              children: [
-                Icon(rows[i].$1, size: 18, color: t.inkDim),
-                const SizedBox(width: 12),
-                Text(rows[i].$2,
-                    style: TextStyle(fontSize: 13, color: t.inkSub)),
-                const Spacer(),
-                Text(rows[i].$3,
-                    style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: t.ink)),
+                // ── Following / Followers ──
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(40, 20, 40, 0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: _StatColumn(
+                          count: followingCount,
+                          label: l.profile_following,
+                        ),
+                      ),
+                      Container(width: 1, height: 32, color: t.line),
+                      Expanded(
+                        child: _StatColumn(
+                          count: followersCount,
+                          label: l.profile_followers,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // ── Action buttons ──
+                if (!_isSelf) ...[
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(40, 18, 40, 8),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: PrimaryButton(
+                            label:
+                                following ? l.common_unfollow : l.common_follow,
+                            variant: following
+                                ? BtnVariant.ghost
+                                : BtnVariant.primary,
+                            size: BtnSize.md,
+                            full: true,
+                            onPressed: _toggleFollow,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: PrimaryButton(
+                            label: l.messages_new_dm,
+                            variant: BtnVariant.ghost,
+                            size: BtnSize.md,
+                            full: true,
+                            disabled: _dmBusy,
+                            onPressed: _dmBusy ? null : _startDm,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ] else
+                  const SizedBox(height: 8),
               ],
             ),
+          ),
+          // ── Sticky TabBar ──
+          SliverPersistentHeader(
+            pinned: true,
+            delegate: _TabBarDelegate(
+              tabBar: TabBar(
+                controller: _tabController,
+                labelColor: t.ink,
+                unselectedLabelColor: t.inkDim,
+                labelStyle: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+                unselectedLabelStyle: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+                indicatorColor: t.accent,
+                indicatorSize: TabBarIndicatorSize.label,
+                dividerColor: t.line,
+                tabs: [
+                  Tab(text: l.profile_tab_activities),
+                  Tab(text: l.profile_tab_pickups),
+                  Tab(text: l.profile_tab_articles),
+                ],
+              ),
+              backgroundColor: t.bg,
+            ),
+          ),
+        ],
+        body: TabBarView(
+          controller: _tabController,
+          children: [
+            _ActivitiesTab(userId: widget.userId),
+            _PickupsTab(userId: widget.userId),
+            _ArticlesTab(userId: widget.userId),
           ],
-        ],
+        ),
       ),
     );
-  }
-
-  String _footLabel(String f) => switch (f) {
-        'L' => '左脚',
-        'R' => '右脚',
-        _ => '双脚',
-      };
-}
-
-// ── Attributes card ──
-class _AttrsCard extends StatelessWidget {
-  final Map<String, int> attrs;
-  const _AttrsCard({required this.attrs});
-
-  static const _labels = {
-    'speed': '速度',
-    'shooting': '射门',
-    'passing': '传球',
-    'defense': '防守',
-    'stamina': '体力',
-    'technique': '技术',
-  };
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.tokens;
-    final entries =
-        _labels.entries.where((e) => attrs.containsKey(e.key)).toList();
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: t.elev2,
-        borderRadius: BorderRadius.circular(t.r2),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('能力值',
-              style: TextStyle(
-                  fontSize: 14, fontWeight: FontWeight.w700, color: t.ink)),
-          const SizedBox(height: 14),
-          for (final e in entries)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: Row(
-                children: [
-                  SizedBox(
-                      width: 36,
-                      child: Text(e.value,
-                          style: TextStyle(fontSize: 12, color: t.inkSub))),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(3),
-                      child: LinearProgressIndicator(
-                        value: (attrs[e.key] ?? 0) / 100,
-                        minHeight: 6,
-                        backgroundColor: t.elev3,
-                        color: _barColor(attrs[e.key] ?? 0, t),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  SizedBox(
-                    width: 26,
-                    child: Text(
-                      '${attrs[e.key] ?? 0}',
-                      textAlign: TextAlign.right,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: t.ink,
-                        fontFamily: t.fontMono,
-                        fontFamilyFallback: t.monoFallbacks,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Color _barColor(int v, AppTokens t) {
-    if (v >= 80) return t.accent;
-    if (v >= 50) return t.warn;
-    return t.inkDim;
   }
 }
 
-// ── Honors card ──
-class _HonorsCard extends StatelessWidget {
-  final List<PlayerHonor> honors;
-  const _HonorsCard({required this.honors});
+// ── Activities tab ──
+class _ActivitiesTab extends ConsumerWidget {
+  final String userId;
+  const _ActivitiesTab({required this.userId});
 
   @override
-  Widget build(BuildContext context) {
-    final t = context.tokens;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: t.elev2,
-        borderRadius: BorderRadius.circular(t.r2),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('荣誉',
-              style: TextStyle(
-                  fontSize: 14, fontWeight: FontWeight.w700, color: t.ink)),
-          const SizedBox(height: 12),
-          for (final h in honors)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Row(
-                children: [
-                  Icon(Icons.emoji_events, size: 18, color: t.warn),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text('${h.year}  ${h.title}',
-                        style: TextStyle(fontSize: 13, color: t.ink)),
-                  ),
-                  if (h.meta != null)
-                    Text(h.meta!,
-                        style: TextStyle(fontSize: 12, color: t.inkDim)),
-                ],
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = context.l10n;
+    final async = ref.watch(userActivitiesProvider(userId));
+
+    return RefreshIndicator(
+      color: context.tokens.accent,
+      backgroundColor: context.tokens.elev1,
+      onRefresh: () async => ref.invalidate(userActivitiesProvider(userId)),
+      child: async.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text('$e')),
+        data: (items) {
+          if (items.isEmpty) {
+            return ListView(children: [
+              EmptyState(
+                icon: Icons.directions_run,
+                title: l.profile_empty_activities,
+                subtitle: l.profile_empty_activities_sub,
               ),
-            ),
-        ],
+            ]);
+          }
+          return ListView.builder(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+            itemCount: items.length,
+            itemBuilder: (_, i) => ActivityFeedCard(item: items[i]),
+          );
+        },
       ),
     );
   }
+}
+
+// ── Pickups tab ──
+class _PickupsTab extends ConsumerWidget {
+  final String userId;
+  const _PickupsTab({required this.userId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final async = ref.watch(userPickupsProvider(userId));
+
+    return RefreshIndicator(
+      color: context.tokens.accent,
+      backgroundColor: context.tokens.elev1,
+      onRefresh: () async => ref.invalidate(userPickupsProvider(userId)),
+      child: async.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text('$e')),
+        data: (items) {
+          if (items.isEmpty) {
+            return ListView(children: const [
+              EmptyState(
+                icon: Icons.sports_soccer,
+                title: '还没参加过约球',
+                subtitle: '发起或加入一场约球吧',
+              ),
+            ]);
+          }
+          return ListView.builder(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+            itemCount: items.length,
+            itemBuilder: (_, i) =>
+                PickupFeedCard(pickup: items[i].pickup),
+          );
+        },
+      ),
+    );
+  }
+}
+
+// ── Articles tab ──
+class _ArticlesTab extends ConsumerWidget {
+  final String userId;
+  const _ArticlesTab({required this.userId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = context.l10n;
+    final async = ref.watch(userArticlesProvider(userId));
+
+    return RefreshIndicator(
+      color: context.tokens.accent,
+      backgroundColor: context.tokens.elev1,
+      onRefresh: () async => ref.invalidate(userArticlesProvider(userId)),
+      child: async.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text('$e')),
+        data: (items) {
+          if (items.isEmpty) {
+            return ListView(children: [
+              EmptyState(
+                icon: Icons.article_outlined,
+                title: l.profile_empty_articles,
+                subtitle: l.profile_empty_articles_sub,
+              ),
+            ]);
+          }
+          return ListView.builder(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+            itemCount: items.length,
+            itemBuilder: (_, i) => ArticleFeedCard(item: items[i]),
+          );
+        },
+      ),
+    );
+  }
+}
+
+// ── Stat column ──
+class _StatColumn extends StatelessWidget {
+  final int count;
+  final String label;
+  const _StatColumn({required this.count, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        N(
+          '$count',
+          size: 20,
+          weight: FontWeight.w800,
+          color: context.tokens.ink,
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: context.tokens.inkSub,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── TabBar delegate ──
+class _TabBarDelegate extends SliverPersistentHeaderDelegate {
+  final TabBar tabBar;
+  final Color backgroundColor;
+  _TabBarDelegate({required this.tabBar, required this.backgroundColor});
+
+  @override
+  double get minExtent => tabBar.preferredSize.height;
+  @override
+  double get maxExtent => tabBar.preferredSize.height;
+
+  @override
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return Container(color: backgroundColor, child: tabBar);
+  }
+
+  @override
+  bool shouldRebuild(_TabBarDelegate oldDelegate) => false;
 }
 
 // ── Gradient banner fallback ──
 class _GradientBanner extends StatelessWidget {
-  final HSLColor color;
-  final bool isDark;
-  const _GradientBanner({required this.color, required this.isDark});
+  const _GradientBanner();
 
   @override
   Widget build(BuildContext context) {
     return Container(
       height: 160,
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            color.toColor(),
-            color.withLightness(isDark ? 0.12 : 0.72).toColor(),
+            Color(0xFF2C2C2E),
+            Color(0xFF1C1C1E),
           ],
         ),
       ),

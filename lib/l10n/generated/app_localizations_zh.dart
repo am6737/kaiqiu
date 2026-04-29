@@ -114,6 +114,12 @@ class AppL10nZh extends AppL10n {
   String get common_unfollow => '已关注';
 
   @override
+  String get common_unfollow_confirm_title => '取消关注';
+
+  @override
+  String get common_unfollow_confirm_body => '确定要取消关注此用户吗？';
+
+  @override
   String get common_favorite => '收藏';
 
   @override
@@ -159,6 +165,9 @@ class AppL10nZh extends AppL10n {
   String get common_version => '版本';
 
   @override
+  String get common_me => '我';
+
+  @override
   String get error_load_failed => '加载失败';
 
   @override
@@ -166,6 +175,16 @@ class AppL10nZh extends AppL10n {
 
   @override
   String get error_required_field => '此项不能为空';
+
+  @override
+  String error_required_field_named(String field) {
+    return '请填写$field';
+  }
+
+  @override
+  String error_required_select(String field) {
+    return '请选择$field';
+  }
 
   @override
   String get error_invalid_email => '邮箱格式不正确';
@@ -448,6 +467,9 @@ class AppL10nZh extends AppL10n {
   String get events_tab_registering => '报名中';
 
   @override
+  String get events_tab_completed => '已结束';
+
+  @override
   String get events_tab_watch => '观看';
 
   @override
@@ -572,6 +594,9 @@ class AppL10nZh extends AppL10n {
   String get event_teams_contact => '联系人';
 
   @override
+  String get event_teams_my_team => '我的队伍';
+
+  @override
   String get event_overview_rules => '规则';
 
   @override
@@ -657,6 +682,9 @@ class AppL10nZh extends AppL10n {
 
   @override
   String get event_register_search_user => '搜索用户';
+
+  @override
+  String get event_register_search_user_hint => '输入用户昵称搜索';
 
   @override
   String get event_register_jersey => '球衣号';
@@ -2280,7 +2308,9 @@ class AppL10nZh extends AppL10n {
   }
 
   @override
-  String get event_overview_rule_format => '11人制 · 标准场地';
+  String event_overview_rule_format(int n) {
+    return '$n人制';
+  }
 
   @override
   String get event_overview_rule_halves => '2 × 45min + 半场休息';
@@ -2290,6 +2320,27 @@ class AppL10nZh extends AppL10n {
 
   @override
   String get event_overview_rule_cards => '红黄牌累积停赛';
+
+  @override
+  String get event_template_league => '联赛（循环赛）';
+
+  @override
+  String get event_template_knockout16 => '淘汰赛（16强）';
+
+  @override
+  String get event_template_knockout8 => '淘汰赛（8强）';
+
+  @override
+  String get event_template_group8 => '小组赛 + 淘汰赛';
+
+  @override
+  String get event_template_wc => '世界杯赛制';
+
+  @override
+  String get event_template_unknown => '自定义赛制';
+
+  @override
+  String get event_overview_tournament_format => '赛制';
 
   @override
   String get event_overview_organizer_label => '赛事组织方';
@@ -2685,6 +2736,62 @@ class AppL10nZh extends AppL10n {
 
   @override
   String get match_not_found => '未找到该比赛';
+
+  @override
+  String get match_tab_overview => '概况';
+
+  @override
+  String get match_tab_stats => '统计';
+
+  @override
+  String get match_tab_ratings => '评分';
+
+  @override
+  String get match_tab_discussion => '讨论';
+
+  @override
+  String get match_stats_goals => '进球';
+
+  @override
+  String get match_stats_penalty_goals => '点球进球';
+
+  @override
+  String get match_stats_own_goals => '乌龙球';
+
+  @override
+  String get match_stats_first_half => '上半场进球';
+
+  @override
+  String get match_stats_second_half => '下半场进球';
+
+  @override
+  String get match_stats_no_data => '比赛结束后展示统计数据';
+
+  @override
+  String get match_discussion_not_open => '讨论区即将上线';
+
+  @override
+  String get match_rating_goals_short => '进球';
+
+  @override
+  String get match_rating_assists_short => '助攻';
+
+  @override
+  String match_rating_n_voted(int n) {
+    return '$n人评分';
+  }
+
+  @override
+  String get match_rating_score_dist => '评分分布';
+
+  @override
+  String get match_rating_all_reviews => '全部评价';
+
+  @override
+  String get match_rating_no_reviews => '暂无评价';
+
+  @override
+  String get match_rating_not_rated => '暂无评分';
 
   @override
   String get event_standings_leaders_label => '榜首之争';

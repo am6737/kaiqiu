@@ -1,4 +1,6 @@
 // pickup_map_screen.dart — 约球地图 (stylized SVG-like) + 底部抽屉
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
@@ -34,15 +36,28 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
   bool _sheetExpanded = false;
   final _sheetCtrl = DraggableScrollableController();
 
-  static const _defaultVisibleKeys = {'all', 'today', 'tomorrow', 'week', 'free', 'lv', 'fee', 'near'};
+  static const _defaultVisibleKeys = {
+    'all',
+    'today',
+    'tomorrow',
+    'week',
+    'free',
+    'lv',
+    'fee',
+    'near',
+  };
   final Set<String> _visibleFilterKeys = Set.of(_defaultVisibleKeys);
 
   // Venue filter state (symmetric to pickup filter).
   String _venueFilter = 'v_all';
   static const _defaultVisibleVenueKeys = {
-    'v_all', 'v_indoor', 'v_outdoor',
-    'v_football', 'v_basketball',
-    'v_free', 'v_near',
+    'v_all',
+    'v_indoor',
+    'v_outdoor',
+    'v_football',
+    'v_basketball',
+    'v_free',
+    'v_near',
   };
   final Set<String> _visibleVenueFilterKeys = Set.of(_defaultVisibleVenueKeys);
 
@@ -126,7 +141,10 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
   String? _distanceTo(Pickup p) {
     if (p.lat == null || p.lng == null) return null;
     final meters = Geolocator.distanceBetween(
-      _userLat, _userLng, p.lat!, p.lng!,
+      _userLat,
+      _userLng,
+      p.lat!,
+      p.lng!,
     );
     return (meters / 1000).toStringAsFixed(1);
   }
@@ -183,9 +201,9 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
   }
 
   List<(String, String)> _visibleFilterOptions(BuildContext context) {
-    return _allFilterOptions(context)
-        .where((f) => f.$1 == 'all' || _visibleFilterKeys.contains(f.$1))
-        .toList();
+    return _allFilterOptions(
+      context,
+    ).where((f) => f.$1 == 'all' || _visibleFilterKeys.contains(f.$1)).toList();
   }
 
   List<(String, String)> _allVenueFilterOptions() {
@@ -208,6 +226,44 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
     return _allVenueFilterOptions()
         .where((f) => f.$1 == 'v_all' || _visibleVenueFilterKeys.contains(f.$1))
         .toList();
+  }
+
+  List<Pickup> _filterPickups(List<Pickup> pickups) {
+    final now = DateTime.now();
+    final todayStart = DateTime(now.year, now.month, now.day);
+    final tomorrowStart = todayStart.add(const Duration(days: 1));
+    final tomorrowEnd = tomorrowStart.add(const Duration(days: 1));
+    final weekEnd = todayStart.add(const Duration(days: 7));
+
+    return switch (_filter) {
+      'today' => pickups.where(
+        (p) =>
+            !p.startAt.isBefore(todayStart) &&
+            p.startAt.isBefore(tomorrowStart),
+      ),
+      'tomorrow' => pickups.where(
+        (p) =>
+            !p.startAt.isBefore(tomorrowStart) &&
+            p.startAt.isBefore(tomorrowEnd),
+      ),
+      'week' => pickups.where(
+        (p) => !p.startAt.isBefore(todayStart) && p.startAt.isBefore(weekEnd),
+      ),
+      'free' => pickups.where((p) => p.feeCents == 0),
+      'lv' => pickups.where((p) => p.level == '中级'),
+      'fee' => pickups.where((p) => p.feeYuan <= _maxFee),
+      'near' => pickups.where((p) {
+        if (p.lat == null || p.lng == null) return false;
+        final m = Geolocator.distanceBetween(
+          _userLat,
+          _userLng,
+          p.lat!,
+          p.lng!,
+        );
+        return m <= _distKm * 1000;
+      }),
+      _ => pickups,
+    }.toList();
   }
 
   List<Venue> _filterVenues(List<Venue> venues) {
@@ -284,11 +340,18 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                           });
                         },
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 8,
+                          ),
                           decoration: BoxDecoration(
-                            color: selected ? context.tokens.accentSubtle : context.tokens.elev2,
+                            color: selected
+                                ? context.tokens.accentSubtle
+                                : context.tokens.elev2,
                             border: Border.all(
-                              color: selected ? context.tokens.accent : context.tokens.line,
+                              color: selected
+                                  ? context.tokens.accent
+                                  : context.tokens.line,
                             ),
                             borderRadius: BorderRadius.circular(999),
                           ),
@@ -296,7 +359,11 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               if (selected) ...[
-                                Icon(Icons.check, size: 14, color: context.tokens.accent),
+                                Icon(
+                                  Icons.check,
+                                  size: 14,
+                                  color: context.tokens.accent,
+                                ),
                                 const SizedBox(width: 4),
                               ],
                               Text(
@@ -304,7 +371,9 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                                 style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,
-                                  color: selected ? context.tokens.accent : context.tokens.ink,
+                                  color: selected
+                                      ? context.tokens.accent
+                                      : context.tokens.ink,
                                 ),
                               ),
                             ],
@@ -380,11 +449,18 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                           });
                         },
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 8,
+                          ),
                           decoration: BoxDecoration(
-                            color: selected ? context.tokens.accentSubtle : context.tokens.elev2,
+                            color: selected
+                                ? context.tokens.accentSubtle
+                                : context.tokens.elev2,
                             border: Border.all(
-                              color: selected ? context.tokens.accent : context.tokens.line,
+                              color: selected
+                                  ? context.tokens.accent
+                                  : context.tokens.line,
                             ),
                             borderRadius: BorderRadius.circular(999),
                           ),
@@ -392,7 +468,11 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               if (selected) ...[
-                                Icon(Icons.check, size: 14, color: context.tokens.accent),
+                                Icon(
+                                  Icons.check,
+                                  size: 14,
+                                  color: context.tokens.accent,
+                                ),
                                 const SizedBox(width: 4),
                               ],
                               Text(
@@ -400,7 +480,9 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                                 style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,
-                                  color: selected ? context.tokens.accent : context.tokens.ink,
+                                  color: selected
+                                      ? context.tokens.accent
+                                      : context.tokens.ink,
                                 ),
                               ),
                             ],
@@ -502,9 +584,13 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                               vertical: 7,
                             ),
                             decoration: BoxDecoration(
-                              color: localLevel == lv.$1 ? context.tokens.accentSubtle : context.tokens.elev2,
+                              color: localLevel == lv.$1
+                                  ? context.tokens.accentSubtle
+                                  : context.tokens.elev2,
                               border: Border.all(
-                                color: localLevel == lv.$1 ? context.tokens.accent : context.tokens.line,
+                                color: localLevel == lv.$1
+                                    ? context.tokens.accent
+                                    : context.tokens.line,
                               ),
                               borderRadius: BorderRadius.circular(999),
                             ),
@@ -512,7 +598,9 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                               lv.$2,
                               style: TextStyle(
                                 fontSize: 12,
-                                color: localLevel == lv.$1 ? context.tokens.accent : context.tokens.ink,
+                                color: localLevel == lv.$1
+                                    ? context.tokens.accent
+                                    : context.tokens.ink,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -576,9 +664,12 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
         data: (venues) => _buildMap(context, const [], venues: venues),
         loading: () => Scaffold(
           backgroundColor: context.tokens.bg,
-          body: Center(child: CircularProgressIndicator(color: context.tokens.accent)),
+          body: Center(
+            child: CircularProgressIndicator(color: context.tokens.accent),
+          ),
         ),
-        error: (e, _) => _buildError(context, e, () => ref.invalidate(liveVenuesProvider)),
+        error: (e, _) =>
+            _buildError(context, e, () => ref.invalidate(liveVenuesProvider)),
       );
     }
 
@@ -586,9 +677,12 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
       data: (list) => _buildMap(context, list),
       loading: () => Scaffold(
         backgroundColor: context.tokens.bg,
-        body: Center(child: CircularProgressIndicator(color: context.tokens.accent)),
+        body: Center(
+          child: CircularProgressIndicator(color: context.tokens.accent),
+        ),
       ),
-      error: (e, _) => _buildError(context, e, () => ref.invalidate(livePickupsProvider)),
+      error: (e, _) =>
+          _buildError(context, e, () => ref.invalidate(livePickupsProvider)),
     );
   }
 
@@ -602,7 +696,11 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.error_outline, size: 32, color: context.tokens.danger),
+                Icon(
+                  Icons.error_outline,
+                  size: 32,
+                  color: context.tokens.danger,
+                ),
                 const SizedBox(height: 8),
                 Text(
                   '${context.l10n.error_load_failed}: $e',
@@ -612,7 +710,10 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                 GestureDetector(
                   onTap: onRetry,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: context.tokens.elev3,
                       border: Border.all(color: context.tokens.line),
@@ -633,19 +734,28 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
   }
 
   List<MapPin> _venuesToPins(List<Venue> venues) {
-    return venues.map((v) => MapPin(
-      id: v.id,
-      lat: v.lat,
-      lng: v.lng,
-      label: v.name,
-      sublabel: v.sportTypeLabel,
-      type: MapPinType.venue,
-    )).toList();
+    return venues
+        .map(
+          (v) => MapPin(
+            id: v.id,
+            lat: v.lat,
+            lng: v.lng,
+            label: v.name,
+            sublabel: v.sportTypeLabel,
+            type: MapPinType.venue,
+          ),
+        )
+        .toList();
   }
 
-  Widget _buildMap(BuildContext context, List<Pickup> pickups, {List<Venue> venues = const []}) {
+  Widget _buildMap(
+    BuildContext context,
+    List<Pickup> pickups, {
+    List<Venue> venues = const [],
+  }) {
     final isVenueMode = _mode == _MapMode.venue;
     final filteredVenues = isVenueMode ? _filterVenues(venues) : venues;
+    final filteredPickups = isVenueMode ? pickups : _filterPickups(pickups);
     return Scaffold(
       backgroundColor: context.tokens.bg,
       body: Stack(
@@ -653,7 +763,7 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
           // Real map (AMap on mobile, SVG canvas on web via conditional import).
           Positioned.fill(
             child: RealPickupMap(
-              pickups: isVenueMode ? const [] : pickups,
+              pickups: isVenueMode ? const [] : filteredPickups,
               extraPins: isVenueMode ? _venuesToPins(filteredVenues) : const [],
               activePinId: _activePin,
               locateTrigger: _locateTrigger,
@@ -710,86 +820,93 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                  Row(
-                    children: [
-                      // Mode toggle: 约球 / 场馆
-                      _ModeToggle(
-                        mode: _mode,
-                        onChanged: (m) => setState(() {
-                          _mode = m;
-                          _activePin = null;
-                        }),
-                      ),
-                      const Spacer(),
-                      _CircleBtn(
-                        icon: Icons.add,
-                        onTap: () => context.push(
-                          isVenueMode ? '/venue/create' : '/pickup/create',
+                    Row(
+                      children: [
+                        // Mode toggle: 约球 / 场馆
+                        _ModeToggle(
+                          mode: _mode,
+                          onChanged: (m) => setState(() {
+                            _mode = m;
+                            _activePin = null;
+                          }),
                         ),
-                      ),
-                      if (!isVenueMode) ...[
-                        const SizedBox(width: 8),
+                        const Spacer(),
                         _CircleBtn(
-                          icon: Icons.filter_list,
-                          onTap: () => _showFilterSheet(context),
+                          icon: Icons.add,
+                          onTap: () => context.push(
+                            isVenueMode ? '/venue/create' : '/pickup/create',
+                          ),
                         ),
+                        if (!isVenueMode) ...[
+                          const SizedBox(width: 8),
+                          _CircleBtn(
+                            icon: Icons.filter_list,
+                            onTap: () => _showFilterSheet(context),
+                          ),
+                        ],
                       ],
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Builder(
-                    builder: (ctx) {
-                      final filters = isVenueMode
-                          ? _visibleVenueFilterOptions()
-                          : _visibleFilterOptions(ctx);
-                      final activeKey = isVenueMode ? _venueFilter : _filter;
-                      return SizedBox(
-                        height: 28,
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: ListView.separated(
-                                scrollDirection: Axis.horizontal,
-                                itemCount: filters.length,
-                                separatorBuilder: (_, i) => const SizedBox(width: 6),
-                                itemBuilder: (_, i) {
-                                  final f = filters[i];
-                                  return ChipPill(
-                                    label: f.$2,
-                                    active: f.$1 == activeKey,
-                                    onTap: () => setState(() {
-                                      if (isVenueMode) {
-                                        _venueFilter = f.$1;
-                                      } else {
-                                        _filter = f.$1;
-                                      }
-                                    }),
-                                  );
-                                },
-                              ),
-                            ),
-                            const SizedBox(width: 6),
-                            GestureDetector(
-                              onTap: () => isVenueMode
-                                  ? _showVenueFilterChipConfig(ctx)
-                                  : _showFilterChipConfig(ctx),
-                              child: Container(
-                                width: 28,
-                                height: 28,
-                                alignment: Alignment.center,
-                                decoration: BoxDecoration(
-                                  color: context.tokens.elev2,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(color: context.tokens.line),
+                    ),
+                    const SizedBox(height: 10),
+                    Builder(
+                      builder: (ctx) {
+                        final filters = isVenueMode
+                            ? _visibleVenueFilterOptions()
+                            : _visibleFilterOptions(ctx);
+                        final activeKey = isVenueMode ? _venueFilter : _filter;
+                        return SizedBox(
+                          height: 28,
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: ListView.separated(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: filters.length,
+                                  separatorBuilder: (_, i) =>
+                                      const SizedBox(width: 6),
+                                  itemBuilder: (_, i) {
+                                    final f = filters[i];
+                                    return ChipPill(
+                                      label: f.$2,
+                                      active: f.$1 == activeKey,
+                                      onTap: () => setState(() {
+                                        if (isVenueMode) {
+                                          _venueFilter = f.$1;
+                                        } else {
+                                          _filter = f.$1;
+                                        }
+                                      }),
+                                    );
+                                  },
                                 ),
-                                child: Icon(Icons.tune, size: 14, color: context.tokens.inkSub),
                               ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
+                              const SizedBox(width: 6),
+                              GestureDetector(
+                                onTap: () => isVenueMode
+                                    ? _showVenueFilterChipConfig(ctx)
+                                    : _showFilterChipConfig(ctx),
+                                child: Container(
+                                  width: 28,
+                                  height: 28,
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(
+                                    color: context.tokens.elev2,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: context.tokens.line,
+                                    ),
+                                  ),
+                                  child: Icon(
+                                    Icons.tune,
+                                    size: 14,
+                                    color: context.tokens.inkSub,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
                   ],
                 ),
               ),
@@ -797,37 +914,40 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
           ),
           // Legend (right side) — only for pickup mode
           if (!isVenueMode)
-          Positioned(
-            right: 14,
-            top: 180,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              decoration: BoxDecoration(
-                color: context.tokens.elev2,
-                border: Border.all(color: context.tokens.line),
-                borderRadius: BorderRadius.circular(context.tokens.r2),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _LegendRow(
-                    state: 'open',
-                    label: context.l10n.pickup_map_legend_open,
-                  ),
-                  const SizedBox(height: 6),
-                  _LegendRow(
-                    state: 'almost',
-                    label: context.l10n.pickup_map_legend_almost,
-                  ),
-                  const SizedBox(height: 6),
-                  _LegendRow(
-                    state: 'full',
-                    label: context.l10n.pickup_map_legend_full,
-                  ),
-                ],
+            Positioned(
+              right: 14,
+              top: 180,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: context.tokens.elev2,
+                  border: Border.all(color: context.tokens.line),
+                  borderRadius: BorderRadius.circular(context.tokens.r2),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _LegendRow(
+                      state: 'open',
+                      label: context.l10n.pickup_map_legend_open,
+                    ),
+                    const SizedBox(height: 6),
+                    _LegendRow(
+                      state: 'almost',
+                      label: context.l10n.pickup_map_legend_almost,
+                    ),
+                    const SizedBox(height: 6),
+                    _LegendRow(
+                      state: 'full',
+                      label: context.l10n.pickup_map_legend_full,
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
           // Locate-me button
           Positioned(
             right: 14,
@@ -859,7 +979,13 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                           color: context.tokens.accent,
                         ),
                       )
-                    : Icon(Icons.my_location, size: 20, color: _mapCentered ? context.tokens.accent : context.tokens.ink),
+                    : Icon(
+                        Icons.my_location,
+                        size: 20,
+                        color: _mapCentered
+                            ? context.tokens.accent
+                            : context.tokens.ink,
+                      ),
               ),
             ),
           ),
@@ -871,113 +997,148 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
             maxChildSize: 1.0,
             snap: true,
             snapSizes: const [0.55, 1.0],
-            builder: (context, scrollController) => Container(
-              decoration: BoxDecoration(
-                color: context.tokens.elev1,
-                borderRadius: _sheetExpanded
-                    ? BorderRadius.zero
-                    : const BorderRadius.only(
-                        topLeft: Radius.circular(24),
-                        topRight: Radius.circular(24),
-                      ),
-                border: _sheetExpanded
-                    ? null
-                    : Border(top: BorderSide(color: context.tokens.line, width: 1)),
-              ),
-              child: CustomScrollView(
-                controller: scrollController,
-                slivers: [
-                  SliverToBoxAdapter(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          width: double.infinity,
-                          child: Center(
-                            child: Container(
-                              width: 36,
-                              height: 4,
-                              decoration: BoxDecoration(
-                                color: context.tokens.inkMute,
-                                borderRadius: BorderRadius.circular(2),
+            builder: (context, scrollController) {
+              final isDark = Theme.of(context).brightness == Brightness.dark;
+              final sheetRadius = _sheetExpanded
+                  ? BorderRadius.zero
+                  : const BorderRadius.only(
+                      topLeft: Radius.circular(24),
+                      topRight: Radius.circular(24),
+                    );
+              return ClipRRect(
+                borderRadius: sheetRadius,
+                child: BackdropFilter(
+                  filter: ui.ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? const Color(0xCC121212)
+                          : const Color(0xCCF8F6F3),
+                      border: _sheetExpanded
+                          ? null
+                          : Border(
+                              top: BorderSide(
+                                color: isDark
+                                    ? const Color(0x33FFFFFF)
+                                    : const Color(0x55FFFFFF),
+                                width: 0.5,
                               ),
                             ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
-                          child: Row(
+                    ),
+                    child: CustomScrollView(
+                      controller: scrollController,
+                      slivers: [
+                        SliverToBoxAdapter(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(
-                                isVenueMode
-                                    ? '${filteredVenues.length} 个场馆'
-                                    : context.l10n.pickup_city_pickup_count(
-                                        pickups.length,
-                                      ),
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w600,
-                                  color: context.tokens.ink,
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 10,
+                                ),
+                                width: double.infinity,
+                                child: Center(
+                                  child: Container(
+                                    width: 36,
+                                    height: 4,
+                                    decoration: BoxDecoration(
+                                      color: context.tokens.inkMute,
+                                      borderRadius: BorderRadius.circular(2),
+                                    ),
+                                  ),
                                 ),
                               ),
-                              const Spacer(),
-                              Label(context.l10n.pickup_map_sort_distance),
-                              const SizedBox(width: 12),
-                              GestureDetector(
-                                onTap: () {
-                                  _sheetCtrl.animateTo(
-                                    _sheetExpanded ? 0.55 : 1.0,
-                                    duration: const Duration(milliseconds: 300),
-                                    curve: Curves.easeOut,
-                                  );
-                                },
-                                child: Icon(
-                                  _sheetExpanded
-                                      ? Icons.fullscreen_exit
-                                      : Icons.fullscreen,
-                                  size: 20,
-                                  color: context.tokens.inkSub,
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                  16,
+                                  4,
+                                  16,
+                                  10,
+                                ),
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      isVenueMode
+                                          ? '${filteredVenues.length} 个场馆'
+                                          : context.l10n
+                                                .pickup_city_pickup_count(
+                                                  filteredPickups.length,
+                                                ),
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w600,
+                                        color: context.tokens.ink,
+                                      ),
+                                    ),
+                                    const Spacer(),
+                                    Label(
+                                      context.l10n.pickup_map_sort_distance,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    GestureDetector(
+                                      onTap: () {
+                                        _sheetCtrl.animateTo(
+                                          _sheetExpanded ? 0.55 : 1.0,
+                                          duration: const Duration(
+                                            milliseconds: 300,
+                                          ),
+                                          curve: Curves.easeOut,
+                                        );
+                                      },
+                                      child: Icon(
+                                        _sheetExpanded
+                                            ? Icons.fullscreen_exit
+                                            : Icons.fullscreen,
+                                        size: 20,
+                                        color: context.tokens.inkSub,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
                           ),
                         ),
+                        if (isVenueMode)
+                          SliverList(
+                            delegate: SliverChildBuilderDelegate(
+                              (_, i) => _VenueListRow(
+                                venue: filteredVenues[i],
+                                distanceKm: _distanceToPoint(
+                                  filteredVenues[i].lat,
+                                  filteredVenues[i].lng,
+                                ),
+                                onTap: () => context.push(
+                                  '/venue/${filteredVenues[i].id}',
+                                ),
+                              ),
+                              childCount: filteredVenues.length,
+                            ),
+                          )
+                        else
+                          SliverPadding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            sliver: SliverList(
+                              delegate: SliverChildBuilderDelegate((_, i) {
+                                final p = filteredPickups[i];
+                                final dist = _distanceTo(p);
+                                return PickupFeedCard(
+                                  pickup: p,
+                                  distanceKm: dist != null
+                                      ? double.tryParse(dist)
+                                      : null,
+                                  locationAvailable: true,
+                                  glass: true,
+                                );
+                              }, childCount: filteredPickups.length),
+                            ),
+                          ),
                       ],
                     ),
                   ),
-                  if (isVenueMode)
-                    SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (_, i) => _VenueListRow(
-                          venue: filteredVenues[i],
-                          distanceKm: _distanceToPoint(filteredVenues[i].lat, filteredVenues[i].lng),
-                          onTap: () => context.push('/venue/${filteredVenues[i].id}'),
-                        ),
-                        childCount: filteredVenues.length,
-                      ),
-                    )
-                  else
-                  SliverPadding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    sliver: SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (_, i) {
-                          final p = pickups[i];
-                          final dist = _distanceTo(p);
-                          return PickupFeedCard(
-                            pickup: p,
-                            distanceKm: dist != null ? double.tryParse(dist) : null,
-                            locationAvailable: true,
-                          );
-                        },
-                        childCount: pickups.length,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+                ),
+              );
+            },
           ),
           // Floating pickup card
           Positioned(
@@ -998,7 +1159,9 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                     builder: (context) {
                       if (isVenueMode) {
                         final venue = _activePin != null
-                            ? filteredVenues.where((v) => v.id == _activePin).firstOrNull
+                            ? filteredVenues
+                                  .where((v) => v.id == _activePin)
+                                  .firstOrNull
                             : null;
                         if (venue == null) return const SizedBox.shrink();
                         return AnimatedSwitcher(
@@ -1012,7 +1175,9 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                         );
                       }
                       final pickup = _activePin != null
-                          ? pickups.where((p) => p.id == _activePin).firstOrNull
+                          ? filteredPickups
+                                .where((p) => p.id == _activePin)
+                                .firstOrNull
                           : null;
                       if (pickup == null) return const SizedBox.shrink();
                       return AnimatedSwitcher(
@@ -1142,9 +1307,10 @@ class _PickupFloatingCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    [pickup.displayTime, pickup.formation]
-                        .where((s) => s.isNotEmpty)
-                        .join(' · '),
+                    [
+                      pickup.displayTime,
+                      pickup.formation,
+                    ].where((s) => s.isNotEmpty).join(' · '),
                     style: TextStyle(fontSize: 11, color: t.inkSub),
                   ),
                   const SizedBox(height: 2),
@@ -1315,7 +1481,11 @@ class _VenueListRow extends StatelessWidget {
   final Venue venue;
   final String? distanceKm;
   final VoidCallback onTap;
-  const _VenueListRow({required this.venue, this.distanceKm, required this.onTap});
+  const _VenueListRow({
+    required this.venue,
+    this.distanceKm,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1480,8 +1650,7 @@ class _VenueFloatingCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    [venue.sportTypeLabel, venue.fieldTypeLabel]
-                        .join(' · '),
+                    [venue.sportTypeLabel, venue.fieldTypeLabel].join(' · '),
                     style: TextStyle(fontSize: 11, color: t.inkSub),
                   ),
                   const SizedBox(height: 2),
@@ -1513,7 +1682,10 @@ class _VenueFloatingCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFF2196F3).withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(6),

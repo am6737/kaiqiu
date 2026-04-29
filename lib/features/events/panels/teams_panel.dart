@@ -21,8 +21,9 @@ class TeamsPanel extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(eventTeamsProvider(eventId));
+    final myTeamId = ref.watch(userTeamIdProvider(eventId)).valueOrNull;
     return async.when(
-      data: (teams) => _buildList(context, ref, teams),
+      data: (teams) => _buildList(context, ref, teams, myTeamId),
       loading: () =>
           Center(child: CircularProgressIndicator(color: context.tokens.accent)),
       error: (e, _) => Center(
@@ -34,7 +35,7 @@ class TeamsPanel extends ConsumerWidget {
     );
   }
 
-  Widget _buildList(BuildContext context, WidgetRef ref, List<TeamRow> teams) {
+  Widget _buildList(BuildContext context, WidgetRef ref, List<TeamRow> teams, String? myTeamId) {
     final l = context.l10n;
     final approved = teams.where((t) => t.status != 'rejected').length;
     final max = teamsMax ?? 0;
@@ -59,6 +60,8 @@ class TeamsPanel extends ConsumerWidget {
 
     final sorted = List<TeamRow>.from(teams)
       ..sort((a, b) {
+        if (a.id == myTeamId) return -1;
+        if (b.id == myTeamId) return 1;
         const order = {'pending': 0, 'approved': 1, 'rejected': 2};
         final cmp = (order[a.status] ?? 1).compareTo(order[b.status] ?? 1);
         if (cmp != 0) return cmp;
@@ -77,6 +80,7 @@ class TeamsPanel extends ConsumerWidget {
           for (final team in sorted) _TeamTile(
             team: team,
             eventId: eventId,
+            isMine: team.id == myTeamId,
           ),
         ],
       ),
@@ -87,14 +91,17 @@ class TeamsPanel extends ConsumerWidget {
 class _TeamTile extends StatelessWidget {
   final TeamRow team;
   final String eventId;
+  final bool isMine;
 
   const _TeamTile({
     required this.team,
     required this.eventId,
+    this.isMine = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     final isRejected = team.status == 'rejected';
     return GestureDetector(
       onTap: () => context.push('/event/$eventId/team/${team.id}'),
@@ -105,7 +112,9 @@ class _TeamTile extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: context.tokens.elev2,
-          border: Border.all(color: context.tokens.line),
+          border: Border.all(
+            color: isMine ? context.tokens.accent : context.tokens.line,
+          ),
           borderRadius: BorderRadius.circular(context.tokens.r2),
         ),
         child: Row(
@@ -132,13 +141,38 @@ class _TeamTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    team.name,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: context.tokens.ink,
-                    ),
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          team.name,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: context.tokens.ink,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (isMine) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: context.tokens.accentSubtle,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            l.event_teams_my_team,
+                            style: TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w600,
+                              color: context.tokens.accent,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                   if (team.captainName != null)
                     Text(

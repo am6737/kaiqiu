@@ -9,7 +9,7 @@ import '../../../providers.dart';
 import '../../../services/supabase.dart';
 import '../../../services/storage.dart';
 import '../../../utils/toast.dart';
-import '../../../widgets/avatar.dart';
+import '../../../widgets/network_avatar.dart';
 import '../../../widgets/rich_input.dart';
 import '../../../widgets/typography.dart';
 import '../../../theme/app_tokens.dart';
@@ -132,16 +132,19 @@ class ChatInputState extends ConsumerState<ChatInput> {
   }
 }
 
-class Msg extends StatelessWidget {
+class Msg extends ConsumerWidget {
   final Message msg;
   const Msg({super.key, required this.msg});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l = AppL10n.of(context);
+    final profile = msg.senderId != null
+        ? ref.watch(profileByIdProvider(msg.senderId!)).valueOrNull
+        : null;
     final sender = msg.senderId == currentUserId
         ? l.event_chat_sender_you
-        : l.event_chat_sender_stranger;
+        : (profile?.name ?? l.event_chat_sender_stranger);
     final hh = msg.createdAt.hour.toString().padLeft(2, '0');
     final mm = msg.createdAt.minute.toString().padLeft(2, '0');
     return Padding(
@@ -149,7 +152,7 @@ class Msg extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Avatar(sender, size: 26),
+          NetworkAvatar(sender, url: profile?.avatarUrl, size: 26),
           const SizedBox(width: 8),
           Expanded(
             child: Column(

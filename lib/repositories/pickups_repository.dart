@@ -9,7 +9,7 @@ class PickupsRepository {
     PickupStatus? status,
     int limit = 50,
   }) async {
-    var query = supabase.from('pickups').select().neq('status', 'cancelled');
+    var query = supabase.from('pickups').select('*, host:profiles!host_id(name, avatar_url)').neq('status', 'done').neq('status', 'cancelled');
     if (status != null) {
       query = query.eq('status', status.name);
     }
@@ -23,13 +23,14 @@ class PickupsRepository {
         .toList();
   }
 
-  /// List all pickups including past, for displaying seed/mock data that
-  /// may have timestamps in the past after a while. Soonest first.
-  Future<List<Pickup>> listAll({int limit = 50}) async {
-    final rows = await supabase
+  Future<List<Pickup>> listAll({int limit = 50, String? city}) async {
+    var query = supabase
         .from('pickups')
-        .select()
-        .neq('status', 'cancelled')
+        .select('*, host:profiles!host_id(name, avatar_url)')
+        .neq('status', 'done')
+        .neq('status', 'cancelled');
+    if (city != null) query = query.eq('city', city);
+    final rows = await query
         .order('start_at', ascending: true)
         .limit(limit);
     return (rows as List)
@@ -39,7 +40,7 @@ class PickupsRepository {
   }
 
   Future<Pickup> fetch(String id) async {
-    final row = await supabase.from('pickups').select().eq('id', id).single();
+    final row = await supabase.from('pickups').select('*, host:profiles!host_id(name, avatar_url)').eq('id', id).single();
     return Pickup.fromMap(row);
   }
 
@@ -79,12 +80,13 @@ class PickupsRepository {
     await supabase.from('pickup_slots').delete().eq('id', slotId);
   }
 
-  Future<List<Pickup>> listFiltered(PickupFilter filter, {int limit = 50}) async {
+  Future<List<Pickup>> listFiltered(PickupFilter filter, {int limit = 50, String? city}) async {
     var query = supabase
         .from('pickups')
-        .select()
+        .select('*, host:profiles!host_id(name, avatar_url)')
         .neq('status', 'done')
         .neq('status', 'cancelled');
+    if (city != null) query = query.eq('city', city);
 
     final now = DateTime.now();
     switch (filter.dateRange) {
@@ -138,7 +140,7 @@ class PickupsRepository {
   Future<List<Pickup>> listByHost(String userId, {int limit = 50}) async {
     final rows = await supabase
         .from('pickups')
-        .select()
+        .select('*, host:profiles!host_id(name, avatar_url)')
         .eq('host_id', userId)
         .order('start_at', ascending: true)
         .limit(limit);
@@ -162,7 +164,7 @@ class PickupsRepository {
     if (ids.isEmpty) return [];
     final rows = await supabase
         .from('pickups')
-        .select()
+        .select('*, host:profiles!host_id(name, avatar_url)')
         .inFilter('id', ids)
         .order('start_at', ascending: true)
         .limit(limit);
@@ -177,7 +179,7 @@ class PickupsRepository {
     if (ids.isEmpty) return [];
     final rows = await supabase
         .from('pickups')
-        .select()
+        .select('*, host:profiles!host_id(name, avatar_url)')
         .inFilter('id', ids)
         .order('start_at', ascending: true);
     return (rows as List)

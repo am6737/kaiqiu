@@ -307,6 +307,18 @@ abstract class AppL10n {
   /// **'已关注'**
   String get common_unfollow;
 
+  /// No description provided for @common_unfollow_confirm_title.
+  ///
+  /// In zh, this message translates to:
+  /// **'取消关注'**
+  String get common_unfollow_confirm_title;
+
+  /// No description provided for @common_unfollow_confirm_body.
+  ///
+  /// In zh, this message translates to:
+  /// **'确定要取消关注此用户吗？'**
+  String get common_unfollow_confirm_body;
+
   /// No description provided for @common_favorite.
   ///
   /// In zh, this message translates to:
@@ -397,6 +409,12 @@ abstract class AppL10n {
   /// **'版本'**
   String get common_version;
 
+  /// No description provided for @common_me.
+  ///
+  /// In zh, this message translates to:
+  /// **'我'**
+  String get common_me;
+
   /// No description provided for @error_load_failed.
   ///
   /// In zh, this message translates to:
@@ -414,6 +432,18 @@ abstract class AppL10n {
   /// In zh, this message translates to:
   /// **'此项不能为空'**
   String get error_required_field;
+
+  /// No description provided for @error_required_field_named.
+  ///
+  /// In zh, this message translates to:
+  /// **'请填写{field}'**
+  String error_required_field_named(String field);
+
+  /// No description provided for @error_required_select.
+  ///
+  /// In zh, this message translates to:
+  /// **'请选择{field}'**
+  String error_required_select(String field);
 
   /// No description provided for @error_invalid_email.
   ///
@@ -943,6 +973,12 @@ abstract class AppL10n {
   /// **'报名中'**
   String get events_tab_registering;
 
+  /// No description provided for @events_tab_completed.
+  ///
+  /// In zh, this message translates to:
+  /// **'已结束'**
+  String get events_tab_completed;
+
   /// No description provided for @events_tab_watch.
   ///
   /// In zh, this message translates to:
@@ -1183,6 +1219,12 @@ abstract class AppL10n {
   /// **'联系人'**
   String get event_teams_contact;
 
+  /// No description provided for @event_teams_my_team.
+  ///
+  /// In zh, this message translates to:
+  /// **'我的队伍'**
+  String get event_teams_my_team;
+
   /// No description provided for @event_overview_rules.
   ///
   /// In zh, this message translates to:
@@ -1356,6 +1398,12 @@ abstract class AppL10n {
   /// In zh, this message translates to:
   /// **'搜索用户'**
   String get event_register_search_user;
+
+  /// No description provided for @event_register_search_user_hint.
+  ///
+  /// In zh, this message translates to:
+  /// **'输入用户昵称搜索'**
+  String get event_register_search_user_hint;
 
   /// No description provided for @event_register_jersey.
   ///
@@ -4450,8 +4498,8 @@ abstract class AppL10n {
   /// No description provided for @event_overview_rule_format.
   ///
   /// In zh, this message translates to:
-  /// **'11人制 · 标准场地'**
-  String get event_overview_rule_format;
+  /// **'{n}人制'**
+  String event_overview_rule_format(int n);
 
   /// No description provided for @event_overview_rule_halves.
   ///
@@ -4470,6 +4518,48 @@ abstract class AppL10n {
   /// In zh, this message translates to:
   /// **'红黄牌累积停赛'**
   String get event_overview_rule_cards;
+
+  /// No description provided for @event_template_league.
+  ///
+  /// In zh, this message translates to:
+  /// **'联赛（循环赛）'**
+  String get event_template_league;
+
+  /// No description provided for @event_template_knockout16.
+  ///
+  /// In zh, this message translates to:
+  /// **'淘汰赛（16强）'**
+  String get event_template_knockout16;
+
+  /// No description provided for @event_template_knockout8.
+  ///
+  /// In zh, this message translates to:
+  /// **'淘汰赛（8强）'**
+  String get event_template_knockout8;
+
+  /// No description provided for @event_template_group8.
+  ///
+  /// In zh, this message translates to:
+  /// **'小组赛 + 淘汰赛'**
+  String get event_template_group8;
+
+  /// No description provided for @event_template_wc.
+  ///
+  /// In zh, this message translates to:
+  /// **'世界杯赛制'**
+  String get event_template_wc;
+
+  /// No description provided for @event_template_unknown.
+  ///
+  /// In zh, this message translates to:
+  /// **'自定义赛制'**
+  String get event_template_unknown;
+
+  /// No description provided for @event_overview_tournament_format.
+  ///
+  /// In zh, this message translates to:
+  /// **'赛制'**
+  String get event_overview_tournament_format;
 
   /// No description provided for @event_overview_organizer_label.
   ///
@@ -5184,6 +5274,114 @@ abstract class AppL10n {
   /// In zh, this message translates to:
   /// **'未找到该比赛'**
   String get match_not_found;
+
+  /// No description provided for @match_tab_overview.
+  ///
+  /// In zh, this message translates to:
+  /// **'概况'**
+  String get match_tab_overview;
+
+  /// No description provided for @match_tab_stats.
+  ///
+  /// In zh, this message translates to:
+  /// **'统计'**
+  String get match_tab_stats;
+
+  /// No description provided for @match_tab_ratings.
+  ///
+  /// In zh, this message translates to:
+  /// **'评分'**
+  String get match_tab_ratings;
+
+  /// No description provided for @match_tab_discussion.
+  ///
+  /// In zh, this message translates to:
+  /// **'讨论'**
+  String get match_tab_discussion;
+
+  /// No description provided for @match_stats_goals.
+  ///
+  /// In zh, this message translates to:
+  /// **'进球'**
+  String get match_stats_goals;
+
+  /// No description provided for @match_stats_penalty_goals.
+  ///
+  /// In zh, this message translates to:
+  /// **'点球进球'**
+  String get match_stats_penalty_goals;
+
+  /// No description provided for @match_stats_own_goals.
+  ///
+  /// In zh, this message translates to:
+  /// **'乌龙球'**
+  String get match_stats_own_goals;
+
+  /// No description provided for @match_stats_first_half.
+  ///
+  /// In zh, this message translates to:
+  /// **'上半场进球'**
+  String get match_stats_first_half;
+
+  /// No description provided for @match_stats_second_half.
+  ///
+  /// In zh, this message translates to:
+  /// **'下半场进球'**
+  String get match_stats_second_half;
+
+  /// No description provided for @match_stats_no_data.
+  ///
+  /// In zh, this message translates to:
+  /// **'比赛结束后展示统计数据'**
+  String get match_stats_no_data;
+
+  /// No description provided for @match_discussion_not_open.
+  ///
+  /// In zh, this message translates to:
+  /// **'讨论区即将上线'**
+  String get match_discussion_not_open;
+
+  /// No description provided for @match_rating_goals_short.
+  ///
+  /// In zh, this message translates to:
+  /// **'进球'**
+  String get match_rating_goals_short;
+
+  /// No description provided for @match_rating_assists_short.
+  ///
+  /// In zh, this message translates to:
+  /// **'助攻'**
+  String get match_rating_assists_short;
+
+  /// No description provided for @match_rating_n_voted.
+  ///
+  /// In zh, this message translates to:
+  /// **'{n}人评分'**
+  String match_rating_n_voted(int n);
+
+  /// No description provided for @match_rating_score_dist.
+  ///
+  /// In zh, this message translates to:
+  /// **'评分分布'**
+  String get match_rating_score_dist;
+
+  /// No description provided for @match_rating_all_reviews.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部评价'**
+  String get match_rating_all_reviews;
+
+  /// No description provided for @match_rating_no_reviews.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无评价'**
+  String get match_rating_no_reviews;
+
+  /// No description provided for @match_rating_not_rated.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无评分'**
+  String get match_rating_not_rated;
 
   /// No description provided for @event_standings_leaders_label.
   ///

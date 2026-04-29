@@ -13,10 +13,8 @@ import '../../services/local_storage.dart';
 import '../../services/supabase.dart' as svc;
 import '../../services/storage.dart';
 import '../../utils/toast.dart';
-import '../../widgets/avatar.dart';
 import '../../widgets/network_avatar.dart';
 import '../../widgets/rich_input.dart';
-import '../../widgets/user_card_sheet.dart';
 import '../../theme/app_tokens.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
@@ -34,7 +32,21 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   bool _sending = false;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(activeConvIdProvider.notifier).state = widget.convId;
+      ref.read(messagesRepoProvider).markRead(widget.convId);
+    });
+  }
+
+  @override
   void dispose() {
+    ref.read(activeConvIdProvider.notifier).state = null;
+    final repo = ref.read(messagesRepoProvider);
+    repo.markRead(widget.convId).then((_) {
+      repo.refreshConversations();
+    });
     _input.dispose();
     _scroll.dispose();
     super.dispose();
@@ -264,7 +276,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   Expanded(
                     child: GestureDetector(
                       onTap: isDm && peerProfile != null
-                          ? () => showUserCardSheet(context, ref, userId: peerProfile.id)
+                          ? () => context.push('/user/${peerProfile.id}')
                           : null,
                       child: Row(
                         children: [
@@ -347,13 +359,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 }
 
-class _Bubble extends StatelessWidget {
+class _Bubble extends ConsumerWidget {
   final Message msg;
   final bool isMe;
   const _Bubble({required this.msg, required this.isMe});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (msg.kind == 'system') {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 10),
@@ -374,9 +386,11 @@ class _Bubble extends StatelessWidget {
     }
 
     final time = DateFormat('HH:mm').format(msg.createdAt.toLocal());
-    final who = msg.senderId != null
-        ? msg.senderId!.substring(0, 4)
-        : context.l10n.chat_sender_system;
+    final senderProfile = msg.senderId != null
+        ? ref.watch(profileByIdProvider(msg.senderId!)).valueOrNull
+        : null;
+    final who = senderProfile?.name ??
+        (msg.senderId != null ? msg.senderId!.substring(0, 4) : context.l10n.chat_sender_system);
 
     final Widget bubble;
     if (msg.kind == 'image' && msg.body != null) {
@@ -449,9 +463,9 @@ class _Bubble extends StatelessWidget {
         mainAxisAlignment: isMe
             ? MainAxisAlignment.end
             : MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (!isMe) ...[Avatar(who, size: 28), const SizedBox(width: 8)],
+          if (!isMe) ...[NetworkAvatar(who, url: senderProfile?.avatarUrl, size: 28), const SizedBox(width: 8)],
           Column(
             crossAxisAlignment: isMe
                 ? CrossAxisAlignment.end

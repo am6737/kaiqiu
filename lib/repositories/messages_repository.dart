@@ -24,15 +24,6 @@ class ConversationRow {
     this.lastMessageBody,
   });
 
-  ConversationRow copyWith({String? lastMessageBody}) => ConversationRow(
-        id: id,
-        title: title,
-        kind: kind,
-        updatedAt: updatedAt,
-        unread: unread,
-        lastMessageBody: lastMessageBody ?? this.lastMessageBody,
-      );
-
   static ConversationRow? fromJoined(Map<String, dynamic> m) {
     final conv = (m['conversations'] as Map?)?.cast<String, dynamic>();
     if (conv == null) return null;
@@ -44,17 +35,21 @@ class ConversationRow {
       kind: (conv['kind'] as String?) ?? 'dm',
       updatedAt: DateTime.parse(updatedAtStr),
       unread: (m['unread'] as int?) ?? 0,
+      lastMessageBody: conv['last_message_body'] as String?,
     );
   }
 }
 
 class MessagesRepository {
+  final _conversationRefreshTrigger = StreamController<void>.broadcast();
+
+  void refreshConversations() => _conversationRefreshTrigger.add(null);
+
   /// Conversations the current user belongs to. Sorted by most recent.
-  /// Also fetches the latest message body for each conversation.
   Future<List<ConversationRow>> listConversations() async {
     final rows = await supabase
         .from('conversation_members')
-        .select('unread, conversations!inner(id, title, kind, updated_at)')
+        .select('unread, conversations!inner(id, title, kind, last_message_body, updated_at)')
         .eq('user_id', currentUserId!)
         .order(
           'updated_at',
@@ -62,29 +57,75 @@ class MessagesRepository {
           ascending: false,
         );
     const hiddenTitles = {'球局 · 新手大厅', '系统通知'};
-    final convs = (rows as List)
+    return (rows as List)
         .cast<Map<String, dynamic>>()
         .map(ConversationRow.fromJoined)
         .whereType<ConversationRow>()
-        .where((c) => !hiddenTitles.contains(c.title))
+        .where((c) =>
+            !hiddenTitles.contains(c.title) &&
+            !(c.title?.startsWith('event:') ?? false))
         .toList();
-    if (convs.isEmpty) return convs;
+  }
 
-    final futures = convs.map((c) => supabase
-        .from('messages')
-        .select('body')
-        .eq('conv_id', c.id)
-        .order('created_at', ascending: false)
-        .limit(1)
-        .maybeSingle());
-    final results = await Future.wait(futures);
+  /// Live stream of conversations, auto-refreshes on new messages via Realtime.
+  Stream<List<ConversationRow>> streamConversations() {
+    final controller = StreamController<List<ConversationRow>>();
+    late final RealtimeChannel channel;
 
-    return [
-      for (var i = 0; i < convs.length; i++)
-        convs[i].copyWith(
-          lastMessageBody: (results[i]?['body'] as String?),
-        ),
-    ];
+    Future<void> refresh() async {
+      try {
+        final list = await listConversations();
+        if (!controller.isClosed) controller.add(list);
+      } catch (e, st) {
+        if (!controller.isClosed) controller.addError(e, st);
+      }
+    }
+
+    late final StreamSubscription<void> triggerSub;
+
+    Future<void> init() async {
+      await refresh();
+      triggerSub = _conversationRefreshTrigger.stream.listen((_) => refresh());
+      channel = supabase
+          .channel('conversations_live')
+          .onPostgresChanges(
+            event: PostgresChangeEvent.insert,
+            schema: 'public',
+            table: 'messages',
+            callback: (_) => refresh(),
+          )
+          .onPostgresChanges(
+            event: PostgresChangeEvent.insert,
+            schema: 'public',
+            table: 'conversation_members',
+            filter: PostgresChangeFilter(
+              type: PostgresChangeFilterType.eq,
+              column: 'user_id',
+              value: currentUserId!,
+            ),
+            callback: (_) => refresh(),
+          )
+          .onPostgresChanges(
+            event: PostgresChangeEvent.update,
+            schema: 'public',
+            table: 'conversation_members',
+            filter: PostgresChangeFilter(
+              type: PostgresChangeFilterType.eq,
+              column: 'user_id',
+              value: currentUserId!,
+            ),
+            callback: (_) => refresh(),
+          )
+          .subscribe();
+    }
+
+    controller.onListen = init;
+    controller.onCancel = () async {
+      triggerSub.cancel();
+      await supabase.removeChannel(channel);
+      await controller.close();
+    };
+    return controller.stream;
   }
 
   /// Initial fetch of a conversation's messages (oldest first).
@@ -113,6 +154,37 @@ class MessagesRepository {
         .select()
         .single();
     return Message.fromMap(row);
+  }
+
+  /// Global stream that emits every new message across all conversations.
+  /// Used for in-app notifications and unread badge refresh.
+  Stream<Message> streamGlobalNewMessages() {
+    final controller = StreamController<Message>();
+    late final RealtimeChannel channel;
+
+    void init() {
+      channel = supabase
+          .channel('global_new_messages')
+          .onPostgresChanges(
+            event: PostgresChangeEvent.insert,
+            schema: 'public',
+            table: 'messages',
+            callback: (payload) {
+              final m = Message.fromMap(payload.newRecord);
+              if (m.senderId != currentUserId) {
+                controller.add(m);
+              }
+            },
+          )
+          .subscribe();
+    }
+
+    controller.onListen = init;
+    controller.onCancel = () async {
+      await supabase.removeChannel(channel);
+      await controller.close();
+    };
+    return controller.stream;
   }
 
   /// Stream of the full messages list for [convId], live-updated via Realtime.

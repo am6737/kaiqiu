@@ -6,6 +6,7 @@ class ArticlesRepository {
     required String body,
     String category = 'analysis',
     String? summary,
+    String? city,
   }) async {
     final uid = currentUserId;
     if (uid == null) throw Exception('Not signed in');
@@ -15,6 +16,7 @@ class ArticlesRepository {
       'body': body,
       'category': category,
       if (summary != null && summary.isNotEmpty) 'summary': summary,
+      if (city != null) 'city': city,
     });
   }
 }

@@ -59,3 +59,9 @@ lib/config/env.local.dart
 # Claude Code local settings (tool permissions cache)
 .claude/
 
+# Dev certificates
+.dev-cert*.pem
+
+# Test accounts
+test_accounts.md
+

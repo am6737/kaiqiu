@@ -5,13 +5,16 @@ import '../services/supabase.dart';
 
 class FeedRepository {
   /// Mixed feed for 推荐 Tab — all content types, sorted by time.
-  Future<List<FeedItem>> buildRecommendFeed({int limit = 20}) async {
+  Future<List<FeedItem>> buildRecommendFeed({
+    int limit = 20,
+    String? city,
+  }) async {
     final results = await Future.wait([
       _recentResults(limit: limit),
-      _recentPosts(limit: limit),
+      _recentPosts(limit: limit, city: city),
       _registeringEvents(limit: limit),
-      _recentPickups(limit: limit),
-      _recentArticles(limit: limit),
+      _recentPickups(limit: limit, city: city),
+      _recentArticles(limit: limit, city: city),
     ]);
     final items = <FeedItem>[
       ...results[0],
@@ -26,10 +29,13 @@ class FeedRepository {
   }
 
   /// Mixed feed for 发现 Tab — posts (with activity data) + articles.
-  Future<List<FeedItem>> buildDiscoverFeed({int limit = 20}) async {
+  Future<List<FeedItem>> buildDiscoverFeed({
+    int limit = 20,
+    String? city,
+  }) async {
     final results = await Future.wait([
-      _recentActivities(limit: limit),
-      _recentArticles(limit: limit),
+      _recentActivities(limit: limit, city: city),
+      _recentArticles(limit: limit, city: city),
     ]);
     final items = <FeedItem>[...results[0], ...results[1]];
     items.sort((a, b) => b.createdAt.compareTo(a.createdAt));
@@ -52,11 +58,16 @@ class FeedRepository {
     };
   }
 
-  Future<List<FeedPickup>> _recentPickups({required int limit}) async {
-    final rows = await supabase
+  Future<List<FeedPickup>> _recentPickups({
+    required int limit,
+    String? city,
+  }) async {
+    var query = supabase
         .from('pickups')
-        .select()
-        .neq('status', 'done')
+        .select('*, host:profiles!host_id(name, avatar_url)')
+        .neq('status', 'done');
+    if (city != null) query = query.eq('city', city);
+    final rows = await query
         .order('start_at', ascending: true)
         .limit(limit);
     return (rows as List)
@@ -65,10 +76,13 @@ class FeedRepository {
         .toList();
   }
 
-  Future<List<FeedArticle>> _recentArticles({required int limit}) async {
-    final rows = await supabase
-        .from('articles')
-        .select()
+  Future<List<FeedArticle>> _recentArticles({
+    required int limit,
+    String? city,
+  }) async {
+    var query = supabase.from('articles').select();
+    if (city != null) query = query.eq('city', city);
+    final rows = await query
         .order('created_at', ascending: false)
         .limit(limit);
     return (rows as List)
@@ -77,10 +91,15 @@ class FeedRepository {
         .toList();
   }
 
-  Future<List<FeedActivity>> _recentActivities({required int limit}) async {
-    final rows = await supabase
+  Future<List<FeedActivity>> _recentActivities({
+    required int limit,
+    String? city,
+  }) async {
+    var query = supabase
         .from('posts')
-        .select('*, author:profiles!author_id(name)')
+        .select('*, author:profiles!author_id(name, avatar_url)');
+    if (city != null) query = query.eq('city', city);
+    final rows = await query
         .order('created_at', ascending: false)
         .limit(limit);
     return (rows as List)
@@ -126,10 +145,15 @@ class FeedRepository {
         .toList();
   }
 
-  Future<List<FeedPost>> _recentPosts({required int limit}) async {
-    final rows = await supabase
+  Future<List<FeedPost>> _recentPosts({
+    required int limit,
+    String? city,
+  }) async {
+    var query = supabase
         .from('posts')
-        .select('*, author:profiles!author_id(name)')
+        .select('*, author:profiles!author_id(name, avatar_url)');
+    if (city != null) query = query.eq('city', city);
+    final rows = await query
         .order('created_at', ascending: false)
         .limit(limit);
     return (rows as List)
@@ -144,7 +168,7 @@ class FeedRepository {
     if (uid == null) return [];
     final rows = await supabase
         .from('posts')
-        .select('*, author:profiles!author_id(name)')
+        .select('*, author:profiles!author_id(name, avatar_url)')
         .eq('author_id', uid)
         .order('created_at', ascending: false)
         .limit(limit);
@@ -174,7 +198,7 @@ class FeedRepository {
       {int limit = 5}) async {
     final rows = await supabase
         .from('posts')
-        .select('*, author:profiles!author_id(name)')
+        .select('*, author:profiles!author_id(name, avatar_url)')
         .eq('author_id', userId)
         .order('created_at', ascending: false)
         .limit(limit);

@@ -145,6 +145,7 @@ class _CreatePickupScreenState extends ConsumerState<CreatePickupScreen> {
     final total = int.tryParse(_total.text.trim()) ?? 11;
     final durationMin = int.tryParse(_duration.text.trim()) ?? 90;
     final feeCents = (int.tryParse(_fee.text.trim()) ?? 0) * 100;
+    final hostName = ref.read(myProfileProvider).valueOrNull?.name;
     setState(() => _submitting = true);
     try {
       await ref
@@ -152,6 +153,7 @@ class _CreatePickupScreenState extends ConsumerState<CreatePickupScreen> {
           .createWithSlots(
             payload: {
               'host_id': uid,
+              if (hostName != null) 'host_name': hostName,
               'venue': _pickedLocation!.name,
               'address': _pickedLocation!.address,
               'lat': _pickedLocation!.lat,
@@ -169,6 +171,7 @@ class _CreatePickupScreenState extends ConsumerState<CreatePickupScreen> {
               'formation': _formation,
               'field_type': _fieldType,
               'status': 'open',
+              'city': ref.read(cityProvider),
               if (_venuePhotos.isNotEmpty) 'venue_photo_url': jsonEncode(_venuePhotos),
             },
             totalSlots: total,

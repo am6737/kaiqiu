@@ -6,11 +6,13 @@ import 'package:intl/intl.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../l10n/l10n_extension.dart';
 import '../../utils/share_helper.dart';
+import '../../utils/toast.dart';
 import '../../models/comment.dart';
 import '../../providers.dart';
 import '../../services/supabase.dart';
 import '../../theme/app_tokens.dart';
 import '../../widgets/avatar.dart';
+import '../../widgets/network_avatar.dart';
 import '../../widgets/interaction_btn.dart';
 import '../../widgets/rich_input.dart';
 import '../../widgets/typography.dart';
@@ -37,15 +39,11 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
     final l = context.l10n;
     final text = _ctrl.text.trim();
     if (text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l.comment_empty_toast)),
-      );
+      showToast(context, l.comment_empty_toast, info: true);
       return;
     }
     if (!isSignedIn) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l.comment_login_required)),
-      );
+      showToast(context, l.comment_login_required, info: true);
       return;
     }
     setState(() => _sending = true);
@@ -60,9 +58,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
       ref.invalidate(postDetailProvider(widget.id));
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l.comment_send_failed)),
-        );
+        showToast(context, l.comment_send_failed, error: true);
       }
     } finally {
       if (mounted) setState(() => _sending = false);
@@ -180,6 +176,8 @@ class _Body extends ConsumerWidget {
     final l = AppL10n.of(context);
     final author = data['author'] as Map<String, dynamic>?;
     final authorName = (author?['name'] as String?) ?? '匿名';
+    final authorAvatarUrl = author?['avatar_url'] as String?;
+    final authorId = data['author_id'] as String?;
     final body = data['body'] as String? ?? '';
     final rawTags = data['tags'];
     final tags = rawTags is List ? rawTags.cast<String>() : <String>[];
@@ -239,28 +237,33 @@ class _Body extends ConsumerWidget {
           ),
 
           // Author row
-          Row(
-            children: [
-              Avatar(authorName, size: 44),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(authorName,
-                        style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                            color: t.ink)),
-                    const SizedBox(height: 2),
-                    Text(
-                      '$dateStr${venue != null ? ' · $venue' : ''}',
-                      style: TextStyle(fontSize: 11, color: t.inkMute),
-                    ),
-                  ],
+          GestureDetector(
+            onTap: authorId != null
+                ? () => context.push('/user/$authorId')
+                : null,
+            child: Row(
+              children: [
+                NetworkAvatar(authorName, url: authorAvatarUrl, size: 44),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(authorName,
+                          style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: t.ink)),
+                      const SizedBox(height: 2),
+                      Text(
+                        '$dateStr${venue != null ? ' · $venue' : ''}',
+                        style: TextStyle(fontSize: 11, color: t.inkMute),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           const SizedBox(height: 20),
 
@@ -334,9 +337,7 @@ class _Body extends ConsumerWidget {
               GestureDetector(
                 onTap: () {
                   if (!isSignedIn) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(l.like_login_required)),
-                    );
+                    showToast(context, l.like_login_required, info: true);
                     return;
                   }
                   ref.read(likesRepoProvider).toggle('post', postId).then((_) {

@@ -7,7 +7,8 @@ import '../../../providers.dart';
 import '../../../services/supabase.dart';
 import '../../../theme/app_tokens.dart';
 import '../../../utils/share_helper.dart';
-import '../../../widgets/avatar.dart';
+import '../../../utils/toast.dart';
+import '../../../widgets/network_avatar.dart';
 import '../../../widgets/interaction_btn.dart';
 
 class PostFeedCard extends ConsumerWidget {
@@ -32,7 +33,7 @@ class PostFeedCard extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(children: [
-                Avatar(item.authorName, size: 32),
+                NetworkAvatar(item.authorName, url: item.authorAvatarUrl, size: 32),
                 const SizedBox(width: 10),
                 Expanded(
                     child: Column(
@@ -110,9 +111,7 @@ class PostFeedCard extends ConsumerWidget {
   void _toggleLike(BuildContext context, WidgetRef ref) async {
     if (!isSignedIn) {
       final l = AppL10n.of(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l.like_login_required)),
-      );
+      showToast(context, l.like_login_required, info: true);
       return;
     }
     await ref.read(likesRepoProvider).toggle('post', item.id);

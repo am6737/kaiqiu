@@ -15,7 +15,6 @@ Future<void> initLocalStorage() async {
 
 const _kFavPickups = 'fav_pickups';
 const _kFavEvents = 'fav_events';
-const _kFollowedUsers = 'followed_users';
 const _kReminders = 'reminders';
 const _kPredictions = 'predictions';
 const _kPinnedConvs = 'pinned_convs';
@@ -65,17 +64,6 @@ class LocalStore {
     final s = favoriteEvents;
     s.contains(id) ? s.remove(id) : s.add(id);
     await _prefs.setStringList(_kFavEvents, s.toList());
-    localStoreNotifier.bump();
-  }
-
-  // ─── follow users
-  static Set<String> get followedUsers =>
-      _prefs.getStringList(_kFollowedUsers)?.toSet() ?? <String>{};
-  static bool isFollowing(String who) => followedUsers.contains(who);
-  static Future<void> toggleFollowUser(String who) async {
-    final s = followedUsers;
-    s.contains(who) ? s.remove(who) : s.add(who);
-    await _prefs.setStringList(_kFollowedUsers, s.toList());
     localStoreNotifier.bump();
   }
 
@@ -136,22 +124,35 @@ class LocalStore {
     localStoreNotifier.bump();
   }
 
-  // ─── city
-  static String get city => _prefs.getString(_kCity) ?? '南宁';
-  static Future<void> setCity(String city) async {
-    await _prefs.setString(_kCity, city);
-    await addRecentCity(city);
+  // ─── city (stored as "省/市/区" path, e.g. "广西壮族自治区/南宁市/青秀区")
+  static String get cityPath => _prefs.getString(_kCity) ?? '广西壮族自治区/南宁市';
+  static List<String> get cityPathParts => cityPath.split('/');
+  static String get city {
+    final parts = cityPathParts;
+    if (parts.length >= 2) return parts[1];
+    return parts.last;
+  }
+
+  static Future<void> setCityPath(String path) async {
+    await _prefs.setString(_kCity, path);
+    await addRecentCity(path);
     localStoreNotifier.bump();
   }
 
-  // ─── recent cities
+  // keep old API working
+  static Future<void> setCity(String city) async {
+    await _prefs.setString(_kCity, city);
+    localStoreNotifier.bump();
+  }
+
+  // ─── recent cities (stores full paths)
   static List<String> get recentCities =>
       _prefs.getStringList(_kRecentCities) ?? <String>[];
 
-  static Future<void> addRecentCity(String city) async {
+  static Future<void> addRecentCity(String path) async {
     final list = recentCities;
-    list.remove(city);
-    list.insert(0, city);
+    list.remove(path);
+    list.insert(0, path);
     while (list.length > 5) {
       list.removeLast();
     }

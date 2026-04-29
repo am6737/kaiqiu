@@ -85,6 +85,9 @@ class RecommendTab extends ConsumerWidget {
     return Pickup.fromMap({
       'id': fp.id,
       'host_name': fp.hostName,
+      'host': fp.hostAvatarUrl != null
+          ? {'name': fp.hostName, 'avatar_url': fp.hostAvatarUrl}
+          : null,
       'title': fp.title,
       'venue': fp.venue,
       'start_at': fp.startAt.toIso8601String(),

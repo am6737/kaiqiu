@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../l10n/l10n_extension.dart';
 import '../providers.dart';
 import '../theme/app_tokens.dart';
+import 'in_app_notification.dart';
 
 class BottomNavShell extends ConsumerStatefulWidget {
   final StatefulNavigationShell shell;
@@ -32,6 +33,36 @@ class _BottomNavShellState extends ConsumerState<BottomNavShell> {
       } else if (profile != null) {
         _checkedOnboarding = true;
       }
+    });
+    ref.listenManual(globalNewMessageProvider, (_, next) {
+      next.whenData((msg) async {
+        final activeConv = ref.read(activeConvIdProvider);
+        if (msg.convId == activeConv) return;
+
+        final convs = ref.read(conversationsProvider).valueOrNull ?? [];
+        if (!convs.any((c) => c.id == msg.convId)) {
+          ref.read(messagesRepoProvider).refreshConversations();
+        }
+
+        String senderName = '新消息';
+        String? avatarUrl;
+        if (msg.senderId != null) {
+          try {
+            final profile =
+                await ref.read(profileByIdProvider(msg.senderId!).future);
+            senderName = profile?.name ?? senderName;
+            avatarUrl = profile?.avatarUrl;
+          } catch (_) {}
+        }
+        if (!mounted) return;
+        showInAppNotification(
+          context,
+          title: senderName,
+          body: msg.body ?? '',
+          avatarUrl: avatarUrl,
+          onTap: () => context.push('/chat/${msg.convId}'),
+        );
+      });
     });
   }
 

@@ -20,24 +20,27 @@ class CityPickerScreen extends ConsumerStatefulWidget {
 
 class _CityPickerScreenState extends ConsumerState<CityPickerScreen> {
   final _searchController = TextEditingController();
-  final _scrollController = ScrollController();
   String _query = '';
+
+  List<Division>? _provinces;
+  bool _dataLoading = true;
 
   // GPS state
   bool _gpsLoading = true;
-  CityInfo? _gpsCity;
+  String? _gpsPath;
   bool _gpsFailed = false;
 
-  // Region keys for scroll-to
-  final _regionKeys = <String, GlobalKey>{};
+  // Drill-down state: breadcrumb path of selected divisions
+  final List<Division> _breadcrumb = [];
+
+  // Letter index keys
+  final _letterKeys = <String, GlobalKey>{};
+  final _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    for (final r in kRegionOrder) {
-      _regionKeys[r] = GlobalKey();
-    }
-    _locateCity();
+    _loadData();
   }
 
   @override
@@ -47,11 +50,22 @@ class _CityPickerScreenState extends ConsumerState<CityPickerScreen> {
     super.dispose();
   }
 
+  Future<void> _loadData() async {
+    final provinces = await loadDivisions();
+    if (!mounted) return;
+    setState(() {
+      _provinces = provinces;
+      _dataLoading = false;
+    });
+    _locateCity();
+  }
+
   Future<void> _locateCity() async {
+    if (_provinces == null) return;
     setState(() {
       _gpsLoading = true;
       _gpsFailed = false;
-      _gpsCity = null;
+      _gpsPath = null;
     });
     final pos = await LocationService().currentPosition();
     if (!mounted) return;
@@ -62,21 +76,47 @@ class _CityPickerScreenState extends ConsumerState<CityPickerScreen> {
       });
       return;
     }
-    final city = findNearestCity(pos.latitude, pos.longitude);
+    final path = findNearestCityPath(_provinces!, pos.latitude, pos.longitude);
     setState(() {
       _gpsLoading = false;
-      _gpsCity = city;
-      _gpsFailed = false;
+      _gpsPath = path;
+      _gpsFailed = path == null;
     });
   }
 
-  Future<void> _pick(String city) async {
-    await LocalStore.setCity(city);
+  Future<void> _pick(String path) async {
+    await LocalStore.setCityPath(path);
     if (mounted) context.pop();
   }
 
-  void _scrollToRegion(String region) {
-    final key = _regionKeys[region];
+  void _drillInto(Division division) {
+    setState(() {
+      _breadcrumb.add(division);
+      _letterKeys.clear();
+    });
+  }
+
+  void _popTo(int index) {
+    setState(() {
+      _breadcrumb.removeRange(index, _breadcrumb.length);
+      _letterKeys.clear();
+    });
+  }
+
+  List<Division> get _currentItems {
+    if (_breadcrumb.isEmpty) return _provinces ?? [];
+    return _breadcrumb.last.children;
+  }
+
+  int get _currentLevel => _breadcrumb.length; // 0=省, 1=市, 2=区
+
+  String _buildPath(String name) {
+    final parts = _breadcrumb.map((d) => d.name).toList()..add(name);
+    return parts.join('/');
+  }
+
+  void _scrollToLetter(String letter) {
+    final key = _letterKeys[letter];
     if (key?.currentContext != null) {
       Scrollable.ensureVisible(
         key!.currentContext!,
@@ -89,9 +129,27 @@ class _CityPickerScreenState extends ConsumerState<CityPickerScreen> {
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
-    final current = LocalStore.city;
-    final searchResults = searchCities(_query);
+    final currentPath = LocalStore.cityPath;
     final isSearching = _query.isNotEmpty;
+
+    if (_dataLoading) {
+      return Scaffold(
+        backgroundColor: context.tokens.bg,
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final searchResults =
+        isSearching ? searchDivisions(_provinces!, _query) : <SearchResult>[];
+    final items = _currentItems;
+    final grouped = groupByPinyinInitial(items);
+
+    // Build letter keys
+    if (_letterKeys.isEmpty) {
+      for (final letter in grouped.keys) {
+        _letterKeys[letter] = GlobalKey();
+      }
+    }
 
     return Scaffold(
       backgroundColor: context.tokens.bg,
@@ -100,23 +158,36 @@ class _CityPickerScreenState extends ConsumerState<CityPickerScreen> {
           children: [
             ListView(
               controller: _scrollController,
-              padding: const EdgeInsets.only(bottom: 40, right: 40),
+              padding: EdgeInsets.only(
+                bottom: 40,
+                right: !isSearching && _currentLevel == 0 ? 36 : 0,
+              ),
               children: [
                 PageTitleBar(
                   title: l.city_picker_title,
-                  onBack: () => context.pop(),
-                ),
-                // GPS card
-                _GpsCard(
-                  loading: _gpsLoading,
-                  city: _gpsCity,
-                  failed: _gpsFailed,
-                  onUse: () {
-                    if (_gpsCity != null) _pick(_gpsCity!.name);
+                  onBack: () {
+                    if (_breadcrumb.isNotEmpty) {
+                      _popTo(_breadcrumb.length - 1);
+                    } else {
+                      context.pop();
+                    }
                   },
-                  onRetry: _locateCity,
                 ),
-                const SizedBox(height: 14),
+
+                // GPS card (only on province level)
+                if (_currentLevel == 0) ...[
+                  _GpsCard(
+                    loading: _gpsLoading,
+                    path: _gpsPath,
+                    failed: _gpsFailed,
+                    onUse: () {
+                      if (_gpsPath != null) _pick(_gpsPath!);
+                    },
+                    onRetry: _locateCity,
+                  ),
+                  const SizedBox(height: 14),
+                ],
+
                 // Search
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -137,7 +208,8 @@ class _CityPickerScreenState extends ConsumerState<CityPickerScreen> {
                           : null,
                       filled: true,
                       fillColor: context.tokens.elev2,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                      contentPadding:
+                          const EdgeInsets.symmetric(vertical: 10),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide.none,
@@ -145,33 +217,45 @@ class _CityPickerScreenState extends ConsumerState<CityPickerScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: 10),
+
+                // Breadcrumb (when drilled in)
+                if (_breadcrumb.isNotEmpty && !isSearching)
+                  _Breadcrumb(
+                    items: _breadcrumb,
+                    onTap: _popTo,
+                  ),
 
                 if (isSearching) ...[
+                  // Search results
                   if (searchResults.isEmpty)
                     Padding(
                       padding: const EdgeInsets.all(32),
                       child: Center(
                         child: Text(
                           l.city_picker_no_result,
-                          style: TextStyle(color: context.tokens.inkSub, fontSize: 14),
+                          style: TextStyle(
+                              color: context.tokens.inkSub, fontSize: 14),
                         ),
                       ),
                     )
                   else
-                    for (final c in searchResults)
-                      _CityRow(
-                        city: c,
-                        active: c.name == current,
+                    for (final r in searchResults.take(50))
+                      _SearchResultRow(
+                        result: r,
+                        currentPath: currentPath,
                         currentLabel: l.city_picker_current_label,
-                        onTap: () => _pick(c.name),
+                        onTap: () => _pick(r.path),
                       ),
-                ] else ...[
-                  // Recent cities
+                ] else if (_currentLevel == 0) ...[
+                  // Province level: show recent + hot + all provinces
+
+                  // Recent
                   _RecentSection(
-                    current: current,
+                    currentPath: currentPath,
                     onPick: _pick,
                   ),
+
                   // Hot cities
                   SectionHeader(title: l.city_picker_hot),
                   Padding(
@@ -183,37 +267,65 @@ class _CityPickerScreenState extends ConsumerState<CityPickerScreen> {
                         for (final name in kHotCityNames)
                           _CityChip(
                             label: name,
-                            active: name == current,
-                            onTap: () => _pick(name),
+                            active: currentPath.contains(name),
+                            onTap: () {
+                              // Find the hot city's province path
+                              for (final p in _provinces!) {
+                                for (final c in p.children) {
+                                  if (c.name == name) {
+                                    _pick('${p.name}/${c.name}');
+                                    return;
+                                  }
+                                }
+                              }
+                            },
                           ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 8),
-                  // All cities by region
-                  for (final region in kRegionOrder) ...[
-                    _RegionHeader(key: _regionKeys[region], title: region),
-                    for (final c in citiesByRegion[region]!)
-                      _CityRow(
-                        city: c,
-                        active: c.name == current,
-                        currentLabel: l.city_picker_current_label,
-                        onTap: () => _pick(c.name),
+
+                  // All provinces by pinyin
+                  SectionHeader(title: l.city_picker_all),
+                  for (final entry in grouped.entries) ...[
+                    _LetterHeader(
+                        key: _letterKeys[entry.key], letter: entry.key),
+                    for (final item in entry.value)
+                      _DivisionRow(
+                        division: item,
+                        hasChildren: item.children.isNotEmpty,
+                        onTap: () => _drillInto(item),
                       ),
                   ],
+                ] else ...[
+                  // City/District level
+                  for (final item in items)
+                    _DivisionRow(
+                      division: item,
+                      hasChildren: item.children.isNotEmpty,
+                      active: currentPath.contains(item.name),
+                      currentLabel: l.city_picker_current_label,
+                      onTap: () {
+                        if (item.children.isNotEmpty) {
+                          _drillInto(item);
+                        } else {
+                          _pick(_buildPath(item.name));
+                        }
+                      },
+                    ),
                 ],
               ],
             ),
 
-            // Region index sidebar (only when not searching)
-            if (!isSearching)
+            // Letter index sidebar (province level, not searching)
+            if (!isSearching && _currentLevel == 0)
               Positioned(
                 right: 0,
                 top: 0,
                 bottom: 0,
-                child: _RegionIndexBar(
-                  regions: kRegionOrder,
-                  onTap: _scrollToRegion,
+                child: _LetterIndexBar(
+                  letters: grouped.keys.toList(),
+                  onTap: _scrollToLetter,
                 ),
               ),
           ],
@@ -229,14 +341,14 @@ class _CityPickerScreenState extends ConsumerState<CityPickerScreen> {
 
 class _GpsCard extends StatelessWidget {
   final bool loading;
-  final CityInfo? city;
+  final String? path;
   final bool failed;
   final VoidCallback onUse;
   final VoidCallback onRetry;
 
   const _GpsCard({
     required this.loading,
-    required this.city,
+    required this.path,
     required this.failed,
     required this.onUse,
     required this.onRetry,
@@ -245,7 +357,8 @@ class _GpsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
-    final isGrey = failed || (city == null && !loading);
+    final isGrey = failed || (path == null && !loading);
+    final parts = path?.split('/') ?? [];
 
     return GestureDetector(
       onTap: failed ? onRetry : null,
@@ -256,7 +369,10 @@ class _GpsCard extends StatelessWidget {
           gradient: LinearGradient(
             colors: isGrey
                 ? [Colors.grey.shade400, Colors.grey.shade500]
-                : [context.tokens.accent, context.tokens.accent.withValues(alpha: 0.7)],
+                : [
+                    context.tokens.accent,
+                    context.tokens.accent.withValues(alpha: 0.7)
+                  ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -276,7 +392,6 @@ class _GpsCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Status line
                   Row(
                     children: [
                       Container(
@@ -306,19 +421,16 @@ class _GpsCard extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 4),
-                  // City name or loading
                   if (loading)
                     const SizedBox(
                       height: 24,
                       width: 24,
                       child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
+                          strokeWidth: 2, color: Colors.white),
                     )
-                  else if (city != null) ...[
+                  else if (parts.isNotEmpty) ...[
                     Text(
-                      city!.name,
+                      parts.length >= 2 ? parts[1] : parts[0],
                       style: const TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w800,
@@ -326,32 +438,35 @@ class _GpsCard extends StatelessWidget {
                         letterSpacing: -0.5,
                       ),
                     ),
-                    Text(
-                      city!.province,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.white.withValues(alpha: 0.7),
+                    if (parts.isNotEmpty)
+                      Text(
+                        parts[0],
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.white.withValues(alpha: 0.7),
+                        ),
                       ),
-                    ),
                   ] else
                     Text(
-                      failed ? l.city_picker_gps_failed : l.city_picker_gps_not_supported,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.white,
-                      ),
+                      failed
+                          ? l.city_picker_gps_failed
+                          : l.city_picker_gps_not_supported,
+                      style:
+                          const TextStyle(fontSize: 14, color: Colors.white),
                     ),
                 ],
               ),
             ),
-            if (!loading && city != null)
+            if (!loading && parts.isNotEmpty)
               GestureDetector(
                 onTap: onUse,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.2),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+                    border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.3)),
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Text(
@@ -372,19 +487,65 @@ class _GpsCard extends StatelessWidget {
 }
 
 // ──────────────────────────────────────────────────────────────
+// Breadcrumb
+// ──────────────────────────────────────────────────────────────
+
+class _Breadcrumb extends StatelessWidget {
+  final List<Division> items;
+  final ValueChanged<int> onTap;
+
+  const _Breadcrumb({required this.items, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      child: Wrap(
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          for (int i = 0; i < items.length; i++) ...[
+            GestureDetector(
+              onTap: () => onTap(i),
+              child: Text(
+                items[i].name,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: context.tokens.accent,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Text(
+                '>',
+                style: TextStyle(
+                    fontSize: 13, color: context.tokens.inkSub),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+// ──────────────────────────────────────────────────────────────
 // Recent Section
 // ──────────────────────────────────────────────────────────────
 
 class _RecentSection extends StatelessWidget {
-  final String current;
+  final String currentPath;
   final ValueChanged<String> onPick;
 
-  const _RecentSection({required this.current, required this.onPick});
+  const _RecentSection({required this.currentPath, required this.onPick});
 
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
-    final recent = LocalStore.recentCities.where((c) => c != current).take(5).toList();
+    final recent =
+        LocalStore.recentCities.where((c) => c != currentPath).take(5).toList();
     if (recent.isEmpty) return const SizedBox.shrink();
 
     return Column(
@@ -397,11 +558,11 @@ class _RecentSection extends StatelessWidget {
             spacing: 8,
             runSpacing: 8,
             children: [
-              for (final name in recent)
+              for (final path in recent)
                 _CityChip(
-                  label: name,
+                  label: _displayName(path),
                   active: false,
-                  onTap: () => onPick(name),
+                  onTap: () => onPick(path),
                 ),
             ],
           ),
@@ -409,55 +570,92 @@ class _RecentSection extends StatelessWidget {
       ],
     );
   }
+
+  String _displayName(String path) {
+    final parts = path.split('/');
+    if (parts.length >= 3) return '${parts[1]} ${parts[2]}';
+    if (parts.length >= 2) return parts[1];
+    return parts.last;
+  }
 }
 
 // ──────────────────────────────────────────────────────────────
-// Region header
+// Search result row
 // ──────────────────────────────────────────────────────────────
 
-class _RegionHeader extends StatelessWidget {
-  final String title;
+class _SearchResultRow extends StatelessWidget {
+  final SearchResult result;
+  final String currentPath;
+  final String currentLabel;
+  final VoidCallback onTap;
 
-  const _RegionHeader({super.key, required this.title});
+  const _SearchResultRow({
+    required this.result,
+    required this.currentPath,
+    required this.currentLabel,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
-      child: Row(
-        children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w800,
-              color: context.tokens.accent,
+    final isActive = currentPath == result.path;
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                result.display,
+                style: TextStyle(
+                  fontSize: 14,
+                  color:
+                      isActive ? context.tokens.accent : context.tokens.ink,
+                  fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                ),
+              ),
             ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Divider(height: 1, color: context.tokens.line),
-          ),
-        ],
+            if (isActive)
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: context.tokens.accentSubtle,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  currentLabel,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: context.tokens.accent,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
 }
 
 // ──────────────────────────────────────────────────────────────
-// City row (for all-cities list and search results)
+// Division row (province / city / district)
 // ──────────────────────────────────────────────────────────────
 
-class _CityRow extends StatelessWidget {
-  final CityInfo city;
+class _DivisionRow extends StatelessWidget {
+  final Division division;
+  final bool hasChildren;
   final bool active;
-  final String currentLabel;
+  final String? currentLabel;
   final VoidCallback onTap;
 
-  const _CityRow({
-    required this.city,
-    required this.active,
-    required this.currentLabel,
+  const _DivisionRow({
+    required this.division,
+    required this.hasChildren,
+    this.active = false,
+    this.currentLabel,
     required this.onTap,
   });
 
@@ -471,23 +669,25 @@ class _CityRow extends StatelessWidget {
           children: [
             Expanded(
               child: Text(
-                city.name,
+                division.name,
                 style: TextStyle(
                   fontSize: 15,
-                  color: active ? context.tokens.accent : context.tokens.ink,
+                  color:
+                      active ? context.tokens.accent : context.tokens.ink,
                   fontWeight: active ? FontWeight.w700 : FontWeight.w500,
                 ),
               ),
             ),
-            if (active)
+            if (active && currentLabel != null)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
                   color: context.tokens.accentSubtle,
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
-                  currentLabel,
+                  currentLabel!,
                   style: TextStyle(
                     fontSize: 11,
                     color: context.tokens.accent,
@@ -495,14 +695,9 @@ class _CityRow extends StatelessWidget {
                   ),
                 ),
               )
-            else
-              Text(
-                city.province,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: context.tokens.inkSub,
-                ),
-              ),
+            else if (hasChildren)
+              Icon(Icons.chevron_right,
+                  size: 18, color: context.tokens.inkSub),
           ],
         ),
       ),
@@ -511,7 +706,37 @@ class _CityRow extends StatelessWidget {
 }
 
 // ──────────────────────────────────────────────────────────────
-// City chip (for hot cities and recent cities)
+// Letter header
+// ──────────────────────────────────────────────────────────────
+
+class _LetterHeader extends StatelessWidget {
+  final String letter;
+  const _LetterHeader({super.key, required this.letter});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      child: Row(
+        children: [
+          Text(
+            letter,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+              color: context.tokens.accent,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(child: Divider(height: 1, color: context.tokens.line)),
+        ],
+      ),
+    );
+  }
+}
+
+// ──────────────────────────────────────────────────────────────
+// City chip
 // ──────────────────────────────────────────────────────────────
 
 class _CityChip extends StatelessWidget {
@@ -552,36 +777,37 @@ class _CityChip extends StatelessWidget {
 }
 
 // ──────────────────────────────────────────────────────────────
-// Region index sidebar
+// Letter index sidebar
 // ──────────────────────────────────────────────────────────────
 
-class _RegionIndexBar extends StatelessWidget {
-  final List<String> regions;
+class _LetterIndexBar extends StatelessWidget {
+  final List<String> letters;
   final ValueChanged<String> onTap;
 
-  const _RegionIndexBar({required this.regions, required this.onTap});
+  const _LetterIndexBar({required this.letters, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return Center(
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 5),
         decoration: BoxDecoration(
-          color: context.tokens.elev2.withValues(alpha: 0.8),
+          color: context.tokens.elev2.withValues(alpha: 0.9),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            for (final r in regions)
+            for (final l in letters)
               GestureDetector(
-                onTap: () => onTap(r),
+                onTap: () => onTap(l),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 2, horizontal: 3),
                   child: Text(
-                    r,
+                    l,
                     style: TextStyle(
-                      fontSize: 10,
+                      fontSize: 11,
                       fontWeight: FontWeight.w700,
                       color: context.tokens.accent,
                     ),

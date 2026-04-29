@@ -8,6 +8,7 @@ import '../../../repositories/favorites_repository.dart';
 import '../../../services/supabase.dart';
 import '../../../theme/app_tokens.dart';
 import '../../../utils/share_helper.dart';
+import '../../../utils/toast.dart';
 import '../../../widgets/interaction_btn.dart';
 
 class ArticleFeedCard extends ConsumerWidget {
@@ -140,9 +141,7 @@ class ArticleFeedCard extends ConsumerWidget {
   void _toggleFavorite(BuildContext context, WidgetRef ref) async {
     if (!isSignedIn) {
       final l = AppL10n.of(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l.like_login_required)),
-      );
+      showToast(context, l.like_login_required, info: true);
       return;
     }
     await ref.read(favoritesRepoProvider).toggle(FavoriteEntity.article, item.id);
@@ -152,9 +151,7 @@ class ArticleFeedCard extends ConsumerWidget {
   void _toggleLike(BuildContext context, WidgetRef ref) async {
     if (!isSignedIn) {
       final l = AppL10n.of(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l.like_login_required)),
-      );
+      showToast(context, l.like_login_required, info: true);
       return;
     }
     await ref.read(likesRepoProvider).toggle('article', item.id);

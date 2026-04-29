@@ -84,6 +84,7 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
             playDuration:
                 _showStats ? int.tryParse(_durationCtrl.text.trim()) : null,
             venue: _showStats ? _venueCtrl.text.trim() : null,
+            city: ref.read(cityProvider),
           );
 
       ref.invalidate(myActivitiesProvider);

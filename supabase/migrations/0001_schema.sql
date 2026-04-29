@@ -8,7 +8,7 @@
 --   2. pickups           — 约球 + pickup_slots
 --   3. events/matches    — 赛事、队伍、比赛、评分 + 视图
 --   4. goals             — 进球记录 + 射手榜视图（依赖 matches）
---   5. messaging         — 会话、消息、Realtime + ensure_demo_conversation
+--   5. messaging         — 会话、消息、Realtime
 --   6. user_teams        — 用户自建球队（与 events.teams 独立）
 --   7. predictions       — 世界杯竞猜 + 分布视图
 --   8. match_reminders   — 赛事提醒（pg_cron 扫描用）
@@ -109,16 +109,18 @@ create table public.pickups (
   formation text default '4-3-3',
   field_type text,                      -- 天然草/人工草/室内
   status text default 'open',           -- open/almost/full/done
-  host_name text,                       -- demo 模式下直接展示的主办人名
-  time_label text,                      -- demo 模式下直接展示的时间文案 "今晚 19:30"
-  need int,                             -- demo 模式下直接展示的 "缺 N 人"
+  host_name text,                       -- 主办人名（冗余，免 join）
+  time_label text,                      -- 展示用时间文案 "今晚 19:30"
+  need int,                             -- 还缺多少人
   title text,                           -- 个性化标题（为空时 fallback 到 venue）
+  city text,                            -- 所属城市（市级，如 "南宁市"）
   created_at timestamptz default now()
 );
 
 create index pickups_start_at_idx on public.pickups (start_at);
 create index pickups_status_idx on public.pickups (status);
 create index pickups_latlng_idx on public.pickups (lat, lng);
+create index pickups_city_idx on public.pickups (city);
 
 alter table public.pickups enable row level security;
 create policy "pickups public read" on public.pickups for select using (true);
@@ -128,7 +130,7 @@ create table public.pickup_slots (
   id uuid primary key default gen_random_uuid(),
   pickup_id uuid references public.pickups on delete cascade,
   user_id uuid references public.profiles,
-  display_name text,                    -- 允许 demo 位置无真实 user（FK=null）
+  display_name text,                    -- 允许无真实 user 的占位（FK=null）
   position text,                        -- CF/GK/LB/CB/RB/CM/LW/ST/RW
   x int,                                -- 0-100 on formation grid
   y int,
@@ -160,6 +162,7 @@ drop view if exists public.event_player_ratings;
 drop view if exists public.player_rating_summary;
 drop table if exists public.ratings cascade;
 drop table if exists public.matches cascade;
+drop table if exists public.individual_registrations cascade;
 drop table if exists public.team_members cascade;
 drop table if exists public.teams cascade;
 drop table if exists public.events cascade;
@@ -181,9 +184,10 @@ create table public.events (
   deadline timestamptz,
   starts_at timestamptz,
   ends_at timestamptz,
-  status text default 'registering' check (status in ('draft','registering','scheduling','ongoing','completed','done')),
+  status text default 'registering' check (status in ('draft','registering','scheduling','ongoing','completed','done','cancelled')),
   cover_url text,
   review_mode text default 'auto' check (review_mode in ('auto', 'manual')),
+  registration_mode text default 'team_only' check (registration_mode in ('team_only', 'team_and_individual')),
   created_at timestamptz default now()
 );
 
@@ -218,6 +222,7 @@ create table public.team_members (
   team_id uuid not null references public.teams(id) on delete cascade,
   user_id uuid not null references public.profiles(id) on delete cascade,
   jersey_number int,
+  position text check (position in ('forward', 'midfielder', 'defender', 'goalkeeper')),
   role text not null default 'player' check (role in ('captain', 'player')),
   joined_at timestamptz not null default now(),
   unique (team_id, user_id)
@@ -236,6 +241,38 @@ create policy "team_members captain insert" on public.team_members
 create policy "team_members captain delete" on public.team_members
   for delete using (
     exists (select 1 from public.teams where id = team_id and captain_id = auth.uid())
+  );
+
+create table public.individual_registrations (
+  id uuid primary key default gen_random_uuid(),
+  event_id uuid not null references public.events(id) on delete cascade,
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  name text not null,
+  phone text,
+  position text check (position in ('forward', 'midfielder', 'defender', 'goalkeeper')),
+  status text default 'pending' check (status in ('pending', 'assigned', 'rejected')),
+  assigned_team_id uuid references public.teams(id),
+  created_at timestamptz default now(),
+  unique (event_id, user_id)
+);
+
+alter table public.individual_registrations enable row level security;
+
+create policy "individual_registrations public read" on public.individual_registrations
+  for select using (true);
+
+create policy "individual_registrations user insert" on public.individual_registrations
+  for insert to authenticated
+  with check (user_id = auth.uid());
+
+create policy "individual_registrations user delete" on public.individual_registrations
+  for delete to authenticated
+  using (user_id = auth.uid());
+
+create policy "individual_registrations organizer update" on public.individual_registrations
+  for update to authenticated
+  using (
+    exists (select 1 from public.events where id = event_id and creator_id = auth.uid())
   );
 
 create table public.matches (
@@ -284,8 +321,8 @@ create policy "matches_insert_by_event_creator" on public.matches for insert wit
   )
 );
 
--- ratings: ratee_id nullable（demo 模式下被评价者无真实 auth.users）；
--- ratings_demo_unique 在 ratee_id 为 null 时用 ratee_name 做去重，
+-- ratings: ratee_id nullable（被评价者可能无 auth.users 记录）；
+-- ratings_name_unique 在 ratee_id 为 null 时用 ratee_name 做去重，
 -- 因为 unique(match_id, rater_id, ratee_id) 里 NULL 互不相等不会去重。
 create table public.ratings (
   id uuid primary key default gen_random_uuid(),
@@ -302,7 +339,7 @@ create table public.ratings (
 
 create index ratings_ratee_idx on public.ratings (ratee_id);
 create index ratings_match_idx on public.ratings (match_id);
-create unique index ratings_demo_unique
+create unique index ratings_name_unique
   on public.ratings (match_id, rater_id, ratee_name)
   where ratee_id is null;
 
@@ -384,10 +421,9 @@ create view public.event_scorers as
 
 
 -- ═══════════════════════════════════════════════════════════════
--- 5. messaging — 会话 + 消息 + Realtime + ensure_demo_conversation()
+-- 5. messaging — 会话 + 消息 + Realtime
 -- ═══════════════════════════════════════════════════════════════
 
-drop function if exists public.ensure_demo_conversation();
 drop function if exists public.ensure_event_conversation(text);
 drop table if exists public.messages cascade;
 drop function if exists public.on_message_created();
@@ -398,6 +434,7 @@ create table public.conversations (
   id uuid primary key default gen_random_uuid(),
   kind text default 'dm',               -- dm / group / team
   title text,                           -- for groups
+  last_message_body text,
   updated_at timestamptz default now()
 );
 
@@ -466,12 +503,15 @@ create policy "messages member write" on public.messages for insert with check (
   )
 );
 
-create or replace function public.on_message_created() returns trigger language plpgsql as $$
+create or replace function public.on_message_created() returns trigger language plpgsql security definer as $$
 begin
-  update public.conversations set updated_at = now() where id = new.conv_id;
+  update public.conversations
+    set updated_at = now(), last_message_body = new.body
+    where id = new.conv_id;
   update public.conversation_members
     set unread = unread + 1
-    where conv_id = new.conv_id and user_id != new.sender_id;
+    where conv_id = new.conv_id
+      and (new.sender_id is null or user_id != new.sender_id);
   return new;
 end;
 $$;
@@ -480,132 +520,11 @@ create trigger message_created
   after insert on public.messages
   for each row execute function public.on_message_created();
 
--- Realtime 订阅（新消息推送）
+-- Realtime 订阅
 alter publication supabase_realtime add table public.messages;
 alter publication supabase_realtime add table public.matches;
+alter publication supabase_realtime add table public.notifications;
 
--- ensure_demo_conversation: 每个匿名用户首次打开 Messages tab 时调用 rpc，
--- 已在任意会话里则 no-op 返回现有 conv_id，否则建 "球局 · 新手大厅" + 欢迎消息。
-create or replace function public.ensure_demo_conversation()
-  returns uuid
-  language plpgsql
-  security definer
-  set search_path = public
-as $$
-declare
-  v_user uuid := auth.uid();
-  v_conv uuid;
-begin
-  if v_user is null then
-    raise exception 'Not authenticated';
-  end if;
-
-  -- 自愈：handle_new_user trigger 可能漏掉的孤儿用户在此补齐 profile，
-  -- 避免后续 insert conversation_members 时触发 FK 约束失败。
-  insert into profiles (id, name)
-  select u.id, coalesce(u.raw_user_meta_data->>'name', '新球友')
-  from auth.users u
-  where u.id = v_user
-  on conflict (id) do nothing;
-
-  select conv_id into v_conv
-    from conversation_members
-    where user_id = v_user
-    limit 1;
-
-  if v_conv is not null then
-    return v_conv;
-  end if;
-
-  insert into conversations (kind, title)
-  values ('group', '球局 · 新手大厅')
-  returning id into v_conv;
-
-  insert into conversation_members (conv_id, user_id, unread)
-  values (v_conv, v_user, 0);
-
-  insert into messages (conv_id, sender_id, body, kind)
-  values (v_conv, null, '欢迎来到球局 · 新手大厅。这里是测试聊天室，随便发条消息试试。', 'system');
-
-  return v_conv;
-end;
-$$;
-
-grant execute on function public.ensure_demo_conversation() to authenticated, anon;
-
--- seed_demo_inbox: 为当前用户播种 demo 通知 + 消息数据（幂等）。
--- 由客户端首次打开收件箱时调用，SECURITY DEFINER 绕过 RLS INSERT 限制。
-create or replace function public.seed_demo_inbox()
-  returns void
-  language plpgsql
-  security definer
-  set search_path = public
-as $$
-declare
-  v_user uuid := auth.uid();
-  v_conv1 uuid;
-  v_conv2 uuid;
-begin
-  if v_user is null then
-    raise exception 'Not authenticated';
-  end if;
-
-  -- 自愈 profile
-  insert into profiles (id, name)
-  select u.id, coalesce(u.raw_user_meta_data->>'name', '新球友')
-  from auth.users u where u.id = v_user
-  on conflict (id) do nothing;
-
-  -- 已有通知则跳过
-  if exists (select 1 from notifications where user_id = v_user limit 1) then
-    return;
-  end if;
-
-  -- ── 通知 ──────────────────────────────────────────────
-  insert into notifications (user_id, type, title, body, icon, route, read, created_at) values
-    (v_user, 'match',  '比赛即将开始', '村超小组赛第5轮 · 今天 19:30 · 请提前到场',  'timer',        '/events', false, now() - interval '20 minutes'),
-    (v_user, 'match',  '赛程更新', '你关注的赛事第 3 轮对阵已公布',                    'schedule',     '/events', false, now() - interval '3 hours'),
-    (v_user, 'rating', '你被评为全场最佳', '获得 8.7 均分，142 次评分',                 'star',         '/events', false, now() - interval '30 minutes'),
-    (v_user, 'rating', '收到新的赛后评分', '队友给你打了 8.5 分："前插跑位意识很好"',   'star',         '/archive', false, now() - interval '5 hours'),
-    (v_user, 'pickup', '有人发起了新约球', '体育中心 3号场 · 今晚 19:30 · 缺3人',       'sports_soccer','/pickup',  false, now() - interval '2 hours'),
-    (v_user, 'pickup', '你报名的约球人满了', '足球场 · 明天 07:00 · 12/12 已满员',       'check_circle', '/pickup',  false, now() - interval '1 hour'),
-    (v_user, 'follow', '有人开始关注你', '你们有 3 个共同好友',                          'person_add',   null,       false, now() - interval '45 minutes'),
-    (v_user, 'match',  '比赛结果：3-1 获胜', '小组赛第4轮 · 你贡献 1 球 1 助攻',        'emoji_events', '/events',  true,  now() - interval '2 days'),
-    (v_user, 'match',  '新赛事报名已开放', '7v7 业余联赛 · 报名截止还剩 11 天',          'how_to_reg',   '/events',  true,  now() - interval '3 days'),
-    (v_user, 'rating', '上轮比赛评分已出炉', '获得 7.9 分，排名队内第 2',                'star',         '/archive', true,  now() - interval '2 days 4 hours'),
-    (v_user, 'pickup', '周末训练发起了', '体育公园 · 周六 15:00 · 欢迎各水平球友',       'sports_soccer','/pickup',  true,  now() - interval '1 day'),
-    (v_user, 'pickup', '一场约球取消了', '因场地维护临时取消',                            'cancel',       '/pickup',  true,  now() - interval '4 days'),
-    (v_user, 'follow', '新关注者', '你现在有 1 位关注者',                                 'person_add',   null,       true,  now() - interval '5 days'),
-    (v_user, 'system', '你的球员档案已更新', '赛季数据同步完成：12 场 · 8 球 · 5 助攻',  'sync',         '/archive', true,  now() - interval '1 day 6 hours'),
-    (v_user, 'system', '社区公约提醒', '请遵守球场礼仪，尊重裁判和对手',                  'info',         null,       true,  now() - interval '5 days'),
-    (v_user, 'system', '欢迎加入球局', '你已成功注册球局账号，快去找场球踢吧！',          'celebration',  null,       true,  now() - interval '14 days');
-
-  -- ── 会话 + 消息 ──────────────────────────────────────
-  -- 群聊：球局 · 新手大厅
-  insert into conversations (kind, title, updated_at)
-  values ('group', '球局 · 新手大厅', now() - interval '1 hour')
-  returning id into v_conv1;
-
-  insert into conversation_members (conv_id, user_id, unread) values (v_conv1, v_user, 1);
-
-  insert into messages (conv_id, sender_id, body, kind, created_at) values
-    (v_conv1, null, '欢迎来到球局！这里是新手大厅，有什么问题都可以问。', 'system', now() - interval '2 hours'),
-    (v_conv1, null, '周末约球记得提前报名，热门场地很快就满了。',         'system', now() - interval '1 hour');
-
-  -- 系统通知会话
-  insert into conversations (kind, title, updated_at)
-  values ('group', '系统通知', now() - interval '6 hours')
-  returning id into v_conv2;
-
-  insert into conversation_members (conv_id, user_id, unread) values (v_conv2, v_user, 0);
-
-  insert into messages (conv_id, sender_id, body, kind, created_at) values
-    (v_conv2, null, '你报名的队伍已通过审核，请准时参加比赛。',       'system', now() - interval '6 hours'),
-    (v_conv2, null, '第 5 轮赛程已公布，请查看最新对阵安排。',        'system', now() - interval '3 days');
-end;
-$$;
-
-grant execute on function public.seed_demo_inbox() to authenticated;
 
 -- ensure_event_conversation: 打开赛事讨论 tab 时调用；
 -- 原子地查找或创建 title='event:{id}' 的群组会话，并保证当前用户是成员。
@@ -624,7 +543,6 @@ begin
     raise exception 'Not authenticated';
   end if;
 
-  -- 自愈：见 ensure_demo_conversation 的同段注释。
   insert into profiles (id, name)
   select u.id, coalesce(u.raw_user_meta_data->>'name', '新球友')
   from auth.users u
@@ -1014,10 +932,12 @@ create table public.posts (
   win_count int,
   play_duration int,                     -- minutes
   venue text,
+  city text,                             -- 所属城市（市级）
   created_at timestamptz default now()
 );
 
 create index posts_created_idx on public.posts(created_at desc);
+create index posts_city_idx on public.posts(city);
 
 alter table public.posts enable row level security;
 create policy "posts public read" on public.posts for select using (true);
@@ -1279,10 +1199,10 @@ create policy rating_likes_self_write on public.rating_likes
 
 
 -- ═══════════════════════════════════════════════════════════════
--- 22. followers_count — 关注者计数 RPC
+-- 22. follow helpers — 关注者计数 / 列表 / 判断 RPC
 -- ═══════════════════════════════════════════════════════════════
 
-create or replace function public.followers_count(target_name text)
+create or replace function public.followers_count(target_id uuid)
 returns bigint
 language sql
 stable
@@ -1292,23 +1212,37 @@ as $$
   select count(*)
   from public.favorites
   where entity_type = 'user'
-    and entity_id = target_name;
+    and entity_id = target_id::text;
 $$;
 
--- followers_list — 返回关注某用户的所有用户名
-create or replace function public.followers_list(target_name text)
-returns table(follower_name text)
+create or replace function public.followers_list(target_id uuid)
+returns table(follower_id uuid, follower_name text)
 language sql
 stable
 security definer
 set search_path = ''
 as $$
-  select p.name
+  select f.user_id, p.name
   from public.favorites f
   join public.profiles p on p.id = f.user_id
   where f.entity_type = 'user'
-    and f.entity_id = target_name
+    and f.entity_id = target_id::text
   order by f.created_at desc;
+$$;
+
+create or replace function public.is_following(target_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists(
+    select 1 from public.favorites
+    where user_id = auth.uid()
+      and entity_type = 'user'
+      and entity_id = target_id::text
+  );
 $$;
 
 
@@ -1330,8 +1264,11 @@ create table public.articles (
   view_count int default 0,
   comment_count int default 0,
   likes int not null default 0,
+  city text,                             -- 所属城市（市级）
   created_at timestamptz default now()
 );
+
+create index articles_city_idx on public.articles(city);
 
 alter table public.articles enable row level security;
 create policy "articles public read" on public.articles for select using (true);
@@ -1484,6 +1421,7 @@ create table public.venues (
   sport_type text default 'football',
   description text,
   address text not null,
+  city text,
   lat double precision not null,
   lng double precision not null,
   phone text,
@@ -1504,6 +1442,7 @@ create index venues_owner_idx on public.venues(owner_id);
 create index venues_sport_idx on public.venues(sport_type);
 create index venues_status_idx on public.venues(status);
 create index venues_location_idx on public.venues(lat, lng);
+create index venues_city_idx on public.venues(city);
 
 alter table public.venues enable row level security;
 create policy "venues readable by all" on public.venues for select using (true);

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:intl/intl.dart';
+
 import '../../l10n/l10n_extension.dart';
 import '../../models/pickup.dart';
 import '../../providers.dart';
@@ -13,14 +15,14 @@ import '../../services/supabase.dart' as svc;
 import '../../theme/app_tokens.dart';
 import '../../utils/share_helper.dart';
 import '../../utils/toast.dart';
-import '../../widgets/avatar.dart';
+import '../../widgets/user_card_sheet.dart';
+import '../../widgets/network_avatar.dart';
 import '../../widgets/live_pill.dart';
 import '../../widgets/network_cover.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/typography.dart';
 
 /// Canonical 4-3-3 layout — 11 slot positions on the pitch.
-/// Same coordinates used to match seed / join rows.
 const _formation = [
   ('GK', 50, 92),
   ('LB', 18, 72),
@@ -35,14 +37,34 @@ const _formation = [
   ('RW', 80, 22),
 ];
 
-class PickupDetailScreen extends ConsumerWidget {
+class PickupDetailScreen extends ConsumerStatefulWidget {
   final String id;
   const PickupDetailScreen({super.key, required this.id});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final slotsAsync = ref.watch(pickupSlotsProvider(id));
-    final pickupAsync = ref.watch(pickupDetailProvider(id));
+  ConsumerState<PickupDetailScreen> createState() =>
+      _PickupDetailScreenState();
+}
+
+class _PickupDetailScreenState extends ConsumerState<PickupDetailScreen> {
+  @override
+  void initState() {
+    super.initState();
+    ref.invalidate(pickupDetailProvider(widget.id));
+    ref.invalidate(pickupSlotsProvider(widget.id));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final slotsAsync = ref.watch(pickupSlotsProvider(widget.id));
+    final pickupAsync = ref.watch(pickupDetailProvider(widget.id));
+
+    final filledCount = slotsAsync.maybeWhen(
+      data: (slots) => slots.where((s) => s.filled).length,
+      orElse: () => 0,
+    );
+    final total = pickupAsync.valueOrNull?.total ?? 0;
+    final dynamicNeed = total > 0 ? (total - filledCount).clamp(0, total) : 0;
 
     return Scaffold(
       backgroundColor: context.tokens.bg,
@@ -59,7 +81,7 @@ class PickupDetailScreen extends ConsumerWidget {
                     final p = pickupAsync.valueOrNull;
                     if (p != null) sharePickup(p);
                   },
-                  pickupId: id,
+                  pickupId: widget.id,
                 ),
                 _VenueInfo(
                   title: pickupAsync.valueOrNull?.displayTitle ?? '',
@@ -68,18 +90,20 @@ class PickupDetailScreen extends ConsumerWidget {
                   lat: pickupAsync.valueOrNull?.lat,
                   lng: pickupAsync.valueOrNull?.lng,
                   status: pickupAsync.valueOrNull?.status ?? PickupStatus.open,
-                  need: pickupAsync.valueOrNull?.displayNeed ?? 0,
-                  timeLabel: pickupAsync.valueOrNull?.displayTime ?? '',
+                  need: dynamicNeed,
+                  startAt: pickupAsync.valueOrNull?.startAt,
                   durationMin: pickupAsync.valueOrNull?.durationMin ?? 120,
                   feeYuan: pickupAsync.valueOrNull?.feeYuan ?? 0,
                 ),
                 _HostStrip(pickup: pickupAsync.valueOrNull),
                 slotsAsync.when(
-                  data: (slots) => _Formation(pickupId: id, slots: slots),
+                  data: (slots) =>
+                      _Formation(pickupId: widget.id, slots: slots),
                   loading: () => const _FormationLoading(),
                   error: (e, _) => _FormationError(
                     error: e,
-                    onRetry: () => ref.invalidate(pickupSlotsProvider(id)),
+                    onRetry: () =>
+                        ref.invalidate(pickupSlotsProvider(widget.id)),
                   ),
                 ),
                 _Details(pickup: pickupAsync.valueOrNull),
@@ -90,7 +114,7 @@ class PickupDetailScreen extends ConsumerWidget {
             bottom: 0,
             left: 0,
             right: 0,
-            child: _BottomCta(pickupId: id),
+            child: _BottomCta(pickupId: widget.id),
           ),
         ],
       ),
@@ -114,6 +138,105 @@ class _Header extends ConsumerStatefulWidget {
 
 class _HeaderState extends ConsumerState<_Header> {
   int _page = 0;
+
+  bool _isHost(WidgetRef ref) {
+    final uid = svc.currentUserId;
+    final pickup = ref.read(pickupDetailProvider(widget.pickupId)).valueOrNull;
+    return uid != null && pickup?.hostId == uid;
+  }
+
+  Future<void> _showHostMenu(BuildContext context, WidgetRef ref) async {
+    final t = context.tokens;
+    final l = context.l10n;
+    final pickup = ref.read(pickupDetailProvider(widget.pickupId)).valueOrNull;
+    if (pickup == null) return;
+    final status = pickup.status;
+    if (status == PickupStatus.cancelled || status == PickupStatus.done) return;
+
+    final action = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: t.elev1,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            Container(
+              width: 36, height: 4,
+              decoration: BoxDecoration(
+                color: t.inkMute,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 16),
+            ListTile(
+              leading: Icon(Icons.stop_circle_outlined, color: t.ink),
+              title: Text(l.pickup_detail_end_game, style: TextStyle(color: t.ink)),
+              onTap: () => Navigator.pop(ctx, 'end'),
+            ),
+            ListTile(
+              leading: Icon(Icons.cancel_outlined, color: t.danger),
+              title: Text(l.pickup_detail_cancel_game, style: TextStyle(color: t.danger)),
+              onTap: () => Navigator.pop(ctx, 'cancel'),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+    if (action == null || !context.mounted) return;
+
+    final target = action == 'cancel' ? PickupStatus.cancelled : PickupStatus.done;
+    final confirmTitle = action == 'cancel'
+        ? l.pickup_detail_cancel_confirm_title
+        : l.pickup_detail_end_confirm_title;
+    final confirmBody = action == 'cancel'
+        ? l.pickup_detail_cancel_confirm_body
+        : l.pickup_detail_end_confirm_body;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(confirmTitle),
+        content: Text(confirmBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l.common_cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l.common_confirm),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+
+    try {
+      await ref.read(pickupsRepoProvider).updateStatus(widget.pickupId, target);
+      ref.invalidate(pickupDetailProvider(widget.pickupId));
+      ref.invalidate(livePickupsProvider);
+      ref.invalidate(myHostedPickupsProvider);
+      ref.invalidate(myJoinedPickupsProvider);
+      ref.invalidate(recommendFeedProvider);
+      ref.invalidate(userPickupsProvider(svc.currentUserId ?? ''));
+      if (!context.mounted) return;
+      showToast(
+        context,
+        action == 'cancel'
+            ? l.pickup_detail_cancel_success
+            : l.pickup_detail_end_success,
+        success: true,
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      showToast(context, l.pickup_detail_update_failed('$e'), error: true);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -184,6 +307,14 @@ class _HeaderState extends ConsumerState<_Header> {
             right: 12,
             child: Row(
               children: [
+                if (_isHost(ref))
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: _CircleBtn(
+                      icon: Icons.more_horiz,
+                      onTap: () => _showHostMenu(context, ref),
+                    ),
+                  ),
                 _CircleBtn(
                   icon: faved ? Icons.favorite : Icons.favorite_border,
                   onTap: () async {
@@ -200,8 +331,8 @@ class _HeaderState extends ConsumerState<_Header> {
           ),
           if (photos.length > 1)
             Positioned(
-              top: statusBar + 16,
-              right: 90,
+              bottom: 10,
+              right: 12,
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
@@ -267,7 +398,7 @@ class _VenueInfo extends StatelessWidget {
   final double? lng;
   final PickupStatus status;
   final int need;
-  final String timeLabel;
+  final DateTime? startAt;
   final int durationMin;
   final double feeYuan;
   const _VenueInfo({
@@ -278,7 +409,7 @@ class _VenueInfo extends StatelessWidget {
     this.lng,
     this.status = PickupStatus.open,
     this.need = 0,
-    this.timeLabel = '',
+    this.startAt,
     this.durationMin = 120,
     this.feeYuan = 0,
   });
@@ -363,17 +494,28 @@ class _VenueInfo extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 6),
-          Row(
-            children: [
-              Icon(Icons.calendar_today, size: 13, color: context.tokens.inkSub),
-              SizedBox(width: 5),
-              N('$timeLabel · ${durationMin ~/ 60}小时', size: 13, color: context.tokens.inkSub),
-              SizedBox(width: 14),
-              Icon(Icons.currency_yen, size: 13, color: context.tokens.inkSub),
-              SizedBox(width: 2),
-              N('${feeYuan.toStringAsFixed(0)} AA', size: 13, color: context.tokens.inkSub),
-            ],
-          ),
+          Builder(builder: (_) {
+            final start = startAt?.toLocal();
+            final end = start?.add(Duration(minutes: durationMin));
+            final dateFmt = DateFormat('MM/dd');
+            final timeFmt = DateFormat('HH:mm');
+            final timeText = start != null && end != null
+                ? '${dateFmt.format(start)} ${timeFmt.format(start)}–${timeFmt.format(end)}'
+                : '${durationMin ~/ 60}小时';
+            return Row(
+              children: [
+                Icon(Icons.schedule, size: 13, color: context.tokens.inkSub),
+                const SizedBox(width: 5),
+                N(timeText, size: 13, color: context.tokens.inkSub),
+                const SizedBox(width: 6),
+                N('${durationMin ~/ 60}小时', size: 13, color: context.tokens.inkMute),
+                const SizedBox(width: 14),
+                Icon(Icons.currency_yen, size: 13, color: context.tokens.inkSub),
+                const SizedBox(width: 2),
+                N('${feeYuan.toStringAsFixed(0)} AA', size: 13, color: context.tokens.inkSub),
+              ],
+            );
+          }),
         ],
       ),
     );
@@ -387,9 +529,11 @@ class _HostStrip extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
-    ref.watch(localStoreProvider);
     final hostName = pickup?.displayHost ?? '—';
-    final followed = LocalStore.isFollowing(hostName);
+    final hostId = pickup?.hostId;
+    final followed = hostId != null
+        ? (ref.watch(isFollowingProvider(hostId)).valueOrNull ?? false)
+        : false;
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 4, 16, 14),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -400,44 +544,92 @@ class _HostStrip extends ConsumerWidget {
       ),
       child: Row(
         children: [
-          Avatar(hostName, size: 40),
+          GestureDetector(
+            onTap: hostId == null
+                ? null
+                : () => context.push('/user/$hostId'),
+            child: NetworkAvatar(hostName, url: pickup?.hostAvatarUrl, size: 40),
+          ),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  hostName,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: context.tokens.ink,
-                  ),
+                Row(
+                  children: [
+                    Text(
+                      hostName,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: context.tokens.ink,
+                      ),
+                    ),
+                    if (hostId != null && hostId == svc.currentUserId) ...[
+                      const SizedBox(width: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: context.tokens.accent.withAlpha(26),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          '我',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: context.tokens.accent,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
                 const SizedBox(height: 2),
                 Label(l.pickup_detail_host_stats(28, 100)),
               ],
             ),
           ),
-          _DmButton(hostId: pickup?.hostId),
-          PrimaryButton(
-            label: followed ? l.common_unfollow : l.common_follow,
-            variant: followed ? BtnVariant.secondary : BtnVariant.ghost,
-            size: BtnSize.sm,
-            onPressed: () async {
-              await ref
-                  .read(favoritesRepoProvider)
-                  .toggle(FavoriteEntity.user, hostName);
-              if (context.mounted) {
-                showToast(
-                  context,
-                  LocalStore.isFollowing(hostName)
-                      ? l.common_unfollow
-                      : l.common_follow,
-                );
-              }
-            },
-          ),
+          if (hostId != null && hostId != svc.currentUserId) ...[
+            _DmButton(hostId: hostId),
+            PrimaryButton(
+              label: followed ? l.common_unfollow : l.common_follow,
+              variant: followed ? BtnVariant.secondary : BtnVariant.ghost,
+              size: BtnSize.sm,
+              onPressed: () async {
+                if (followed) {
+                  final confirmed = await showDialog<bool>(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      title: Text(l.common_unfollow_confirm_title),
+                      content: Text(l.common_unfollow_confirm_body),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(ctx, false),
+                          child: Text(l.common_cancel),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.pop(ctx, true),
+                          child: Text(l.common_confirm),
+                        ),
+                      ],
+                    ),
+                  );
+                  if (confirmed != true) return;
+                }
+                final nowFollowing = await ref
+                    .read(favoritesRepoProvider)
+                    .toggle(FavoriteEntity.user, hostId);
+                ref.invalidate(isFollowingProvider(hostId));
+                if (context.mounted) {
+                  showToast(
+                    context,
+                    nowFollowing ? l.common_follow : l.common_unfollow,
+                  );
+                }
+              },
+            ),
+          ],
         ],
       ),
     );
@@ -648,6 +840,9 @@ class _Formation extends ConsumerWidget {
                           slot: _slotAt(p.$2, p.$3),
                           selected: selected == (p.$1, p.$2, p.$3),
                           enabled: !alreadyJoined,
+                          onLongPress: _slotAt(p.$2, p.$3)?.userId == null
+                              ? null
+                              : () => showUserCardSheet(context, ref, userId: _slotAt(p.$2, p.$3)!.userId!),
                           onTap: () {
                             if (alreadyJoined) return;
                             final current = ref.read(selectedSlotProvider(pickupId));
@@ -735,12 +930,14 @@ class _PlayerDot extends StatelessWidget {
   final bool selected;
   final bool enabled;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
   const _PlayerDot({
     required this.pos,
     required this.slot,
     required this.selected,
     required this.enabled,
     required this.onTap,
+    this.onLongPress,
   });
 
   @override
@@ -769,6 +966,7 @@ class _PlayerDot extends StatelessWidget {
 
     return GestureDetector(
       onTap: canTap ? onTap : null,
+      onLongPress: (filled && onLongPress != null) ? onLongPress : null,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -979,7 +1177,6 @@ class _BottomCta extends ConsumerStatefulWidget {
 
 class _BottomCtaState extends ConsumerState<_BottomCta> {
   bool _joining = false;
-  bool _updating = false;
   bool _leaving = false;
 
   Future<void> _confirmJoin() async {
@@ -1002,6 +1199,7 @@ class _BottomCtaState extends ConsumerState<_BottomCta> {
           );
       ref.read(selectedSlotProvider(widget.pickupId).notifier).state = null;
       ref.invalidate(pickupSlotsProvider(widget.pickupId));
+      ref.invalidate(pickupDetailProvider(widget.pickupId));
     } catch (e) {
       if (!mounted) return;
       showToast(context, context.l10n.pickup_detail_join_failed('$e'), error: true);
@@ -1040,6 +1238,7 @@ class _BottomCtaState extends ConsumerState<_BottomCta> {
       final mySlot = slots.firstWhere((s) => s.userId == uid);
       await ref.read(pickupsRepoProvider).leave(slotId: mySlot.id);
       ref.invalidate(pickupSlotsProvider(widget.pickupId));
+      ref.invalidate(pickupDetailProvider(widget.pickupId));
       if (!mounted) return;
       showToast(context, l.pickup_leave_success, success: true);
     } catch (e) {
@@ -1050,63 +1249,12 @@ class _BottomCtaState extends ConsumerState<_BottomCta> {
     }
   }
 
-  Future<void> _changeStatus(PickupStatus target) async {
-    final l = context.l10n;
-    final isCancelling = target == PickupStatus.cancelled;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(isCancelling
-            ? l.pickup_detail_cancel_confirm_title
-            : l.pickup_detail_end_confirm_title),
-        content: Text(isCancelling
-            ? l.pickup_detail_cancel_confirm_body
-            : l.pickup_detail_end_confirm_body),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(l.common_cancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(l.common_confirm),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true || !mounted) return;
-
-    setState(() => _updating = true);
-    try {
-      await ref
-          .read(pickupsRepoProvider)
-          .updateStatus(widget.pickupId, target);
-      ref.invalidate(pickupDetailProvider(widget.pickupId));
-      ref.invalidate(livePickupsProvider);
-      ref.invalidate(myHostedPickupsProvider);
-      if (!mounted) return;
-      showToast(
-        context,
-        isCancelling
-            ? l.pickup_detail_cancel_success
-            : l.pickup_detail_end_success,
-        success: true,
-      );
-    } catch (e) {
-      if (!mounted) return;
-      showToast(context, l.pickup_detail_update_failed('$e'), error: true);
-    } finally {
-      if (mounted) setState(() => _updating = false);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final pickupAsync = ref.watch(pickupDetailProvider(widget.pickupId));
     final pickup = pickupAsync.valueOrNull;
     final slotsAsync = ref.watch(pickupSlotsProvider(widget.pickupId));
     final uid = svc.currentUserId;
-    final isHost = uid != null && pickup?.hostId == uid;
     final status = pickup?.status ?? PickupStatus.open;
     final l = context.l10n;
 
@@ -1134,43 +1282,7 @@ class _BottomCtaState extends ConsumerState<_BottomCta> {
       );
     }
 
-    // Host view — cancel & end buttons
-    if (isHost) {
-      return Container(
-        padding: const EdgeInsets.fromLTRB(16, 14, 16, 32),
-        decoration: BoxDecoration(
-          color: context.tokens.elev1,
-          border: Border(top: BorderSide(color: context.tokens.line, width: 1)),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: PrimaryButton(
-                label: _updating ? '...' : l.pickup_detail_cancel_game,
-                variant: BtnVariant.secondary,
-                size: BtnSize.lg,
-                onPressed: _updating
-                    ? null
-                    : () => _changeStatus(PickupStatus.cancelled),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: PrimaryButton(
-                label: _updating ? '...' : l.pickup_detail_end_game,
-                variant: BtnVariant.primary,
-                size: BtnSize.lg,
-                onPressed: _updating
-                    ? null
-                    : () => _changeStatus(PickupStatus.done),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    // Participant view — join flow
+    // Join flow (host & participants share the same flow)
     final joined = slotsAsync.maybeWhen(
       data: (slots) => slots.any((s) => s.userId == uid),
       orElse: () => false,

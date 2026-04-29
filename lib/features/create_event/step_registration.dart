@@ -9,20 +9,24 @@ import 'event_form_fields.dart';
 class StepRegistration extends StatelessWidget {
   final DateTime? deadlineDate;
   final String review;
+  final String registrationMode;
   final TextEditingController teamSizeController;
   final TextEditingController maxTeamsController;
   final Map<String, String?> errors;
   final ValueChanged<String> onReviewChanged;
+  final ValueChanged<String> onRegistrationModeChanged;
   final VoidCallback onPickDeadline;
 
   const StepRegistration({
     super.key,
     required this.deadlineDate,
     required this.review,
+    required this.registrationMode,
     required this.teamSizeController,
     required this.maxTeamsController,
     required this.errors,
     required this.onReviewChanged,
+    required this.onRegistrationModeChanged,
     required this.onPickDeadline,
   });
 
@@ -44,6 +48,45 @@ class StepRegistration extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 18),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(0, 0, 0, 8),
+            child: Label(l.create_event_registration_mode),
+          ),
+          Row(
+            children: [
+              for (final opt in [
+                ('team_only', l.create_event_reg_mode_team_only),
+                ('team_and_individual', l.create_event_reg_mode_team_and_individual),
+              ]) ...[
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => onRegistrationModeChanged(opt.$1),
+                    child: Container(
+                      padding: const EdgeInsets.all(14),
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: registrationMode == opt.$1 ? context.tokens.elev3 : context.tokens.elev2,
+                        border: Border.all(
+                          color: registrationMode == opt.$1 ? context.tokens.accent : context.tokens.line,
+                        ),
+                        borderRadius: BorderRadius.circular(context.tokens.r2),
+                      ),
+                      child: Text(
+                        opt.$2,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: registrationMode == opt.$1 ? context.tokens.accent : context.tokens.ink,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                if (opt.$1 == 'team_only') const SizedBox(width: 8),
+              ],
+            ],
+          ),
+          const SizedBox(height: 16),
           EventDateField(
             label: l.create_event_f_deadline,
             value: deadlineDate,

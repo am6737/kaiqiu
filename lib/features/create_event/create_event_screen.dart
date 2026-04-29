@@ -41,6 +41,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   final _teamSize = TextEditingController();
   final _maxTeams = TextEditingController();
   String _review = 'auto';
+  String _registrationMode = 'team_only';
   String? _coverUrl;
   bool _uploadingCover = false;
 
@@ -357,10 +358,12 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       3 => StepRegistration(
           deadlineDate: _deadlineDate,
           review: _review,
+          registrationMode: _registrationMode,
           teamSizeController: _teamSize,
           maxTeamsController: _maxTeams,
           errors: _errors,
           onReviewChanged: (r) => setState(() => _review = r),
+          onRegistrationModeChanged: (v) => setState(() => _registrationMode = v),
           onPickDeadline: () async {
             final dt = await _pickDateTime(initial: _deadlineDate);
             if (dt != null) setState(() => _deadlineDate = dt);
@@ -431,10 +434,12 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         ignoreDuplicates: true,
       );
 
+      final city = ref.read(cityProvider);
       final payload = {
         'creator_id': uid,
         'name': _name.text.trim(),
         'sub': _pickedLocation?.name,
+        'city': city,
         'address': _pickedLocation?.address,
         'lat': _pickedLocation?.lat,
         'lng': _pickedLocation?.lng,
@@ -447,6 +452,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         'starts_at': _startDate?.toIso8601String(),
         'ends_at': _endDate?.toIso8601String(),
         'review_mode': _review,
+        'registration_mode': _registrationMode,
         if (_coverUrl != null) 'cover_url': _coverUrl,
       };
 

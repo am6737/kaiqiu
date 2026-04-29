@@ -8,6 +8,7 @@ class PostsRepository {
     int? winCount,
     int? playDuration,
     String? venue,
+    String? city,
   }) async {
     final uid = currentUserId;
     if (uid == null) throw Exception('Not signed in');
@@ -19,6 +20,7 @@ class PostsRepository {
       if (winCount != null) 'win_count': winCount,
       if (playDuration != null) 'play_duration': playDuration,
       if (venue != null && venue.isNotEmpty) 'venue': venue,
+      if (city != null) 'city': city,
     });
   }
 }

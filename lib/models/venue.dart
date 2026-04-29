@@ -31,6 +31,7 @@ class Venue {
   final String? sportType;
   final String? description;
   final String address;
+  final String? city;
   final double lat;
   final double lng;
   final String? phone;
@@ -55,6 +56,7 @@ class Venue {
     this.sportType,
     this.description,
     required this.address,
+    this.city,
     required this.lat,
     required this.lng,
     this.phone,
@@ -80,6 +82,7 @@ class Venue {
     sportType: m['sport_type'] as String?,
     description: m['description'] as String?,
     address: m['address'] as String,
+    city: m['city'] as String?,
     lat: (m['lat'] as num).toDouble(),
     lng: (m['lng'] as num).toDouble(),
     phone: m['phone'] as String?,

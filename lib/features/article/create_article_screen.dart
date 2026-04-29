@@ -67,6 +67,7 @@ class _CreateArticleScreenState extends ConsumerState<CreateArticleScreen> {
             body: body,
             category: _category,
             summary: summary.isNotEmpty ? summary : null,
+            city: ref.read(cityProvider),
           );
       if (!mounted) return;
       showToast(context, l.create_article_published, success: true);

@@ -42,6 +42,11 @@ class BracketLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final league = matches.where((m) => m.round == 'league').toList();
+    if (league.isNotEmpty) {
+      return _LeagueSchedule(eventId: eventId, matches: league);
+    }
+
     final qf = matches.where((m) => m.round == 'qf').toList();
     final sf = matches.where((m) => m.round == 'sf').toList();
     final finals = matches.where((m) => m.round == 'final').toList();
@@ -123,6 +128,58 @@ class BracketLayout extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _LeagueSchedule extends StatelessWidget {
+  final String eventId;
+  final List<Match> matches;
+  const _LeagueSchedule({required this.eventId, required this.matches});
+
+  @override
+  Widget build(BuildContext context) {
+    final sorted = [...matches]..sort((a, b) {
+      final at = a.playedAt, bt = b.playedAt;
+      if (at == null && bt == null) return 0;
+      if (at == null) return 1;
+      if (bt == null) return -1;
+      return at.compareTo(bt);
+    });
+
+    final grouped = <String, List<Match>>{};
+    for (final m in sorted) {
+      final key = m.playedAt != null
+          ? '${m.playedAt!.year}-${m.playedAt!.month.toString().padLeft(2, '0')}-${m.playedAt!.day.toString().padLeft(2, '0')}'
+          : '—';
+      grouped.putIfAbsent(key, () => []).add(m);
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (final entry in grouped.entries) ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
+              child: Text(
+                entry.key,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: context.tokens.inkSub,
+                ),
+              ),
+            ),
+            for (final m in entry.value)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: MatchCard(eventId: eventId, m: m),
+              ),
+          ],
+        ],
       ),
     );
   }

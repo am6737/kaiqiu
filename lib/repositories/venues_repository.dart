@@ -3,11 +3,13 @@ import '../models/venue.dart';
 import '../services/supabase.dart';
 
 class VenuesRepository {
-  Future<List<Venue>> listAll({int limit = 50}) async {
-    final rows = await supabase
+  Future<List<Venue>> listAll({int limit = 50, String? city}) async {
+    var query = supabase
         .from('venues')
         .select()
-        .eq('status', 'active')
+        .eq('status', 'active');
+    if (city != null) query = query.eq('city', city);
+    final rows = await query
         .order('created_at', ascending: false)
         .limit(limit);
     return (rows as List)
@@ -16,12 +18,14 @@ class VenuesRepository {
         .toList();
   }
 
-  Future<List<Venue>> listBySport(String sportType, {int limit = 50}) async {
-    final rows = await supabase
+  Future<List<Venue>> listBySport(String sportType, {int limit = 50, String? city}) async {
+    var query = supabase
         .from('venues')
         .select()
         .eq('status', 'active')
-        .eq('sport_type', sportType)
+        .eq('sport_type', sportType);
+    if (city != null) query = query.eq('city', city);
+    final rows = await query
         .order('created_at', ascending: false)
         .limit(limit);
     return (rows as List)

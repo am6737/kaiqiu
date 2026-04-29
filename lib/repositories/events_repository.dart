@@ -3,12 +3,13 @@ import '../models/event.dart';
 import '../services/supabase.dart';
 
 class EventsRepository {
-  Future<List<Event>> listByStatus(EventStatus status) async {
-    final rows = await supabase
+  Future<List<Event>> listByStatus(EventStatus status, {String? city}) async {
+    var query = supabase
         .from('events')
         .select()
-        .eq('status', status.name)
-        .order('created_at', ascending: false);
+        .eq('status', status.name);
+    if (city != null) query = query.eq('city', city);
+    final rows = await query.order('created_at', ascending: false);
     return (rows as List)
         .cast<Map<String, dynamic>>()
         .map(Event.fromMap)
@@ -52,27 +53,52 @@ class EventsRepository {
   }
 
   /// Per-match leaderboard: aggregates raw ratings for a single match, plus
-  /// goals/assists derived from the goals table. Sorted by avg_score desc.
+  /// goals/assists derived from the goals table. Includes ALL match
+  /// participants — unrated players appear at the end with avgScore 0.
   Future<List<PlayerRatingRow>> playerRatingsForMatch(Match match) async {
     final matchId = match.id;
-    final ratingRows =
-        await supabase
-                .from('ratings')
-                .select(
-                  'ratee_id, score, comment, highlight, created_at, '
-                  'ratee:profiles!ratee_id(id, name, position)',
-                )
-                .eq('match_id', matchId)
-            as List;
-    final goalRows =
-        await supabase
-                .from('goals')
-                .select('scorer_id, assist_id, is_own_goal')
-                .eq('match_id', matchId)
-            as List;
+    final futures = await Future.wait([
+      supabase
+          .from('ratings')
+          .select(
+            'ratee_id, score, comment, highlight, created_at, '
+            'ratee:profiles!ratee_id(id, name, position)',
+          )
+          .eq('match_id', matchId),
+      supabase
+          .from('goals')
+          .select('scorer_id, assist_id, is_own_goal')
+          .eq('match_id', matchId),
+      supabase
+          .from('match_participants')
+          .select('user_id, side, position, profile:profiles!user_id(name, position)')
+          .eq('match_id', matchId),
+    ]);
+    final ratingRows = (futures[0] as List).cast<Map<String, dynamic>>();
+    final goalRows = (futures[1] as List).cast<Map<String, dynamic>>();
+    final participantRows = (futures[2] as List).cast<Map<String, dynamic>>();
 
     final agg = <String, _RatingAgg>{};
-    for (final raw in ratingRows.cast<Map<String, dynamic>>()) {
+
+    // Seed all participants so everyone appears even without ratings.
+    for (final raw in participantRows) {
+      final userId = raw['user_id'] as String?;
+      if (userId == null || userId.isEmpty) continue;
+      final profile = (raw['profile'] as Map?)?.cast<String, dynamic>() ?? const {};
+      final sideStr = raw['side'] as String?;
+      agg.putIfAbsent(
+        userId,
+        () => _RatingAgg(
+          rateeId: userId,
+          name: (profile['name'] as String?) ?? '—',
+          position: (profile['position'] as String?) ?? (raw['position'] as String?),
+          side: sideStr == 'b' ? MatchSide.b : MatchSide.a,
+        ),
+      );
+    }
+
+    // Layer ratings on top.
+    for (final raw in ratingRows) {
       final ratee = (raw['ratee'] as Map?)?.cast<String, dynamic>() ?? const {};
       final rateeId =
           (ratee['id'] as String?) ?? (raw['ratee_id'] as String? ?? '');
@@ -96,7 +122,8 @@ class EventsRepository {
       }
     }
 
-    for (final raw in goalRows.cast<Map<String, dynamic>>()) {
+    // Count goals & assists.
+    for (final raw in goalRows) {
       final isOwn = (raw['is_own_goal'] as bool?) ?? false;
       final scorerId = raw['scorer_id'] as String?;
       if (scorerId != null && !isOwn && agg.containsKey(scorerId)) {
@@ -123,9 +150,13 @@ class EventsRepository {
         assists: a.assists,
         topHighlight: highlight,
         topComment: a.topComment,
-        side: null,
+        side: a.side,
       );
-    }).toList()..sort((x, y) => y.avgScore.compareTo(x.avgScore));
+    }).toList()..sort((x, y) {
+      if (x.votes == 0 && y.votes > 0) return 1;
+      if (x.votes > 0 && y.votes == 0) return -1;
+      return y.avgScore.compareTo(x.avgScore);
+    });
     return rows;
   }
 
@@ -259,6 +290,10 @@ class EventsRepository {
     await supabase.from('teams').insert(payload);
   }
 
+  Future<void> updateTeam(String teamId, Map<String, dynamic> payload) async {
+    await supabase.from('teams').update(payload).eq('id', teamId);
+  }
+
   Future<bool> isUserRegistered(String eventId, String userId) async {
     final row = await supabase
         .from('teams')
@@ -267,6 +302,25 @@ class EventsRepository {
         .eq('captain_id', userId)
         .maybeSingle();
     return row != null;
+  }
+
+  Future<String?> getUserTeamId(String eventId, String userId) async {
+    final asCapt = await supabase
+        .from('teams')
+        .select('id')
+        .eq('event_id', eventId)
+        .eq('captain_id', userId)
+        .maybeSingle();
+    if (asCapt != null) return asCapt['id'] as String;
+    final rows = await supabase
+        .from('team_members')
+        .select('team_id, team:teams!team_id!inner(event_id)')
+        .eq('user_id', userId)
+        .eq('team.event_id', eventId)
+        .limit(1);
+    final list = (rows as List).cast<Map<String, dynamic>>();
+    if (list.isNotEmpty) return list.first['team_id'] as String;
+    return null;
   }
 
   Future<void> cancelRegistration(String eventId, String userId) async {
@@ -299,16 +353,26 @@ class EventsRepository {
         .toList();
   }
 
-  Future<void> addTeamMember(String teamId, String userId, int? jerseyNumber) async {
+  Future<void> addTeamMember(String teamId, String userId, int? jerseyNumber, {String? position}) async {
     await supabase.from('team_members').insert({
       'team_id': teamId,
       'user_id': userId,
       'jersey_number': jerseyNumber,
+      if (position != null) 'position': position,
     });
   }
 
   Future<void> removeTeamMember(String memberId) async {
     await supabase.from('team_members').delete().eq('id', memberId);
+  }
+
+  Future<void> updateTeamMember(String memberId, {int? jerseyNumber, String? position}) async {
+    final payload = <String, dynamic>{};
+    if (jerseyNumber != null) payload['jersey_number'] = jerseyNumber;
+    if (position != null) payload['position'] = position;
+    if (payload.isNotEmpty) {
+      await supabase.from('team_members').update(payload).eq('id', memberId);
+    }
   }
 
   Future<List<Map<String, dynamic>>> searchProfiles(String query) async {
@@ -319,18 +383,71 @@ class EventsRepository {
         .limit(10);
     return (rows as List).cast<Map<String, dynamic>>();
   }
+
+  Future<List<IndividualRegistration>> listIndividualRegistrations(String eventId) async {
+    final rows = await supabase
+        .from('individual_registrations')
+        .select()
+        .eq('event_id', eventId)
+        .order('created_at');
+    return (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map(IndividualRegistration.fromMap)
+        .toList();
+  }
+
+  Future<void> insertIndividualRegistration(Map<String, dynamic> payload) async {
+    await supabase.from('individual_registrations').insert(payload);
+  }
+
+  Future<void> cancelIndividualRegistration(String eventId, String userId) async {
+    await supabase
+        .from('individual_registrations')
+        .delete()
+        .eq('event_id', eventId)
+        .eq('user_id', userId);
+  }
+
+  Future<bool> isUserIndividuallyRegistered(String eventId, String userId) async {
+    final row = await supabase
+        .from('individual_registrations')
+        .select('id')
+        .eq('event_id', eventId)
+        .eq('user_id', userId)
+        .maybeSingle();
+    return row != null;
+  }
+
+  Future<void> assignIndividualToTeam(String registrationId, String teamId, String userId) async {
+    await supabase
+        .from('individual_registrations')
+        .update({'status': 'assigned', 'assigned_team_id': teamId})
+        .eq('id', registrationId);
+    await supabase.from('team_members').insert({
+      'team_id': teamId,
+      'user_id': userId,
+    });
+  }
+
+  Future<void> rejectIndividualRegistration(String registrationId) async {
+    await supabase
+        .from('individual_registrations')
+        .update({'status': 'rejected'})
+        .eq('id', registrationId);
+  }
 }
 
 class _RatingAgg {
   final String rateeId;
   final String name;
   final String? position;
+  final MatchSide? side;
   final List<double> scores = [];
   int goals = 0;
   int assists = 0;
   String? topHighlight;
   String? topComment;
-  _RatingAgg({required this.rateeId, required this.name, this.position});
+  _RatingAgg({required this.rateeId, required this.name, this.position, this.side});
 }
 
 /// Short stat string from goals/assists when the rater didn't supply one.

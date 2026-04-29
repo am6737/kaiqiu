@@ -13,6 +13,7 @@ import '../../widgets/empty_state.dart';
 import '../../widgets/network_avatar.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/typography.dart';
+import '../../models/pickup.dart';
 import '../home/cards/activity_feed_card.dart';
 import '../home/cards/article_feed_card.dart';
 
@@ -30,7 +31,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -84,7 +85,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   }
 
   void _create() {
-    final route = _tabController.index == 0 ? '/create-post' : '/create-article';
+    final route = switch (_tabController.index) {
+      0 => '/create-post',
+      1 => '/create-pickup',
+      _ => '/create-article',
+    };
     context.push(route);
   }
 
@@ -95,7 +100,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     final PlayerProfile? u = ref.watch(myProfileProvider).valueOrNull;
     ref.watch(localStoreProvider);
 
-    final followingCount = ref.watch(followingCountProvider);
+    final followingCount = ref.watch(followingCountProvider).valueOrNull ?? 0;
     final followersCount =
         ref.watch(followersCountProvider).valueOrNull ?? 0;
 
@@ -262,6 +267,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   dividerColor: t.line,
                   tabs: [
                     Tab(text: l.profile_tab_activities),
+                    Tab(text: l.profile_tab_pickups),
                     Tab(text: l.profile_tab_articles),
                   ],
                 ),
@@ -273,6 +279,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
             controller: _tabController,
             children: const [
               _ActivitiesTab(),
+              _PickupsTab(),
               _ArticlesTab(),
             ],
           ),
@@ -380,6 +387,184 @@ class _ArticlesTab extends ConsumerWidget {
   }
 }
 
+class _PickupsTab extends ConsumerWidget {
+  const _PickupsTab();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = context.l10n;
+    final t = context.tokens;
+    final uid = currentUserId;
+    if (uid == null) {
+      return Center(child: Text(l.error_please_login, style: TextStyle(color: t.inkSub)));
+    }
+    final async = ref.watch(userPickupsProvider(uid));
+
+    return RefreshIndicator(
+      color: t.accent,
+      backgroundColor: t.elev1,
+      onRefresh: () async => ref.invalidate(userPickupsProvider(uid)),
+      child: async.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text('$e')),
+        data: (items) {
+          if (items.isEmpty) {
+            return ListView(
+              children: [
+                EmptyState(
+                  icon: Icons.sports_soccer,
+                  title: l.empty_no_pickups,
+                  subtitle: l.empty_no_pickups_sub,
+                ),
+              ],
+            );
+          }
+          return ListView.builder(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+            itemCount: items.length,
+            itemBuilder: (_, i) {
+              final item = items[i];
+              return _PickupListTile(
+                pickup: item.pickup,
+                isHost: item.isHost,
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _PickupListTile extends StatelessWidget {
+  final Pickup pickup;
+  final bool isHost;
+  const _PickupListTile({required this.pickup, required this.isHost});
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final l = context.l10n;
+    final roleLabel = isHost ? l.profile_pickup_organized : l.profile_pickup_participated;
+    final roleColor = isHost ? t.accent : t.inkSub;
+
+    return GestureDetector(
+      onTap: () => GoRouter.of(context).push('/pickup/${pickup.id}'),
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: t.elev1,
+          borderRadius: BorderRadius.circular(t.r2),
+          border: Border.all(color: t.line),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            NetworkAvatar(pickup.displayHost, url: pickup.hostAvatarUrl, size: 40, square: true),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: roleColor.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          roleLabel,
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: roleColor,
+                          ),
+                        ),
+                      ),
+                      const Spacer(),
+                      _StatusLabel(status: pickup.status, tokens: t, l10n: l),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    pickup.displayTitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: t.ink,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Icon(Icons.location_on_outlined, size: 14, color: t.inkMute),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          pickup.venue,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 13, color: t.inkDim),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Icon(Icons.schedule, size: 14, color: t.inkMute),
+                      const SizedBox(width: 4),
+                      Text(
+                        _formatDate(pickup.startAt),
+                        style: TextStyle(fontSize: 12, color: t.inkMute),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _formatDate(DateTime dt) {
+    return '${dt.month}/${dt.day} ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+  }
+}
+
+class _StatusLabel extends StatelessWidget {
+  final PickupStatus status;
+  final AppTokens tokens;
+  final dynamic l10n;
+  const _StatusLabel({required this.status, required this.tokens, required this.l10n});
+
+  @override
+  Widget build(BuildContext context) {
+    final (Color color, String text) = switch (status) {
+      PickupStatus.open => (tokens.accent, l10n.home_status_open),
+      PickupStatus.almost => (tokens.warn, l10n.home_status_almost),
+      PickupStatus.full => (tokens.inkMute, l10n.home_status_full),
+      PickupStatus.done => (tokens.inkMute, l10n.pickup_detail_status_done),
+      PickupStatus.cancelled => (tokens.danger, l10n.pickup_status_cancelled),
+    };
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: color),
+      ),
+    );
+  }
+}
+
 class _StatColumn extends StatelessWidget {
   final int count;
   final String label;
@@ -425,12 +610,6 @@ class _ProfileBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tokens;
     final bannerUrl = profile?.bannerUrl;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final uid = profile?.profile.id ?? '';
-    final hue = uid.isNotEmpty
-        ? (uid.codeUnitAt(0) * 7 + uid.codeUnitAt(1)) % 360.0
-        : 210.0;
-    final bannerColor = HSLColor.fromAHSL(1, hue, 0.4, isDark ? 0.18 : 0.82);
 
     return Stack(
       clipBehavior: Clip.none,
@@ -445,10 +624,10 @@ class _ProfileBanner extends StatelessWidget {
                   height: 180,
                   width: double.infinity,
                   child: Image.network(bannerUrl, fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => _fallback(bannerColor, isDark)),
+                      errorBuilder: (_, _, _) => _fallback()),
                 )
               else
-                _fallback(bannerColor, isDark),
+                _fallback(),
               // Camera hint
               Positioned(
                 right: 12,
@@ -482,8 +661,8 @@ class _ProfileBanner extends StatelessWidget {
           right: 8,
           child: IconButton(
             onPressed: onSettings,
-            icon: Icon(Icons.settings_outlined, size: 20,
-                color: bannerUrl != null ? Colors.white70 : t.inkSub),
+            icon: const Icon(Icons.settings_outlined, size: 20,
+                color: Colors.white70),
           ),
         ),
         // Avatar overlapping bottom edge
@@ -513,15 +692,15 @@ class _ProfileBanner extends StatelessWidget {
     );
   }
 
-  Widget _fallback(HSLColor c, bool isDark) => Container(
+  Widget _fallback() => Container(
         height: 180,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              c.toColor(),
-              c.withLightness(isDark ? 0.12 : 0.72).toColor(),
+              Color(0xFF2C2C2E),
+              Color(0xFF1C1C1E),
             ],
           ),
         ),

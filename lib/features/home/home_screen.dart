@@ -152,7 +152,7 @@ class _InboxUnreadDot extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final hasMsgUnread = ref.watch(messagesUnreadProvider);
-    final notifUnread = ref.watch(notificationsUnreadProvider).valueOrNull ?? 0;
+    final notifUnread = ref.watch(notificationsUnreadProvider);
     if (!hasMsgUnread && notifUnread == 0) return const SizedBox.shrink();
     return Container(
       width: 6,

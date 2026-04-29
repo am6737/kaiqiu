@@ -6,8 +6,8 @@ import 'package:go_router/go_router.dart';
 import '../../l10n/l10n_extension.dart';
 import '../../providers.dart';
 import '../../repositories/favorites_repository.dart';
-import '../../services/local_storage.dart';
 import '../../widgets/avatar.dart';
+import '../../widgets/user_card_sheet.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/section_header.dart';
 import '../../widgets/sport_icon.dart';
@@ -265,8 +265,14 @@ class _PlayerTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
-    ref.watch(localStoreProvider);
-    final followed = LocalStore.followedUsers.toList();
+    final followedAsync = ref.watch(myFollowingListProvider);
+    return followedAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (_, _) => EmptyState(
+        icon: Icons.people_alt_outlined,
+        title: l.empty_no_favorites,
+      ),
+      data: (followed) {
     if (followed.isEmpty) {
       return EmptyState(
         icon: Icons.people_alt_outlined,
@@ -276,31 +282,65 @@ class _PlayerTab extends ConsumerWidget {
     return ListView(
       padding: const EdgeInsets.only(bottom: 40),
       children: [
-        for (final name in followed)
-          ListTile(
-            leading: Avatar(name, size: 36),
-            title: Text(
-              name,
-              style: TextStyle(
-                fontSize: 14,
-                color: context.tokens.ink,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            trailing: TextButton(
-              onPressed: () async {
-                await ref
-                    .read(favoritesRepoProvider)
-                    .toggle(FavoriteEntity.user, name);
-              },
-              child: Text(
-                l.common_unfollow,
-                style: TextStyle(color: context.tokens.inkSub),
-              ),
-            ),
-            onTap: () => context.push('/archive'),
-          ),
+        for (final userId in followed)
+          _FollowedUserTile(userId: userId),
       ],
+    );
+      },
+    );
+  }
+}
+
+class _FollowedUserTile extends ConsumerWidget {
+  final String userId;
+  const _FollowedUserTile({required this.userId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = context.l10n;
+    final profileAsync = ref.watch(profileByIdProvider(userId));
+    final name = profileAsync.valueOrNull?.name ?? userId;
+    return ListTile(
+      leading: Avatar(name, size: 36),
+      title: Text(
+        name,
+        style: TextStyle(
+          fontSize: 14,
+          color: context.tokens.ink,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      trailing: TextButton(
+        onPressed: () async {
+          final confirmed = await showDialog<bool>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: Text(l.common_unfollow_confirm_title),
+              content: Text(l.common_unfollow_confirm_body),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: Text(l.common_cancel),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: Text(l.common_confirm),
+                ),
+              ],
+            ),
+          );
+          if (confirmed != true) return;
+          await ref
+              .read(favoritesRepoProvider)
+              .toggle(FavoriteEntity.user, userId);
+          ref.invalidate(myFollowingListProvider);
+        },
+        child: Text(
+          l.common_unfollow,
+          style: TextStyle(color: context.tokens.inkSub),
+        ),
+      ),
+      onTap: () => showUserCardSheet(context, ref, userId: userId),
     );
   }
 }

@@ -204,6 +204,7 @@ class _CreateVenueScreenState extends ConsumerState<CreateVenueScreen> {
     try {
       final priceCents = ((double.tryParse(_price.text.trim()) ?? 0) * 100).round();
       final isPublic = _venueType == 'public';
+      final city = ref.read(cityProvider);
       final payload = {
         'name': _name.text.trim(),
         'venue_type': _venueType,
@@ -211,6 +212,7 @@ class _CreateVenueScreenState extends ConsumerState<CreateVenueScreen> {
         'sport_type': _sportType,
         'description': _desc.text.trim().isNotEmpty ? _desc.text.trim() : null,
         'address': _location!.address,
+        'city': city,
         'lat': _location!.lat,
         'lng': _location!.lng,
         'phone': isPublic ? null : (_phone.text.trim().isNotEmpty ? _phone.text.trim() : null),

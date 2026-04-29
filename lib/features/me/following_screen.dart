@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../l10n/l10n_extension.dart';
 import '../../providers.dart';
 import '../../repositories/favorites_repository.dart';
-import '../../services/local_storage.dart';
 import '../../widgets/avatar.dart';
 import '../../widgets/empty_state.dart';
-import '../../widgets/section_header.dart';
+import '../../widgets/user_card_sheet.dart';
 import '../../theme/app_tokens.dart';
 
 class FollowingScreen extends ConsumerStatefulWidget {
@@ -30,40 +28,28 @@ class _FollowingScreenState extends ConsumerState<FollowingScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            PageTitleBar(
-              title: l.me_following_title,
-              onBack: () => context.pop(),
-            ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: context.tokens.elev2,
-                  border: Border.all(color: context.tokens.line),
-                  borderRadius: BorderRadius.circular(context.tokens.r2),
-                ),
-                child: Row(
-                  children: [
-                    _Tab(
-                      label: l.profile_following,
-                      active: _tab == 0,
-                      onTap: () => setState(() => _tab = 0),
-                    ),
-                    _Tab(
-                      label: l.profile_followers,
-                      active: _tab == 1,
-                      onTap: () => setState(() => _tab = 1),
-                    ),
-                  ],
-                ),
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+              child: Row(
+                children: [
+                  const BackButton(),
+                  const SizedBox(width: 8),
+                  _TabChip(
+                    label: l.profile_following,
+                    active: _tab == 0,
+                    onTap: () => setState(() => _tab = 0),
+                  ),
+                  const SizedBox(width: 8),
+                  _TabChip(
+                    label: l.profile_followers,
+                    active: _tab == 1,
+                    onTap: () => setState(() => _tab = 1),
+                  ),
+                ],
               ),
             ),
             Expanded(
-              child: switch (_tab) {
-                0 => _FollowingTab(),
-                _ => _FollowersTab(),
-              },
+              child: _tab == 0 ? _FollowingTab() : _FollowersTab(),
             ),
           ],
         ),
@@ -72,31 +58,32 @@ class _FollowingScreenState extends ConsumerState<FollowingScreen> {
   }
 }
 
-class _Tab extends StatelessWidget {
+class _TabChip extends StatelessWidget {
   final String label;
   final bool active;
   final VoidCallback onTap;
-  const _Tab({required this.label, required this.active, required this.onTap});
+  const _TabChip({
+    required this.label,
+    required this.active,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 9),
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: active ? context.tokens.elev3 : Colors.transparent,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: active ? context.tokens.ink : context.tokens.inkSub,
-            ),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        decoration: BoxDecoration(
+          color: active ? context.tokens.elev3 : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: active ? context.tokens.ink : context.tokens.inkSub,
           ),
         ),
       ),
@@ -131,25 +118,8 @@ class _FollowingTab extends ConsumerWidget {
           return ListView(
             padding: const EdgeInsets.only(bottom: 40),
             children: [
-              for (final name in list)
-                _UserRow(
-                  name: name,
-                  trailing: TextButton(
-                    onPressed: () async {
-                      await ref
-                          .read(favoritesRepoProvider)
-                          .toggle(FavoriteEntity.user, name);
-                      ref.invalidate(myFollowingListProvider);
-                    },
-                    child: Text(
-                      l.common_unfollow,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: context.tokens.inkSub,
-                      ),
-                    ),
-                  ),
-                ),
+              for (final userId in list)
+                _FollowingUserRow(userId: userId),
             ],
           );
         },
@@ -157,6 +127,61 @@ class _FollowingTab extends ConsumerWidget {
             Center(child: CircularProgressIndicator(color: context.tokens.accent)),
         error: (e, _) => Center(child: Text('${l.error_load_failed}: $e')),
       ),
+    );
+  }
+}
+
+class _FollowingUserRow extends ConsumerWidget {
+  final String userId;
+  const _FollowingUserRow({required this.userId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = context.l10n;
+    final profileAsync = ref.watch(profileByIdProvider(userId));
+    final name = profileAsync.valueOrNull?.name ?? userId;
+    return ListTile(
+      leading: Avatar(name, size: 36),
+      title: Text(
+        name,
+        style: TextStyle(
+          fontSize: 14,
+          color: context.tokens.ink,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      trailing: TextButton(
+        onPressed: () async {
+          final confirmed = await showDialog<bool>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: Text(l.common_unfollow_confirm_title),
+              content: Text(l.common_unfollow_confirm_body),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: Text(l.common_cancel),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: Text(l.common_confirm),
+                ),
+              ],
+            ),
+          );
+          if (confirmed != true) return;
+          await ref
+              .read(favoritesRepoProvider)
+              .toggle(FavoriteEntity.user, userId);
+          ref.invalidate(myFollowingListProvider);
+          ref.invalidate(isFollowingProvider(userId));
+        },
+        child: Text(
+          l.common_unfollow,
+          style: TextStyle(fontSize: 12, color: context.tokens.inkSub),
+        ),
+      ),
+      onTap: () => showUserCardSheet(context, ref, userId: userId),
     );
   }
 }
@@ -185,14 +210,13 @@ class _FollowersTab extends ConsumerWidget {
               ],
             );
           }
-          ref.watch(localStoreProvider);
           return ListView(
             padding: const EdgeInsets.only(bottom: 40),
             children: [
-              for (final name in list)
-                _UserRow(
-                  name: name,
-                  trailing: _FollowButton(name: name),
+              for (final follower in list)
+                _FollowerRow(
+                  userId: follower.id,
+                  name: follower.name,
                 ),
             ],
           );
@@ -205,64 +229,63 @@ class _FollowersTab extends ConsumerWidget {
   }
 }
 
-class _FollowButton extends ConsumerWidget {
+class _FollowerRow extends ConsumerWidget {
+  final String userId;
   final String name;
-  const _FollowButton({required this.name});
+  const _FollowerRow({required this.userId, required this.name});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.watch(localStoreProvider);
-    final isFollowing = LocalStore.isFollowing(name);
     final l = context.l10n;
-    return TextButton(
-      onPressed: () async {
-        await ref
-            .read(favoritesRepoProvider)
-            .toggle(FavoriteEntity.user, name);
-        ref.invalidate(myFollowingListProvider);
-      },
-      child: Text(
-        isFollowing ? l.common_unfollow : l.common_follow,
+    final following =
+        ref.watch(isFollowingProvider(userId)).valueOrNull ?? false;
+    return ListTile(
+      leading: Avatar(name, size: 36),
+      title: Text(
+        name,
         style: TextStyle(
-          fontSize: 12,
-          color: isFollowing ? context.tokens.inkSub : context.tokens.accent,
+          fontSize: 14,
+          color: context.tokens.ink,
+          fontWeight: FontWeight.w600,
         ),
       ),
-    );
-  }
-}
-
-class _UserRow extends StatelessWidget {
-  final String name;
-  final Widget? trailing;
-  const _UserRow({required this.name, this.trailing});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 10, 8, 10),
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: context.tokens.line, width: 1),
-        ),
-      ),
-      child: Row(
-        children: [
-          Avatar(name, size: 40),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              name,
-              style: TextStyle(
-                fontSize: 14,
-                color: context.tokens.ink,
-                fontWeight: FontWeight.w600,
+      trailing: TextButton(
+        onPressed: () async {
+          if (following) {
+            final confirmed = await showDialog<bool>(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                title: Text(l.common_unfollow_confirm_title),
+                content: Text(l.common_unfollow_confirm_body),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(ctx, false),
+                    child: Text(l.common_cancel),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pop(ctx, true),
+                    child: Text(l.common_confirm),
+                  ),
+                ],
               ),
-            ),
+            );
+            if (confirmed != true) return;
+          }
+          await ref
+              .read(favoritesRepoProvider)
+              .toggle(FavoriteEntity.user, userId);
+          ref.invalidate(isFollowingProvider(userId));
+          ref.invalidate(myFollowingListProvider);
+        },
+        child: Text(
+          following ? l.common_unfollow : l.common_follow,
+          style: TextStyle(
+            fontSize: 12,
+            color: following ? context.tokens.inkSub : context.tokens.accent,
           ),
-          if (trailing != null) trailing!,
-        ],
+        ),
       ),
+      onTap: () => showUserCardSheet(context, ref, userId: userId),
     );
   }
 }

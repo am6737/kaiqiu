@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../data/demo_images.dart';
 import '../../l10n/l10n_extension.dart';
 import '../../providers.dart';
 import '../../services/local_storage.dart';
@@ -44,7 +43,7 @@ class WorldCupScreen extends ConsumerWidget {
               fit: StackFit.expand,
               children: [
                 CachedNetworkImage(
-                  imageUrl: DemoImages.eventCoverLonggang,
+                  imageUrl: '',
                   fit: BoxFit.cover,
                   fadeInDuration: const Duration(milliseconds: 160),
                   placeholder: (_, _) => Container(color: const Color(0xFF1A1A20)),

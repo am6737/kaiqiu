@@ -23,6 +23,7 @@ class MessagesTab extends ConsumerWidget {
     final l = context.l10n;
     final async = ref.watch(conversationsProvider);
     return async.when(
+      skipLoadingOnReload: true,
       data: (list) {
         if (list.isEmpty) {
           return RefreshIndicator(
@@ -338,7 +339,7 @@ class _ThreadRow extends ConsumerWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
-            color: pinned ? const Color(0x0800FF85) : null,
+            color: pinned ? context.tokens.accent.withValues(alpha: 0.03) : null,
             border: isFirst
                 ? null
                 : Border(top: BorderSide(color: context.tokens.line, width: 1)),
@@ -351,28 +352,26 @@ class _ThreadRow extends ConsumerWidget {
                   NetworkAvatar(title, url: avatarUrl, size: 44),
                   if (thread.unread > 0)
                     Positioned(
-                      top: -2,
-                      right: -2,
+                      top: -4,
+                      right: -6,
                       child: Container(
                         constraints: const BoxConstraints(
-                          minWidth: 16,
-                          minHeight: 16,
+                          minWidth: 18,
+                          minHeight: 18,
                         ),
                         padding: const EdgeInsets.symmetric(horizontal: 5),
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
-                          color: context.tokens.warn,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: context.tokens.bg, width: 2),
+                          color: context.tokens.danger,
+                          borderRadius: BorderRadius.circular(9),
+                          border: Border.all(color: context.tokens.bg, width: 1.5),
                         ),
                         child: Text(
-                          '${thread.unread}',
-                          style: TextStyle(
-                            fontFamily: context.tokens.fontMono,
-                            fontFamilyFallback: context.tokens.monoFallbacks,
+                          thread.unread > 99 ? '99+' : '${thread.unread}',
+                          style: const TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w700,
-                            color: Colors.black,
+                            color: Colors.white,
                           ),
                         ),
                       ),

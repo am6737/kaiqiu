@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../data/demo_team_assets.dart';
 import '../../../l10n/l10n_extension.dart';
 import '../../../models/event.dart';
 import '../../../providers.dart';
@@ -178,7 +177,7 @@ class StandingsTable extends StatelessWidget {
                           children: [
                             TeamBadge(
                               name: s.team,
-                              logoUrl: DemoTeamAssets.forTeamName(s.team).logoUrl,
+                              logoUrl: null,
                               size: 44,
                             ),
                             const SizedBox(width: 10),
@@ -667,7 +666,7 @@ class StandingsHeroSide extends StatelessWidget {
             children: [
               TeamBadge(
                 name: standing.team,
-                logoUrl: DemoTeamAssets.forTeamName(standing.team).logoUrl,
+                logoUrl: null,
                 size: 72,
               ),
               const SizedBox(height: 6),

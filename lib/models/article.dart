@@ -10,6 +10,7 @@ class Article {
   final int viewCount;
   final int commentCount;
   final int likes;
+  final String? city;
   final DateTime createdAt;
 
   const Article({
@@ -24,6 +25,7 @@ class Article {
     this.viewCount = 0,
     this.commentCount = 0,
     this.likes = 0,
+    this.city,
     required this.createdAt,
   });
 
@@ -39,6 +41,7 @@ class Article {
         viewCount: m['view_count'] as int? ?? 0,
         commentCount: m['comment_count'] as int? ?? 0,
         likes: m['likes'] as int? ?? 0,
+        city: m['city'] as String?,
         createdAt: DateTime.parse(m['created_at'] as String),
       );
 }

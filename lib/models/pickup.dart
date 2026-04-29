@@ -28,6 +28,7 @@ class Pickup {
   final String id;
   final String? hostId;
   final String? hostName;
+  final String? hostAvatarUrl;
   final String? title;
   final String venue;
   final String? address;
@@ -38,18 +39,20 @@ class Pickup {
   final String? timeLabel; // display string like "今晚 19:30"
   final int durationMin;
   final int total;
-  final int? need; // display-only mock "缺 N 人"
+  final int? need;
   final String? level;
   final int feeCents;
   final String formation;
   final String? fieldType;
   final PickupStatus status;
+  final String? city;
   final DateTime createdAt;
 
   const Pickup({
     required this.id,
     this.hostId,
     this.hostName,
+    this.hostAvatarUrl,
     this.title,
     required this.venue,
     this.address,
@@ -66,13 +69,17 @@ class Pickup {
     this.formation = '4-3-3',
     this.fieldType,
     this.status = PickupStatus.open,
+    this.city,
     required this.createdAt,
   });
 
-  factory Pickup.fromMap(Map<String, dynamic> m) => Pickup(
+  factory Pickup.fromMap(Map<String, dynamic> m) {
+    final host = m['host'] as Map<String, dynamic>?;
+    return Pickup(
     id: m['id'] as String,
     hostId: m['host_id'] as String?,
-    hostName: m['host_name'] as String?,
+    hostName: (m['host_name'] as String?) ?? (host?['name'] as String?),
+    hostAvatarUrl: host?['avatar_url'] as String?,
     title: m['title'] as String?,
     venue: m['venue'] as String,
     address: m['address'] as String?,
@@ -89,8 +96,10 @@ class Pickup {
     formation: (m['formation'] as String?) ?? '4-3-3',
     fieldType: m['field_type'] as String?,
     status: _parseStatus(m['status'] as String?),
+    city: m['city'] as String?,
     createdAt: DateTime.parse(m['created_at'] as String),
   );
+  }
 
   String? get venuePhotoUrl => venuePhotos.isNotEmpty ? venuePhotos.first : null;
   double get feeYuan => feeCents / 100;
@@ -129,7 +138,6 @@ class PickupSlot {
     y: m['y'] as int,
   );
 
-  /// A slot is "filled" when someone occupies it (real user or demo name).
   bool get filled => userId != null || displayName != null;
 
   /// First character to draw inside the dot.

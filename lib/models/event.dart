@@ -39,6 +39,7 @@ class Event {
   final EventStatus status;
   final String? coverUrl;
   final String? reviewMode;
+  final String? registrationMode;
 
   const Event({
     required this.id,
@@ -60,6 +61,7 @@ class Event {
     this.status = EventStatus.registering,
     this.coverUrl,
     this.reviewMode,
+    this.registrationMode,
   });
 
   factory Event.fromMap(Map<String, dynamic> m) => Event(
@@ -82,6 +84,7 @@ class Event {
     status: _parseEventStatus(m['status'] as String?),
     coverUrl: m['cover_url'] as String?,
     reviewMode: m['review_mode'] as String?,
+    registrationMode: m['registration_mode'] as String?,
   );
 }
 
@@ -280,6 +283,7 @@ class TeamMember {
   final String? name;
   final String? avatarUrl;
   final int? jerseyNumber;
+  final String? position;
   final String role;
 
   const TeamMember({
@@ -288,6 +292,7 @@ class TeamMember {
     this.name,
     this.avatarUrl,
     this.jerseyNumber,
+    this.position,
     this.role = 'player',
   });
 
@@ -300,7 +305,46 @@ class TeamMember {
       name: profile['name'] as String?,
       avatarUrl: profile['avatar_url'] as String?,
       jerseyNumber: _toInt(m['jersey_number']),
+      position: m['position'] as String?,
       role: (m['role'] as String?) ?? 'player',
+    );
+  }
+}
+
+class IndividualRegistration {
+  final String id;
+  final String eventId;
+  final String userId;
+  final String name;
+  final String? phone;
+  final String? position;
+  final String status;
+  final String? assignedTeamId;
+  final DateTime? createdAt;
+
+  const IndividualRegistration({
+    required this.id,
+    required this.eventId,
+    required this.userId,
+    required this.name,
+    this.phone,
+    this.position,
+    this.status = 'pending',
+    this.assignedTeamId,
+    this.createdAt,
+  });
+
+  factory IndividualRegistration.fromMap(Map<String, dynamic> m) {
+    return IndividualRegistration(
+      id: m['id'] as String,
+      eventId: m['event_id'] as String,
+      userId: m['user_id'] as String,
+      name: m['name'] as String,
+      phone: m['phone'] as String?,
+      position: m['position'] as String?,
+      status: (m['status'] as String?) ?? 'pending',
+      assignedTeamId: m['assigned_team_id'] as String?,
+      createdAt: m['created_at'] != null ? DateTime.parse(m['created_at']) : null,
     );
   }
 }

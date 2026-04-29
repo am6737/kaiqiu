@@ -4,9 +4,9 @@ import 'package:go_router/go_router.dart';
 
 import '../l10n/l10n_extension.dart';
 import '../models/feed.dart';
+import '../models/pickup.dart';
 import '../providers.dart';
 import '../repositories/favorites_repository.dart';
-import '../services/local_storage.dart';
 import '../services/supabase.dart';
 import '../theme/app_tokens.dart';
 import '../utils/toast.dart';
@@ -72,8 +72,34 @@ class _UserCardSheetBodyState extends ConsumerState<_UserCardSheetBody> {
     }
   }
 
-  void _toggleFollow() {
-    ref.read(favoritesRepoProvider).toggle(FavoriteEntity.user, widget.userId);
+  Future<void> _toggleFollow() async {
+    final isFollowing =
+        ref.read(isFollowingProvider(widget.userId)).valueOrNull ?? false;
+    if (isFollowing) {
+      final l = context.l10n;
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(l.common_unfollow_confirm_title),
+          content: Text(l.common_unfollow_confirm_body),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(l.common_cancel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(l.common_confirm),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true) return;
+    }
+    await ref.read(favoritesRepoProvider).toggle(FavoriteEntity.user, widget.userId);
+    ref.invalidate(isFollowingProvider(widget.userId));
+    ref.invalidate(userFollowersCountProvider);
+    ref.invalidate(userFollowingCountProvider);
   }
 
   double _bannerHue(String id) =>
@@ -84,8 +110,7 @@ class _UserCardSheetBodyState extends ConsumerState<_UserCardSheetBody> {
     final l = context.l10n;
     final t = context.tokens;
     final profileAsync = ref.watch(profileByIdProvider(widget.userId));
-    ref.watch(localStoreProvider);
-    final following = LocalStore.isFollowing(widget.userId);
+    final following = ref.watch(isFollowingProvider(widget.userId)).valueOrNull ?? false;
 
     return Container(
       constraints: BoxConstraints(
@@ -307,6 +332,8 @@ class _UserCardSheetBodyState extends ConsumerState<_UserCardSheetBody> {
                       // ── Tab content ──
                       if (_tabIndex == 0)
                         _PostsContent(userId: widget.userId)
+                      else if (_tabIndex == 1)
+                        _PickupsContent(userId: widget.userId)
                       else
                         _ArticlesContent(userId: widget.userId),
 
@@ -335,7 +362,9 @@ class _UserCardSheetBodyState extends ConsumerState<_UserCardSheetBody> {
         children: [
           _tabItem(l.profile_tab_activities, 0, t),
           const SizedBox(width: 24),
-          _tabItem(l.profile_tab_articles, 1, t),
+          _tabItem(l.profile_tab_pickups, 1, t),
+          const SizedBox(width: 24),
+          _tabItem(l.profile_tab_articles, 2, t),
         ],
       ),
     );
@@ -628,7 +657,173 @@ class _ArticleItem extends StatelessWidget {
   }
 }
 
-// ── Gradient banner fallback ──
+// ── Pickups content ──
+class _PickupsContent extends ConsumerWidget {
+  final String userId;
+  const _PickupsContent({required this.userId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = context.tokens;
+    final l = context.l10n;
+    final pickupsAsync = ref.watch(userPickupsProvider(userId));
+
+    return pickupsAsync.when(
+      loading: () => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 32),
+        child: Center(
+            child: SizedBox(
+          width: 20,
+          height: 20,
+          child: CircularProgressIndicator(
+              strokeWidth: 2, color: t.accent),
+        )),
+      ),
+      error: (_, _) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 24),
+        child: Center(
+            child: Text(l.error_load_failed,
+                style: TextStyle(fontSize: 13, color: t.inkSub))),
+      ),
+      data: (pickups) {
+        if (pickups.isEmpty) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 32),
+            child: Center(
+              child: Column(
+                children: [
+                  Icon(Icons.sports_soccer_outlined,
+                      size: 36, color: t.inkMute),
+                  const SizedBox(height: 8),
+                  Text(l.empty_no_data,
+                      style: TextStyle(fontSize: 13, color: t.inkSub)),
+                ],
+              ),
+            ),
+          );
+        }
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          child: Column(
+            children: [
+              for (var i = 0; i < pickups.length; i++) ...[
+                if (i > 0) Divider(height: 1, color: t.line),
+                _PickupItem(
+                  pickup: pickups[i].pickup,
+                  isHost: pickups[i].isHost,
+                ),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+// ── Compact pickup item ──
+class _PickupItem extends StatelessWidget {
+  final Pickup pickup;
+  final bool isHost;
+  const _PickupItem({required this.pickup, required this.isHost});
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final l = context.l10n;
+    final roleLabel =
+        isHost ? l.profile_pickup_organized : l.profile_pickup_participated;
+    final roleColor = isHost ? t.accent : t.inkSub;
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).pop();
+        GoRouter.of(context).push('/pickup/${pickup.id}');
+      },
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            NetworkAvatar(pickup.displayHost, url: pickup.hostAvatarUrl, size: 36, square: true),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: roleColor.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          roleLabel,
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: roleColor,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          pickup.displayTitle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: t.ink,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Icon(Icons.location_on_outlined,
+                          size: 13, color: t.inkMute),
+                      const SizedBox(width: 3),
+                      Expanded(
+                        child: Text(
+                          pickup.venue,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style:
+                              TextStyle(fontSize: 12, color: t.inkDim),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Icon(Icons.schedule, size: 13, color: t.inkMute),
+                      const SizedBox(width: 3),
+                      Text(
+                        _formatDate(pickup.startAt),
+                        style:
+                            TextStyle(fontSize: 11, color: t.inkMute),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _formatDate(DateTime dt) {
+    return '${dt.month}/${dt.day} ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+  }
+}
+
 // ── Social stats (following / followers) ──
 class _SocialStats extends ConsumerWidget {
   final String userId;
@@ -640,7 +835,7 @@ class _SocialStats extends ConsumerWidget {
     final t = context.tokens;
     final l = context.l10n;
     final followingAsync = ref.watch(userFollowingCountProvider(userId));
-    final followersAsync = ref.watch(userFollowersCountProvider(userName));
+    final followersAsync = ref.watch(userFollowersCountProvider(userId));
 
     final followingCount = followingAsync.valueOrNull ?? 0;
     final followersCount = followersAsync.valueOrNull ?? 0;

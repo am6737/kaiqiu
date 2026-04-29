@@ -84,21 +84,25 @@ class FeedPost extends FeedItem {
   @override
   final DateTime createdAt;
   final String authorName;
+  final String? authorAvatarUrl;
   final String body;
   final List<String> tags;
   final int likes;
   final int comments;
   final int shares;
+  final String? city;
 
   FeedPost({
     required this.id,
     required this.createdAt,
     required this.authorName,
+    this.authorAvatarUrl,
     required this.body,
     this.tags = const [],
     this.likes = 0,
     this.comments = 0,
     this.shares = 0,
+    this.city,
   });
 
   @override
@@ -114,11 +118,13 @@ class FeedPost extends FeedItem {
       id: m['id'] as String,
       createdAt: DateTime.parse(m['created_at'] as String),
       authorName: (author?['name'] as String?) ?? '匿名',
+      authorAvatarUrl: author?['avatar_url'] as String?,
       body: m['body'] as String,
       tags: tags,
       likes: _toInt(m['likes']) ?? 0,
       comments: _toInt(m['comments']) ?? 0,
       shares: _toInt(m['shares']) ?? 0,
+      city: m['city'] as String?,
     );
   }
 }
@@ -185,6 +191,7 @@ class FeedPickup extends FeedItem {
   final String? title;
   final String venue;
   final String? hostName;
+  final String? hostAvatarUrl;
   final DateTime startAt;
   final String? timeLabel;
   final int total;
@@ -192,6 +199,7 @@ class FeedPickup extends FeedItem {
   final String? level;
   final int feeCents;
   final String status;
+  final String? city;
 
   FeedPickup({
     required this.id,
@@ -199,6 +207,7 @@ class FeedPickup extends FeedItem {
     this.title,
     required this.venue,
     this.hostName,
+    this.hostAvatarUrl,
     required this.startAt,
     this.timeLabel,
     required this.total,
@@ -206,6 +215,7 @@ class FeedPickup extends FeedItem {
     this.level,
     this.feeCents = 0,
     this.status = 'open',
+    this.city,
   });
 
   @override String get kind => 'pickup';
@@ -213,12 +223,15 @@ class FeedPickup extends FeedItem {
   String get displayTime => timeLabel ?? '';
   String get displayHost => hostName ?? '—';
 
-  factory FeedPickup.fromMap(Map<String, dynamic> m) => FeedPickup(
+  factory FeedPickup.fromMap(Map<String, dynamic> m) {
+    final host = m['host'] as Map<String, dynamic>?;
+    return FeedPickup(
         id: m['id'] as String,
         createdAt: DateTime.parse(m['created_at'] as String),
         title: m['title'] as String?,
         venue: m['venue'] as String,
-        hostName: m['host_name'] as String?,
+        hostName: (m['host_name'] as String?) ?? (host?['name'] as String?),
+        hostAvatarUrl: host?['avatar_url'] as String?,
         startAt: DateTime.parse(m['start_at'] as String),
         timeLabel: m['time_label'] as String?,
         total: _toInt(m['total']) ?? 0,
@@ -226,7 +239,9 @@ class FeedPickup extends FeedItem {
         level: m['level'] as String?,
         feeCents: _toInt(m['fee_cents']) ?? 0,
         status: m['status'] as String? ?? 'open',
+        city: m['city'] as String?,
       );
+  }
 }
 
 class FeedArticle extends FeedItem {
@@ -240,6 +255,7 @@ class FeedArticle extends FeedItem {
   final int viewCount;
   final int commentCount;
   final int likes;
+  final String? city;
 
   FeedArticle({
     required this.id,
@@ -252,6 +268,7 @@ class FeedArticle extends FeedItem {
     this.viewCount = 0,
     this.commentCount = 0,
     this.likes = 0,
+    this.city,
   });
 
   @override String get kind => 'article';
@@ -267,6 +284,7 @@ class FeedArticle extends FeedItem {
         viewCount: _toInt(m['view_count']) ?? 0,
         commentCount: _toInt(m['comment_count']) ?? 0,
         likes: _toInt(m['likes']) ?? 0,
+        city: m['city'] as String?,
       );
 }
 
@@ -274,6 +292,7 @@ class FeedActivity extends FeedItem {
   @override final String id;
   @override final DateTime createdAt;
   final String authorName;
+  final String? authorAvatarUrl;
   final String body;
   final List<String> tags;
   final int likes;
@@ -283,11 +302,13 @@ class FeedActivity extends FeedItem {
   final int? winCount;
   final int? playDuration;
   final String? venue;
+  final String? city;
 
   FeedActivity({
     required this.id,
     required this.createdAt,
     required this.authorName,
+    this.authorAvatarUrl,
     required this.body,
     this.tags = const [],
     this.likes = 0,
@@ -297,6 +318,7 @@ class FeedActivity extends FeedItem {
     this.winCount,
     this.playDuration,
     this.venue,
+    this.city,
   });
 
   @override String get kind => 'activity';
@@ -309,6 +331,7 @@ class FeedActivity extends FeedItem {
       id: m['id'] as String,
       createdAt: DateTime.parse(m['created_at'] as String),
       authorName: author?['name'] as String? ?? '—',
+      authorAvatarUrl: author?['avatar_url'] as String?,
       body: m['body'] as String? ?? '',
       tags: (m['tags'] as List?)?.cast<String>() ?? [],
       likes: _toInt(m['likes']) ?? 0,
@@ -318,6 +341,7 @@ class FeedActivity extends FeedItem {
       winCount: _toInt(m['win_count']),
       playDuration: _toInt(m['play_duration']),
       venue: m['venue'] as String?,
+      city: m['city'] as String?,
     );
   }
 }

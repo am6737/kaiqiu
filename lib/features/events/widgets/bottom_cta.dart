@@ -231,7 +231,7 @@ class BottomCta extends ConsumerWidget {
                   full: true,
                   onPressed: () async {
                     if (teamC.text.trim().isEmpty) {
-                      showToast(ctx, l.error_required_field, error: true);
+                      showToast(ctx, l.error_required_field_named(l.event_register_team_name), error: true);
                       return;
                     }
                     try {
@@ -363,8 +363,12 @@ class BottomCta extends ConsumerWidget {
                   size: BtnSize.lg,
                   full: true,
                   onPressed: () async {
-                    if (nameC.text.trim().isEmpty || selectedPosition == null) {
-                      showToast(ctx, l.error_required_field, error: true);
+                    if (nameC.text.trim().isEmpty) {
+                      showToast(ctx, l.error_required_field_named(l.event_register_contact), error: true);
+                      return;
+                    }
+                    if (selectedPosition == null) {
+                      showToast(ctx, l.error_required_select(l.event_register_position), error: true);
                       return;
                     }
                     try {
@@ -476,11 +480,13 @@ class RegField extends StatelessWidget {
   final String label;
   final TextEditingController controller;
   final TextInputType? keyboardType;
+  final String? hint;
   const RegField({
     super.key,
     required this.label,
     required this.controller,
     this.keyboardType,
+    this.hint,
   });
 
   @override
@@ -503,10 +509,12 @@ class RegField extends StatelessWidget {
               controller: controller,
               keyboardType: keyboardType,
               style: TextStyle(color: context.tokens.ink, fontSize: 14),
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
+                hintText: hint,
+                hintStyle: TextStyle(color: context.tokens.inkDim, fontSize: 14),
                 border: InputBorder.none,
                 isDense: true,
-                contentPadding: EdgeInsets.symmetric(vertical: 12),
+                contentPadding: const EdgeInsets.symmetric(vertical: 12),
               ),
             ),
           ),

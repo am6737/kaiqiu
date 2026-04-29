@@ -37,7 +37,6 @@ class NotificationsTabState extends ConsumerState<NotificationsTab> {
             backgroundColor: context.tokens.elev1,
             onRefresh: () async {
               ref.invalidate(notificationsProvider);
-              ref.invalidate(notificationsUnreadProvider);
             },
             child: ListView(
               physics: const AlwaysScrollableScrollPhysics(),
@@ -64,7 +63,6 @@ class NotificationsTabState extends ConsumerState<NotificationsTab> {
                       if (!n.read) {
                         ref.read(notificationsRepoProvider).markRead(n.id);
                         ref.invalidate(notificationsProvider);
-                        ref.invalidate(notificationsUnreadProvider);
                       }
                       final route = n.route;
                       if (route == null) return;

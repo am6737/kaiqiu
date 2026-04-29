@@ -114,6 +114,13 @@ class AppL10nEn extends AppL10n {
   String get common_unfollow => 'Following';
 
   @override
+  String get common_unfollow_confirm_title => 'Unfollow';
+
+  @override
+  String get common_unfollow_confirm_body =>
+      'Are you sure you want to unfollow this user?';
+
+  @override
   String get common_favorite => 'Favorite';
 
   @override
@@ -159,6 +166,9 @@ class AppL10nEn extends AppL10n {
   String get common_version => 'Version';
 
   @override
+  String get common_me => 'Me';
+
+  @override
   String get error_load_failed => 'Load failed';
 
   @override
@@ -166,6 +176,16 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get error_required_field => 'This field is required';
+
+  @override
+  String error_required_field_named(String field) {
+    return 'Please enter $field';
+  }
+
+  @override
+  String error_required_select(String field) {
+    return 'Please select $field';
+  }
 
   @override
   String get error_invalid_email => 'Invalid email';
@@ -453,6 +473,9 @@ class AppL10nEn extends AppL10n {
   String get events_tab_registering => 'Open';
 
   @override
+  String get events_tab_completed => 'Finished';
+
+  @override
   String get events_tab_watch => 'Watch';
 
   @override
@@ -579,6 +602,9 @@ class AppL10nEn extends AppL10n {
   String get event_teams_contact => 'Contact';
 
   @override
+  String get event_teams_my_team => 'My Team';
+
+  @override
   String get event_overview_rules => 'Rules';
 
   @override
@@ -664,6 +690,9 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get event_register_search_user => 'Search user';
+
+  @override
+  String get event_register_search_user_hint => 'Search by nickname';
 
   @override
   String get event_register_jersey => 'Jersey #';
@@ -2312,7 +2341,9 @@ class AppL10nEn extends AppL10n {
   }
 
   @override
-  String get event_overview_rule_format => '11-a-side · standard pitch';
+  String event_overview_rule_format(int n) {
+    return '$n-a-side';
+  }
 
   @override
   String get event_overview_rule_halves => '2 × 45min + halftime';
@@ -2322,6 +2353,27 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get event_overview_rule_cards => 'Cards accumulate to suspension';
+
+  @override
+  String get event_template_league => 'League (round-robin)';
+
+  @override
+  String get event_template_knockout16 => 'Knockout (16 teams)';
+
+  @override
+  String get event_template_knockout8 => 'Knockout (8 teams)';
+
+  @override
+  String get event_template_group8 => 'Group stage + Knockout';
+
+  @override
+  String get event_template_wc => 'World Cup format';
+
+  @override
+  String get event_template_unknown => 'Custom format';
+
+  @override
+  String get event_overview_tournament_format => 'Format';
 
   @override
   String get event_overview_organizer_label => 'Organizer';
@@ -2719,6 +2771,62 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get match_not_found => 'Match not found';
+
+  @override
+  String get match_tab_overview => 'Overview';
+
+  @override
+  String get match_tab_stats => 'Stats';
+
+  @override
+  String get match_tab_ratings => 'Ratings';
+
+  @override
+  String get match_tab_discussion => 'Chat';
+
+  @override
+  String get match_stats_goals => 'Goals';
+
+  @override
+  String get match_stats_penalty_goals => 'Penalty goals';
+
+  @override
+  String get match_stats_own_goals => 'Own goals';
+
+  @override
+  String get match_stats_first_half => '1st half goals';
+
+  @override
+  String get match_stats_second_half => '2nd half goals';
+
+  @override
+  String get match_stats_no_data => 'Stats available after match ends';
+
+  @override
+  String get match_discussion_not_open => 'Discussion coming soon';
+
+  @override
+  String get match_rating_goals_short => 'Goals';
+
+  @override
+  String get match_rating_assists_short => 'Assists';
+
+  @override
+  String match_rating_n_voted(int n) {
+    return '$n rated';
+  }
+
+  @override
+  String get match_rating_score_dist => 'Score Distribution';
+
+  @override
+  String get match_rating_all_reviews => 'All Reviews';
+
+  @override
+  String get match_rating_no_reviews => 'No reviews yet';
+
+  @override
+  String get match_rating_not_rated => 'Not rated';
 
   @override
   String get event_standings_leaders_label => 'League Leaders';

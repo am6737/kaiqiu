@@ -1,8 +1,3 @@
-// team_badge.dart — 队徽方形 chip。参考世界杯的 flag chip 做法：
-// 纯色方块 + 队名前 1-2 字，颜色由队名哈希派生，保证同一支队始终同色。
-//
-// 有 logo_url 时优先拉网络图（也按方形裁），没有就渲染 chip。demo 的 16
-// 支队都走 chip（seed 里不给 logo_url，避免随机网图看起来像场景照）。
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 

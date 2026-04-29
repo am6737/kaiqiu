@@ -90,9 +90,6 @@ final localStoreProvider = ChangeNotifierProvider<LocalStoreNotifier>(
   (_) => localStoreNotifier,
 );
 
-// ─────────────────────────────────────────────────────────────
-// Live data providers (replacing former mock providers)
-// ─────────────────────────────────────────────────────────────
 final feedsProvider = FutureProvider<List<FeedItem>>((ref) async {
   return ref.read(feedRepoProvider).buildFeed();
 });
@@ -115,25 +112,27 @@ final wcMatchesProvider = FutureProvider<List<ExternalMatch>>((ref) async {
 
 final teammatesProvider = FutureProvider<List<Teammate>>((ref) async {
   final uid = currentUserId;
-  if (uid == null) return _mockTeammates;
-  final result = await ref.read(profilesRepoProvider).teammates(uid);
-  return result.isEmpty ? _mockTeammates : result;
+  if (uid == null) return [];
+  return ref.read(profilesRepoProvider).teammates(uid);
 });
 
 final historyProvider = FutureProvider<List<MatchHistoryEntry>>((ref) async {
   final uid = currentUserId;
-  if (uid == null) return _mockHistory;
-  final result = await ref.read(profilesRepoProvider).matchHistory(uid);
-  return result.isEmpty ? _mockHistory : result;
+  if (uid == null) return [];
+  return ref.read(profilesRepoProvider).matchHistory(uid);
 });
 
 final notificationsProvider =
-    FutureProvider<List<NotificationItem>>((ref) async {
-  return ref.read(notificationsRepoProvider).listMine();
+    StreamProvider<List<NotificationItem>>((ref) {
+  return ref.read(notificationsRepoProvider).streamMine();
 });
 
-final notificationsUnreadProvider = FutureProvider<int>((ref) async {
-  return ref.read(notificationsRepoProvider).unreadCount();
+final notificationsUnreadProvider = Provider<int>((ref) {
+  final async = ref.watch(notificationsProvider);
+  return async.maybeWhen(
+    data: (list) => list.where((n) => !n.read).length,
+    orElse: () => 0,
+  );
 });
 
 final latestUnratedMatchProvider = FutureProvider<String?>((ref) async {
@@ -184,6 +183,13 @@ final isUserRegisteredProvider =
   return ref.read(eventsRepoProvider).isUserRegistered(eventId, uid);
 });
 
+final userTeamIdProvider =
+    FutureProvider.family<String?, String>((ref, eventId) async {
+  final uid = currentUserId;
+  if (uid == null) return null;
+  return ref.read(eventsRepoProvider).getUserTeamId(eventId, uid);
+});
+
 final teamDetailProvider =
     FutureProvider.family<TeamRow, String>((ref, teamId) async {
   return ref.read(eventsRepoProvider).fetchTeamDetail(teamId);
@@ -200,6 +206,18 @@ final profileSearchProvider =
   return ref.read(eventsRepoProvider).searchProfiles(query);
 });
 
+final individualRegistrationsProvider =
+    FutureProvider.family<List<IndividualRegistration>, String>((ref, eventId) async {
+  return ref.read(eventsRepoProvider).listIndividualRegistrations(eventId);
+});
+
+final isUserIndividuallyRegisteredProvider =
+    FutureProvider.family<bool, String>((ref, eventId) async {
+  final uid = currentUserId;
+  if (uid == null) return false;
+  return ref.read(eventsRepoProvider).isUserIndividuallyRegistered(eventId, uid);
+});
+
 // Sport selection (for top bar)
 final sportProvider = StateProvider<String>((_) => 'football');
 // City now backed by LocalStore so it persists across launches.
@@ -212,9 +230,10 @@ final cityProvider = StateProvider<String>((ref) {
 // Live data providers (Supabase)
 // ─────────────────────────────────────────────────────────────
 
-/// All pickups in the city, from Supabase. Sorted by start_at.
+/// All pickups in the selected city, from Supabase. Sorted by start_at.
 final livePickupsProvider = FutureProvider<List<Pickup>>((ref) async {
-  return ref.read(pickupsRepoProvider).listAll();
+  final city = ref.watch(cityProvider);
+  return ref.read(pickupsRepoProvider).listAll(city: city);
 });
 
 /// Single pickup by id.
@@ -239,10 +258,9 @@ final selectedSlotProvider =
     StateProvider.family<(String, int, int)?, String>((ref, pickupId) => null);
 
 /// Conversations the current user belongs to (Messages tab root).
-final conversationsProvider = FutureProvider<List<ConversationRow>>((
-  ref,
-) async {
-  return ref.read(messagesRepoProvider).listConversations();
+/// Uses Realtime to auto-refresh when new messages arrive.
+final conversationsProvider = StreamProvider<List<ConversationRow>>((ref) {
+  return ref.read(messagesRepoProvider).streamConversations();
 });
 
 /// `true` if any conversation has `unread > 0`. Used for inbox unread dot.
@@ -253,6 +271,15 @@ final messagesUnreadProvider = Provider<bool>((ref) {
     orElse: () => false,
   );
 });
+
+/// Global stream of new messages from other users (for in-app notifications).
+final globalNewMessageProvider = StreamProvider<Message>((ref) {
+  return ref.read(messagesRepoProvider).streamGlobalNewMessages();
+});
+
+/// Currently active chat conversation id. Set by ChatScreen to suppress
+/// in-app notifications for the conversation the user is already viewing.
+final activeConvIdProvider = StateProvider<String?>((ref) => null);
 
 /// Live stream of messages in a conversation (Realtime).
 final chatMessagesProvider = StreamProvider.family<List<Message>, String>((
@@ -266,8 +293,9 @@ final chatMessagesProvider = StreamProvider.family<List<Message>, String>((
 /// sorted by most teams registered (popularity proxy), limited to 4.
 final featuredEventsProvider = FutureProvider<List<Event>>((ref) async {
   final repo = ref.read(eventsRepoProvider);
-  final ongoing = await repo.listByStatus(EventStatus.ongoing);
-  final registering = await repo.listByStatus(EventStatus.registering);
+  final city = ref.watch(cityProvider);
+  final ongoing = await repo.listByStatus(EventStatus.ongoing, city: city);
+  final registering = await repo.listByStatus(EventStatus.registering, city: city);
   final all = [...ongoing, ...registering];
   all.sort((a, b) => (b.teamsMax ?? 0).compareTo(a.teamsMax ?? 0));
   return all.take(4).toList();
@@ -278,7 +306,8 @@ final liveEventsProvider = FutureProvider.family<List<Event>, EventStatus>((
   ref,
   status,
 ) async {
-  return ref.read(eventsRepoProvider).listByStatus(status);
+  final city = ref.watch(cityProvider);
+  return ref.read(eventsRepoProvider).listByStatus(status, city: city);
 });
 
 /// Single event detail by id.
@@ -418,11 +447,11 @@ final userFollowingCountProvider =
 });
 
 final userFollowersCountProvider =
-    FutureProvider.family.autoDispose<int, String>((ref, userName) async {
+    FutureProvider.family.autoDispose<int, String>((ref, userId) async {
   try {
     final result = await supabase.rpc(
       'followers_count',
-      params: {'target_name': userName},
+      params: {'target_id': userId},
     );
     return (result as num?)?.toInt() ?? 0;
   } catch (_) {
@@ -430,16 +459,36 @@ final userFollowersCountProvider =
   }
 });
 
+final userPickupsProvider =
+    FutureProvider.family.autoDispose<List<({Pickup pickup, bool isHost})>, String>(
+        (ref, userId) async {
+  final repo = ref.read(pickupsRepoProvider);
+  final results = await Future.wait([
+    repo.listByHost(userId, limit: 10),
+    repo.listJoinedBy(userId, limit: 10),
+  ]);
+  final hosted = results[0];
+  final joined = results[1];
+  final hostedIds = hosted.map((p) => p.id).toSet();
+  final items = <({Pickup pickup, bool isHost})>[
+    for (final p in hosted) (pickup: p, isHost: true),
+    for (final p in joined)
+      if (!hostedIds.contains(p.id)) (pickup: p, isHost: false),
+  ];
+  items.sort((a, b) => b.pickup.startAt.compareTo(a.pickup.startAt));
+  return items;
+});
+
 final userActivitiesProvider =
     FutureProvider.family.autoDispose<List<FeedActivity>, String>(
         (ref, userId) async {
-  return ref.read(feedRepoProvider).userActivities(userId);
+  return ref.read(feedRepoProvider).userActivities(userId, limit: 50);
 });
 
 final userArticlesProvider =
     FutureProvider.family.autoDispose<List<FeedArticle>, String>(
         (ref, userId) async {
-  return ref.read(feedRepoProvider).userArticles(userId);
+  return ref.read(feedRepoProvider).userArticles(userId, limit: 50);
 });
 
 // ─────────────────────────────────────────────────────────────
@@ -522,26 +571,25 @@ final fullProfileByIdProvider =
 final myProfileProvider = FutureProvider<PlayerProfile?>((ref) async {
   ref.watch(localStoreProvider);
   final uid = currentUserId;
-  if (uid == null) return _mockProfile;
-  final result = await ref.read(profilesRepoProvider).fetchFullProfile(uid);
-  return result ?? _mockProfile;
+  if (uid == null) return null;
+  return ref.read(profilesRepoProvider).fetchFullProfile(uid);
 });
 
-/// Number of users the current user follows (local cache).
-final followingCountProvider = Provider<int>((ref) {
-  ref.watch(localStoreProvider);
-  return LocalStore.followedUsers.length;
+/// Number of users the current user follows.
+final followingCountProvider = FutureProvider<int>((ref) async {
+  final uid = currentUserId;
+  if (uid == null) return 0;
+  return ref.read(favoritesRepoProvider).list(FavoriteEntity.user).then((l) => l.length);
 });
 
-/// Number of users who follow the current user (Supabase RPC).
+/// Number of users who follow the current user.
 final followersCountProvider = FutureProvider<int>((ref) async {
-  ref.watch(localStoreProvider);
-  final profile = await ref.watch(myProfileProvider.future);
-  if (profile == null) return 0;
+  final uid = currentUserId;
+  if (uid == null) return 0;
   try {
     final result = await supabase.rpc(
       'followers_count',
-      params: {'target_name': profile.name},
+      params: {'target_id': uid},
     );
     return (result as num?)?.toInt() ?? 0;
   } catch (_) {
@@ -549,38 +597,60 @@ final followersCountProvider = FutureProvider<int>((ref) async {
   }
 });
 
-/// List of user names the current user follows.
+/// List of user IDs the current user follows.
 final myFollowingListProvider = FutureProvider<List<String>>((ref) async {
-  ref.watch(localStoreProvider);
   return ref.read(favoritesRepoProvider).list(FavoriteEntity.user);
 });
 
-/// List of user names who follow the current user.
-final myFollowersListProvider = FutureProvider<List<String>>((ref) async {
-  ref.watch(localStoreProvider);
-  final profile = await ref.watch(myProfileProvider.future);
-  if (profile == null) return [];
+/// Users who follow the current user: (id, name) pairs.
+final myFollowersListProvider =
+    FutureProvider<List<({String id, String name})>>((ref) async {
+  final uid = currentUserId;
+  if (uid == null) return [];
   try {
     final rows = await supabase.rpc(
       'followers_list',
-      params: {'target_name': profile.name},
+      params: {'target_id': uid},
     );
-    return (rows as List).map((r) => r['follower_name'] as String).toList();
+    return (rows as List)
+        .map((r) => (
+              id: r['follower_id'] as String,
+              name: r['follower_name'] as String,
+            ))
+        .toList();
   } catch (_) {
     return [];
   }
 });
 
-// ── Home Tab Providers ──────────────────────────────────
-
-/// 推荐 Tab — mixed feed of all content types
-final recommendFeedProvider = FutureProvider<List<FeedItem>>((ref) async {
-  return ref.read(feedRepoProvider).buildRecommendFeed();
+/// Whether the current user is following [targetId].
+final isFollowingProvider =
+    FutureProvider.family.autoDispose<bool, String>((ref, targetId) async {
+  final uid = currentUserId;
+  if (uid == null) return false;
+  try {
+    final result = await supabase.rpc(
+      'is_following',
+      params: {'target_id': targetId},
+    );
+    return result as bool? ?? false;
+  } catch (_) {
+    return false;
+  }
 });
 
-/// 发现 Tab — posts (with activity) + articles
+// ── Home Tab Providers ──────────────────────────────────
+
+/// 推荐 Tab — mixed feed of all content types, filtered by city
+final recommendFeedProvider = FutureProvider<List<FeedItem>>((ref) async {
+  final city = ref.watch(cityProvider);
+  return ref.read(feedRepoProvider).buildRecommendFeed(city: city);
+});
+
+/// 发现 Tab — posts (with activity) + articles, filtered by city
 final discoverFeedProvider = FutureProvider<List<FeedItem>>((ref) async {
-  return ref.read(feedRepoProvider).buildDiscoverFeed();
+  final city = ref.watch(cityProvider);
+  return ref.read(feedRepoProvider).buildDiscoverFeed(city: city);
 });
 
 /// Single article detail by id.
@@ -597,7 +667,7 @@ final postDetailProvider =
     FutureProvider.family<Map<String, dynamic>, String>((ref, id) async {
   final row = await supabase
       .from('posts')
-      .select('*, author:profiles!author_id(name)')
+      .select('*, author:profiles!author_id(name, avatar_url)')
       .eq('id', id)
       .single();
   return row;
@@ -625,10 +695,11 @@ final pickupFilterProvider = StateProvider<PickupFilter>(
   (_) => const PickupFilter(),
 );
 
-/// 约球 Tab — filtered pickup list (reacts to filter changes)
+/// 约球 Tab — filtered pickup list (reacts to filter + city changes)
 final filteredPickupsProvider = FutureProvider<List<Pickup>>((ref) async {
   final filter = ref.watch(pickupFilterProvider);
-  return ref.read(pickupsRepoProvider).listFiltered(filter);
+  final city = ref.watch(cityProvider);
+  return ref.read(pickupsRepoProvider).listFiltered(filter, city: city);
 });
 
 /// User device position (for distance calc)
@@ -641,7 +712,8 @@ final userPositionProvider = FutureProvider((ref) async {
 // ─────────────────────────────────────────────────────────────
 
 final liveVenuesProvider = FutureProvider<List<Venue>>((ref) async {
-  return ref.read(venuesRepoProvider).listAll();
+  final city = ref.watch(cityProvider);
+  return ref.read(venuesRepoProvider).listAll(city: city);
 });
 
 final venueDetailProvider = FutureProvider.family<Venue, String>((
@@ -680,69 +752,3 @@ final venueOwnerBookingsProvider =
   return ref.read(venuesRepoProvider).bookingsForOwner(uid);
 });
 
-// ─────────────────────────────────────────────────────────────
-// Mock data (development fallback)
-// ─────────────────────────────────────────────────────────────
-final _mockProfile = PlayerProfile(
-  profile: Profile(
-    id: 'mock-001',
-    name: '赵铁柱',
-    handle: '@tiezhu',
-    city: '深圳',
-    district: '南山区',
-    position: 'CAM',
-    height: 178,
-    foot: '右脚',
-    createdAt: DateTime(2023, 3, 15),
-  ),
-  stats: const PlayerStats(matches: 47, goals: 18, assists: 23),
-  attrs: const {
-    '速度': 76,
-    '射门': 68,
-    '传球': 82,
-    '防守': 55,
-    '体能': 71,
-    '技术': 85,
-  },
-  honors: const [
-    PlayerHonor(year: '2025', title: '南山秋季联赛冠军', meta: '最佳助攻'),
-    PlayerHonor(year: '2025', title: '龙岗村超 MVP'),
-    PlayerHonor(year: '2024', title: '深圳业余杯季军', meta: '最佳阵容'),
-  ],
-);
-
-const _mockTeammates = [
-  Teammate(id: 't1', name: '王大锤', matches: 32),
-  Teammate(id: 't2', name: '李小龙', matches: 28),
-  Teammate(id: 't3', name: '陈七', matches: 21),
-  Teammate(id: 't4', name: '张飞', matches: 17),
-  Teammate(id: 't5', name: '刘备', matches: 14),
-];
-
-final _mockHistory = [
-  MatchHistoryEntry(
-    matchId: 'm1', playedAt: DateTime(2026, 4, 18),
-    eventName: '南山秋季联赛', teamA: '铁柱FC', teamB: '龙岗联合',
-    scoreA: 3, scoreB: 1, myGoals: 1, myAssists: 1,
-  ),
-  MatchHistoryEntry(
-    matchId: 'm2', playedAt: DateTime(2026, 4, 11),
-    eventName: '南山秋季联赛', teamA: '铁柱FC', teamB: '宝安飞虎',
-    scoreA: 2, scoreB: 2, myGoals: 0, myAssists: 1,
-  ),
-  MatchHistoryEntry(
-    matchId: 'm3', playedAt: DateTime(2026, 4, 4),
-    eventName: '深圳业余杯', teamA: '铁柱FC', teamB: '福田猎豹',
-    scoreA: 4, scoreB: 2, myGoals: 2, myAssists: 0,
-  ),
-  MatchHistoryEntry(
-    matchId: 'm4', playedAt: DateTime(2026, 3, 28),
-    eventName: '深圳业余杯', teamA: '光明闪电', teamB: '铁柱FC',
-    scoreA: 1, scoreB: 2, myGoals: 1, myAssists: 1,
-  ),
-  MatchHistoryEntry(
-    matchId: 'm5', playedAt: DateTime(2026, 3, 14),
-    eventName: '龙岗村超', teamA: '铁柱FC', teamB: '坪山青年',
-    scoreA: 0, scoreB: 1, myGoals: 0, myAssists: 0,
-  ),
-];

@@ -370,7 +370,7 @@ class _EventInfoSectionState extends ConsumerState<_EventInfoSection> {
                   Label(l.event_overview_rules),
                   const SizedBox(height: 10),
                   for (final r in [
-                    l.event_overview_rule_format,
+                    l.event_overview_rule_format(event.teamSize),
                     l.event_overview_rule_halves,
                     l.event_overview_rule_subs,
                     l.event_overview_rule_cards,

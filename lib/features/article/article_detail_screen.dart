@@ -7,6 +7,7 @@ import '../../l10n/l10n_extension.dart';
 import '../../models/article.dart';
 import '../../repositories/favorites_repository.dart';
 import '../../utils/share_helper.dart';
+import '../../utils/toast.dart';
 import '../../models/comment.dart';
 import '../../providers.dart';
 import '../../services/supabase.dart';
@@ -54,15 +55,11 @@ class _ArticleDetailScreenState extends ConsumerState<ArticleDetailScreen> {
     final l = context.l10n;
     final text = _ctrl.text.trim();
     if (text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l.comment_empty_toast)),
-      );
+      showToast(context, l.comment_empty_toast, info: true);
       return;
     }
     if (!isSignedIn) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l.comment_login_required)),
-      );
+      showToast(context, l.comment_login_required, info: true);
       return;
     }
     setState(() => _sending = true);
@@ -77,9 +74,7 @@ class _ArticleDetailScreenState extends ConsumerState<ArticleDetailScreen> {
       ref.invalidate(articleDetailProvider(widget.id));
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l.comment_send_failed)),
-        );
+        showToast(context, l.comment_send_failed, error: true);
       }
     } finally {
       if (mounted) setState(() => _sending = false);
@@ -327,9 +322,7 @@ class _Body extends ConsumerWidget {
                     GestureDetector(
                       onTap: () {
                         if (!isSignedIn) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(l.like_login_required)),
-                          );
+                          showToast(context, l.like_login_required, info: true);
                           return;
                         }
                         ref.read(likesRepoProvider).toggle('article', article.id).then((_) {
@@ -346,9 +339,7 @@ class _Body extends ConsumerWidget {
                     GestureDetector(
                       onTap: () {
                         if (!isSignedIn) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(l.like_login_required)),
-                          );
+                          showToast(context, l.like_login_required, info: true);
                           return;
                         }
                         ref.read(favoritesRepoProvider).toggle(FavoriteEntity.article, article.id).then((_) {

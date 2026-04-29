@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../data/demo_images.dart';
 import '../../l10n/l10n_extension.dart';
 import '../../models/external_match.dart';
 import '../../models/event.dart';
@@ -32,12 +31,14 @@ class _EventsHubScreenState extends ConsumerState<EventsHubScreen> {
     final tabs = [
       ('registering', l.events_tab_registering),
       ('ongoing', l.events_tab_ongoing),
+      ('completed', l.events_tab_completed),
       ('watch', l.events_tab_watch),
     ];
     final wcMatches = ref.watch(wcMatchesProvider).valueOrNull ?? const [];
     final statusForTab = switch (_tab) {
       'ongoing' => EventStatus.ongoing,
       'registering' => EventStatus.registering,
+      'completed' => EventStatus.completed,
       _ => null,
     };
 
@@ -454,10 +455,13 @@ class _EventBannerPage extends StatelessWidget {
     final t = context.tokens;
     final l = context.l10n;
     final isReg = event.status == EventStatus.registering;
+    final isDone = event.status == EventStatus.completed;
     final hue = (event.id.codeUnitAt(0) * 7 + event.id.codeUnitAt(1)) % 360.0;
     final statusLabel = isReg
         ? l.events_tab_registering
-        : l.events_tab_ongoing;
+        : isDone
+            ? l.events_tab_completed
+            : l.events_tab_ongoing;
     final prizeLabel = event.prizeCents != null
         ? l.event_prize_wan((event.prizeCents! / 1000000).toStringAsFixed(1))
         : null;
@@ -477,9 +481,7 @@ class _EventBannerPage extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             NetworkCover(
-              url: (event.coverUrl?.isNotEmpty ?? false)
-                  ? event.coverUrl
-                  : DemoImages.pickCoverFor(event.id),
+              url: event.coverUrl,
               fallbackLabel: event.name,
               height: 160,
               hue: hue,
@@ -597,6 +599,7 @@ class _LiveEventRow extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
     final isReg = event.status == EventStatus.registering;
+    final isDone = event.status == EventStatus.completed;
     final liveAsync = ref.watch(liveMatchesForEventProvider(event.id));
     final hasLive = liveAsync.valueOrNull?.isNotEmpty ?? false;
     final teamsMax = event.teamsMax ?? 16;
@@ -605,11 +608,13 @@ class _LiveEventRow extends ConsumerWidget {
     final prizeLabel = event.prizeCents != null
         ? l.event_prize_wan((event.prizeCents! / 1000000).toStringAsFixed(1))
         : l.event_prize_pending;
-    final deadlineLabel = event.deadline != null
-        ? l.event_deadline_md_suffix(
-            '${event.deadline!.month.toString().padLeft(2, '0')}-${event.deadline!.day.toString().padLeft(2, '0')}',
-          )
-        : '—';
+    final deadlineLabel = isDone
+        ? l.events_tab_completed
+        : event.deadline != null
+            ? l.event_deadline_md_suffix(
+                '${event.deadline!.month.toString().padLeft(2, '0')}-${event.deadline!.day.toString().padLeft(2, '0')}',
+              )
+            : '—';
     final subtitle = [
       if (event.sub?.isNotEmpty ?? false) event.sub!,
       if (event.city?.isNotEmpty ?? false) event.city!,
@@ -635,9 +640,7 @@ class _LiveEventRow extends ConsumerWidget {
               child: Stack(
                 children: [
                   NetworkCover(
-                    url: (event.coverUrl?.isNotEmpty ?? false)
-                        ? event.coverUrl
-                        : DemoImages.pickCoverFor(event.id),
+                    url: event.coverUrl,
                     fallbackLabel: event.name,
                     height: 110,
                     hue: hue,
@@ -646,7 +649,7 @@ class _LiveEventRow extends ConsumerWidget {
                   Positioned(
                     top: 10,
                     left: 10,
-                    child: !isReg && hasLive
+                    child: !isReg && !isDone && hasLive
                         ? const LivePill()
                         : Container(
                             padding: const EdgeInsets.symmetric(
@@ -665,7 +668,9 @@ class _LiveEventRow extends ConsumerWidget {
                             child: Label(
                               isReg
                                   ? context.l10n.events_tab_registering
-                                  : context.l10n.events_tab_ongoing,
+                                  : isDone
+                                      ? context.l10n.events_tab_completed
+                                      : context.l10n.events_tab_ongoing,
                               color: isReg ? context.tokens.accent : context.tokens.ink,
                             ),
                           ),

@@ -8,7 +8,6 @@ import '../../providers.dart';
 import '../../repositories/user_teams_repository.dart';
 import '../../services/local_storage.dart';
 import '../../utils/toast.dart';
-import '../../utils/validators.dart';
 import '../../widgets/avatar.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/primary_button.dart';
@@ -233,9 +232,8 @@ class MyTeamsScreen extends ConsumerWidget {
                   size: BtnSize.lg,
                   full: true,
                   onPressed: () async {
-                    final err = validateRequired(nameC.text);
-                    if (err != null) {
-                      showToast(ctx, l.error_required_field, error: true);
+                    if (nameC.text.trim().isEmpty) {
+                      showToast(ctx, l.error_required_field_named(l.me_teams_create_name), error: true);
                       return;
                     }
                     await ref

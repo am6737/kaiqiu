@@ -4,7 +4,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../data/demo_images.dart';
 import '../../../models/live_match.dart';
 import '../../../theme/app_tokens.dart';
 import '../../../widgets/live_pill.dart';
@@ -60,7 +59,7 @@ class _LiveMatchCarouselState extends State<LiveMatchCarousel> {
             itemCount: items.length,
             itemBuilder: (context, i) {
               final m = items[i];
-              final posterUrl = m.posterUrl ?? DemoImages.pickCoverFor(m.id);
+              final posterUrl = m.posterUrl;
               final aWins = m.scoreA > m.scoreB;
               final bWins = m.scoreB > m.scoreA;
               return GestureDetector(
@@ -73,7 +72,7 @@ class _LiveMatchCarouselState extends State<LiveMatchCarousel> {
                       fit: StackFit.expand,
                       children: [
                         CachedNetworkImage(
-                          imageUrl: posterUrl,
+                          imageUrl: posterUrl ?? '',
                           fit: BoxFit.cover,
                           fadeInDuration: const Duration(milliseconds: 160),
                           errorWidget: (_, _, _) =>

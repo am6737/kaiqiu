@@ -47,13 +47,16 @@ import 'features/settings/appearance_settings_screen.dart';
 import 'features/settings/help_screen.dart';
 import 'features/settings/legal_screen.dart';
 import 'features/settings/notif_settings_screen.dart';
+import 'package:flutter/widgets.dart';
 import 'services/auth.dart';
 import 'services/supabase.dart';
 import 'widgets/bottom_nav_shell.dart';
 
 final _authRefresh = AuthRefresh();
+final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
 final router = GoRouter(
+  navigatorKey: _rootNavigatorKey,
   initialLocation: '/home',
   refreshListenable: _authRefresh,
   redirect: (ctx, state) {
@@ -82,6 +85,19 @@ final router = GoRouter(
             GoRoute(
               path: '/pickup',
               builder: (_, s) => const PickupMapScreen(),
+              routes: [
+                GoRoute(
+                  path: 'create',
+                  parentNavigatorKey: _rootNavigatorKey,
+                  builder: (_, s) => const CreatePickupScreen(),
+                ),
+                GoRoute(
+                  path: ':id',
+                  parentNavigatorKey: _rootNavigatorKey,
+                  builder: (_, s) =>
+                      PickupDetailScreen(id: s.pathParameters['id']!),
+                ),
+              ],
             ),
           ],
         ),
@@ -101,14 +117,6 @@ final router = GoRouter(
       ],
     ),
     // Full-screen overlays
-    GoRoute(
-      path: '/pickup/create',
-      builder: (_, s) => const CreatePickupScreen(),
-    ),
-    GoRoute(
-      path: '/pickup/:id',
-      builder: (_, s) => PickupDetailScreen(id: s.pathParameters['id']!),
-    ),
     GoRoute(
       path: '/article/:id',
       builder: (_, s) => ArticleDetailScreen(id: s.pathParameters['id']!),

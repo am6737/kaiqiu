@@ -57,10 +57,6 @@ class FavoritesRepository {
         }
         break;
       case FavoriteEntity.user:
-        if (!LocalStore.isFollowing(entityId)) {
-          await LocalStore.toggleFollowUser(entityId);
-        }
-        break;
       case FavoriteEntity.article:
         break;
     }
@@ -92,10 +88,6 @@ class FavoritesRepository {
         }
         break;
       case FavoriteEntity.user:
-        if (LocalStore.isFollowing(entityId)) {
-          await LocalStore.toggleFollowUser(entityId);
-        }
-        break;
       case FavoriteEntity.article:
         break;
     }
@@ -123,7 +115,6 @@ class FavoritesRepository {
       case FavoriteEntity.event:
         return LocalStore.isEventFavorited(entityId);
       case FavoriteEntity.user:
-        return LocalStore.isFollowing(entityId);
       case FavoriteEntity.article:
         return false;
     }
@@ -154,7 +145,6 @@ class FavoritesRepository {
       case FavoriteEntity.event:
         return LocalStore.favoriteEvents.toList();
       case FavoriteEntity.user:
-        return LocalStore.followedUsers.toList();
       case FavoriteEntity.article:
         return [];
     }
@@ -171,7 +161,6 @@ class FavoritesRepository {
       final map = <String, Set<String>>{
         'pickup': <String>{},
         'event': <String>{},
-        'user': <String>{},
       };
       for (final r in (rows as List).cast<Map<String, dynamic>>()) {
         final t = r['entity_type'] as String?;
@@ -179,7 +168,6 @@ class FavoritesRepository {
         if (t == null || id == null) continue;
         map[t]?.add(id);
       }
-      // Reconcile pickup favorites
       for (final id in map['pickup']!) {
         if (!LocalStore.isPickupFavorited(id)) {
           await LocalStore.toggleFavoritePickup(id);
@@ -188,11 +176,6 @@ class FavoritesRepository {
       for (final id in map['event']!) {
         if (!LocalStore.isEventFavorited(id)) {
           await LocalStore.toggleFavoriteEvent(id);
-        }
-      }
-      for (final id in map['user']!) {
-        if (!LocalStore.isFollowing(id)) {
-          await LocalStore.toggleFollowUser(id);
         }
       }
     } catch (_) {
