@@ -82,6 +82,10 @@ final favoriteArticleIdsProvider = FutureProvider<Set<String>>((ref) async {
   return ids.toSet();
 });
 
+final likedRatingIdsProvider = FutureProvider.family<Set<String>, String>((ref, matchId) async {
+  return ref.read(ratingsRepoProvider).likedRatingIds(matchId);
+});
+
 // ─────────────────────────────────────────────────────────────
 // Local storage tick — bump whenever LocalStore changes so widgets
 // watching this provider rebuild.

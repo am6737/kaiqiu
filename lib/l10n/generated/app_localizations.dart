@@ -1867,6 +1867,18 @@ abstract class AppL10n {
   /// **'摄像头已关闭'**
   String get live_room_camera_off;
 
+  /// No description provided for @match_control_title.
+  ///
+  /// In zh, this message translates to:
+  /// **'比赛管控'**
+  String get match_control_title;
+
+  /// No description provided for @match_control_start_live.
+  ///
+  /// In zh, this message translates to:
+  /// **'开启直播'**
+  String get match_control_start_live;
+
   /// No description provided for @match_control_score.
   ///
   /// In zh, this message translates to:
@@ -5227,6 +5239,12 @@ abstract class AppL10n {
   /// **'查看本场评分'**
   String get match_cta_view_ratings;
 
+  /// No description provided for @match_start_needs_teams.
+  ///
+  /// In zh, this message translates to:
+  /// **'请先为比赛分配两支队伍'**
+  String get match_start_needs_teams;
+
   /// No description provided for @match_cta_remind.
   ///
   /// In zh, this message translates to:
@@ -5340,6 +5358,12 @@ abstract class AppL10n {
   /// In zh, this message translates to:
   /// **'讨论区即将上线'**
   String get match_discussion_not_open;
+
+  /// No description provided for @match_no_comments.
+  ///
+  /// In zh, this message translates to:
+  /// **'还没有评论，来说两句吧'**
+  String get match_no_comments;
 
   /// No description provided for @match_rating_goals_short.
   ///

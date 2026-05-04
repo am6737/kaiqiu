@@ -206,6 +206,7 @@ class EventsRepository {
   Future<void> startMatch(String matchId) async {
     await supabase.from('matches').update({
       'status': 'live',
+      'is_live': true,
       'started_at': DateTime.now().toUtc().toIso8601String(),
       'livekit_room': 'match_$matchId',
     }).eq('id', matchId);
@@ -214,7 +215,7 @@ class EventsRepository {
   Future<void> endMatch(String matchId, int scoreA, int scoreB) async {
     await supabase.from('matches').update({
       'status': 'finished',
-      'done': true,
+      'is_live': false,
       'ended_at': DateTime.now().toUtc().toIso8601String(),
       'score_a': scoreA,
       'score_b': scoreB,

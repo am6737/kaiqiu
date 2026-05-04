@@ -90,10 +90,10 @@ class Event {
 
 enum MatchStatus { upcoming, live, finished }
 
-MatchStatus _parseMatchStatus(String? s, bool done) => switch (s) {
+MatchStatus _parseMatchStatus(String? s) => switch (s) {
   'live' => MatchStatus.live,
   'finished' => MatchStatus.finished,
-  _ => done ? MatchStatus.finished : MatchStatus.upcoming,
+  _ => MatchStatus.upcoming,
 };
 
 class Match {
@@ -108,8 +108,8 @@ class Match {
   final int? scoreB;
   final String? pkScore;
   final DateTime? playedAt;
-  final bool done;
   final MatchStatus status;
+  bool get done => status == MatchStatus.finished;
   final String? livekitRoom;
   final DateTime? startedAt;
   final DateTime? endedAt;
@@ -128,7 +128,6 @@ class Match {
     this.scoreB,
     this.pkScore,
     this.playedAt,
-    this.done = false,
     this.status = MatchStatus.upcoming,
     this.livekitRoom,
     this.startedAt,
@@ -138,7 +137,6 @@ class Match {
   });
 
   factory Match.fromMap(Map<String, dynamic> m) {
-    final done = (m['done'] as bool?) ?? false;
     return Match(
       id: m['id'] as String,
       eventId: m['event_id'] as String,
@@ -151,8 +149,7 @@ class Match {
       scoreB: _toInt(m['score_b']),
       pkScore: m['pk_score'] as String?,
       playedAt: m['played_at'] != null ? DateTime.parse(m['played_at']) : null,
-      done: done,
-      status: _parseMatchStatus(m['status'] as String?, done),
+      status: _parseMatchStatus(m['status'] as String?),
       livekitRoom: m['livekit_room'] as String?,
       startedAt: m['started_at'] != null ? DateTime.parse(m['started_at']) : null,
       endedAt: m['ended_at'] != null ? DateTime.parse(m['ended_at']) : null,

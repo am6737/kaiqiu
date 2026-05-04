@@ -59,7 +59,7 @@ class RatingsRepository {
   }) async {
     final rows = await supabase
         .from('ratings')
-        .select()
+        .select('*, rating_likes(count)')
         .eq('match_id', matchId)
         .eq('ratee_id', rateeId)
         .order('created_at', ascending: false);
@@ -67,6 +67,21 @@ class RatingsRepository {
         .cast<Map<String, dynamic>>()
         .map(Rating.fromMap)
         .toList();
+  }
+
+  /// Set of rating IDs the current user has liked within a match.
+  Future<Set<String>> likedRatingIds(String matchId) async {
+    final uid = currentUserId;
+    if (uid == null) return {};
+    final rows = await supabase
+        .from('rating_likes')
+        .select('rating_id, ratings!inner(match_id)')
+        .eq('user_id', uid)
+        .eq('ratings.match_id', matchId);
+    return (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map((r) => r['rating_id'] as String)
+        .toSet();
   }
 
   /// Players participating in a match (for the rating submission screen).

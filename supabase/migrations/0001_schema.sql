@@ -287,9 +287,8 @@ create table public.matches (
   score_b int,
   pk_score text,                        -- '4-3' if penalties
   played_at timestamptz,
-  done boolean default false,
   is_live boolean default false,
-  minute text,
+  minute int,
   viewers int default 0,
   poster_url text,
   status text default 'upcoming' check (status in ('upcoming','live','finished')),
@@ -523,7 +522,6 @@ create trigger message_created
 -- Realtime 订阅
 alter publication supabase_realtime add table public.messages;
 alter publication supabase_realtime add table public.matches;
-alter publication supabase_realtime add table public.notifications;
 
 
 -- ensure_event_conversation: 打开赛事讨论 tab 时调用；
@@ -1139,6 +1137,8 @@ create policy notif_self_update on public.notifications
   for update using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
 
+alter publication supabase_realtime add table public.notifications;
+
 
 -- ═══════════════════════════════════════════════════════════════
 -- 19. event_teams_count 视图
@@ -1297,7 +1297,7 @@ drop table if exists public.comments cascade;
 
 create table public.comments (
   id uuid primary key default gen_random_uuid(),
-  target_type text not null check (target_type in ('article', 'post')),
+  target_type text not null check (target_type in ('article', 'post', 'match')),
   target_id uuid not null,
   author_id uuid references public.profiles(id),
   author_name text not null default '匿名球友',
@@ -1364,7 +1364,7 @@ drop table if exists public.likes cascade;
 create table public.likes (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
-  target_type text not null check (target_type in ('post', 'article')),
+  target_type text not null check (target_type in ('post', 'article', 'match_comment')),
   target_id uuid not null,
   created_at timestamptz not null default now(),
   unique (user_id, target_type, target_id)
@@ -1387,12 +1387,16 @@ begin
       update public.posts set likes = likes + 1 where id = new.target_id;
     elsif new.target_type = 'article' then
       update public.articles set likes = likes + 1 where id = new.target_id;
+    elsif new.target_type = 'match_comment' then
+      update public.comments set likes = likes + 1 where id = new.target_id;
     end if;
   elsif tg_op = 'DELETE' then
     if old.target_type = 'post' then
       update public.posts set likes = greatest(likes - 1, 0) where id = old.target_id;
     elsif old.target_type = 'article' then
       update public.articles set likes = greatest(likes - 1, 0) where id = old.target_id;
+    elsif old.target_type = 'match_comment' then
+      update public.comments set likes = greatest(likes - 1, 0) where id = old.target_id;
     end if;
   end if;
   return null;

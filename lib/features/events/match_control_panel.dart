@@ -85,6 +85,7 @@ class _MatchControlPanelState extends ConsumerState<MatchControlPanel> {
           .endMatch(widget.matchId, _scoreA, _scoreB);
 
       if (mounted) {
+        ref.invalidate(eventMatchesProvider(widget.eventId));
         final matches = await ref.read(eventsRepoProvider).matchesFor(widget.eventId);
         final allDone = matches.every((m) => m.done || m.id == widget.matchId);
         if (allDone && mounted) {

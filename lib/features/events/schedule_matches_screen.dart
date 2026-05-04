@@ -120,7 +120,6 @@ class _ScheduleMatchesScreenState
         'team_b_label': s.teamBLabel,
         'played_at': s.playedAt?.toUtc().toIso8601String(),
         'status': 'upcoming',
-        'done': false,
       }).toList();
       await ref.read(eventsRepoProvider).insertMatches(rows);
       await ref.read(eventsRepoProvider).updateEventStatus(event.id, EventStatus.ongoing);

@@ -837,13 +837,13 @@ class _PickupMapScreenState extends ConsumerState<PickupMapScreen> {
                             isVenueMode ? '/venue/create' : '/pickup/create',
                           ),
                         ),
-                        if (!isVenueMode) ...[
-                          const SizedBox(width: 8),
-                          _CircleBtn(
-                            icon: Icons.filter_list,
-                            onTap: () => _showFilterSheet(context),
-                          ),
-                        ],
+                        const SizedBox(width: 8),
+                        _CircleBtn(
+                          icon: Icons.filter_list,
+                          onTap: () => isVenueMode
+                              ? _showVenueFilterChipConfig(context)
+                              : _showFilterSheet(context),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 10),

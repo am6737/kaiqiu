@@ -12,6 +12,7 @@ import 'features/events/team_detail_screen.dart';
 import 'features/events/events_hub_screen.dart';
 import 'features/events/match_detail_screen.dart';
 import 'features/events/match_ratings_screen.dart';
+import 'features/events/match_control_screen.dart';
 import 'features/events/match_live_room.dart';
 import 'features/events/schedule_matches_screen.dart';
 import 'features/events/wc_live_screen.dart';
@@ -146,6 +147,13 @@ final router = GoRouter(
     GoRoute(
       path: '/event/:eventId/match/:matchId/ratings',
       builder: (_, s) => MatchRatingsScreen(
+        eventId: s.pathParameters['eventId']!,
+        matchId: s.pathParameters['matchId']!,
+      ),
+    ),
+    GoRoute(
+      path: '/event/:eventId/match/:matchId/control',
+      builder: (_, s) => MatchControlScreen(
         eventId: s.pathParameters['eventId']!,
         matchId: s.pathParameters['matchId']!,
       ),

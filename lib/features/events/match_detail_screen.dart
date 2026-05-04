@@ -12,9 +12,12 @@ import '../../repositories/goals_repository.dart';
 import '../../services/local_storage.dart';
 import '../../services/supabase.dart';
 import '../../utils/toast.dart';
+import '../../models/comment.dart';
 import '../../models/rating.dart';
 import '../../widgets/avatar.dart';
+import '../../widgets/interaction_btn.dart';
 import '../../widgets/primary_button.dart';
+import '../../widgets/rich_input.dart';
 import '../../widgets/typography.dart';
 import '../../theme/app_tokens.dart';
 
@@ -977,7 +980,7 @@ class _GoalTimelineChart extends StatelessWidget {
 }
 
 // ═════════════════════════════════════════════════════════════
-// TAB 3: Ratings — player cards with avatar, stats, stars
+// TAB 3: Ratings — compact team-grouped layout (Hupu-inspired)
 // ═════════════════════════════════════════════════════════════
 final _playerRatingsForMatchProvider =
     FutureProvider.family.autoDispose<List<Rating>, ({String matchId, String rateeId})>(
@@ -997,7 +1000,7 @@ class _RatingsTab extends ConsumerStatefulWidget {
 }
 
 class _RatingsTabState extends ConsumerState<_RatingsTab> {
-  PlayerRatingRow? _selectedPlayer;
+  int _filter = 0; // 0 = all, 1 = team A, 2 = team B
 
   @override
   Widget build(BuildContext context) {
@@ -1011,14 +1014,6 @@ class _RatingsTabState extends ConsumerState<_RatingsTab> {
       );
     }
 
-    if (_selectedPlayer != null) {
-      return _PlayerDetail(
-        player: _selectedPlayer!,
-        match: widget.match,
-        onBack: () => setState(() => _selectedPlayer = null),
-      );
-    }
-
     final async = ref.watch(matchPlayerRatingsProvider(widget.match));
 
     return async.when(
@@ -1027,91 +1022,164 @@ class _RatingsTabState extends ConsumerState<_RatingsTab> {
       data: (rows) {
         final visible = rows.where((r) => r.name != '—').toList();
 
-        return Stack(
-          children: [
-            SingleChildScrollView(
-              padding: const EdgeInsets.only(bottom: 80),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 12),
-                  if (visible.isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.all(40),
-                      child: Center(child: Label(l.event_rating_empty_go_rate)),
-                    )
-                  else
-                    for (int i = 0; i < visible.length; i++)
-                      _PlayerCard(
-                        p: visible[i],
-                        rank: i + 1,
-                        onTap: () => setState(() => _selectedPlayer = visible[i]),
-                      ),
-                ],
-              ),
-            ),
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: Container(
-                padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
-                decoration: BoxDecoration(
-                  color: t.bg,
-                  border: Border(top: BorderSide(color: t.line, width: 1)),
+        final teamA = visible.where((r) => r.side == MatchSide.a).toList();
+        final teamB = visible.where((r) => r.side == MatchSide.b).toList();
+
+        String? mvpId;
+        if (visible.any((r) => r.votes > 0)) {
+          final rated = visible.where((r) => r.votes > 0).toList();
+          rated.sort((a, b) => b.avgScore.compareTo(a.avgScore));
+          mvpId = rated.first.rateeId;
+        }
+
+        final filtered = _filter == 1
+            ? teamA
+            : _filter == 2
+                ? teamB
+                : visible;
+
+        final sorted = [...filtered]..sort((a, b) {
+          if (a.votes > 0 && b.votes == 0) return -1;
+          if (a.votes == 0 && b.votes > 0) return 1;
+          if (a.votes > 0 && b.votes > 0) return b.avgScore.compareTo(a.avgScore);
+          return 0;
+        });
+
+        final ratedInView = sorted.where((p) => p.votes > 0).toList();
+        final viewAvg = ratedInView.isNotEmpty
+            ? ratedInView.fold<double>(0, (s, p) => s + p.avgScore) / ratedInView.length
+            : 0.0;
+
+        final tabLabels = [
+          l.event_rating_team_all,
+          widget.match.teamALabel ?? 'Team A',
+          widget.match.teamBLabel ?? 'Team B',
+        ];
+
+        return Column(
+              children: [
+                // ── Sub-tab filter row ──
+                Container(
+                  padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
+                  child: Row(
+                    children: [
+                      for (int i = 0; i < 3; i++) ...[
+                        if (i > 0) const SizedBox(width: 8),
+                        GestureDetector(
+                          onTap: () => setState(() => _filter = i),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: _filter == i ? t.accent : t.elev2,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: _filter == i ? t.accent : t.line,
+                                width: 1,
+                              ),
+                            ),
+                            child: Text(
+                              tabLabels[i],
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: _filter == i ? t.accentInk : t.inkSub,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                      const Spacer(),
+                      if (ratedInView.isNotEmpty) ...[
+                        Text(l.event_rating_score_avg, style: TextStyle(fontSize: 11, color: t.inkDim)),
+                        const SizedBox(width: 6),
+                        _ScoreBadge(score: viewAvg, mini: true),
+                      ],
+                    ],
+                  ),
                 ),
-                child: PrimaryButton(
-                  label: l.match_ratings_go_rate,
-                  full: true,
-                  size: BtnSize.lg,
-                  onPressed: () => context.push('/rate/${widget.match.id}'),
+                Divider(height: 1, thickness: 1, color: t.line),
+                // ── Player list ──
+                Expanded(
+                  child: sorted.isEmpty
+                      ? Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(40),
+                            child: Label(l.event_rating_empty_go_rate),
+                          ),
+                        )
+                      : ListView.builder(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          itemCount: sorted.length,
+                          itemBuilder: (_, i) => _PlayerRow(
+                            player: sorted[i],
+                            rank: sorted[i].votes > 0 ? i + 1 : 0,
+                            isMvp: sorted[i].rateeId == mvpId,
+                            match: widget.match,
+                          ),
+                        ),
                 ),
-              ),
-            ),
-          ],
-        );
+              ],
+            );
       },
     );
   }
 }
 
-// ─── Player card with large avatar ──────────────────────────
-class _PlayerCard extends ConsumerWidget {
-  final PlayerRatingRow p;
+// ─── Compact player row ─────────────────────────────────────
+class _PlayerRow extends ConsumerWidget {
+  final PlayerRatingRow player;
   final int rank;
-  final VoidCallback onTap;
-  const _PlayerCard({required this.p, required this.rank, required this.onTap});
+  final bool isMvp;
+  final Match match;
+  const _PlayerRow({
+    required this.player,
+    required this.rank,
+    required this.isMvp,
+    required this.match,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l = context.l10n;
     final t = context.tokens;
-    final profile = ref.watch(profileByIdProvider(p.rateeId)).valueOrNull;
+    final l = context.l10n;
+    final profile = ref.watch(profileByIdProvider(player.rateeId)).valueOrNull;
     final avatarUrl = profile?.avatarUrl;
-    final rated = p.votes > 0;
-    final scoreColor = p.avgScore >= 8
-        ? t.accent
-        : (p.avgScore >= 6 ? t.ink : t.danger);
-    final stars = p.avgScore / 2.0;
+    final rated = player.votes > 0;
+    final isMe = player.rateeId == currentUserId;
 
     return GestureDetector(
-      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      onTap: () => _showPlayerDetail(context),
       child: Container(
-        margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: t.elev2,
-          border: Border.all(color: rated && rank == 1 ? t.accent : t.line),
-          borderRadius: BorderRadius.circular(t.r3),
+          color: isMvp ? t.accentSubtle : null,
+          border: Border(bottom: BorderSide(color: t.line, width: 0.5)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _LargeAvatar(url: avatarUrl, name: p.name, rank: rated ? rank : 0),
-                const SizedBox(width: 14),
+                SizedBox(
+                  width: 24,
+                  child: rated && rank <= 3
+                      ? _RankBadge(rank: rank)
+                      : Text(
+                          rated ? '$rank' : '',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontFamily: t.fontMono,
+                            fontFamilyFallback: t.monoFallbacks,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: t.inkDim,
+                          ),
+                        ),
+                ),
+                const SizedBox(width: 8),
+                _CompactAvatar(url: avatarUrl, name: player.name),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1120,133 +1188,523 @@ class _PlayerCard extends ConsumerWidget {
                         children: [
                           Flexible(
                             child: Text(
-                              p.name,
+                              player.name,
                               style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                                color: rated ? t.ink : t.inkSub,
+                                fontSize: 14,
+                                fontWeight: isMvp ? FontWeight.w700 : FontWeight.w500,
+                                color: t.ink,
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          if (rated && rank == 1) ...[
-                            const SizedBox(width: 8),
-                            _Badge(text: l.event_rating_mvp, color: t.accent, bg: t.accentSubtle),
-                          ],
-                          if (p.rateeId == currentUserId) ...[
-                            const SizedBox(width: 6),
-                            _Badge(text: l.rate_short_you, color: t.accent, bg: t.accentSubtle),
-                          ],
-                        ],
-                      ),
-                      if (p.position != null) ...[
-                        const SizedBox(height: 3),
-                        Text(
-                          p.position!,
-                          style: TextStyle(fontSize: 12, color: t.inkSub),
-                        ),
-                      ],
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          if (p.goals > 0)
-                            _StatPill(
-                              icon: Icons.sports_soccer,
-                              value: '${p.goals}',
-                              label: l.match_rating_goals_short,
-                              color: t.accent,
+                          if (isMe) ...[
+                            const SizedBox(width: 4),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                              decoration: BoxDecoration(
+                                color: t.accentSubtle,
+                                borderRadius: BorderRadius.circular(3),
+                              ),
+                              child: Text(
+                                l.rate_short_you,
+                                style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: t.accent),
+                              ),
                             ),
-                          if (p.goals > 0 && p.assists > 0) const SizedBox(width: 8),
-                          if (p.assists > 0)
-                            _StatPill(
-                              icon: Icons.handshake_outlined,
-                              value: '${p.assists}',
-                              label: l.match_rating_assists_short,
-                              color: t.warn,
-                            ),
-                          if (p.topHighlight != null && p.topHighlight!.isNotEmpty) ...[
-                            if (p.goals > 0 || p.assists > 0) const SizedBox(width: 8),
-                            _Badge(
-                              text: p.topHighlight!,
-                              color: const Color(0xFFFF6D3B),
-                              bg: const Color(0x22FF6D3B),
+                          ],
+                          if (isMvp) ...[
+                            const SizedBox(width: 4),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                              decoration: BoxDecoration(
+                                color: t.accent.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(3),
+                              ),
+                              child: Text(
+                                l.event_rating_mvp,
+                                style: TextStyle(
+                                  fontFamily: t.fontMono,
+                                  fontFamilyFallback: t.monoFallbacks,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w800,
+                                  color: t.accent,
+                                ),
+                              ),
                             ),
                           ],
                         ],
-                      ),
-                    ],
-                  ),
-                ),
-                if (rated)
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      N(
-                        p.avgScore.toStringAsFixed(1),
-                        size: 28,
-                        weight: FontWeight.w800,
-                        color: scoreColor,
                       ),
                       const SizedBox(height: 2),
-                      _StarRow(stars: stars, size: 12),
+                      Row(
+                        children: [
+                          if (player.position != null)
+                            Text(player.position!, style: TextStyle(fontSize: 11, color: t.inkDim)),
+                          if (player.goals > 0) ...[
+                            if (player.position != null) _Dot(color: t.inkDim),
+                            Icon(Icons.sports_soccer, size: 10, color: t.inkSub),
+                            const SizedBox(width: 2),
+                            Text('${player.goals}',
+                                style: TextStyle(fontSize: 11, color: t.inkSub, fontWeight: FontWeight.w600)),
+                          ],
+                          if (player.assists > 0) ...[
+                            _Dot(color: t.inkDim),
+                            Icon(Icons.handshake_outlined, size: 10, color: t.inkSub),
+                            const SizedBox(width: 2),
+                            Text('${player.assists}',
+                                style: TextStyle(fontSize: 11, color: t.inkSub, fontWeight: FontWeight.w600)),
+                          ],
+                          if (rated) ...[
+                            const Spacer(),
+                            Text(
+                              l.match_rating_n_voted(player.votes),
+                              style: TextStyle(fontSize: 10, color: t.inkDim),
+                            ),
+                          ],
+                        ],
+                      ),
                     ],
-                  )
-                else
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: t.elev3,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      l.match_rating_not_rated,
-                      style: TextStyle(fontSize: 11, color: t.inkDim, fontWeight: FontWeight.w500),
-                    ),
                   ),
+                ),
+                const SizedBox(width: 10),
+                rated
+                    ? _ScoreBadge(score: player.avgScore)
+                    : Container(
+                        width: 40,
+                        height: 28,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: t.elev3,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text('-', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: t.inkDim)),
+                      ),
               ],
             ),
-            if (p.topComment != null && p.topComment!.isNotEmpty) ...[
-              const SizedBox(height: 10),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                decoration: BoxDecoration(
-                  color: t.elev3,
-                  borderRadius: BorderRadius.circular(t.r2),
-                  border: Border.all(color: t.line),
-                ),
+            // Hot comment preview
+            if (player.topComment != null && player.topComment!.isNotEmpty) ...[
+              Padding(
+                padding: const EdgeInsets.only(left: 98, top: 6),
                 child: Row(
                   children: [
-                    Icon(Icons.format_quote, size: 14, color: t.inkDim),
-                    const SizedBox(width: 6),
+                    Icon(Icons.format_quote_rounded, size: 12, color: t.inkMute),
+                    const SizedBox(width: 4),
                     Expanded(
                       child: Text(
-                        p.topComment!,
+                        player.topComment!,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 12, color: t.inkSub, height: 1.4),
+                        style: TextStyle(fontSize: 11, color: t.inkSub, fontStyle: FontStyle.italic),
                       ),
                     ),
-                    const SizedBox(width: 4),
-                    Icon(Icons.chevron_right, size: 14, color: t.inkDim),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showPlayerDetail(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => _PlayerDetailPage(player: player, match: match),
+      ),
+    );
+  }
+}
+
+// ─── Score color badge ──────────────────────────────────────
+class _ScoreBadge extends StatelessWidget {
+  final double score;
+  final bool mini;
+  const _ScoreBadge({required this.score, this.mini = false});
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final (bg, fg) = _colors(score, t);
+
+    return Container(
+      width: mini ? 34 : 40,
+      height: mini ? 22 : 28,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(mini ? 4 : 6),
+      ),
+      child: Text(
+        score.toStringAsFixed(1),
+        style: TextStyle(
+          fontFamily: t.fontMono,
+          fontFamilyFallback: t.monoFallbacks,
+          fontSize: mini ? 11 : 14,
+          fontWeight: FontWeight.w800,
+          color: fg,
+          height: 1.0,
+        ),
+      ),
+    );
+  }
+
+  static (Color, Color) _colors(double s, AppTokens t) {
+    if (s >= 8.0) return (t.accent.withValues(alpha: 0.15), t.accent);
+    if (s >= 6.0) return (t.warn.withValues(alpha: 0.12), t.warn);
+    return (t.danger.withValues(alpha: 0.12), t.danger);
+  }
+}
+
+// ─── Dot separator ──────────────────────────────────────────
+class _Dot extends StatelessWidget {
+  final Color color;
+  const _Dot({required this.color});
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 4),
+    child: Text('·', style: TextStyle(color: color, fontSize: 11)),
+  );
+}
+
+// ─── Player avatar (56px) ───────────────────────────────────
+class _CompactAvatar extends StatelessWidget {
+  final String? url;
+  final String name;
+  const _CompactAvatar({required this.url, required this.name});
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final hue = name.isNotEmpty ? (name.codeUnitAt(0) * 37) % 360.0 : 0.0;
+    return Container(
+      width: 56,
+      height: 56,
+      decoration: BoxDecoration(
+        color: HSLColor.fromAHSL(
+          1, hue, 0.3,
+          Theme.of(context).brightness == Brightness.dark ? 0.25 : 0.85,
+        ).toColor(),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: t.line, width: 0.5),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: url != null && url!.isNotEmpty
+          ? Image.network(url!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _fb(t))
+          : _fb(t),
+    );
+  }
+
+  Widget _fb(AppTokens t) => Center(
+    child: Text(
+      name.isNotEmpty ? name.characters.first : '?',
+      style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600, color: t.inkSub),
+    ),
+  );
+}
+
+// ─── Rank badge (gold / silver / bronze) ────────────────────
+class _RankBadge extends StatelessWidget {
+  final int rank;
+  const _RankBadge({required this.rank});
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final c = rank == 1 ? t.accent : rank == 2 ? const Color(0xFFC0C0C0) : const Color(0xFFCD7F32);
+    return Container(
+      width: 20,
+      height: 20,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: c.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        '$rank',
+        style: TextStyle(
+          fontFamily: t.fontMono,
+          fontFamilyFallback: t.monoFallbacks,
+          fontSize: 11,
+          fontWeight: FontWeight.w800,
+          color: c,
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Player detail full page ────────────────────────────────
+class _PlayerDetailPage extends ConsumerStatefulWidget {
+  final PlayerRatingRow player;
+  final Match match;
+  const _PlayerDetailPage({required this.player, required this.match});
+
+  @override
+  ConsumerState<_PlayerDetailPage> createState() => _PlayerDetailPageState();
+}
+
+class _PlayerDetailPageState extends ConsumerState<_PlayerDetailPage> {
+  double _score = 7.0;
+  final _commentCtrl = TextEditingController();
+  bool _submitting = false;
+  bool _submitted = false;
+  bool _ratingOpen = false;
+
+  @override
+  void dispose() {
+    _commentCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    final uid = currentUserId;
+    if (uid == null) return;
+    setState(() => _submitting = true);
+    try {
+      await ref.read(ratingsRepoProvider).submit(
+        matchId: widget.match.id,
+        raterId: uid,
+        rateeId: widget.player.rateeId,
+        score: _score,
+        comment: _commentCtrl.text.trim().isEmpty ? null : _commentCtrl.text.trim(),
+      );
+      ref.invalidate(_playerRatingsForMatchProvider(
+        (matchId: widget.match.id, rateeId: widget.player.rateeId),
+      ));
+      ref.invalidate(matchPlayerRatingsProvider);
+      if (!mounted) return;
+      setState(() {
+        _submitting = false;
+        _submitted = true;
+        _ratingOpen = false;
+      });
+      showToast(context, '评分成功');
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _submitting = false);
+      showToast(context, '评分失败: $e', error: true);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final player = widget.player;
+    final match = widget.match;
+    final profile = ref.watch(profileByIdProvider(player.rateeId)).valueOrNull;
+    final avatarUrl = profile?.avatarUrl;
+    final rated = player.votes > 0;
+    final isMe = currentUserId == player.rateeId;
+    final canRate = !isMe && match.status == MatchStatus.finished;
+
+    final ratingsAsync = ref.watch(
+      _playerRatingsForMatchProvider((matchId: match.id, rateeId: player.rateeId)),
+    );
+
+    return Scaffold(
+      backgroundColor: t.bg,
+      appBar: AppBar(
+        title: Text(player.name),
+        backgroundColor: t.bg,
+        foregroundColor: t.ink,
+        elevation: 0,
+        scrolledUnderElevation: 0.5,
+      ),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+        children: [
+          _DetailHeader(player: player, avatarUrl: avatarUrl, rated: rated),
+          const SizedBox(height: 20),
+          ratingsAsync.when(
+            loading: () => const _GoalsLoading(),
+            error: (e, _) => const SizedBox.shrink(),
+            data: (ratings) => _ScoreDistChart(ratings: ratings),
+          ),
+          const SizedBox(height: 16),
+          ratingsAsync.when(
+            loading: () => const SizedBox.shrink(),
+            error: (_, __) => const SizedBox.shrink(),
+            data: (ratings) => _ReviewsList(ratings: ratings, matchId: match.id),
+          ),
+        ],
+      ),
+      bottomNavigationBar: canRate
+          ? _RateBottomBar(
+              score: _score,
+              commentCtrl: _commentCtrl,
+              submitting: _submitting,
+              submitted: _submitted,
+              ratingOpen: _ratingOpen,
+              onToggle: () => setState(() => _ratingOpen = !_ratingOpen),
+              onScoreChanged: (v) => setState(() => _score = v),
+              onSubmit: _submit,
+            )
+          : null,
+    );
+  }
+}
+
+// ─── Bottom bar with expandable rating panel ───────────────
+class _RateBottomBar extends StatelessWidget {
+  final double score;
+  final TextEditingController commentCtrl;
+  final bool submitting;
+  final bool submitted;
+  final bool ratingOpen;
+  final VoidCallback onToggle;
+  final ValueChanged<double> onScoreChanged;
+  final VoidCallback onSubmit;
+
+  const _RateBottomBar({
+    required this.score,
+    required this.commentCtrl,
+    required this.submitting,
+    required this.submitted,
+    required this.ratingOpen,
+    required this.onToggle,
+    required this.onScoreChanged,
+    required this.onSubmit,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final bottom = MediaQuery.of(context).padding.bottom;
+
+    final Color scoreColor;
+    final String scoreLabel;
+    if (score >= 8) {
+      scoreColor = t.accent;
+      scoreLabel = '神级表现';
+    } else if (score >= 6) {
+      scoreColor = t.ink;
+      scoreLabel = '表现不错';
+    } else if (score >= 4) {
+      scoreColor = t.warn;
+      scoreLabel = '一般般';
+    } else {
+      scoreColor = t.danger;
+      scoreLabel = '有待提高';
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: t.elev1,
+        border: Border(top: BorderSide(color: t.line)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (ratingOpen && !submitted) ...[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          score.toStringAsFixed(1),
+                          style: TextStyle(
+                            fontSize: 36,
+                            fontWeight: FontWeight.w800,
+                            fontFamily: t.fontMono,
+                            fontFamilyFallback: t.monoFallbacks,
+                            color: scoreColor,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(scoreLabel, style: TextStyle(fontSize: 13, color: scoreColor, fontWeight: FontWeight.w600)),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    SliderTheme(
+                      data: SliderTheme.of(context).copyWith(
+                        activeTrackColor: scoreColor,
+                        inactiveTrackColor: t.elev3,
+                        thumbColor: scoreColor,
+                        overlayColor: scoreColor.withValues(alpha: 0.12),
+                        trackHeight: 4,
+                        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
+                      ),
+                      child: Slider(
+                        value: score,
+                        min: 0,
+                        max: 10,
+                        divisions: 20,
+                        onChanged: onScoreChanged,
+                      ),
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('0', style: TextStyle(fontSize: 10, color: t.inkDim, fontFamily: t.fontMono, fontFamilyFallback: t.monoFallbacks)),
+                        Text('10', style: TextStyle(fontSize: 10, color: t.inkDim, fontFamily: t.fontMono, fontFamilyFallback: t.monoFallbacks)),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: commentCtrl,
+                      maxLines: 3,
+                      minLines: 1,
+                      style: TextStyle(fontSize: 14, color: t.ink),
+                      decoration: InputDecoration(
+                        hintText: '说点什么...',
+                        hintStyle: TextStyle(color: t.inkMute),
+                        filled: true,
+                        fillColor: t.elev2,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(t.r2), borderSide: BorderSide(color: t.line)),
+                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(t.r2), borderSide: BorderSide(color: t.line)),
+                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(t.r2), borderSide: BorderSide(color: t.accent, width: 1.5)),
+                      ),
+                    ),
                   ],
                 ),
               ),
             ],
             Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Row(
-                children: [
-                  Label(l.match_rating_n_voted(p.votes)),
-                  const Spacer(),
-                  Text(
-                    l.event_rating_player_detail,
-                    style: TextStyle(fontSize: 11, color: t.accent, fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(width: 2),
-                  Icon(Icons.arrow_forward_ios, size: 10, color: t.accent),
-                ],
-              ),
+              padding: EdgeInsets.fromLTRB(16, 12, 16, bottom > 0 ? 4 : 12),
+              child: submitted
+                  ? Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.check_circle, size: 18, color: t.accent),
+                        const SizedBox(width: 6),
+                        Text('评分已提交', style: TextStyle(fontSize: 14, color: t.accent, fontWeight: FontWeight.w600)),
+                      ],
+                    )
+                  : ratingOpen
+                      ? Row(
+                          children: [
+                            Expanded(
+                              child: PrimaryButton(
+                                label: '取消',
+                                variant: BtnVariant.secondary,
+                                full: true,
+                                onPressed: onToggle,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              flex: 2,
+                              child: PrimaryButton(
+                                label: submitting ? '提交中...' : '提交评分',
+                                full: true,
+                                disabled: submitting,
+                                onPressed: onSubmit,
+                              ),
+                            ),
+                          ],
+                        )
+                      : PrimaryButton(
+                          label: '我来评一下',
+                          full: true,
+                          size: BtnSize.lg,
+                          onPressed: onToggle,
+                        ),
             ),
           ],
         ),
@@ -1255,546 +1713,301 @@ class _PlayerCard extends ConsumerWidget {
   }
 }
 
-class _LargeAvatar extends StatelessWidget {
-  final String? url;
-  final String name;
-  final int rank;
-  const _LargeAvatar({required this.url, required this.name, required this.rank});
+// ─── Detail header inside the sheet ─────────────────────────
+class _DetailHeader extends StatelessWidget {
+  final PlayerRatingRow player;
+  final String? avatarUrl;
+  final bool rated;
+  const _DetailHeader({required this.player, required this.avatarUrl, required this.rated});
 
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
-    return Stack(
-      clipBehavior: Clip.none,
+    final l = context.l10n;
+    final hue = player.name.isNotEmpty ? (player.name.codeUnitAt(0) * 37) % 360.0 : 0.0;
+
+    return Row(
       children: [
         Container(
           width: 64,
           height: 64,
           decoration: BoxDecoration(
             color: HSLColor.fromAHSL(
-              1,
-              (name.codeUnitAt(0) * 37) % 360.0,
-              0.3,
+              1, hue, 0.3,
               Theme.of(context).brightness == Brightness.dark ? 0.25 : 0.85,
             ).toColor(),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: rank == 1 ? t.accent : t.line,
-              width: rank == 1 ? 2 : 1,
-            ),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: t.line, width: 1),
           ),
           clipBehavior: Clip.antiAlias,
-          child: url != null && url!.isNotEmpty
-              ? Image.network(url!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _fallback(t))
-              : _fallback(t),
+          child: avatarUrl != null && avatarUrl!.isNotEmpty
+              ? Image.network(avatarUrl!, fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => _avatarFb(player.name, t))
+              : _avatarFb(player.name, t),
         ),
-        if (rank <= 3)
-          Positioned(
-            top: -6,
-            left: -6,
-            child: Container(
-              width: 22,
-              height: 22,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: rank == 1
-                    ? t.accent
-                    : rank == 2
-                        ? const Color(0xFFC0C0C0)
-                        : const Color(0xFFCD7F32),
-                shape: BoxShape.circle,
-                border: Border.all(color: t.elev2, width: 2),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(player.name, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: t.ink)),
+              const SizedBox(height: 3),
+              Text(
+                [
+                  if (player.position != null) player.position!,
+                  if (player.goals > 0) '${player.goals} ${l.match_rating_goals_short}',
+                  if (player.assists > 0) '${player.assists} ${l.match_rating_assists_short}',
+                ].join(' · '),
+                style: TextStyle(fontSize: 12, color: t.inkSub),
               ),
-              child: Text(
-                '$rank',
-                style: const TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFF000000),
+            ],
+          ),
+        ),
+        if (rated) ...[
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              _ScoreBadge(score: player.avgScore),
+              const SizedBox(height: 4),
+              Text(l.match_rating_n_voted(player.votes), style: TextStyle(fontSize: 10, color: t.inkDim)),
+            ],
+          ),
+        ] else
+          Text(l.match_rating_not_rated, style: TextStyle(fontSize: 12, color: t.inkDim)),
+      ],
+    );
+  }
+
+  static Widget _avatarFb(String name, AppTokens t) => Center(
+    child: Text(
+      name.isNotEmpty ? name.characters.first : '?',
+      style: TextStyle(fontSize: 26, fontWeight: FontWeight.w700, color: t.inkSub),
+    ),
+  );
+}
+
+// ─── Horizontal score distribution (0-10 scale) ─────────────
+class _ScoreDistChart extends StatelessWidget {
+  final List<Rating> ratings;
+  const _ScoreDistChart({required this.ratings});
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final l = context.l10n;
+
+    final labels = ['0-2', '2-4', '4-6', '6-8', '8-10'];
+    final counts = List<int>.filled(5, 0);
+    for (final r in ratings) {
+      final idx = (r.score / 2.0).floor().clamp(0, 4);
+      counts[idx]++;
+    }
+    final maxCount = counts.reduce((a, b) => a > b ? a : b);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(l.match_rating_score_dist, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: t.ink)),
+        const SizedBox(height: 10),
+        for (int i = 4; i >= 0; i--)
+          Padding(
+            padding: EdgeInsets.only(bottom: i > 0 ? 6 : 0),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 32,
+                  child: Text(
+                    labels[i],
+                    style: TextStyle(
+                      fontFamily: t.fontMono,
+                      fontFamilyFallback: t.monoFallbacks,
+                      fontSize: 10,
+                      color: t.inkDim,
+                    ),
+                  ),
                 ),
-              ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Container(
+                    height: 16,
+                    decoration: BoxDecoration(color: t.elev2, borderRadius: BorderRadius.circular(4)),
+                    clipBehavior: Clip.antiAlias,
+                    child: FractionallySizedBox(
+                      alignment: Alignment.centerLeft,
+                      widthFactor: maxCount > 0 ? counts[i] / maxCount : 0,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: _barColor(i, t),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                SizedBox(
+                  width: 20,
+                  child: Text(
+                    '${counts[i]}',
+                    textAlign: TextAlign.right,
+                    style: TextStyle(
+                      fontFamily: t.fontMono,
+                      fontFamilyFallback: t.monoFallbacks,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: t.inkDim,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
       ],
     );
   }
 
-  Widget _fallback(AppTokens t) => Center(
-    child: Text(
-      name.isNotEmpty ? name.characters.first : '?',
-      style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: t.inkSub),
-    ),
-  );
-}
-
-class _StatPill extends StatelessWidget {
-  final IconData icon;
-  final String value;
-  final String label;
-  final Color color;
-  const _StatPill({required this.icon, required this.value, required this.label, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.tokens;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color.withValues(alpha: 0.25)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 12, color: color),
-          const SizedBox(width: 4),
-          Text(
-            value,
-            style: TextStyle(
-              fontFamily: t.fontMono,
-              fontFamilyFallback: t.monoFallbacks,
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-              color: color,
-            ),
-          ),
-        ],
-      ),
-    );
+  static Color _barColor(int bucket, AppTokens t) {
+    if (bucket >= 4) return t.accent;
+    if (bucket >= 3) return t.accent.withValues(alpha: 0.6);
+    if (bucket >= 2) return t.warn;
+    return t.danger;
   }
 }
 
-class _Badge extends StatelessWidget {
-  final String text;
-  final Color color;
-  final Color bg;
-  const _Badge({required this.text, required this.color, required this.bg});
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.tokens;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(3),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontFamily: t.fontMono,
-          fontFamilyFallback: t.monoFallbacks,
-          fontSize: 9,
-          fontWeight: FontWeight.w700,
-          color: color,
-        ),
-      ),
-    );
-  }
-}
-
-class _StarRow extends StatelessWidget {
-  final double stars;
-  final double size;
-  const _StarRow({required this.stars, this.size = 14});
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.tokens;
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: List.generate(5, (i) {
-        final fill = (stars - i).clamp(0.0, 1.0);
-        return Padding(
-          padding: EdgeInsets.only(right: i < 4 ? 1 : 0),
-          child: Icon(
-            fill >= 0.75
-                ? Icons.star_rounded
-                : fill >= 0.25
-                    ? Icons.star_half_rounded
-                    : Icons.star_outline_rounded,
-            size: size,
-            color: fill > 0 ? const Color(0xFFFFB800) : t.inkMute,
-          ),
-        );
-      }),
-    );
-  }
-}
-
-// ─── Player detail: score distribution + reviews ────────────
-class _PlayerDetail extends ConsumerWidget {
-  final PlayerRatingRow player;
-  final Match match;
-  final VoidCallback onBack;
-  const _PlayerDetail({required this.player, required this.match, required this.onBack});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l = context.l10n;
-    final t = context.tokens;
-    final profile = ref.watch(profileByIdProvider(player.rateeId)).valueOrNull;
-    final avatarUrl = profile?.avatarUrl;
-    final rated = player.votes > 0;
-    final scoreColor = player.avgScore >= 8
-        ? t.accent
-        : (player.avgScore >= 6 ? t.ink : t.danger);
-    final stars = player.avgScore / 2.0;
-
-    final ratingsAsync = ref.watch(
-      _playerRatingsForMatchProvider((matchId: match.id, rateeId: player.rateeId)),
-    );
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.only(bottom: 32),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(4, 8, 16, 0),
-            child: Row(
-              children: [
-                IconButton(
-                  icon: Icon(Icons.arrow_back_ios_new, size: 18, color: t.ink),
-                  onPressed: onBack,
-                ),
-                Text(
-                  l.event_rating_player_detail,
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: t.ink),
-                ),
-              ],
-            ),
-          ),
-
-          Container(
-            margin: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  HSLColor.fromAHSL(1, 150, 0.25, 0.18).toColor(),
-                  HSLColor.fromAHSL(1, 150, 0.10, 0.12).toColor(),
-                ],
-              ),
-              border: Border.all(color: t.line),
-              borderRadius: BorderRadius.circular(t.r3),
-            ),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    _LargeAvatar(url: avatarUrl, name: player.name, rank: 0),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            player.name,
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: t.ink),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            [
-                              if (player.position != null) player.position!,
-                              if (player.goals > 0) '${player.goals} ${l.match_rating_goals_short}',
-                              if (player.assists > 0) '${player.assists} ${l.match_rating_assists_short}',
-                            ].join(' · '),
-                            style: TextStyle(fontSize: 12, color: t.inkSub),
-                          ),
-                        ],
-                      ),
-                    ),
-                    if (rated)
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          N(
-                            player.avgScore.toStringAsFixed(1),
-                            size: 40,
-                            weight: FontWeight.w800,
-                            color: scoreColor,
-                          ),
-                          const SizedBox(height: 4),
-                          _StarRow(stars: stars, size: 14),
-                          const SizedBox(height: 4),
-                          Label(l.match_rating_n_voted(player.votes)),
-                        ],
-                      )
-                    else
-                      Text(
-                        l.match_rating_not_rated,
-                        style: TextStyle(fontSize: 13, color: t.inkDim, fontWeight: FontWeight.w500),
-                      ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-
-          // Score distribution
-          ratingsAsync.when(
-            loading: () => const _GoalsLoading(),
-            error: (e, _) => _GoalsError(error: e),
-            data: (ratings) => _PlayerScoreDist(ratings: ratings),
-          ),
-
-          // Reviews list
-          ratingsAsync.when(
-            loading: () => const SizedBox.shrink(),
-            error: (_, __) => const SizedBox.shrink(),
-            data: (ratings) => _ReviewsList(ratings: ratings),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _PlayerScoreDist extends StatelessWidget {
-  final List<Rating> ratings;
-  const _PlayerScoreDist({required this.ratings});
-
-  @override
-  Widget build(BuildContext context) {
-    final l = context.l10n;
-    final t = context.tokens;
-
-    // Build 5-star distribution (10-scale → 5-star: score/2 rounded)
-    final dist = List<int>.filled(6, 0); // index 0=unused, 1-5 stars
-    for (final r in ratings) {
-      final starBucket = (r.score / 2.0).round().clamp(1, 5);
-      dist[starBucket]++;
-    }
-    final maxCount = dist.reduce((a, b) => a > b ? a : b);
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.bar_chart_rounded, size: 16, color: t.accent),
-              const SizedBox(width: 8),
-              Text(
-                l.match_rating_score_dist,
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: t.ink),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: t.elev2,
-              border: Border.all(color: t.line),
-              borderRadius: BorderRadius.circular(t.r2),
-            ),
-            child: Column(
-              children: [
-                for (int star = 5; star >= 1; star--)
-                  Padding(
-                    padding: EdgeInsets.only(bottom: star > 1 ? 8 : 0),
-                    child: Row(
-                      children: [
-                        SizedBox(
-                          width: 20,
-                          child: Text(
-                            '$star',
-                            style: TextStyle(
-                              fontFamily: t.fontMono,
-                              fontFamilyFallback: t.monoFallbacks,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: t.inkSub,
-                            ),
-                          ),
-                        ),
-                        Icon(Icons.star_rounded, size: 14, color: const Color(0xFFFFB800)),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Container(
-                            height: 10,
-                            decoration: BoxDecoration(
-                              color: t.elev3,
-                              borderRadius: BorderRadius.circular(5),
-                            ),
-                            clipBehavior: Clip.antiAlias,
-                            child: FractionallySizedBox(
-                              alignment: Alignment.centerLeft,
-                              widthFactor: maxCount > 0 ? dist[star] / maxCount : 0,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: star >= 4
-                                      ? t.accent
-                                      : star == 3
-                                          ? t.warn
-                                          : t.danger,
-                                  borderRadius: BorderRadius.circular(5),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        SizedBox(
-                          width: 24,
-                          child: Text(
-                            '${dist[star]}',
-                            textAlign: TextAlign.right,
-                            style: TextStyle(
-                              fontFamily: t.fontMono,
-                              fontFamilyFallback: t.monoFallbacks,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: t.inkDim,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
+// ─── Reviews list ───────────────────────────────────────────
 class _ReviewsList extends StatelessWidget {
   final List<Rating> ratings;
-  const _ReviewsList({required this.ratings});
+  final String matchId;
+  const _ReviewsList({required this.ratings, required this.matchId});
 
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
     final t = context.tokens;
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.people_outline, size: 16, color: t.accent),
-              const SizedBox(width: 8),
-              Text(
-                l.match_rating_all_reviews,
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: t.ink),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                decoration: BoxDecoration(
-                  color: t.accentSubtle,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  '${ratings.length}',
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: t.accent),
-                ),
-              ),
+    final avg = ratings.isEmpty
+        ? 0.0
+        : ratings.map((r) => r.score).reduce((a, b) => a + b) / ratings.length;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(l.match_rating_all_reviews, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: t.ink)),
+            const SizedBox(width: 6),
+            Text('${ratings.length}', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: t.inkDim)),
+            const Spacer(),
+            if (ratings.isNotEmpty) ...[
+              Text('均分', style: TextStyle(fontSize: 11, color: t.inkDim)),
+              const SizedBox(width: 6),
+              _ScoreBadge(score: avg, mini: true),
             ],
-          ),
-          const SizedBox(height: 12),
-          if (ratings.isEmpty)
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 24),
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: t.elev2,
-                border: Border.all(color: t.line),
-                borderRadius: BorderRadius.circular(t.r2),
-              ),
-              child: Column(
-                children: [
-                  Icon(Icons.rate_review_outlined, size: 28, color: t.inkMute),
-                  const SizedBox(height: 8),
-                  Text(l.match_rating_no_reviews, style: TextStyle(color: t.inkDim, fontSize: 12)),
-                ],
-              ),
-            )
-          else
-            for (final r in ratings)
-              _ReviewCard(rating: r),
-        ],
-      ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        if (ratings.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20),
+            child: Center(child: Text(l.match_rating_no_reviews, style: TextStyle(color: t.inkDim, fontSize: 12))),
+          )
+        else
+          for (final r in ratings) _ReviewRow(rating: r, matchId: matchId),
+      ],
     );
   }
 }
 
-class _ReviewCard extends ConsumerWidget {
+class _ReviewRow extends ConsumerWidget {
   final Rating rating;
-  const _ReviewCard({required this.rating});
+  final String matchId;
+  const _ReviewRow({required this.rating, required this.matchId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = context.tokens;
     final profile = ref.watch(profileByIdProvider(rating.raterId)).valueOrNull;
     final raterName = profile?.name ?? '匿名';
-    final stars = rating.score / 2.0;
-    final scoreColor = rating.score >= 8
-        ? t.accent
-        : (rating.score >= 6 ? t.ink : t.danger);
+    final likedIds = ref.watch(likedRatingIdsProvider(matchId)).valueOrNull ?? {};
+    final isLiked = likedIds.contains(rating.id);
+    final isMe = rating.raterId == currentUserId;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: t.elev2,
-        border: Border.all(color: t.line),
-        borderRadius: BorderRadius.circular(t.r2),
-      ),
-      child: Column(
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Rater info + score
-          Row(
-            children: [
-              Avatar(raterName, size: 28),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          Avatar(raterName, size: 28),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    Text(
-                      raterName,
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: t.ink),
-                    ),
-                    const SizedBox(height: 2),
-                    _StarRow(stars: stars, size: 11),
+                    Text(raterName, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: isMe ? t.accent : t.ink)),
+                    if (isMe) ...[
+                      const SizedBox(width: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: t.accentSubtle,
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                        child: Text('我', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: t.accent)),
+                      ),
+                    ],
+                    const Spacer(),
+                    _ScoreBadge(score: rating.score, mini: true),
                   ],
                 ),
-              ),
-              N(
-                rating.score.toStringAsFixed(1),
-                size: 18,
-                weight: FontWeight.w800,
-                color: scoreColor,
-              ),
-            ],
-          ),
-          // Comment text
-          if (rating.comment != null && rating.comment!.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Text(
-              rating.comment!,
-              style: TextStyle(fontSize: 13, color: t.ink, height: 1.5),
+                if (rating.comment != null && rating.comment!.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(rating.comment!, style: TextStyle(fontSize: 13, color: t.ink, height: 1.4)),
+                ],
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Text(_relativeTime(rating.createdAt), style: TextStyle(fontSize: 10, color: t.inkDim)),
+                    const Spacer(),
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () async {
+                        await ref.read(ratingsRepoProvider).toggleLike(rating.id);
+                        ref.invalidate(likedRatingIdsProvider(matchId));
+                        ref.invalidate(_playerRatingsForMatchProvider(
+                          (matchId: rating.matchId, rateeId: rating.rateeId),
+                        ));
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 2),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              isLiked ? Icons.favorite : Icons.favorite_border,
+                              size: 14,
+                              color: isLiked ? t.danger : t.inkDim,
+                            ),
+                            if (rating.likes > 0) ...[
+                              const SizedBox(width: 3),
+                              Text(
+                                '${rating.likes}',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: isLiked ? t.danger : t.inkDim,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ],
-          // Time
-          const SizedBox(height: 6),
-          Text(
-            _relativeTime(rating.createdAt),
-            style: TextStyle(fontSize: 10, color: t.inkDim),
           ),
         ],
       ),
@@ -1812,18 +2025,168 @@ String _relativeTime(DateTime dt) {
 }
 
 // ═════════════════════════════════════════════════════════════
-// TAB 4: Discussion — placeholder for match chat
+// TAB 4: Discussion — match comments
 // ═════════════════════════════════════════════════════════════
-class _DiscussionTab extends StatelessWidget {
+class _DiscussionTab extends ConsumerStatefulWidget {
   final Match match;
   const _DiscussionTab({required this.match});
 
   @override
+  ConsumerState<_DiscussionTab> createState() => _DiscussionTabState();
+}
+
+class _DiscussionTabState extends ConsumerState<_DiscussionTab> {
+  final _ctrl = TextEditingController();
+  bool _sending = false;
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _send() async {
+    final l = context.l10n;
+    final text = _ctrl.text.trim();
+    if (text.isEmpty) {
+      showToast(context, l.comment_empty_toast, info: true);
+      return;
+    }
+    if (!isSignedIn) {
+      showToast(context, l.comment_login_required, info: true);
+      return;
+    }
+    setState(() => _sending = true);
+    try {
+      await ref.read(commentsRepoProvider).add(
+            targetType: 'match',
+            targetId: widget.match.id,
+            body: text,
+          );
+      _ctrl.clear();
+      ref.invalidate(commentsProvider((type: 'match', id: widget.match.id)));
+    } catch (_) {
+      if (mounted) {
+        showToast(context, l.comment_send_failed, error: true);
+      }
+    } finally {
+      if (mounted) setState(() => _sending = false);
+    }
+  }
+
+  Future<void> _toggleLike(Comment c) async {
+    if (!isSignedIn) return;
+    await ref.read(likesRepoProvider).toggle('match_comment', c.id);
+    ref.invalidate(commentsProvider((type: 'match', id: widget.match.id)));
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l = context.l10n;
-    return _EmptyTab(
-      icon: Icons.forum_outlined,
-      text: l.match_discussion_not_open,
+    final t = context.tokens;
+    final commentsAsync = ref.watch(
+      commentsProvider((type: 'match', id: widget.match.id)),
+    );
+
+    return Column(
+      children: [
+        Expanded(
+          child: commentsAsync.when(
+            data: (list) => list.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.forum_outlined,
+                            size: 48, color: t.inkMute),
+                        const SizedBox(height: 12),
+                        Text(l.match_no_comments,
+                            style:
+                                TextStyle(fontSize: 13, color: t.inkDim)),
+                      ],
+                    ),
+                  )
+                : ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+                    itemCount: list.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 16),
+                    itemBuilder: (_, i) => _MatchCommentTile(
+                      comment: list[i],
+                      onLike: () => _toggleLike(list[i]),
+                    ),
+                  ),
+            loading: () => Center(
+              child: CircularProgressIndicator(color: t.accent),
+            ),
+            error: (_, __) => Center(
+              child: Text(l.error_load_failed,
+                  style: TextStyle(fontSize: 13, color: t.inkSub)),
+            ),
+          ),
+        ),
+        RichInput(
+          controller: _ctrl,
+          onSend: _send,
+          sending: _sending,
+          hintText: l.comment_hint,
+        ),
+      ],
+    );
+  }
+}
+
+class _MatchCommentTile extends StatelessWidget {
+  final Comment comment;
+  final VoidCallback onLike;
+  const _MatchCommentTile({required this.comment, required this.onLike});
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        GestureDetector(
+          onTap: comment.authorId != null
+              ? () => context.push('/user/${comment.authorId}')
+              : null,
+          child: Avatar(comment.authorName, size: 34),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(comment.authorName,
+                        style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: t.ink)),
+                  ),
+                  Text(comment.displayTime,
+                      style: TextStyle(fontSize: 10, color: t.inkMute)),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(comment.body,
+                  style: TextStyle(
+                      fontSize: 14, color: t.ink, height: 1.5)),
+              const SizedBox(height: 6),
+              GestureDetector(
+                onTap: onLike,
+                child: InteractionBtn(
+                  icon: Icons.favorite_border,
+                  label: comment.likes > 0 ? '${comment.likes}' : '',
+                  color: t.inkMute,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -1849,11 +2212,18 @@ class _BottomCtaAreaState extends ConsumerState<_BottomCtaArea> {
   bool _starting = false;
 
   Future<void> _startMatch() async {
+    final match = widget.match;
+    if (match.teamAId == null && match.teamALabel == null ||
+        match.teamBId == null && match.teamBLabel == null) {
+      showToast(context, context.l10n.match_start_needs_teams, error: true);
+      return;
+    }
     setState(() => _starting = true);
     try {
-      await ref.read(eventsRepoProvider).startMatch(widget.match.id);
+      await ref.read(eventsRepoProvider).startMatch(match.id);
       if (!mounted) return;
-      context.push('/event/${widget.eventId}/match/${widget.match.id}/live');
+      ref.invalidate(eventMatchesProvider(widget.eventId));
+      context.push('/event/${widget.eventId}/match/${match.id}/control');
     } catch (e) {
       if (!mounted) return;
       showToast(context, '$e', error: true);
@@ -1929,15 +2299,16 @@ class _BottomCtaAreaState extends ConsumerState<_BottomCtaArea> {
     }
 
     if (widget.status == MatchStatus.live) {
+      final route = isOrganizer
+          ? '/event/${widget.eventId}/match/${widget.match.id}/control'
+          : '/event/${widget.eventId}/match/${widget.match.id}/live';
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: PrimaryButton(
-          label: l.live_room_join,
+          label: isOrganizer ? l.match_control_title : l.live_room_join,
           full: true,
           size: BtnSize.lg,
-          onPressed: () => context.push(
-            '/event/${widget.eventId}/match/${widget.match.id}/live',
-          ),
+          onPressed: () => context.push(route),
         ),
       );
     }

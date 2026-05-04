@@ -943,6 +943,12 @@ class AppL10nEn extends AppL10n {
   String get live_room_camera_off => 'Camera off';
 
   @override
+  String get match_control_title => 'Match Control';
+
+  @override
+  String get match_control_start_live => 'Start Live Stream';
+
+  @override
   String get match_control_score => 'Score';
 
   @override
@@ -2747,6 +2753,10 @@ class AppL10nEn extends AppL10n {
   String get match_cta_view_ratings => 'View match ratings';
 
   @override
+  String get match_start_needs_teams =>
+      'Please assign both teams before starting';
+
+  @override
   String get match_cta_remind => 'Remind me';
 
   @override
@@ -2804,6 +2814,9 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get match_discussion_not_open => 'Discussion coming soon';
+
+  @override
+  String get match_no_comments => 'No comments yet — be the first!';
 
   @override
   String get match_rating_goals_short => 'Goals';

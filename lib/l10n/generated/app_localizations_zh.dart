@@ -931,6 +931,12 @@ class AppL10nZh extends AppL10n {
   String get live_room_camera_off => '摄像头已关闭';
 
   @override
+  String get match_control_title => '比赛管控';
+
+  @override
+  String get match_control_start_live => '开启直播';
+
+  @override
   String get match_control_score => '记分';
 
   @override
@@ -2712,6 +2718,9 @@ class AppL10nZh extends AppL10n {
   String get match_cta_view_ratings => '查看本场评分';
 
   @override
+  String get match_start_needs_teams => '请先为比赛分配两支队伍';
+
+  @override
   String get match_cta_remind => '赛前提醒';
 
   @override
@@ -2769,6 +2778,9 @@ class AppL10nZh extends AppL10n {
 
   @override
   String get match_discussion_not_open => '讨论区即将上线';
+
+  @override
+  String get match_no_comments => '还没有评论，来说两句吧';
 
   @override
   String get match_rating_goals_short => '进球';
