@@ -1,5 +1,7 @@
 // providers.dart — Riverpod providers (Supabase-backed).
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:livekit_client/livekit_client.dart';
 
 import 'models/article.dart';
 import 'models/comment.dart';
@@ -755,4 +757,30 @@ final venueOwnerBookingsProvider =
   if (uid == null) return [];
   return ref.read(venuesRepoProvider).bookingsForOwner(uid);
 });
+
+// ─────────────────────────────────────────────────────────────
+// Live stream (LiveKit) — room survives page navigation
+// ─────────────────────────────────────────────────────────────
+
+class LiveStreamManager extends ChangeNotifier {
+  Room? _room;
+
+  bool get isActive => _room != null;
+  Room? get room => _room;
+
+  void setRoom(Room room) {
+    _room = room;
+    notifyListeners();
+  }
+
+  Future<void> stop() async {
+    await _room?.disconnect();
+    _room = null;
+    notifyListeners();
+  }
+}
+
+final liveStreamProvider = ChangeNotifierProvider<LiveStreamManager>(
+  (_) => LiveStreamManager(),
+);
 

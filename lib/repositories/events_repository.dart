@@ -207,8 +207,15 @@ class EventsRepository {
     await supabase.from('matches').update({
       'status': 'live',
       'is_live': true,
+      'paused': false,
       'started_at': DateTime.now().toUtc().toIso8601String(),
       'livekit_room': 'match_$matchId',
+    }).eq('id', matchId);
+  }
+
+  Future<void> setMatchPaused(String matchId, bool paused) async {
+    await supabase.from('matches').update({
+      'paused': paused,
     }).eq('id', matchId);
   }
 

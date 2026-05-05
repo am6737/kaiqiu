@@ -559,6 +559,9 @@ class AppL10nZh extends AppL10n {
   String get manage_register_on_behalf => '代队报名';
 
   @override
+  String get manage_edit_matches => '管理赛程';
+
+  @override
   String get manage_status_completed_label => '赛事已结束';
 
   @override
@@ -935,6 +938,24 @@ class AppL10nZh extends AppL10n {
 
   @override
   String get match_control_start_live => '开启直播';
+
+  @override
+  String get match_control_stop_live => '停止直播';
+
+  @override
+  String get match_control_live_hint => '直播在后台继续运行，返回即可';
+
+  @override
+  String get match_control_live_section => '直播';
+
+  @override
+  String get match_control_match_section => '比赛';
+
+  @override
+  String get match_control_pause => '暂停比赛';
+
+  @override
+  String get match_control_resume => '继续比赛';
 
   @override
   String get match_control_score => '记分';

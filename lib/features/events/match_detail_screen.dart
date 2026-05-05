@@ -2299,16 +2299,28 @@ class _BottomCtaAreaState extends ConsumerState<_BottomCtaArea> {
     }
 
     if (widget.status == MatchStatus.live) {
-      final route = isOrganizer
-          ? '/event/${widget.eventId}/match/${widget.match.id}/control'
-          : '/event/${widget.eventId}/match/${widget.match.id}/live';
+      if (isOrganizer) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: PrimaryButton(
+            label: l.match_control_title,
+            full: true,
+            size: BtnSize.lg,
+            onPressed: () => context.push(
+              '/event/${widget.eventId}/match/${widget.match.id}/control',
+            ),
+          ),
+        );
+      }
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: PrimaryButton(
-          label: isOrganizer ? l.match_control_title : l.live_room_join,
+          label: l.event_cta_watch_live,
           full: true,
           size: BtnSize.lg,
-          onPressed: () => context.push(route),
+          onPressed: () => context.push(
+            '/event/${widget.eventId}/match/${widget.match.id}/live',
+          ),
         ),
       );
     }

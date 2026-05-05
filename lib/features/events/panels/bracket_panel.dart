@@ -244,13 +244,7 @@ class MatchCard extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () {
-            if (m.status == MatchStatus.live) {
-              context.push('/event/$eventId/match/${m.id}/live');
-            } else {
-              context.push('/event/$eventId/match/${m.id}');
-            }
-          },
+          onTap: () => context.push('/event/$eventId/match/${m.id}'),
           child: Padding(
             padding: EdgeInsets.all(isFinal ? 0 : 10),
             child: Column(

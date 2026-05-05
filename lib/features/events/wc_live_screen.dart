@@ -1,9 +1,10 @@
-// wc_live_screen.dart — 世界杯直播（真实 HLS 流 + 弹幕）
+// wc_live_screen.dart — 直播观赛页（赛事 LiveKit 流 / 世界杯 HLS 流 + 弹幕）
 import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:livekit_client/livekit_client.dart';
 
 import '../../l10n/l10n_extension.dart';
 import '../../models/external_match.dart';
@@ -43,6 +44,12 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
   String _teamB = '';
   String? _flagA;
   String? _flagB;
+  bool _isEventMatch = false;
+
+  // LiveKit for event matches (viewer-only, no camera/mic).
+  Room? _lkRoom;
+  EventsListener<RoomEvent>? _lkListener;
+  bool _lkConnecting = false;
 
   @override
   void initState() {
@@ -55,6 +62,30 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
   }
 
   Future<void> _loadMatch() async {
+    // Try matches table first (event match with LiveKit stream).
+    try {
+      final mRow = await supabase
+          .from('matches')
+          .select('id, event_id, team_a_label, team_b_label, score_a, score_b, minute, viewers')
+          .eq('id', widget.matchId)
+          .maybeSingle();
+      if (mRow != null && mounted) {
+        final minute = mRow['minute'];
+        setState(() {
+          _isEventMatch = true;
+          _teamA = (mRow['team_a_label'] as String?) ?? '';
+          _teamB = (mRow['team_b_label'] as String?) ?? '';
+          _scoreA = (mRow['score_a'] as int?) ?? 0;
+          _scoreB = (mRow['score_b'] as int?) ?? 0;
+          _minute = minute != null ? "$minute'" : '';
+          _viewers = (mRow['viewers'] as int?) ?? 0;
+        });
+        _connectLiveKit();
+        return;
+      }
+    } catch (_) {}
+
+    // Fallback: external_matches table (World Cup HLS stream).
     try {
       final row = await supabase
           .from('external_matches')
@@ -64,6 +95,7 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
       if (row == null || !mounted) return;
       final m = ExternalMatch.fromMap(row);
       setState(() {
+        _isEventMatch = false;
         _scoreA = m.scoreA ?? 0;
         _scoreB = m.scoreB ?? 0;
         _minute = m.minute ?? '';
@@ -76,11 +108,42 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
     } catch (_) {}
   }
 
+  Future<void> _connectLiveKit() async {
+    if (_lkRoom != null || _lkConnecting) return;
+    _lkConnecting = true;
+    try {
+      final tokenData =
+          await ref.read(livekitTokenProvider(widget.matchId).future);
+      final room = Room(
+        roomOptions: const RoomOptions(
+          adaptiveStream: true,
+          dynacast: true,
+        ),
+      );
+      _lkListener = room.createListener();
+      _lkListener!
+        ..on<TrackSubscribedEvent>((_) { if (mounted) setState(() {}); })
+        ..on<TrackUnsubscribedEvent>((_) { if (mounted) setState(() {}); })
+        ..on<ParticipantConnectedEvent>((_) { if (mounted) setState(() {}); })
+        ..on<ParticipantDisconnectedEvent>((_) { if (mounted) setState(() {}); });
+      await room.connect(tokenData.wsUrl, tokenData.token);
+      if (!mounted) { await room.disconnect(); return; }
+      setState(() {
+        _lkRoom = room;
+        _lkConnecting = false;
+        _viewers = room.remoteParticipants.length + 1;
+      });
+    } catch (_) {
+      if (mounted) setState(() => _lkConnecting = false);
+    }
+  }
+
   @override
   void dispose() {
     _tickTimer.cancel();
     _inputC.dispose();
     _danmuController.close();
+    _lkListener?.dispose();
     super.dispose();
   }
 
@@ -154,62 +217,159 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
               height: 240,
               child: Stack(
                 children: [
-                  LiveStreamPlayer(
-                    height: 240,
-                    scoreOverlay: scoreOverlay,
-                    danmakuStream: _danmuController.stream,
-                    danmakuEnabled: _danmakuOn,
-                    topLeft: _BackButton(onTap: () => context.pop()),
-                    topRight: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _DanmakuToggleButton(
-                          on: _danmakuOn,
-                          label: _danmakuOn
-                              ? l.wc_btn_danmaku_on
-                              : l.wc_btn_danmaku_off,
-                          onTap: () async {
-                            final next = !_danmakuOn;
-                            setState(() => _danmakuOn = next);
-                            await LocalStore.setDanmakuEnabled(next);
-                          },
-                        ),
-                        const SizedBox(width: 8),
-                        _ReminderButton(
-                          hasReminder: hasReminder,
-                          label: l.wc_btn_remind,
-                          onTap: () => _showReminderSheet(context),
-                        ),
-                      ],
+                  // Video source: LiveKit for event matches, HLS for WC.
+                  if (_isEventMatch)
+                    _LiveKitVideoArea(
+                      room: _lkRoom,
+                      connecting: _lkConnecting,
+                    )
+                  else
+                    LiveStreamPlayer(
+                      height: 240,
+                      scoreOverlay: scoreOverlay,
+                      danmakuStream: _danmuController.stream,
+                      danmakuEnabled: _danmakuOn,
+                      topLeft: _BackButton(onTap: () => context.pop()),
+                      topRight: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _DanmakuToggleButton(
+                            on: _danmakuOn,
+                            label: _danmakuOn
+                                ? l.wc_btn_danmaku_on
+                                : l.wc_btn_danmaku_off,
+                            onTap: () async {
+                              final next = !_danmakuOn;
+                              setState(() => _danmakuOn = next);
+                              await LocalStore.setDanmakuEnabled(next);
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                          _ReminderButton(
+                            hasReminder: hasReminder,
+                            label: l.wc_btn_remind,
+                            onTap: () => _showReminderSheet(context),
+                          ),
+                        ],
+                      ),
+                      bottomLeftOverlay: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const LivePill(),
+                          const SizedBox(width: 6),
+                          Label('$_minute\'', color: Colors.white),
+                        ],
+                      ),
+                      bottomRightOverlay: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.remove_red_eye, size: 14,
+                              color: Colors.white.withValues(alpha: 0.85)),
+                          const SizedBox(width: 4),
+                          Text(l.wc_live_viewer_count(viewerStr),
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600)),
+                        ],
+                      ),
                     ),
-                    bottomLeftOverlay: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const LivePill(),
-                        const SizedBox(width: 6),
-                        Label('$_minute\'', color: Colors.white),
-                      ],
-                    ),
-                    bottomRightOverlay: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.remove_red_eye,
-                          size: 14,
-                          color: Colors.white.withValues(alpha: 0.85),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          l.wc_live_viewer_count(viewerStr),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
+                  // Shared overlays for event matches.
+                  if (_isEventMatch) ...[
+                    // Dim scrim.
+                    const Positioned.fill(
+                      child: IgnorePointer(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Color(0x66000000),
+                                Color(0x00000000),
+                                Color(0x66000000),
+                              ],
+                              stops: [0, 0.45, 1],
+                            ),
                           ),
                         ),
-                      ],
+                      ),
                     ),
-                  ),
+                    // Scoreboard chip.
+                    Positioned(
+                      top: 44,
+                      left: 0,
+                      right: 0,
+                      child: Center(
+                        child: _ScoreboardChip(text: scoreOverlay),
+                      ),
+                    ),
+                    // Top-left back.
+                    Positioned(
+                      top: 40,
+                      left: 12,
+                      child: _BackButton(onTap: () => context.pop()),
+                    ),
+                    // Top-right controls.
+                    Positioned(
+                      top: 40,
+                      right: 12,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _DanmakuToggleButton(
+                            on: _danmakuOn,
+                            label: _danmakuOn
+                                ? l.wc_btn_danmaku_on
+                                : l.wc_btn_danmaku_off,
+                            onTap: () async {
+                              final next = !_danmakuOn;
+                              setState(() => _danmakuOn = next);
+                              await LocalStore.setDanmakuEnabled(next);
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                          _ReminderButton(
+                            hasReminder: hasReminder,
+                            label: l.wc_btn_remind,
+                            onTap: () => _showReminderSheet(context),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Bottom-left LIVE + minute.
+                    Positioned(
+                      bottom: 10,
+                      left: 14,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const LivePill(),
+                          const SizedBox(width: 6),
+                          Label('$_minute\'', color: Colors.white),
+                        ],
+                      ),
+                    ),
+                    // Bottom-right viewers.
+                    Positioned(
+                      bottom: 10,
+                      right: 14,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.remove_red_eye, size: 14,
+                              color: Colors.white.withValues(alpha: 0.85)),
+                          const SizedBox(width: 4),
+                          Text(l.wc_live_viewer_count(viewerStr),
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600)),
+                        ],
+                      ),
+                    ),
+                  ],
+                  // Danmaku overlay (both match types).
                   Positioned.fill(
                     child: IgnorePointer(
                       child: DanmakuOverlay(
@@ -311,7 +471,6 @@ class _WcLiveScreenState extends ConsumerState<WcLiveScreen> {
                 ],
               ),
             ),
-            // Prediction strip — tap to open bottom sheet.
             LivePredictStrip(
               matchId: widget.matchId,
               homeLabel: _teamA,
@@ -684,6 +843,130 @@ class _ReminderOption extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+// ── LiveKit video area for event matches ──
+class _LiveKitVideoArea extends StatelessWidget {
+  final Room? room;
+  final bool connecting;
+  const _LiveKitVideoArea({required this.room, required this.connecting});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF0E1712), Color(0xFF050808)],
+        ),
+      ),
+      child: _buildContent(context),
+    );
+  }
+
+  Widget _buildContent(BuildContext context) {
+    if (connecting || room == null) {
+      return const Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 26,
+              height: 26,
+              child: CircularProgressIndicator(
+                strokeWidth: 2.4,
+                color: Colors.white70,
+              ),
+            ),
+            SizedBox(height: 10),
+            Text('Connecting…',
+                style: TextStyle(color: Colors.white70, fontSize: 12)),
+          ],
+        ),
+      );
+    }
+
+    VideoTrack? bestTrack;
+    for (final p in room!.remoteParticipants.values) {
+      for (final pub in p.videoTrackPublications) {
+        if (pub.track != null && !pub.muted) {
+          bestTrack = pub.track as VideoTrack;
+          break;
+        }
+      }
+      if (bestTrack != null) break;
+    }
+
+    if (bestTrack != null) {
+      return FittedBox(
+        fit: BoxFit.cover,
+        child: SizedBox(
+          width: 640,
+          height: 360,
+          child: VideoTrackRenderer(bestTrack),
+        ),
+      );
+    }
+
+    return const Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.videocam_off, color: Colors.white38, size: 40),
+          SizedBox(height: 8),
+          Text('Waiting for stream…',
+              style: TextStyle(color: Colors.white54, fontSize: 13)),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Scoreboard chip (copied from live_stream_player.dart) ──
+class _ScoreboardChip extends StatelessWidget {
+  final String text;
+  const _ScoreboardChip({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: const Color(0xAA000000),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: const Color(0x33FFFFFF), width: 0.5),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(
+              color: context.tokens.accent,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(color: context.tokens.accent, blurRadius: 6),
+              ],
+            ),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            text,
+            style: TextStyle(
+              fontFamily: context.tokens.fontMono,
+              fontFamilyFallback: context.tokens.monoFallbacks,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+              letterSpacing: 0.4,
+            ),
+          ),
+        ],
       ),
     );
   }

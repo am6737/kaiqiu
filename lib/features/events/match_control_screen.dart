@@ -27,6 +27,7 @@ class _MatchControlScreenState extends ConsumerState<MatchControlScreen> {
   int _scoreA = 0;
   int _scoreB = 0;
   int _minute = 0;
+  bool _paused = false;
   bool _synced = false;
   bool _busy = false;
 
@@ -35,7 +36,10 @@ class _MatchControlScreenState extends ConsumerState<MatchControlScreen> {
       _scoreA = match.scoreA ?? 0;
       _scoreB = match.scoreB ?? 0;
       _minute = match.minute ?? 0;
+      _paused = match.paused;
       _synced = true;
+    } else {
+      _paused = match.paused;
     }
   }
 
@@ -47,6 +51,18 @@ class _MatchControlScreenState extends ConsumerState<MatchControlScreen> {
             scoreB: _scoreB,
             minute: _minute,
           );
+    } catch (e) {
+      if (mounted) showToast(context, '$e', error: true);
+    }
+  }
+
+  Future<void> _togglePause() async {
+    final next = !_paused;
+    try {
+      await ref
+          .read(eventsRepoProvider)
+          .setMatchPaused(widget.matchId, next);
+      if (mounted) setState(() => _paused = next);
     } catch (e) {
       if (mounted) showToast(context, '$e', error: true);
     }
@@ -123,6 +139,7 @@ class _MatchControlScreenState extends ConsumerState<MatchControlScreen> {
   Widget build(BuildContext context) {
     final t = context.tokens;
     final matchAsync = ref.watch(matchRealtimeProvider(widget.matchId));
+    final liveMgr = ref.watch(liveStreamProvider);
 
     return Scaffold(
       backgroundColor: t.bg,
@@ -139,7 +156,9 @@ class _MatchControlScreenState extends ConsumerState<MatchControlScreen> {
             scoreA: _scoreA,
             scoreB: _scoreB,
             minute: _minute,
+            paused: _paused,
             busy: _busy,
+            isLiveActive: liveMgr.isActive,
             onScoreA: (delta) {
               final next = _scoreA + delta;
               if (next < 0) return;
@@ -158,9 +177,11 @@ class _MatchControlScreenState extends ConsumerState<MatchControlScreen> {
               setState(() => _minute = next);
               _pushScore();
             },
+            onTogglePause: _togglePause,
             onStartLive: () => context.push(
               '/event/${widget.eventId}/match/${widget.matchId}/live',
             ),
+            onStopLive: () => ref.read(liveStreamProvider).stop(),
             onEndMatch: _endMatch,
           );
         },
@@ -174,11 +195,15 @@ class _Body extends StatelessWidget {
   final int scoreA;
   final int scoreB;
   final int minute;
+  final bool paused;
   final bool busy;
+  final bool isLiveActive;
   final ValueChanged<int> onScoreA;
   final ValueChanged<int> onScoreB;
   final ValueChanged<int> onMinute;
+  final VoidCallback onTogglePause;
   final VoidCallback onStartLive;
+  final VoidCallback onStopLive;
   final VoidCallback onEndMatch;
 
   const _Body({
@@ -186,11 +211,15 @@ class _Body extends StatelessWidget {
     required this.scoreA,
     required this.scoreB,
     required this.minute,
+    required this.paused,
     required this.busy,
+    required this.isLiveActive,
     required this.onScoreA,
     required this.onScoreB,
     required this.onMinute,
+    required this.onTogglePause,
     required this.onStartLive,
+    required this.onStopLive,
     required this.onEndMatch,
   });
 
@@ -206,6 +235,7 @@ class _Body extends StatelessWidget {
           scoreA: scoreA,
           scoreB: scoreB,
           minute: minute,
+          paused: paused,
         ),
         Expanded(
           child: SingleChildScrollView(
@@ -222,21 +252,67 @@ class _Body extends StatelessWidget {
                 ),
                 const SizedBox(height: 28),
                 _MinuteSection(minute: minute, onMinute: onMinute),
-                const SizedBox(height: 36),
+                const SizedBox(height: 24),
+                // ── 暂停 / 继续 ──
                 PrimaryButton(
+                  label: paused ? l.match_control_resume : l.match_control_pause,
                   full: true,
                   size: BtnSize.lg,
-                  variant: BtnVariant.secondary,
-                  onPressed: onStartLive,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.videocam, size: 18, color: t.accent),
-                      const SizedBox(width: 8),
-                      Text(l.match_control_start_live),
-                    ],
-                  ),
+                  variant:
+                      paused ? BtnVariant.primary : BtnVariant.secondary,
+                  onPressed: onTogglePause,
                 ),
+                const SizedBox(height: 24),
+                // ── 直播控制（独立于比赛结束）──
+                _SectionLabel(text: l.match_control_live_section),
+                const SizedBox(height: 12),
+                if (isLiveActive) ...[
+                  PrimaryButton(
+                    label: l.match_control_stop_live,
+                    full: true,
+                    size: BtnSize.lg,
+                    variant: BtnVariant.warn,
+                    onPressed: onStopLive,
+                  ),
+                  const SizedBox(height: 8),
+                  PrimaryButton(
+                    full: true,
+                    size: BtnSize.lg,
+                    variant: BtnVariant.secondary,
+                    onPressed: onStartLive,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.videocam, size: 18, color: t.accent),
+                        const SizedBox(width: 8),
+                        Text(l.match_control_start_live),
+                      ],
+                    ),
+                  ),
+                ] else ...[
+                  PrimaryButton(
+                    full: true,
+                    size: BtnSize.lg,
+                    variant: BtnVariant.secondary,
+                    onPressed: onStartLive,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.videocam, size: 18, color: t.accent),
+                        const SizedBox(width: 8),
+                        Text(l.match_control_start_live),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    l.match_control_live_hint,
+                    style: TextStyle(fontSize: 11, color: t.inkSub),
+                  ),
+                ],
+                const SizedBox(height: 28),
+                // ── 比赛控制 ──
+                _SectionLabel(text: l.match_control_match_section),
                 const SizedBox(height: 12),
                 PrimaryButton(
                   label: l.match_control_end_match,
@@ -260,12 +336,14 @@ class _Header extends StatelessWidget {
   final int scoreA;
   final int scoreB;
   final int minute;
+  final bool paused;
 
   const _Header({
     required this.match,
     required this.scoreA,
     required this.scoreB,
     required this.minute,
+    required this.paused,
   });
 
   @override
@@ -308,20 +386,30 @@ class _Header extends StatelessWidget {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFEF4444).withValues(alpha: 0.2),
+                      color: paused
+                          ? const Color(0xFFF59E0B).withValues(alpha: 0.2)
+                          : const Color(0xFFEF4444).withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(4),
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.circle, size: 6, color: Color(0xFFEF4444)),
-                        SizedBox(width: 4),
+                        Icon(
+                          paused ? Icons.pause_circle : Icons.circle,
+                          size: 6,
+                          color: paused
+                              ? const Color(0xFFF59E0B)
+                              : const Color(0xFFEF4444),
+                        ),
+                        const SizedBox(width: 4),
                         Text(
-                          'LIVE',
+                          paused ? 'PAUSED' : 'LIVE',
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
-                            color: Color(0xFFEF4444),
+                            color: paused
+                                ? const Color(0xFFF59E0B)
+                                : const Color(0xFFEF4444),
                           ),
                         ),
                       ],
@@ -607,6 +695,26 @@ class _MinuteSection extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _SectionLabel extends StatelessWidget {
+  final String text;
+  const _SectionLabel({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: context.tokens.inkSub,
+        ),
+      ),
     );
   }
 }

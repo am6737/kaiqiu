@@ -114,6 +114,7 @@ class Match {
   final DateTime? startedAt;
   final DateTime? endedAt;
   final int? minute;
+  final bool paused;
   final int viewers;
 
   const Match({
@@ -133,6 +134,7 @@ class Match {
     this.startedAt,
     this.endedAt,
     this.minute,
+    this.paused = false,
     this.viewers = 0,
   });
 
@@ -154,6 +156,7 @@ class Match {
       startedAt: m['started_at'] != null ? DateTime.parse(m['started_at']) : null,
       endedAt: m['ended_at'] != null ? DateTime.parse(m['ended_at']) : null,
       minute: _toInt(m['minute']),
+      paused: (m['paused'] as bool?) ?? false,
       viewers: _toInt(m['viewers']) ?? 0,
     );
   }

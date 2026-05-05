@@ -93,15 +93,27 @@ class _StatusCard extends ConsumerWidget {
           ),
         );
       case EventStatus.ongoing:
-        return _buildActionRow(
-          context,
-          statusText: _statusLabel(context, event.status),
-          button: PrimaryButton(
-            label: l.event_complete,
-            variant: BtnVariant.warn,
-            size: BtnSize.sm,
-            onPressed: () => _completeEvent(context, ref),
-          ),
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildActionRow(
+              context,
+              statusText: _statusLabel(context, event.status),
+              button: PrimaryButton(
+                label: l.manage_edit_matches,
+                variant: BtnVariant.primary,
+                size: BtnSize.sm,
+                onPressed: () => context.push('/event/${event.id}/schedule'),
+              ),
+            ),
+            const SizedBox(height: 8),
+            PrimaryButton(
+              label: l.event_complete,
+              variant: BtnVariant.warn,
+              size: BtnSize.sm,
+              onPressed: () => _completeEvent(context, ref),
+            ),
+          ],
         );
       case EventStatus.completed:
         return _buildTerminalState(

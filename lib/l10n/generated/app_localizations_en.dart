@@ -566,6 +566,9 @@ class AppL10nEn extends AppL10n {
   String get manage_register_on_behalf => 'Register on Behalf';
 
   @override
+  String get manage_edit_matches => 'Edit Schedule';
+
+  @override
   String get manage_status_completed_label => 'Event completed';
 
   @override
@@ -947,6 +950,25 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get match_control_start_live => 'Start Live Stream';
+
+  @override
+  String get match_control_stop_live => 'Stop Live Stream';
+
+  @override
+  String get match_control_live_hint =>
+      'Stream runs in background when you return';
+
+  @override
+  String get match_control_live_section => 'Live';
+
+  @override
+  String get match_control_match_section => 'Match';
+
+  @override
+  String get match_control_pause => 'Pause';
+
+  @override
+  String get match_control_resume => 'Resume';
 
   @override
   String get match_control_score => 'Score';

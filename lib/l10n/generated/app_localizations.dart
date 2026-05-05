@@ -1153,6 +1153,12 @@ abstract class AppL10n {
   /// **'代队报名'**
   String get manage_register_on_behalf;
 
+  /// No description provided for @manage_edit_matches.
+  ///
+  /// In zh, this message translates to:
+  /// **'管理赛程'**
+  String get manage_edit_matches;
+
   /// No description provided for @manage_status_completed_label.
   ///
   /// In zh, this message translates to:
@@ -1878,6 +1884,42 @@ abstract class AppL10n {
   /// In zh, this message translates to:
   /// **'开启直播'**
   String get match_control_start_live;
+
+  /// No description provided for @match_control_stop_live.
+  ///
+  /// In zh, this message translates to:
+  /// **'停止直播'**
+  String get match_control_stop_live;
+
+  /// No description provided for @match_control_live_hint.
+  ///
+  /// In zh, this message translates to:
+  /// **'直播在后台继续运行，返回即可'**
+  String get match_control_live_hint;
+
+  /// No description provided for @match_control_live_section.
+  ///
+  /// In zh, this message translates to:
+  /// **'直播'**
+  String get match_control_live_section;
+
+  /// No description provided for @match_control_match_section.
+  ///
+  /// In zh, this message translates to:
+  /// **'比赛'**
+  String get match_control_match_section;
+
+  /// No description provided for @match_control_pause.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂停比赛'**
+  String get match_control_pause;
+
+  /// No description provided for @match_control_resume.
+  ///
+  /// In zh, this message translates to:
+  /// **'继续比赛'**
+  String get match_control_resume;
 
   /// No description provided for @match_control_score.
   ///

@@ -288,6 +288,7 @@ create table public.matches (
   pk_score text,                        -- '4-3' if penalties
   played_at timestamptz,
   is_live boolean default false,
+  paused boolean default false,
   minute int,
   viewers int default 0,
   poster_url text,

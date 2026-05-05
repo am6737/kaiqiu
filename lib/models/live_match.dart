@@ -15,7 +15,7 @@ class LiveMatch {
   final String teamB;
   final int scoreA;
   final int scoreB;
-  final String minute;
+  final int minute;
   final int viewers;
   final String? posterUrl;
 
@@ -31,6 +31,8 @@ class LiveMatch {
     this.posterUrl,
   });
 
+  String get minuteDisplay => "$minute'";
+
   String get viewersDisplay {
     if (viewers >= 1000) return '${(viewers / 1000).toStringAsFixed(0)}K';
     return '$viewers';
@@ -43,7 +45,7 @@ class LiveMatch {
     teamB: (m['team_b_label'] as String?) ?? '队伍B',
     scoreA: _toInt(m['score_a']) ?? 0,
     scoreB: _toInt(m['score_b']) ?? 0,
-    minute: (m['minute'] as String?) ?? '',
+    minute: _toInt(m['minute']) ?? 0,
     viewers: _toInt(m['viewers']) ?? 0,
     posterUrl: m['poster_url'] as String?,
   );
